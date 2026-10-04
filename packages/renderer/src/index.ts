@@ -1,9 +1,28 @@
 // @formsgen/renderer public entry point.
-// Phase 2: canonical schema types, core element semantics, tree helpers,
-// and the structural schema parser. Phase 3 adds the <FormsGenForm>
-// component plus validation and condition evaluation.
+import './styles.css'
 
 export const RENDERER_VERSION = '0.0.1'
+
+export { default as FormsGenForm } from './components/FormsGenForm.vue'
+
+export { evaluateRules, isEmptyValue, type FieldLookup, type RuleViolation } from './rules'
+
+export {
+  evaluateCondition,
+  getValueByPath,
+  isVisible,
+  type ValueLookup,
+} from './conditions'
+
+export {
+  collectVisibleFields,
+  joinPath,
+  pickVisibleData,
+  setValueByPath,
+  type VisibleField,
+} from './runtime'
+
+export { FORM_CONTEXT, type FormContext } from './context'
 
 export {
   NAME_PATTERN,
