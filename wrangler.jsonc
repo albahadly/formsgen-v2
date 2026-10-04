@@ -1,0 +1,16 @@
+{
+  "name": "formsgen-builder",
+  "compatibility_date": "2026-01-01",
+  "assets": {
+    "directory": "./apps/builder/dist",
+    "not_found_handling": "single-page-application"
+  },
+  // Binds the Worker to builder.albahadly.com and creates the DNS record
+  // automatically on deploy (the zone lives in the same Cloudflare account).
+  "routes": [
+    {
+      "pattern": "builder.albahadly.com",
+      "custom_domain": true
+    }
+  ]
+}
