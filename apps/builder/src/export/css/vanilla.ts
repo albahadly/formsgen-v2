@@ -34,6 +34,10 @@ const CLASSES: Record<Slot, string> = {
   stepItemActive: 'fg-step-item fg-step-item--active',
   stepActions: 'fg-step-actions',
   buttonSecondary: 'fg-button fg-button--secondary',
+  tagsWrap: 'fg-tags',
+  tag: 'fg-tag',
+  tagRemove: 'fg-tag-remove',
+  tagsInput: 'fg-tags-input',
 }
 
 /** Mirrors packages/renderer/src/styles.css for self-contained artifacts. */
@@ -91,6 +95,12 @@ ${overrides ? `${overrides}\n` : ''}  font-family: var(--fg-font);
 .fg-step-item--active { color: var(--fg-color-text); font-weight: 600; }
 .fg-step-actions { display: flex; justify-content: space-between; gap: 0.5rem; margin-block-start: var(--fg-space); }
 .fg-button--secondary { background: var(--fg-color-surface); color: var(--fg-color-text); border-color: var(--fg-color-border); }
+.fg-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 0.375rem; padding: 0.375rem 0.5rem; background: var(--fg-color-bg); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); }
+.fg-tags:focus-within { outline: 2px solid var(--fg-color-primary); outline-offset: 1px; }
+.fg-tag { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.125rem 0.5rem; font-size: 0.8125rem; background: var(--fg-color-surface); border: 1px solid var(--fg-color-border); border-radius: 999px; }
+.fg-tag-remove { border: none; background: none; padding: 0; cursor: pointer; color: var(--fg-color-muted); font-size: 0.875rem; line-height: 1; }
+.fg-tags-input { flex: 1; min-inline-size: 6rem; border: none; background: none; font: inherit; color: inherit; padding: 0.125rem; }
+.fg-tags-input:focus { outline: none; }
 .fg-group { margin: 0; padding: var(--fg-space); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
 .fg-group-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); }
 .fg-actions { margin-block-start: var(--fg-space); }

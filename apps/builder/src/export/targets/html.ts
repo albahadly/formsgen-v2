@@ -102,6 +102,7 @@ export const htmlTarget: ExportTarget = {
     'use strict'
     ${RUNTIME_HELPERS.split('\n').join('\n    ')}
 
+    var fgTags = {}
     function fgControl(path) {
       return document.querySelector('[data-fg-path="' + path + '"]')
     }
@@ -119,6 +120,7 @@ export const htmlTarget: ExportTarget = {
       if (kind === 'multiselect') {
         return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }
+      if (kind === 'tags') return (fgTags[path] || []).slice()
       if (kind === 'checks') {
         return Array.prototype.map.call(
           document.querySelectorAll('[data-fg-path="' + path + '"]:checked'),
@@ -161,12 +163,66 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
       return !message
     }
 
+    function fgHasError(path) {
+      var validate = FG_VALIDATORS[path]
+      return validate ? Boolean(validate()) : false
+    }
+
     function updateConditions() {
       FG_CONDITIONS.forEach(function (c) {
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
         if (el) el.hidden = !c.test()
       })
     }
+
+    // Tags (chips) fields: value lives in fgTags, chips are painted into
+    // the [data-fg-tags-chips] span, Enter/comma/blur adds the draft.
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="tags"]'), function (wrap) {
+      var path = wrap.getAttribute('data-fg-path')
+      fgTags[path] = []
+      var chips = wrap.querySelector('[data-fg-tags-chips="' + path + '"]')
+      var input = wrap.querySelector('[data-fg-tags-input="' + path + '"]')
+      if (!chips || !input) return
+      function paint() {
+        chips.textContent = ''
+        fgTags[path].forEach(function (tag, index) {
+          var chip = document.createElement('span')
+          chip.className = ${JSON.stringify(css.classes('tag'))}
+          chip.appendChild(document.createTextNode(tag + ' '))
+          var remove = document.createElement('button')
+          remove.type = 'button'
+          remove.className = ${JSON.stringify(css.classes('tagRemove'))}
+          remove.setAttribute('aria-label', 'Remove ' + tag)
+          remove.textContent = '\\u00d7'
+          remove.addEventListener('click', function () {
+            fgTags[path].splice(index, 1)
+            paint()
+            if (touched[path]) validateField(path)
+            updateConditions()
+          })
+          chip.appendChild(remove)
+          chips.appendChild(chip)
+        })
+      }
+      function addDraft() {
+        var draft = input.value.trim()
+        if (draft !== '' && fgTags[path].indexOf(draft) === -1) {
+          fgTags[path].push(draft)
+          paint()
+        }
+        input.value = ''
+        if (touched[path]) validateField(path)
+        updateConditions()
+      }
+      input.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ',') { event.preventDefault(); addDraft() }
+      })
+      input.addEventListener('blur', function () {
+        addDraft()
+        touched[path] = true
+        validateField(path)
+      })
+    })
 
     var FG_SECTIONS = ${JSON.stringify(sectionsMeta)}
     var fgSecState = {}
@@ -247,7 +303,18 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
         touched[path] = true
         if (!validateField(path)) ok = false
       })
-      if (!ok) return
+      if (!ok) {
+        // Move each tabs/steps host to its first section holding an error
+        // (unless the visible one already shows one).
+        FG_SECTIONS.forEach(function (meta) {
+          var current = meta.stepPaths[fgSecState[meta.key]] || []
+          if (current.some(fgHasError)) return
+          for (var i = 0; i < meta.stepPaths.length; i++) {
+            if ((meta.stepPaths[i] || []).some(fgHasError)) { fgSetSec(meta, i); break }
+          }
+        })
+        return
+      }
       var data = buildPayload()
       var out = document.getElementById('fg-result')
       out.textContent = JSON.stringify(data, null, 2)

@@ -160,7 +160,7 @@ describe('tabs/steps across code targets', () => {
     const [file] = generate('vue-standalone')
     const code = file!.content
     expect(code).toContain('const fgSec_ks_social_tabs = ref(0)')
-    expect(code).toContain('const fgStepPaths_ks_wizard = [["shipping_city"], ["order_notes"]]')
+    expect(code).toContain('const fgSecPaths_ks_wizard = [["shipping_city"], ["order_notes"]]')
     expect(code).toContain('function fgNext_ks_wizard()')
     expect(code).toContain(`v-show="fgSec_ks_wizard === 1"`)
   })
@@ -170,7 +170,7 @@ describe('tabs/steps across code targets', () => {
     const code = file!.content
     expect(code).toContain('const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)')
     expect(code).toContain('function fgNext_ks_wizard(): void')
-    expect(code).toContain("fgStepPaths_ks_wizard[fgSec_ks_wizard] ?? []")
+    expect(code).toContain("fgSecPaths_ks_wizard[fgSec_ks_wizard] ?? []")
   })
 
   it('html emits section metadata and runtime hooks', () => {
@@ -187,6 +187,40 @@ describe('tabs/steps across code targets', () => {
     expect(code).toContain('private int fgSec_ks_wizard = 0;')
     expect(code).toContain('@if (fgSec_ks_wizard == 0)')
     expect(code).toContain('@onclick="() => fgSec_ks_wizard++"')
+  })
+})
+
+describe('tags + submit error jump across code targets', () => {
+  it('vue-standalone wires tag handlers and fgJumpToError', () => {
+    const [file] = generate('vue-standalone')
+    const code = file!.content
+    expect(code).toContain("tagDrafts['topics']")
+    expect(code).toContain('function fgAddTag(path: string): void')
+    expect(code).toContain('function fgJumpToError(): void')
+    expect(code).toContain('fgJumpToError()')
+    expect(code).toContain('const fgSecPaths_ks_social_tabs = ')
+  })
+
+  it('react wires tagDrafts state and the jump block', () => {
+    const [file] = generate('react')
+    const code = file!.content
+    expect(code).toContain('const [tagDrafts, setTagDrafts] = useState<Record<string, string>>({})')
+    expect(code).toContain("fgAddTag('topics', form.topics)")
+    expect(code).toContain('setFgSec_ks_wizard(target)')
+    expect(code).toContain('topics: string[]')
+  })
+
+  it('html wires the chips runtime and the submit jump', () => {
+    const [file] = generate('html')
+    const code = file!.content
+    expect(code).toContain('data-fg-kind="tags"')
+    expect(code).toContain("if (kind === 'tags') return (fgTags[path] || []).slice()")
+    expect(code).toContain('fgSetSec(meta, i)')
+  })
+
+  it('blazor models tags as List<string>', () => {
+    const [file] = generate('blazor')
+    expect(file!.content).toContain('public List<string> Topics { get; set; }')
   })
 })
 

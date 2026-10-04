@@ -79,6 +79,7 @@ describe('buildDefaultData', () => {
       plan: null,
       interests: [],
       channels: [],
+      topics: [],
       contact_method: null,
       contact_phone: '',
       contact_other: '',

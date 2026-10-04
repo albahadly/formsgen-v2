@@ -175,6 +175,8 @@ const ar: Record<string, string> = {
   'element.select.description': 'قائمة اختيار بخيارات',
   'element.multiselect.label': 'اختيار متعدد',
   'element.multiselect.description': 'اختيار عدة خيارات من قائمة',
+  'element.tags.label': 'وسوم',
+  'element.tags.description': 'إدخال وسوم نصية حرة',
   'element.radiogroup.label': 'أزرار اختيار',
   'element.radiogroup.description': 'اختيار خيار واحد',
   'element.checkbox.label': 'مربع اختيار',

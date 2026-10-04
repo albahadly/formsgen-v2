@@ -13,6 +13,7 @@ import FgRadioGroup from './fields/FgRadioGroup.vue'
 import FgRange from './fields/FgRange.vue'
 import FgSelect from './fields/FgSelect.vue'
 import FgStatic from './fields/FgStatic.vue'
+import FgTags from './fields/FgTags.vue'
 import FgText from './fields/FgText.vue'
 import FgTextarea from './fields/FgTextarea.vue'
 
@@ -40,6 +41,7 @@ const fieldComponents = {
   number: FgNumber,
   select: FgSelect,
   multiselect: FgMultiSelect,
+  tags: FgTags,
   radiogroup: FgRadioGroup,
   checkbox: FgCheckbox,
   checkboxgroup: FgCheckboxGroup,

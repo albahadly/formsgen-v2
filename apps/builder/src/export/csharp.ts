@@ -59,7 +59,7 @@ export type CsFieldKind =
   | 'bool' // checkbox
   | 'number' // number (double?)
   | 'numberValue' // range (double, always has a value)
-  | 'list' // checkboxgroup (List<string>)
+  | 'list' // checkboxgroup / multiselect / tags (List<string>)
 
 export function csFieldKind(type: string): CsFieldKind {
   switch (type) {
@@ -71,6 +71,7 @@ export function csFieldKind(type: string): CsFieldKind {
       return 'numberValue'
     case 'checkboxgroup':
     case 'multiselect':
+    case 'tags':
       return 'list'
     default:
       return 'string'

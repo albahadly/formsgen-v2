@@ -68,25 +68,71 @@ export const vueStandaloneTarget: ExportTarget = {
       renderSections,
     })
 
-    // Section state + per-step validation gates.
+    // Section state + per-step validation gates + submit error jump.
     const sectionState = hosts
       .map((host) => `const fgSec_${host.key} = ref(0)`)
       .join('\n')
+    const sectionPaths = hosts
+      .map(
+        (host) =>
+          `const fgSecPaths_${host.key} = [${host.sections.map((s) => `[${s.paths.map((p) => JSON.stringify(p)).join(', ')}]`).join(', ')}]`,
+      )
+      .join('\n')
     const stepLogic = hosts
       .filter((host) => host.kind === 'steps')
-      .map((host) => {
-        const paths = `[${host.sections.map((s) => `[${s.paths.map((p) => JSON.stringify(p)).join(', ')}]`).join(', ')}]`
-        return `const fgStepPaths_${host.key} = ${paths}
-function fgNext_${host.key}(): void {
+      .map(
+        (host) => `function fgNext_${host.key}(): void {
   let ok = true
-  for (const path of fgStepPaths_${host.key}[fgSec_${host.key}.value] ?? []) {
+  for (const path of fgSecPaths_${host.key}[fgSec_${host.key}.value] ?? []) {
     touch(path)
     if (errors[path]) ok = false
   }
   if (ok && fgSec_${host.key}.value < ${host.sections.length - 1}) fgSec_${host.key}.value++
-}`
-      })
+}`,
+      )
       .join('\n\n')
+    const jumpLogic =
+      hosts.length > 0
+        ? `function fgJumpToError(): void {
+${hosts
+  .map(
+    (host) => `  if (!(fgSecPaths_${host.key}[fgSec_${host.key}.value] ?? []).some((p) => errors[p])) {
+    const target = fgSecPaths_${host.key}.findIndex((paths) => paths.some((p) => errors[p]))
+    if (target !== -1) fgSec_${host.key}.value = target
+  }`,
+  )
+  .join('\n')}
+}`
+        : ''
+
+    // Tags fields: per-field draft store + shared add/remove handlers.
+    const tagsFields = fields.filter((f) => f.node.type === 'tags')
+    const tagsLogic =
+      tagsFields.length > 0
+        ? `const tagDrafts = reactive<Record<string, string>>({ ${tagsFields
+            .map((f) => `'${f.path}': ''`)
+            .join(', ')} })
+const tagFields: Record<string, { get: () => string[]; set: (v: string[]) => void }> = {
+${tagsFields
+  .map(
+    (f) =>
+      `  '${f.path}': { get: () => form.${f.path}, set: (v) => { form.${f.path} = v } },`,
+  )
+  .join('\n')}
+}
+function fgAddTag(path: string): void {
+  const draft = (tagDrafts[path] ?? '').trim()
+  const field = tagFields[path]!
+  if (draft !== '' && !field.get().includes(draft)) field.set([...field.get(), draft])
+  tagDrafts[path] = ''
+  revalidate(path)
+}
+function fgRemoveTag(path: string, index: number): void {
+  const field = tagFields[path]!
+  field.set(field.get().filter((_, i) => i !== index))
+  revalidate(path)
+}`
+        : ''
 
     const submitUrl = schema.meta.submit?.url
     const submitBlock = submitUrl
@@ -145,13 +191,15 @@ function validateAll(): boolean {
   }
   return ok
 }
-${sectionState ? `\n${sectionState}\n` : ''}${stepLogic ? `\n${stepLogic}\n` : ''}
+${sectionState ? `\n${sectionState}\n` : ''}${sectionPaths ? `\n${sectionPaths}\n` : ''}${stepLogic ? `\n${stepLogic}\n` : ''}${jumpLogic ? `\n${jumpLogic}\n` : ''}${tagsLogic ? `\n${tagsLogic}\n` : ''}
 function buildPayload(): Record<string, unknown> {
   return ${indentBlock(payloadExpr(schema, accessor), 1).trimStart()}
 }
 
 async function onSubmit(): Promise<void> {
-  if (!validateAll()) return
+  if (!validateAll()) {${hosts.length > 0 ? '\n    fgJumpToError()' : ''}
+    return
+  }
   const data = buildPayload()
   result.value = data
   emit('submit', data)

@@ -130,6 +130,9 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
           <!-- element type "multiselect" has no blazor emitter yet -->
         </div>
         <div class="col-12 col-md-12">
+          <!-- element type "tags" has no blazor emitter yet -->
+        </div>
+        <div class="col-12 col-md-12">
           <div class="d-flex flex-column gap-1">
             <label class="form-label fw-semibold mb-0" for="fg_contact_method">Preferred contact method<span class="text-danger ms-1" aria-hidden="true">*</span></label>
             <InputSelect id="fg_contact_method" @bind-Value="Model.ContactMethod" class="form-select">
@@ -295,6 +298,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         payload["plan"] = string.IsNullOrEmpty(Model.Plan) ? null : Model.Plan;
         payload["interests"] = Model.Interests;
         payload["channels"] = Model.Channels;
+        payload["topics"] = Model.Topics;
         payload["contact_method"] = string.IsNullOrEmpty(Model.ContactMethod) ? null : Model.ContactMethod;
         if (((Equals(Model.ContactMethod, "phone")))) payload["contact_phone"] = Model.ContactPhone;
         if (((Equals(Model.ContactMethod, "other")))) payload["contact_other"] = Model.ContactOther;
@@ -350,6 +354,8 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
 
         public List<string> Channels { get; set; } = new();
 
+        public List<string> Topics { get; set; } = new();
+
         [Required(ErrorMessage = "This field is required")]
         public string ContactMethod { get; set; } = "";
 
@@ -372,6 +378,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
+        if (!(Topics.Count == 0) && (Topics.Count > 5)) yield return new ValidationResult("At most 5 topics", new[] { nameof(Topics) });
         if (!Terms) yield return new ValidationResult("This field is required", new[] { nameof(Terms) });
         }
     }
@@ -507,6 +514,9 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         </div>
         <div class="col-span-12 md:col-span-12">
           <!-- element type "multiselect" has no blazor emitter yet -->
+        </div>
+        <div class="col-span-12 md:col-span-12">
+          <!-- element type "tags" has no blazor emitter yet -->
         </div>
         <div class="col-span-12 md:col-span-12">
           <div class="flex flex-col gap-1.5">
@@ -674,6 +684,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         payload["plan"] = string.IsNullOrEmpty(Model.Plan) ? null : Model.Plan;
         payload["interests"] = Model.Interests;
         payload["channels"] = Model.Channels;
+        payload["topics"] = Model.Topics;
         payload["contact_method"] = string.IsNullOrEmpty(Model.ContactMethod) ? null : Model.ContactMethod;
         if (((Equals(Model.ContactMethod, "phone")))) payload["contact_phone"] = Model.ContactPhone;
         if (((Equals(Model.ContactMethod, "other")))) payload["contact_other"] = Model.ContactOther;
@@ -729,6 +740,8 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
 
         public List<string> Channels { get; set; } = new();
 
+        public List<string> Topics { get; set; } = new();
+
         [Required(ErrorMessage = "This field is required")]
         public string ContactMethod { get; set; } = "";
 
@@ -751,6 +764,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
+        if (!(Topics.Count == 0) && (Topics.Count > 5)) yield return new ValidationResult("At most 5 topics", new[] { nameof(Topics) });
         if (!Terms) yield return new ValidationResult("This field is required", new[] { nameof(Terms) });
         }
     }
@@ -886,6 +900,9 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         </div>
         <div class="fg-cell" style="grid-column: span 12 / span 12">
           <!-- element type "multiselect" has no blazor emitter yet -->
+        </div>
+        <div class="fg-cell" style="grid-column: span 12 / span 12">
+          <!-- element type "tags" has no blazor emitter yet -->
         </div>
         <div class="fg-cell" style="grid-column: span 12 / span 12">
           <div class="fg-field">
@@ -1053,6 +1070,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         payload["plan"] = string.IsNullOrEmpty(Model.Plan) ? null : Model.Plan;
         payload["interests"] = Model.Interests;
         payload["channels"] = Model.Channels;
+        payload["topics"] = Model.Topics;
         payload["contact_method"] = string.IsNullOrEmpty(Model.ContactMethod) ? null : Model.ContactMethod;
         if (((Equals(Model.ContactMethod, "phone")))) payload["contact_phone"] = Model.ContactPhone;
         if (((Equals(Model.ContactMethod, "other")))) payload["contact_other"] = Model.ContactOther;
@@ -1108,6 +1126,8 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
 
         public List<string> Channels { get; set; } = new();
 
+        public List<string> Topics { get; set; } = new();
+
         [Required(ErrorMessage = "This field is required")]
         public string ContactMethod { get; set; } = "";
 
@@ -1130,6 +1150,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
+        if (!(Topics.Count == 0) && (Topics.Count > 5)) yield return new ValidationResult("At most 5 topics", new[] { nameof(Topics) });
         if (!Terms) yield return new ValidationResult("This field is required", new[] { nameof(Terms) });
         }
     }
@@ -1291,6 +1312,17 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       </div>
       <div class="col-12 col-md-12">
         <div class="d-flex flex-column gap-1">
+          <label class="form-label fw-semibold mb-0" for="fg_topics">Topics</label>
+          <div class="form-control d-flex flex-wrap align-items-center gap-1" data-fg-path="topics" data-fg-kind="tags">
+            <span data-fg-tags-chips="topics"></span>
+            <input id="fg_topics" type="text" class="border-0 p-0 flex-grow-1 shadow-none" data-fg-tags-input="topics" placeholder="Type and press Enter">
+          </div>
+          <p class="form-text mt-0">Free-text tags</p>
+          <p id="fg_err_topics" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold mb-0" for="fg_contact_method">Preferred contact method<span class="text-danger ms-1" aria-hidden="true">*</span></label>
           <select id="fg_contact_method" class="form-select" data-fg-path="contact_method" data-fg-kind="select">
             <option value="" disabled>—</option>
@@ -1419,6 +1451,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       return null
     }
 
+    var fgTags = {}
     function fgControl(path) {
       return document.querySelector('[data-fg-path="' + path + '"]')
     }
@@ -1436,6 +1469,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       if (kind === 'multiselect') {
         return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }
+      if (kind === 'tags') return (fgTags[path] || []).slice()
       if (kind === 'checks') {
         return Array.prototype.map.call(
           document.querySelectorAll('[data-fg-path="' + path + '"]:checked'),
@@ -1502,6 +1536,11 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       if (fgIsEmpty(v) || v === false) return "This field is required"
       return null
       },
+      'topics': function () {
+      const v = fgGet("topics")
+      if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
+      return null
+      },
       'contact_method': function () {
       const v = fgGet("contact_method")
       if (fgIsEmpty(v) || v === false) return "This field is required"
@@ -1544,12 +1583,66 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       return !message
     }
 
+    function fgHasError(path) {
+      var validate = FG_VALIDATORS[path]
+      return validate ? Boolean(validate()) : false
+    }
+
     function updateConditions() {
       FG_CONDITIONS.forEach(function (c) {
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
         if (el) el.hidden = !c.test()
       })
     }
+
+    // Tags (chips) fields: value lives in fgTags, chips are painted into
+    // the [data-fg-tags-chips] span, Enter/comma/blur adds the draft.
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="tags"]'), function (wrap) {
+      var path = wrap.getAttribute('data-fg-path')
+      fgTags[path] = []
+      var chips = wrap.querySelector('[data-fg-tags-chips="' + path + '"]')
+      var input = wrap.querySelector('[data-fg-tags-input="' + path + '"]')
+      if (!chips || !input) return
+      function paint() {
+        chips.textContent = ''
+        fgTags[path].forEach(function (tag, index) {
+          var chip = document.createElement('span')
+          chip.className = "badge rounded-pill text-bg-secondary d-inline-flex align-items-center gap-1"
+          chip.appendChild(document.createTextNode(tag + ' '))
+          var remove = document.createElement('button')
+          remove.type = 'button'
+          remove.className = "border-0 bg-transparent p-0 ms-1 text-white"
+          remove.setAttribute('aria-label', 'Remove ' + tag)
+          remove.textContent = '\\u00d7'
+          remove.addEventListener('click', function () {
+            fgTags[path].splice(index, 1)
+            paint()
+            if (touched[path]) validateField(path)
+            updateConditions()
+          })
+          chip.appendChild(remove)
+          chips.appendChild(chip)
+        })
+      }
+      function addDraft() {
+        var draft = input.value.trim()
+        if (draft !== '' && fgTags[path].indexOf(draft) === -1) {
+          fgTags[path].push(draft)
+          paint()
+        }
+        input.value = ''
+        if (touched[path]) validateField(path)
+        updateConditions()
+      }
+      input.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ',') { event.preventDefault(); addDraft() }
+      })
+      input.addEventListener('blur', function () {
+        addDraft()
+        touched[path] = true
+        validateField(path)
+      })
+    })
 
     var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"nav-link active","tabBase":"nav-link","stepActive":"d-inline-flex align-items-center gap-2 fw-semibold text-body","stepBase":"d-inline-flex align-items-center gap-2","stepPaths":[["twitter"],["github"]]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"nav-link active","tabBase":"nav-link","stepActive":"d-inline-flex align-items-center gap-2 fw-semibold text-body","stepBase":"d-inline-flex align-items-center gap-2","stepPaths":[["shipping_city"],["order_notes"]]}]
     var fgSecState = {}
@@ -1624,6 +1717,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         "plan": fgGet("plan"),
         "interests": fgGet("interests"),
         "channels": fgGet("channels"),
+        "topics": fgGet("topics"),
         "contact_method": fgGet("contact_method"),
         ...(fgVisible_contact_phone() ? { "contact_phone": fgGet("contact_phone") } : {}),
         ...(fgVisible_contact_other() ? { "contact_other": fgGet("contact_other") } : {}),
@@ -1656,7 +1750,18 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         touched[path] = true
         if (!validateField(path)) ok = false
       })
-      if (!ok) return
+      if (!ok) {
+        // Move each tabs/steps host to its first section holding an error
+        // (unless the visible one already shows one).
+        FG_SECTIONS.forEach(function (meta) {
+          var current = meta.stepPaths[fgSecState[meta.key]] || []
+          if (current.some(fgHasError)) return
+          for (var i = 0; i < meta.stepPaths.length; i++) {
+            if ((meta.stepPaths[i] || []).some(fgHasError)) { fgSetSec(meta, i); break }
+          }
+        })
+        return
+      }
       var data = buildPayload()
       var out = document.getElementById('fg-result')
       out.textContent = JSON.stringify(data, null, 2)
@@ -1826,6 +1931,17 @@ exports[`html target > snapshot (tailwind) 1`] = `
       </div>
       <div class="col-span-12 md:col-span-12">
         <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_topics">Topics</label>
+          <div class="flex flex-wrap items-center gap-1.5 rounded-md border border-gray-300 bg-white px-2 py-1.5 shadow-sm focus-within:ring-2 focus-within:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="topics" data-fg-kind="tags">
+            <span data-fg-tags-chips="topics"></span>
+            <input id="fg_topics" type="text" class="min-w-24 flex-1 border-none bg-transparent text-sm focus:outline-none" data-fg-tags-input="topics" placeholder="Type and press Enter">
+          </div>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Free-text tags</p>
+          <p id="fg_err_topics" class="text-xs text-red-600" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_contact_method">Preferred contact method<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
           <select id="fg_contact_method" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="contact_method" data-fg-kind="select">
             <option value="" disabled>—</option>
@@ -1954,6 +2070,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
       return null
     }
 
+    var fgTags = {}
     function fgControl(path) {
       return document.querySelector('[data-fg-path="' + path + '"]')
     }
@@ -1971,6 +2088,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
       if (kind === 'multiselect') {
         return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }
+      if (kind === 'tags') return (fgTags[path] || []).slice()
       if (kind === 'checks') {
         return Array.prototype.map.call(
           document.querySelectorAll('[data-fg-path="' + path + '"]:checked'),
@@ -2037,6 +2155,11 @@ exports[`html target > snapshot (tailwind) 1`] = `
       if (fgIsEmpty(v) || v === false) return "This field is required"
       return null
       },
+      'topics': function () {
+      const v = fgGet("topics")
+      if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
+      return null
+      },
       'contact_method': function () {
       const v = fgGet("contact_method")
       if (fgIsEmpty(v) || v === false) return "This field is required"
@@ -2079,12 +2202,66 @@ exports[`html target > snapshot (tailwind) 1`] = `
       return !message
     }
 
+    function fgHasError(path) {
+      var validate = FG_VALIDATORS[path]
+      return validate ? Boolean(validate()) : false
+    }
+
     function updateConditions() {
       FG_CONDITIONS.forEach(function (c) {
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
         if (el) el.hidden = !c.test()
       })
     }
+
+    // Tags (chips) fields: value lives in fgTags, chips are painted into
+    // the [data-fg-tags-chips] span, Enter/comma/blur adds the draft.
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="tags"]'), function (wrap) {
+      var path = wrap.getAttribute('data-fg-path')
+      fgTags[path] = []
+      var chips = wrap.querySelector('[data-fg-tags-chips="' + path + '"]')
+      var input = wrap.querySelector('[data-fg-tags-input="' + path + '"]')
+      if (!chips || !input) return
+      function paint() {
+        chips.textContent = ''
+        fgTags[path].forEach(function (tag, index) {
+          var chip = document.createElement('span')
+          chip.className = "inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700"
+          chip.appendChild(document.createTextNode(tag + ' '))
+          var remove = document.createElement('button')
+          remove.type = 'button'
+          remove.className = "text-gray-500 hover:text-red-600"
+          remove.setAttribute('aria-label', 'Remove ' + tag)
+          remove.textContent = '\\u00d7'
+          remove.addEventListener('click', function () {
+            fgTags[path].splice(index, 1)
+            paint()
+            if (touched[path]) validateField(path)
+            updateConditions()
+          })
+          chip.appendChild(remove)
+          chips.appendChild(chip)
+        })
+      }
+      function addDraft() {
+        var draft = input.value.trim()
+        if (draft !== '' && fgTags[path].indexOf(draft) === -1) {
+          fgTags[path].push(draft)
+          paint()
+        }
+        input.value = ''
+        if (touched[path]) validateField(path)
+        updateConditions()
+      }
+      input.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ',') { event.preventDefault(); addDraft() }
+      })
+      input.addEventListener('blur', function () {
+        addDraft()
+        touched[path] = true
+        validateField(path)
+      })
+    })
 
     var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600","tabBase":"-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700","stepActive":"flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100","stepBase":"flex items-center gap-2","stepPaths":[["twitter"],["github"]]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600","tabBase":"-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700","stepActive":"flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100","stepBase":"flex items-center gap-2","stepPaths":[["shipping_city"],["order_notes"]]}]
     var fgSecState = {}
@@ -2159,6 +2336,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
         "plan": fgGet("plan"),
         "interests": fgGet("interests"),
         "channels": fgGet("channels"),
+        "topics": fgGet("topics"),
         "contact_method": fgGet("contact_method"),
         ...(fgVisible_contact_phone() ? { "contact_phone": fgGet("contact_phone") } : {}),
         ...(fgVisible_contact_other() ? { "contact_other": fgGet("contact_other") } : {}),
@@ -2191,7 +2369,18 @@ exports[`html target > snapshot (tailwind) 1`] = `
         touched[path] = true
         if (!validateField(path)) ok = false
       })
-      if (!ok) return
+      if (!ok) {
+        // Move each tabs/steps host to its first section holding an error
+        // (unless the visible one already shows one).
+        FG_SECTIONS.forEach(function (meta) {
+          var current = meta.stepPaths[fgSecState[meta.key]] || []
+          if (current.some(fgHasError)) return
+          for (var i = 0; i < meta.stepPaths.length; i++) {
+            if ((meta.stepPaths[i] || []).some(fgHasError)) { fgSetSec(meta, i); break }
+          }
+        })
+        return
+      }
       var data = buildPayload()
       var out = document.getElementById('fg-result')
       out.textContent = JSON.stringify(data, null, 2)
@@ -2265,6 +2454,12 @@ exports[`html target > snapshot (vanilla) 1`] = `
   .fg-step-item--active { color: var(--fg-color-text); font-weight: 600; }
   .fg-step-actions { display: flex; justify-content: space-between; gap: 0.5rem; margin-block-start: var(--fg-space); }
   .fg-button--secondary { background: var(--fg-color-surface); color: var(--fg-color-text); border-color: var(--fg-color-border); }
+  .fg-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 0.375rem; padding: 0.375rem 0.5rem; background: var(--fg-color-bg); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); }
+  .fg-tags:focus-within { outline: 2px solid var(--fg-color-primary); outline-offset: 1px; }
+  .fg-tag { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.125rem 0.5rem; font-size: 0.8125rem; background: var(--fg-color-surface); border: 1px solid var(--fg-color-border); border-radius: 999px; }
+  .fg-tag-remove { border: none; background: none; padding: 0; cursor: pointer; color: var(--fg-color-muted); font-size: 0.875rem; line-height: 1; }
+  .fg-tags-input { flex: 1; min-inline-size: 6rem; border: none; background: none; font: inherit; color: inherit; padding: 0.125rem; }
+  .fg-tags-input:focus { outline: none; }
   .fg-group { margin: 0; padding: var(--fg-space); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
   .fg-group-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); }
   .fg-actions { margin-block-start: var(--fg-space); }
@@ -2425,6 +2620,17 @@ exports[`html target > snapshot (vanilla) 1`] = `
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
         <div class="fg-field">
+          <label class="fg-label" for="fg_topics">Topics</label>
+          <div class="fg-tags" data-fg-path="topics" data-fg-kind="tags">
+            <span data-fg-tags-chips="topics"></span>
+            <input id="fg_topics" type="text" class="fg-tags-input" data-fg-tags-input="topics" placeholder="Type and press Enter">
+          </div>
+          <p class="fg-description">Free-text tags</p>
+          <p id="fg_err_topics" class="fg-error" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-field">
           <label class="fg-label" for="fg_contact_method">Preferred contact method<span class="fg-required" aria-hidden="true">*</span></label>
           <select id="fg_contact_method" class="fg-select" data-fg-path="contact_method" data-fg-kind="select">
             <option value="" disabled>—</option>
@@ -2553,6 +2759,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
       return null
     }
 
+    var fgTags = {}
     function fgControl(path) {
       return document.querySelector('[data-fg-path="' + path + '"]')
     }
@@ -2570,6 +2777,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
       if (kind === 'multiselect') {
         return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }
+      if (kind === 'tags') return (fgTags[path] || []).slice()
       if (kind === 'checks') {
         return Array.prototype.map.call(
           document.querySelectorAll('[data-fg-path="' + path + '"]:checked'),
@@ -2636,6 +2844,11 @@ exports[`html target > snapshot (vanilla) 1`] = `
       if (fgIsEmpty(v) || v === false) return "This field is required"
       return null
       },
+      'topics': function () {
+      const v = fgGet("topics")
+      if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
+      return null
+      },
       'contact_method': function () {
       const v = fgGet("contact_method")
       if (fgIsEmpty(v) || v === false) return "This field is required"
@@ -2678,12 +2891,66 @@ exports[`html target > snapshot (vanilla) 1`] = `
       return !message
     }
 
+    function fgHasError(path) {
+      var validate = FG_VALIDATORS[path]
+      return validate ? Boolean(validate()) : false
+    }
+
     function updateConditions() {
       FG_CONDITIONS.forEach(function (c) {
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
         if (el) el.hidden = !c.test()
       })
     }
+
+    // Tags (chips) fields: value lives in fgTags, chips are painted into
+    // the [data-fg-tags-chips] span, Enter/comma/blur adds the draft.
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="tags"]'), function (wrap) {
+      var path = wrap.getAttribute('data-fg-path')
+      fgTags[path] = []
+      var chips = wrap.querySelector('[data-fg-tags-chips="' + path + '"]')
+      var input = wrap.querySelector('[data-fg-tags-input="' + path + '"]')
+      if (!chips || !input) return
+      function paint() {
+        chips.textContent = ''
+        fgTags[path].forEach(function (tag, index) {
+          var chip = document.createElement('span')
+          chip.className = "fg-tag"
+          chip.appendChild(document.createTextNode(tag + ' '))
+          var remove = document.createElement('button')
+          remove.type = 'button'
+          remove.className = "fg-tag-remove"
+          remove.setAttribute('aria-label', 'Remove ' + tag)
+          remove.textContent = '\\u00d7'
+          remove.addEventListener('click', function () {
+            fgTags[path].splice(index, 1)
+            paint()
+            if (touched[path]) validateField(path)
+            updateConditions()
+          })
+          chip.appendChild(remove)
+          chips.appendChild(chip)
+        })
+      }
+      function addDraft() {
+        var draft = input.value.trim()
+        if (draft !== '' && fgTags[path].indexOf(draft) === -1) {
+          fgTags[path].push(draft)
+          paint()
+        }
+        input.value = ''
+        if (touched[path]) validateField(path)
+        updateConditions()
+      }
+      input.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ',') { event.preventDefault(); addDraft() }
+      })
+      input.addEventListener('blur', function () {
+        addDraft()
+        touched[path] = true
+        validateField(path)
+      })
+    })
 
     var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"fg-tab-button fg-tab-button--active","tabBase":"fg-tab-button","stepActive":"fg-step-item fg-step-item--active","stepBase":"fg-step-item","stepPaths":[["twitter"],["github"]]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"fg-tab-button fg-tab-button--active","tabBase":"fg-tab-button","stepActive":"fg-step-item fg-step-item--active","stepBase":"fg-step-item","stepPaths":[["shipping_city"],["order_notes"]]}]
     var fgSecState = {}
@@ -2758,6 +3025,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
         "plan": fgGet("plan"),
         "interests": fgGet("interests"),
         "channels": fgGet("channels"),
+        "topics": fgGet("topics"),
         "contact_method": fgGet("contact_method"),
         ...(fgVisible_contact_phone() ? { "contact_phone": fgGet("contact_phone") } : {}),
         ...(fgVisible_contact_other() ? { "contact_other": fgGet("contact_other") } : {}),
@@ -2790,7 +3058,18 @@ exports[`html target > snapshot (vanilla) 1`] = `
         touched[path] = true
         if (!validateField(path)) ok = false
       })
-      if (!ok) return
+      if (!ok) {
+        // Move each tabs/steps host to its first section holding an error
+        // (unless the visible one already shows one).
+        FG_SECTIONS.forEach(function (meta) {
+          var current = meta.stepPaths[fgSecState[meta.key]] || []
+          if (current.some(fgHasError)) return
+          for (var i = 0; i < meta.stepPaths.length; i++) {
+            if ((meta.stepPaths[i] || []).some(fgHasError)) { fgSetSec(meta, i); break }
+          }
+        })
+        return
+      }
       var data = buildPayload()
       var out = document.getElementById('fg-result')
       out.textContent = JSON.stringify(data, null, 2)
@@ -2840,6 +3119,7 @@ type FormData = {
   plan: string | null
   interests: string[]
   channels: string[]
+  topics: string[]
   contact_method: string | null
   contact_phone: string
   contact_other: string
@@ -2868,6 +3148,7 @@ const INITIAL: FormData = {
   plan: null,
   interests: [],
   channels: [],
+  topics: [],
   contact_method: null,
   contact_phone: "",
   contact_other: "",
@@ -2931,6 +3212,11 @@ const validators: Record<string, (data: FormData) => string | null> = {
   if (fgIsEmpty(v) || v === false) return "This field is required"
   return null
   },
+  'topics': function (data: FormData) {
+  const v = data.topics
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
+  return null
+  },
   'contact_method': function (data: FormData) {
   const v = data.contact_method
   if (fgIsEmpty(v) || v === false) return "This field is required"
@@ -2966,6 +3252,7 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "plan": data.plan,
     "interests": data.interests,
     "channels": data.channels,
+    "topics": data.topics,
     "contact_method": data.contact_method,
     ...(fgVisible_contact_phone(data) ? { "contact_phone": data.contact_phone } : {}),
     ...(fgVisible_contact_other(data) ? { "contact_other": data.contact_other } : {}),
@@ -2978,7 +3265,8 @@ function buildPayload(data: FormData): Record<string, unknown> {
   }
 }
 
-const fgStepPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
+const fgSecPaths_ks_social_tabs = [["twitter"], ["github"]]
+const fgSecPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
 
 export default function KitchenSinkForm({
   onSubmit,
@@ -2991,11 +3279,12 @@ export default function KitchenSinkForm({
   const touched = useRef(new Set<string>())
   const [fgSec_ks_social_tabs, setFgSec_ks_social_tabs] = useState(0)
   const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)
+  const [tagDrafts, setTagDrafts] = useState<Record<string, string>>({})
 
   function fgNext_ks_wizard(): void {
     let ok = true
     const next = { ...errors }
-    for (const path of fgStepPaths_ks_wizard[fgSec_ks_wizard] ?? []) {
+    for (const path of fgSecPaths_ks_wizard[fgSec_ks_wizard] ?? []) {
       touched.current.add(path)
       const validate = validators[path]
       const message = validate ? validate(form) : null
@@ -3038,6 +3327,16 @@ export default function KitchenSinkForm({
     validateField(path, form)
   }
 
+  function fgAddTag(path: string, current: string[]): void {
+    const draft = (tagDrafts[path] ?? '').trim()
+    if (draft !== '' && !current.includes(draft)) setField(path, [...current, draft])
+    setTagDrafts((d) => ({ ...d, [path]: '' }))
+  }
+
+  function fgRemoveTag(path: string, current: string[], index: number): void {
+    setField(path, current.filter((_, i) => i !== index))
+  }
+
   function handleSubmit(event: React.FormEvent): void {
     event.preventDefault()
     const nextErrors: Record<string, string> = {}
@@ -3047,7 +3346,17 @@ export default function KitchenSinkForm({
       if (message) nextErrors[path] = message
     }
     setErrors(nextErrors)
-    if (Object.keys(nextErrors).length > 0) return
+    if (Object.keys(nextErrors).length > 0) {
+      if (!(fgSecPaths_ks_social_tabs[fgSec_ks_social_tabs] ?? []).some((p) => nextErrors[p])) {
+        const target = fgSecPaths_ks_social_tabs.findIndex((paths) => paths.some((p) => nextErrors[p]))
+        if (target !== -1) setFgSec_ks_social_tabs(target)
+      }
+      if (!(fgSecPaths_ks_wizard[fgSec_ks_wizard] ?? []).some((p) => nextErrors[p])) {
+        const target = fgSecPaths_ks_wizard.findIndex((paths) => paths.some((p) => nextErrors[p]))
+        if (target !== -1) setFgSec_ks_wizard(target)
+      }
+      return
+    }
     const data = buildPayload(form)
     setResult(data)
     onSubmit?.(data)
@@ -3199,6 +3508,19 @@ export default function KitchenSinkForm({
               <option value="push">Push</option>
             </select>
             {errors['channels'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['channels']}</p>}
+          </div>
+        </div>
+        <div className="col-12 col-md-12">
+          <div className="d-flex flex-column gap-1">
+            <label className="form-label fw-semibold mb-0" htmlFor="fg_topics">Topics</label>
+            <div className="form-control d-flex flex-wrap align-items-center gap-1">
+              {form.topics.map((tag, index) => (
+                <span key={tag} className="badge rounded-pill text-bg-secondary d-inline-flex align-items-center gap-1">{tag} <button type="button" className="border-0 bg-transparent p-0 ms-1 text-white" aria-label={\`Remove \${tag}\`} onClick={() => fgRemoveTag('topics', form.topics, index)}>×</button></span>
+              ))}
+              <input id="fg_topics" type="text" className="border-0 p-0 flex-grow-1 shadow-none" value={tagDrafts['topics'] ?? ''} placeholder="Type and press Enter" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTagDrafts((d) => ({ ...d, 'topics': e.target.value }))} onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); fgAddTag('topics', form.topics) } }} onBlur={() => { fgAddTag('topics', form.topics); touch('topics') }} />
+            </div>
+            <p className="form-text mt-0">Free-text tags</p>
+            {errors['topics'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['topics']}</p>}
           </div>
         </div>
         <div className="col-12 col-md-12">
@@ -3358,6 +3680,7 @@ type FormData = {
   plan: string | null
   interests: string[]
   channels: string[]
+  topics: string[]
   contact_method: string | null
   contact_phone: string
   contact_other: string
@@ -3386,6 +3709,7 @@ const INITIAL: FormData = {
   plan: null,
   interests: [],
   channels: [],
+  topics: [],
   contact_method: null,
   contact_phone: "",
   contact_other: "",
@@ -3449,6 +3773,11 @@ const validators: Record<string, (data: FormData) => string | null> = {
   if (fgIsEmpty(v) || v === false) return "This field is required"
   return null
   },
+  'topics': function (data: FormData) {
+  const v = data.topics
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
+  return null
+  },
   'contact_method': function (data: FormData) {
   const v = data.contact_method
   if (fgIsEmpty(v) || v === false) return "This field is required"
@@ -3484,6 +3813,7 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "plan": data.plan,
     "interests": data.interests,
     "channels": data.channels,
+    "topics": data.topics,
     "contact_method": data.contact_method,
     ...(fgVisible_contact_phone(data) ? { "contact_phone": data.contact_phone } : {}),
     ...(fgVisible_contact_other(data) ? { "contact_other": data.contact_other } : {}),
@@ -3496,7 +3826,8 @@ function buildPayload(data: FormData): Record<string, unknown> {
   }
 }
 
-const fgStepPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
+const fgSecPaths_ks_social_tabs = [["twitter"], ["github"]]
+const fgSecPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
 
 export default function KitchenSinkForm({
   onSubmit,
@@ -3509,11 +3840,12 @@ export default function KitchenSinkForm({
   const touched = useRef(new Set<string>())
   const [fgSec_ks_social_tabs, setFgSec_ks_social_tabs] = useState(0)
   const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)
+  const [tagDrafts, setTagDrafts] = useState<Record<string, string>>({})
 
   function fgNext_ks_wizard(): void {
     let ok = true
     const next = { ...errors }
-    for (const path of fgStepPaths_ks_wizard[fgSec_ks_wizard] ?? []) {
+    for (const path of fgSecPaths_ks_wizard[fgSec_ks_wizard] ?? []) {
       touched.current.add(path)
       const validate = validators[path]
       const message = validate ? validate(form) : null
@@ -3556,6 +3888,16 @@ export default function KitchenSinkForm({
     validateField(path, form)
   }
 
+  function fgAddTag(path: string, current: string[]): void {
+    const draft = (tagDrafts[path] ?? '').trim()
+    if (draft !== '' && !current.includes(draft)) setField(path, [...current, draft])
+    setTagDrafts((d) => ({ ...d, [path]: '' }))
+  }
+
+  function fgRemoveTag(path: string, current: string[], index: number): void {
+    setField(path, current.filter((_, i) => i !== index))
+  }
+
   function handleSubmit(event: React.FormEvent): void {
     event.preventDefault()
     const nextErrors: Record<string, string> = {}
@@ -3565,7 +3907,17 @@ export default function KitchenSinkForm({
       if (message) nextErrors[path] = message
     }
     setErrors(nextErrors)
-    if (Object.keys(nextErrors).length > 0) return
+    if (Object.keys(nextErrors).length > 0) {
+      if (!(fgSecPaths_ks_social_tabs[fgSec_ks_social_tabs] ?? []).some((p) => nextErrors[p])) {
+        const target = fgSecPaths_ks_social_tabs.findIndex((paths) => paths.some((p) => nextErrors[p]))
+        if (target !== -1) setFgSec_ks_social_tabs(target)
+      }
+      if (!(fgSecPaths_ks_wizard[fgSec_ks_wizard] ?? []).some((p) => nextErrors[p])) {
+        const target = fgSecPaths_ks_wizard.findIndex((paths) => paths.some((p) => nextErrors[p]))
+        if (target !== -1) setFgSec_ks_wizard(target)
+      }
+      return
+    }
     const data = buildPayload(form)
     setResult(data)
     onSubmit?.(data)
@@ -3717,6 +4069,19 @@ export default function KitchenSinkForm({
               <option value="push">Push</option>
             </select>
             {errors['channels'] && <p className="text-xs text-red-600" role="alert">{errors['channels']}</p>}
+          </div>
+        </div>
+        <div className="col-span-12 md:col-span-12">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold" htmlFor="fg_topics">Topics</label>
+            <div className="flex flex-wrap items-center gap-1.5 rounded-md border border-gray-300 bg-white px-2 py-1.5 shadow-sm focus-within:ring-2 focus-within:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800">
+              {form.topics.map((tag, index) => (
+                <span key={tag} className="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700">{tag} <button type="button" className="text-gray-500 hover:text-red-600" aria-label={\`Remove \${tag}\`} onClick={() => fgRemoveTag('topics', form.topics, index)}>×</button></span>
+              ))}
+              <input id="fg_topics" type="text" className="min-w-24 flex-1 border-none bg-transparent text-sm focus:outline-none" value={tagDrafts['topics'] ?? ''} placeholder="Type and press Enter" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTagDrafts((d) => ({ ...d, 'topics': e.target.value }))} onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); fgAddTag('topics', form.topics) } }} onBlur={() => { fgAddTag('topics', form.topics); touch('topics') }} />
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Free-text tags</p>
+            {errors['topics'] && <p className="text-xs text-red-600" role="alert">{errors['topics']}</p>}
           </div>
         </div>
         <div className="col-span-12 md:col-span-12">
@@ -3877,6 +4242,7 @@ type FormData = {
   plan: string | null
   interests: string[]
   channels: string[]
+  topics: string[]
   contact_method: string | null
   contact_phone: string
   contact_other: string
@@ -3905,6 +4271,7 @@ const INITIAL: FormData = {
   plan: null,
   interests: [],
   channels: [],
+  topics: [],
   contact_method: null,
   contact_phone: "",
   contact_other: "",
@@ -3968,6 +4335,11 @@ const validators: Record<string, (data: FormData) => string | null> = {
   if (fgIsEmpty(v) || v === false) return "This field is required"
   return null
   },
+  'topics': function (data: FormData) {
+  const v = data.topics
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
+  return null
+  },
   'contact_method': function (data: FormData) {
   const v = data.contact_method
   if (fgIsEmpty(v) || v === false) return "This field is required"
@@ -4003,6 +4375,7 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "plan": data.plan,
     "interests": data.interests,
     "channels": data.channels,
+    "topics": data.topics,
     "contact_method": data.contact_method,
     ...(fgVisible_contact_phone(data) ? { "contact_phone": data.contact_phone } : {}),
     ...(fgVisible_contact_other(data) ? { "contact_other": data.contact_other } : {}),
@@ -4015,7 +4388,8 @@ function buildPayload(data: FormData): Record<string, unknown> {
   }
 }
 
-const fgStepPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
+const fgSecPaths_ks_social_tabs = [["twitter"], ["github"]]
+const fgSecPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
 
 export default function KitchenSinkForm({
   onSubmit,
@@ -4028,11 +4402,12 @@ export default function KitchenSinkForm({
   const touched = useRef(new Set<string>())
   const [fgSec_ks_social_tabs, setFgSec_ks_social_tabs] = useState(0)
   const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)
+  const [tagDrafts, setTagDrafts] = useState<Record<string, string>>({})
 
   function fgNext_ks_wizard(): void {
     let ok = true
     const next = { ...errors }
-    for (const path of fgStepPaths_ks_wizard[fgSec_ks_wizard] ?? []) {
+    for (const path of fgSecPaths_ks_wizard[fgSec_ks_wizard] ?? []) {
       touched.current.add(path)
       const validate = validators[path]
       const message = validate ? validate(form) : null
@@ -4075,6 +4450,16 @@ export default function KitchenSinkForm({
     validateField(path, form)
   }
 
+  function fgAddTag(path: string, current: string[]): void {
+    const draft = (tagDrafts[path] ?? '').trim()
+    if (draft !== '' && !current.includes(draft)) setField(path, [...current, draft])
+    setTagDrafts((d) => ({ ...d, [path]: '' }))
+  }
+
+  function fgRemoveTag(path: string, current: string[], index: number): void {
+    setField(path, current.filter((_, i) => i !== index))
+  }
+
   function handleSubmit(event: React.FormEvent): void {
     event.preventDefault()
     const nextErrors: Record<string, string> = {}
@@ -4084,7 +4469,17 @@ export default function KitchenSinkForm({
       if (message) nextErrors[path] = message
     }
     setErrors(nextErrors)
-    if (Object.keys(nextErrors).length > 0) return
+    if (Object.keys(nextErrors).length > 0) {
+      if (!(fgSecPaths_ks_social_tabs[fgSec_ks_social_tabs] ?? []).some((p) => nextErrors[p])) {
+        const target = fgSecPaths_ks_social_tabs.findIndex((paths) => paths.some((p) => nextErrors[p]))
+        if (target !== -1) setFgSec_ks_social_tabs(target)
+      }
+      if (!(fgSecPaths_ks_wizard[fgSec_ks_wizard] ?? []).some((p) => nextErrors[p])) {
+        const target = fgSecPaths_ks_wizard.findIndex((paths) => paths.some((p) => nextErrors[p]))
+        if (target !== -1) setFgSec_ks_wizard(target)
+      }
+      return
+    }
     const data = buildPayload(form)
     setResult(data)
     onSubmit?.(data)
@@ -4240,6 +4635,19 @@ export default function KitchenSinkForm({
         </div>
         <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
           <div className="fg-field">
+            <label className="fg-label" htmlFor="fg_topics">Topics</label>
+            <div className="fg-tags">
+              {form.topics.map((tag, index) => (
+                <span key={tag} className="fg-tag">{tag} <button type="button" className="fg-tag-remove" aria-label={\`Remove \${tag}\`} onClick={() => fgRemoveTag('topics', form.topics, index)}>×</button></span>
+              ))}
+              <input id="fg_topics" type="text" className="fg-tags-input" value={tagDrafts['topics'] ?? ''} placeholder="Type and press Enter" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTagDrafts((d) => ({ ...d, 'topics': e.target.value }))} onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); fgAddTag('topics', form.topics) } }} onBlur={() => { fgAddTag('topics', form.topics); touch('topics') }} />
+            </div>
+            <p className="fg-description">Free-text tags</p>
+            {errors['topics'] && <p className="fg-error" role="alert">{errors['topics']}</p>}
+          </div>
+        </div>
+        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+          <div className="fg-field">
             <label className="fg-label" htmlFor="fg_contact_method">Preferred contact method<span className="fg-required" aria-hidden="true">*</span></label>
             <select id="fg_contact_method" value={form.contact_method ?? ''} className={errors['contact_method'] ? "fg-select fg-invalid" : "fg-select"} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setField('contact_method', e.target.value === '' ? null : e.target.value)} onBlur={() => touch('contact_method')}>
               <option value="" disabled>—</option>
@@ -4385,6 +4793,7 @@ const form = reactive({
   plan: null,
   interests: [],
   channels: [],
+  topics: [],
   contact_method: null,
   contact_phone: "",
   contact_other: "",
@@ -4465,6 +4874,11 @@ const validators: Record<string, () => string | null> = {
   if (fgIsEmpty(v) || v === false) return "This field is required"
   return null
   },
+  'topics': function () {
+  const v = form.topics
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
+  return null
+  },
   'contact_method': function () {
   const v = form.contact_method
   if (fgIsEmpty(v) || v === false) return "This field is required"
@@ -4512,14 +4926,44 @@ function validateAll(): boolean {
 const fgSec_ks_social_tabs = ref(0)
 const fgSec_ks_wizard = ref(0)
 
-const fgStepPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
+const fgSecPaths_ks_social_tabs = [["twitter"], ["github"]]
+const fgSecPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
+
 function fgNext_ks_wizard(): void {
   let ok = true
-  for (const path of fgStepPaths_ks_wizard[fgSec_ks_wizard.value] ?? []) {
+  for (const path of fgSecPaths_ks_wizard[fgSec_ks_wizard.value] ?? []) {
     touch(path)
     if (errors[path]) ok = false
   }
   if (ok && fgSec_ks_wizard.value < 1) fgSec_ks_wizard.value++
+}
+
+function fgJumpToError(): void {
+  if (!(fgSecPaths_ks_social_tabs[fgSec_ks_social_tabs.value] ?? []).some((p) => errors[p])) {
+    const target = fgSecPaths_ks_social_tabs.findIndex((paths) => paths.some((p) => errors[p]))
+    if (target !== -1) fgSec_ks_social_tabs.value = target
+  }
+  if (!(fgSecPaths_ks_wizard[fgSec_ks_wizard.value] ?? []).some((p) => errors[p])) {
+    const target = fgSecPaths_ks_wizard.findIndex((paths) => paths.some((p) => errors[p]))
+    if (target !== -1) fgSec_ks_wizard.value = target
+  }
+}
+
+const tagDrafts = reactive<Record<string, string>>({ 'topics': '' })
+const tagFields: Record<string, { get: () => string[]; set: (v: string[]) => void }> = {
+  'topics': { get: () => form.topics, set: (v) => { form.topics = v } },
+}
+function fgAddTag(path: string): void {
+  const draft = (tagDrafts[path] ?? '').trim()
+  const field = tagFields[path]!
+  if (draft !== '' && !field.get().includes(draft)) field.set([...field.get(), draft])
+  tagDrafts[path] = ''
+  revalidate(path)
+}
+function fgRemoveTag(path: string, index: number): void {
+  const field = tagFields[path]!
+  field.set(field.get().filter((_, i) => i !== index))
+  revalidate(path)
 }
 
 function buildPayload(): Record<string, unknown> {
@@ -4540,6 +4984,7 @@ function buildPayload(): Record<string, unknown> {
     "plan": form.plan,
     "interests": form.interests,
     "channels": form.channels,
+    "topics": form.topics,
     "contact_method": form.contact_method,
     ...(fgVisible_contact_phone() ? { "contact_phone": form.contact_phone } : {}),
     ...(fgVisible_contact_other() ? { "contact_other": form.contact_other } : {}),
@@ -4553,7 +4998,10 @@ function buildPayload(): Record<string, unknown> {
 }
 
 async function onSubmit(): Promise<void> {
-  if (!validateAll()) return
+  if (!validateAll()) {
+    fgJumpToError()
+    return
+  }
   const data = buildPayload()
   result.value = data
   emit('submit', data)
@@ -4711,6 +5159,17 @@ async function onSubmit(): Promise<void> {
       </div>
       <div class="col-12 col-md-12">
         <div class="d-flex flex-column gap-1">
+          <label class="form-label fw-semibold mb-0" for="fg_topics">Topics</label>
+          <div class="form-control d-flex flex-wrap align-items-center gap-1">
+            <span v-for="(tag, index) in form.topics" :key="tag" class="badge rounded-pill text-bg-secondary d-inline-flex align-items-center gap-1">{{ tag }} <button type="button" class="border-0 bg-transparent p-0 ms-1 text-white" :aria-label="'Remove ' + tag" @click="fgRemoveTag('topics', index)">×</button></span>
+            <input id="fg_topics" v-model="tagDrafts['topics']" type="text" class="border-0 p-0 flex-grow-1 shadow-none" placeholder="Type and press Enter" @keydown.enter.prevent="fgAddTag('topics')" @blur="fgAddTag('topics'); touch('topics')">
+          </div>
+          <p class="form-text mt-0">Free-text tags</p>
+          <p v-if="errors['topics']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['topics'] }}</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold mb-0" for="fg_contact_method">Preferred contact method<span class="text-danger ms-1" aria-hidden="true">*</span></label>
           <select id="fg_contact_method" v-model="form.contact_method" class="form-select" :class="{ 'is-invalid': !!errors['contact_method'] }" @blur="touch('contact_method')" @change="revalidate('contact_method')">
             <option value="" disabled>—</option>
@@ -4851,6 +5310,7 @@ const form = reactive({
   plan: null,
   interests: [],
   channels: [],
+  topics: [],
   contact_method: null,
   contact_phone: "",
   contact_other: "",
@@ -4931,6 +5391,11 @@ const validators: Record<string, () => string | null> = {
   if (fgIsEmpty(v) || v === false) return "This field is required"
   return null
   },
+  'topics': function () {
+  const v = form.topics
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
+  return null
+  },
   'contact_method': function () {
   const v = form.contact_method
   if (fgIsEmpty(v) || v === false) return "This field is required"
@@ -4978,14 +5443,44 @@ function validateAll(): boolean {
 const fgSec_ks_social_tabs = ref(0)
 const fgSec_ks_wizard = ref(0)
 
-const fgStepPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
+const fgSecPaths_ks_social_tabs = [["twitter"], ["github"]]
+const fgSecPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
+
 function fgNext_ks_wizard(): void {
   let ok = true
-  for (const path of fgStepPaths_ks_wizard[fgSec_ks_wizard.value] ?? []) {
+  for (const path of fgSecPaths_ks_wizard[fgSec_ks_wizard.value] ?? []) {
     touch(path)
     if (errors[path]) ok = false
   }
   if (ok && fgSec_ks_wizard.value < 1) fgSec_ks_wizard.value++
+}
+
+function fgJumpToError(): void {
+  if (!(fgSecPaths_ks_social_tabs[fgSec_ks_social_tabs.value] ?? []).some((p) => errors[p])) {
+    const target = fgSecPaths_ks_social_tabs.findIndex((paths) => paths.some((p) => errors[p]))
+    if (target !== -1) fgSec_ks_social_tabs.value = target
+  }
+  if (!(fgSecPaths_ks_wizard[fgSec_ks_wizard.value] ?? []).some((p) => errors[p])) {
+    const target = fgSecPaths_ks_wizard.findIndex((paths) => paths.some((p) => errors[p]))
+    if (target !== -1) fgSec_ks_wizard.value = target
+  }
+}
+
+const tagDrafts = reactive<Record<string, string>>({ 'topics': '' })
+const tagFields: Record<string, { get: () => string[]; set: (v: string[]) => void }> = {
+  'topics': { get: () => form.topics, set: (v) => { form.topics = v } },
+}
+function fgAddTag(path: string): void {
+  const draft = (tagDrafts[path] ?? '').trim()
+  const field = tagFields[path]!
+  if (draft !== '' && !field.get().includes(draft)) field.set([...field.get(), draft])
+  tagDrafts[path] = ''
+  revalidate(path)
+}
+function fgRemoveTag(path: string, index: number): void {
+  const field = tagFields[path]!
+  field.set(field.get().filter((_, i) => i !== index))
+  revalidate(path)
 }
 
 function buildPayload(): Record<string, unknown> {
@@ -5006,6 +5501,7 @@ function buildPayload(): Record<string, unknown> {
     "plan": form.plan,
     "interests": form.interests,
     "channels": form.channels,
+    "topics": form.topics,
     "contact_method": form.contact_method,
     ...(fgVisible_contact_phone() ? { "contact_phone": form.contact_phone } : {}),
     ...(fgVisible_contact_other() ? { "contact_other": form.contact_other } : {}),
@@ -5019,7 +5515,10 @@ function buildPayload(): Record<string, unknown> {
 }
 
 async function onSubmit(): Promise<void> {
-  if (!validateAll()) return
+  if (!validateAll()) {
+    fgJumpToError()
+    return
+  }
   const data = buildPayload()
   result.value = data
   emit('submit', data)
@@ -5177,6 +5676,17 @@ async function onSubmit(): Promise<void> {
       </div>
       <div class="col-span-12 md:col-span-12">
         <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_topics">Topics</label>
+          <div class="flex flex-wrap items-center gap-1.5 rounded-md border border-gray-300 bg-white px-2 py-1.5 shadow-sm focus-within:ring-2 focus-within:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800">
+            <span v-for="(tag, index) in form.topics" :key="tag" class="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700">{{ tag }} <button type="button" class="text-gray-500 hover:text-red-600" :aria-label="'Remove ' + tag" @click="fgRemoveTag('topics', index)">×</button></span>
+            <input id="fg_topics" v-model="tagDrafts['topics']" type="text" class="min-w-24 flex-1 border-none bg-transparent text-sm focus:outline-none" placeholder="Type and press Enter" @keydown.enter.prevent="fgAddTag('topics')" @blur="fgAddTag('topics'); touch('topics')">
+          </div>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Free-text tags</p>
+          <p v-if="errors['topics']" class="text-xs text-red-600" role="alert">{{ errors['topics'] }}</p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_contact_method">Preferred contact method<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
           <select id="fg_contact_method" v-model="form.contact_method" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['contact_method'] }" @blur="touch('contact_method')" @change="revalidate('contact_method')">
             <option value="" disabled>—</option>
@@ -5317,6 +5827,7 @@ const form = reactive({
   plan: null,
   interests: [],
   channels: [],
+  topics: [],
   contact_method: null,
   contact_phone: "",
   contact_other: "",
@@ -5397,6 +5908,11 @@ const validators: Record<string, () => string | null> = {
   if (fgIsEmpty(v) || v === false) return "This field is required"
   return null
   },
+  'topics': function () {
+  const v = form.topics
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
+  return null
+  },
   'contact_method': function () {
   const v = form.contact_method
   if (fgIsEmpty(v) || v === false) return "This field is required"
@@ -5444,14 +5960,44 @@ function validateAll(): boolean {
 const fgSec_ks_social_tabs = ref(0)
 const fgSec_ks_wizard = ref(0)
 
-const fgStepPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
+const fgSecPaths_ks_social_tabs = [["twitter"], ["github"]]
+const fgSecPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
+
 function fgNext_ks_wizard(): void {
   let ok = true
-  for (const path of fgStepPaths_ks_wizard[fgSec_ks_wizard.value] ?? []) {
+  for (const path of fgSecPaths_ks_wizard[fgSec_ks_wizard.value] ?? []) {
     touch(path)
     if (errors[path]) ok = false
   }
   if (ok && fgSec_ks_wizard.value < 1) fgSec_ks_wizard.value++
+}
+
+function fgJumpToError(): void {
+  if (!(fgSecPaths_ks_social_tabs[fgSec_ks_social_tabs.value] ?? []).some((p) => errors[p])) {
+    const target = fgSecPaths_ks_social_tabs.findIndex((paths) => paths.some((p) => errors[p]))
+    if (target !== -1) fgSec_ks_social_tabs.value = target
+  }
+  if (!(fgSecPaths_ks_wizard[fgSec_ks_wizard.value] ?? []).some((p) => errors[p])) {
+    const target = fgSecPaths_ks_wizard.findIndex((paths) => paths.some((p) => errors[p]))
+    if (target !== -1) fgSec_ks_wizard.value = target
+  }
+}
+
+const tagDrafts = reactive<Record<string, string>>({ 'topics': '' })
+const tagFields: Record<string, { get: () => string[]; set: (v: string[]) => void }> = {
+  'topics': { get: () => form.topics, set: (v) => { form.topics = v } },
+}
+function fgAddTag(path: string): void {
+  const draft = (tagDrafts[path] ?? '').trim()
+  const field = tagFields[path]!
+  if (draft !== '' && !field.get().includes(draft)) field.set([...field.get(), draft])
+  tagDrafts[path] = ''
+  revalidate(path)
+}
+function fgRemoveTag(path: string, index: number): void {
+  const field = tagFields[path]!
+  field.set(field.get().filter((_, i) => i !== index))
+  revalidate(path)
 }
 
 function buildPayload(): Record<string, unknown> {
@@ -5472,6 +6018,7 @@ function buildPayload(): Record<string, unknown> {
     "plan": form.plan,
     "interests": form.interests,
     "channels": form.channels,
+    "topics": form.topics,
     "contact_method": form.contact_method,
     ...(fgVisible_contact_phone() ? { "contact_phone": form.contact_phone } : {}),
     ...(fgVisible_contact_other() ? { "contact_other": form.contact_other } : {}),
@@ -5485,7 +6032,10 @@ function buildPayload(): Record<string, unknown> {
 }
 
 async function onSubmit(): Promise<void> {
-  if (!validateAll()) return
+  if (!validateAll()) {
+    fgJumpToError()
+    return
+  }
   const data = buildPayload()
   result.value = data
   emit('submit', data)
@@ -5639,6 +6189,17 @@ async function onSubmit(): Promise<void> {
             <option value="push">Push</option>
           </select>
           <p v-if="errors['channels']" class="fg-error" role="alert">{{ errors['channels'] }}</p>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-field">
+          <label class="fg-label" for="fg_topics">Topics</label>
+          <div class="fg-tags">
+            <span v-for="(tag, index) in form.topics" :key="tag" class="fg-tag">{{ tag }} <button type="button" class="fg-tag-remove" :aria-label="'Remove ' + tag" @click="fgRemoveTag('topics', index)">×</button></span>
+            <input id="fg_topics" v-model="tagDrafts['topics']" type="text" class="fg-tags-input" placeholder="Type and press Enter" @keydown.enter.prevent="fgAddTag('topics')" @blur="fgAddTag('topics'); touch('topics')">
+          </div>
+          <p class="fg-description">Free-text tags</p>
+          <p v-if="errors['topics']" class="fg-error" role="alert">{{ errors['topics'] }}</p>
         </div>
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
@@ -5808,6 +6369,12 @@ async function onSubmit(): Promise<void> {
 .fg-step-item--active { color: var(--fg-color-text); font-weight: 600; }
 .fg-step-actions { display: flex; justify-content: space-between; gap: 0.5rem; margin-block-start: var(--fg-space); }
 .fg-button--secondary { background: var(--fg-color-surface); color: var(--fg-color-text); border-color: var(--fg-color-border); }
+.fg-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 0.375rem; padding: 0.375rem 0.5rem; background: var(--fg-color-bg); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); }
+.fg-tags:focus-within { outline: 2px solid var(--fg-color-primary); outline-offset: 1px; }
+.fg-tag { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.125rem 0.5rem; font-size: 0.8125rem; background: var(--fg-color-surface); border: 1px solid var(--fg-color-border); border-radius: 999px; }
+.fg-tag-remove { border: none; background: none; padding: 0; cursor: pointer; color: var(--fg-color-muted); font-size: 0.875rem; line-height: 1; }
+.fg-tags-input { flex: 1; min-inline-size: 6rem; border: none; background: none; font: inherit; color: inherit; padding: 0.125rem; }
+.fg-tags-input:focus { outline: none; }
 .fg-group { margin: 0; padding: var(--fg-space); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
 .fg-group-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); }
 .fg-actions { margin-block-start: var(--fg-space); }

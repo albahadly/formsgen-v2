@@ -1,0 +1,63 @@
+// Tags (chips) input: free-text multi-value, string[] data. The chip
+// add/remove logic lives in each target's scaffold (fgAddTag/fgRemoveTag
+// plus a per-field draft store); emitters only produce markup wired to
+// those conventional names. Blazor is deferred (chips need per-field
+// component state; the walker emits an "unsupported" comment).
+
+import type { ElementNode } from '@formsgen/renderer'
+import {
+  descriptionFor,
+  fieldWrap,
+  htmlError,
+  labelFor,
+  placeholderAttr,
+  reactDescription,
+  reactError,
+  reactFieldWrap,
+  reactLabelFor,
+  vueError,
+} from '../emitters/shared'
+import { commonFieldSections, type ElementDefinition, type EmitCtx } from '../types'
+
+function htmlChipsShell(node: ElementNode, ctx: EmitCtx): string {
+  return `<div class="${ctx.css.classes('tagsWrap')}" data-fg-path="${ctx.path}" data-fg-kind="tags">\n    <span data-fg-tags-chips="${ctx.path}"></span>\n    <input id="${ctx.id}" type="text" class="${ctx.css.classes('tagsInput')}" data-fg-tags-input="${ctx.path}"${placeholderAttr(node)}>\n  </div>`
+}
+
+export const tagsElement: ElementDefinition = {
+  type: 'tags',
+  category: 'fields',
+  label: 'Tags',
+  description: 'Free-text chips input',
+  icon: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M21.4 11.6 12.4 2.6A2 2 0 0 0 11 2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 .6 1.4l9 9a2 2 0 0 0 2.8 0l7-7a2 2 0 0 0 0-2.8zM6.5 8A1.5 1.5 0 1 1 8 6.5 1.5 1.5 0 0 1 6.5 8z"/></svg>',
+  hasValue: true,
+  defaultProps: { label: 'Tags', placeholder: 'Type and press Enter' },
+  propertyPanel: commonFieldSections(),
+  export: {
+    vue: (node, ctx) =>
+      fieldWrap(
+        [
+          labelFor(node, ctx),
+          `<div class="${ctx.css.classes('tagsWrap')}">\n    <span v-for="(tag, index) in form.${ctx.path}" :key="tag" class="${ctx.css.classes('tag')}">{{ tag }} <button type="button" class="${ctx.css.classes('tagRemove')}" :aria-label="'Remove ' + tag" @click="fgRemoveTag('${ctx.path}', index)">×</button></span>\n    <input id="${ctx.id}" v-model="tagDrafts['${ctx.path}']" type="text" class="${ctx.css.classes('tagsInput')}"${placeholderAttr(node)} @keydown.enter.prevent="fgAddTag('${ctx.path}')" @blur="fgAddTag('${ctx.path}'); touch('${ctx.path}')">\n  </div>`,
+          descriptionFor(node, ctx),
+          vueError(ctx),
+        ],
+        ctx,
+      ),
+    html: (node, ctx) =>
+      fieldWrap(
+        [labelFor(node, ctx), htmlChipsShell(node, ctx), descriptionFor(node, ctx), htmlError(ctx)],
+        ctx,
+      ),
+    react: (node, ctx) =>
+      reactFieldWrap(
+        [
+          reactLabelFor(node, ctx),
+          `<div className="${ctx.css.classes('tagsWrap')}">\n    {form.${ctx.path}.map((tag, index) => (\n      <span key={tag} className="${ctx.css.classes('tag')}">{tag} <button type="button" className="${ctx.css.classes('tagRemove')}" aria-label={\`Remove \${tag}\`} onClick={() => fgRemoveTag('${ctx.path}', form.${ctx.path}, index)}>×</button></span>\n    ))}\n    <input id="${ctx.id}" type="text" className="${ctx.css.classes('tagsInput')}" value={tagDrafts['${ctx.path}'] ?? ''}${placeholderAttr(node)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTagDrafts((d) => ({ ...d, '${ctx.path}': e.target.value }))} onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); fgAddTag('${ctx.path}', form.${ctx.path}) } }} onBlur={() => { fgAddTag('${ctx.path}', form.${ctx.path}); touch('${ctx.path}') }} />\n  </div>`,
+          reactDescription(node, ctx),
+          reactError(ctx),
+        ],
+        ctx,
+      ),
+  },
+}
+

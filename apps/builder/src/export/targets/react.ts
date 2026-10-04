@@ -29,6 +29,7 @@ const FIELD_TS_TYPES: Record<string, string> = {
   checkbox: 'boolean',
   checkboxgroup: 'string[]',
   multiselect: 'string[]',
+  tags: 'string[]',
   range: 'number',
 }
 
@@ -114,11 +115,10 @@ export const reactTarget: ExportTarget = {
       renderSections,
     })
 
-    const stepPathsConsts = hosts
-      .filter((host) => host.kind === 'steps')
+    const sectionPathsConsts = hosts
       .map(
         (host) =>
-          `const fgStepPaths_${host.key} = [${host.sections.map((s) => `[${s.paths.map((p) => JSON.stringify(p)).join(', ')}]`).join(', ')}]`,
+          `const fgSecPaths_${host.key} = [${host.sections.map((s) => `[${s.paths.map((p) => JSON.stringify(p)).join(', ')}]`).join(', ')}]`,
       )
       .join('\n')
 
@@ -132,7 +132,7 @@ export const reactTarget: ExportTarget = {
         (host) => `  function fgNext_${host.key}(): void {
     let ok = true
     const next = { ...errors }
-    for (const path of fgStepPaths_${host.key}[fgSec_${host.key}] ?? []) {
+    for (const path of fgSecPaths_${host.key}[fgSec_${host.key}] ?? []) {
       touched.current.add(path)
       const validate = validators[path]
       const message = validate ? validate(form) : null
@@ -143,6 +143,37 @@ export const reactTarget: ExportTarget = {
   }`,
       )
       .join('\n\n')
+
+    // On a failed submit, move each tabs/steps host to its first section
+    // holding an error (unless the current one already shows one).
+    const jumpBlock =
+      hosts.length > 0
+        ? hosts
+            .map(
+              (host) => `      if (!(fgSecPaths_${host.key}[fgSec_${host.key}] ?? []).some((p) => nextErrors[p])) {
+        const target = fgSecPaths_${host.key}.findIndex((paths) => paths.some((p) => nextErrors[p]))
+        if (target !== -1) setFgSec_${host.key}(target)
+      }`,
+            )
+            .join('\n')
+        : ''
+
+    // Tags fields: per-field draft state + shared add/remove handlers.
+    const hasTags = fields.some((f) => f.node.type === 'tags')
+    const tagsState = hasTags
+      ? `  const [tagDrafts, setTagDrafts] = useState<Record<string, string>>({})`
+      : ''
+    const tagsHandlers = hasTags
+      ? `  function fgAddTag(path: string, current: string[]): void {
+    const draft = (tagDrafts[path] ?? '').trim()
+    if (draft !== '' && !current.includes(draft)) setField(path, [...current, draft])
+    setTagDrafts((d) => ({ ...d, [path]: '' }))
+  }
+
+  function fgRemoveTag(path: string, current: string[], index: number): void {
+    setField(path, current.filter((_, i) => i !== index))
+  }`
+      : ''
 
     const submitUrl = schema.meta.submit?.url
     const submitBlock = submitUrl
@@ -177,7 +208,7 @@ const validators: Record<string, (data: FormData) => string | null> = ${validato
 function buildPayload(data: FormData): Record<string, unknown> {
   return ${indentBlock(payloadExpr(schema, dataAccessor, (key) => `fgVisible_${key}(data)`), 1).trimStart()}
 }
-${stepPathsConsts ? `\n${stepPathsConsts}\n` : ''}
+${sectionPathsConsts ? `\n${sectionPathsConsts}\n` : ''}
 export default function ${name}({
   onSubmit,
 }: {
@@ -187,7 +218,7 @@ export default function ${name}({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [result, setResult] = useState<Record<string, unknown> | null>(null)
   const touched = useRef(new Set<string>())
-${sectionHooks ? `${sectionHooks}\n` : ''}${stepHandlers ? `\n${stepHandlers}\n` : ''}
+${sectionHooks ? `${sectionHooks}\n` : ''}${tagsState ? `${tagsState}\n` : ''}${stepHandlers ? `\n${stepHandlers}\n` : ''}
 
   function applyError(path: string, message: string | null): void {
     setErrors((prev) => {
@@ -220,7 +251,7 @@ ${sectionHooks ? `${sectionHooks}\n` : ''}${stepHandlers ? `\n${stepHandlers}\n`
     touched.current.add(path)
     validateField(path, form)
   }
-
+${tagsHandlers ? `\n${tagsHandlers}\n` : ''}
   function handleSubmit(event: React.FormEvent): void {
     event.preventDefault()
     const nextErrors: Record<string, string> = {}
@@ -230,7 +261,9 @@ ${sectionHooks ? `${sectionHooks}\n` : ''}${stepHandlers ? `\n${stepHandlers}\n`
       if (message) nextErrors[path] = message
     }
     setErrors(nextErrors)
-    if (Object.keys(nextErrors).length > 0) return
+    if (Object.keys(nextErrors).length > 0) {
+${jumpBlock ? `${jumpBlock}\n` : ''}      return
+    }
     const data = buildPayload(form)
     setResult(data)
     onSubmit?.(data)

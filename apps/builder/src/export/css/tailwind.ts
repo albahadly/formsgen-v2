@@ -41,6 +41,11 @@ const CLASSES: Record<Slot, string> = {
   stepActions: 'mt-4 flex justify-between gap-2',
   buttonSecondary:
     'rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50',
+  tagsWrap:
+    'flex flex-wrap items-center gap-1.5 rounded-md border border-gray-300 bg-white px-2 py-1.5 shadow-sm focus-within:ring-2 focus-within:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800',
+  tag: 'inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700',
+  tagRemove: 'text-gray-500 hover:text-red-600',
+  tagsInput: 'min-w-24 flex-1 border-none bg-transparent text-sm focus:outline-none',
 }
 
 export const tailwindAdapter: CssFrameworkAdapter = {

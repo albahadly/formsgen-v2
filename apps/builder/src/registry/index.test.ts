@@ -26,6 +26,7 @@ describe('element registry', () => {
       'steps',
       'tab',
       'tabs',
+      'tags',
       'text',
       'textarea',
       'time',
@@ -47,7 +48,7 @@ describe('element registry', () => {
       'heading',
       'paragraph',
     ])
-    expect(listElements('fields')).toHaveLength(15)
+    expect(listElements('fields')).toHaveLength(16)
   })
 
   it('every definition matches its core semantics in the renderer', () => {

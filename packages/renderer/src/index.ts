@@ -14,6 +14,7 @@ export { default as FgRadioGroup } from './components/fields/FgRadioGroup.vue'
 export { default as FgRange } from './components/fields/FgRange.vue'
 export { default as FgSelect } from './components/fields/FgSelect.vue'
 export { default as FgStatic } from './components/fields/FgStatic.vue'
+export { default as FgTags } from './components/fields/FgTags.vue'
 export { default as FgText } from './components/fields/FgText.vue'
 export { default as FgTextarea } from './components/fields/FgTextarea.vue'
 

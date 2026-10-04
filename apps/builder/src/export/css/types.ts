@@ -39,6 +39,10 @@ export type Slot =
   | 'stepItemActive'
   | 'stepActions'
   | 'buttonSecondary'
+  | 'tagsWrap'
+  | 'tag'
+  | 'tagRemove'
+  | 'tagsInput'
 
 export interface CellAttrs {
   class: string

@@ -84,6 +84,7 @@ describe('FormsGenForm', () => {
       plan: 'pro',
       interests: [],
       channels: [],
+      topics: [],
       contact_method: 'email',
       twitter: '',
       github: '',

@@ -34,6 +34,10 @@ const CLASSES: Record<Slot, string> = {
   stepItemActive: 'd-inline-flex align-items-center gap-2 fw-semibold text-body',
   stepActions: 'mt-3 d-flex justify-content-between gap-2',
   buttonSecondary: 'btn btn-outline-secondary',
+  tagsWrap: 'form-control d-flex flex-wrap align-items-center gap-1',
+  tag: 'badge rounded-pill text-bg-secondary d-inline-flex align-items-center gap-1',
+  tagRemove: 'border-0 bg-transparent p-0 ms-1 text-white',
+  tagsInput: 'border-0 p-0 flex-grow-1 shadow-none',
 }
 
 export const bootstrap5Adapter: CssFrameworkAdapter = {

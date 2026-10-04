@@ -152,6 +152,17 @@
       }
     },
     {
+      "id": "ks-topics",
+      "type": "tags",
+      "name": "topics",
+      "props": {
+        "label": "Topics",
+        "placeholder": "Type and press Enter",
+        "description": "Free-text tags"
+      },
+      "validation": [{ "rule": "max", "value": 5, "message": "At most 5 topics" }]
+    },
+    {
       "id": "ks-contact-method",
       "type": "select",
       "name": "contact_method",
