@@ -8,9 +8,11 @@ import {
   type ElementNode,
 } from '@formsgen/renderer'
 import { computed } from 'vue'
+import draggable from 'vuedraggable'
 import { t } from '@/i18n'
 import { getElement } from '@/registry'
 import { useBuilderStore } from '@/stores/builder'
+import { useDropList } from './useDropList'
 
 const props = defineProps<{
   node: ElementNode
@@ -32,13 +34,19 @@ const fieldComponent = computed(
 const definition = computed(() => getElement(props.node.type))
 const isContainer = computed(() => definition.value?.isContainer === true)
 const selected = computed(() => store.selectedId === props.node.id)
-const hasConditions = computed(
-  () => (props.node.conditions?.length ?? 0) > 0,
-)
+const hasConditions = computed(() => (props.node.conditions?.length ?? 0) > 0)
 
 const path = computed(() =>
   props.node.name ? joinPath(props.parentPath, props.node.name) : props.parentPath,
 )
+
+const columnsClass = computed(() => {
+  if (props.node.type !== 'columns') return ''
+  const count = Number(props.node.props['count'] ?? 2)
+  return { 2: 'sm:grid-cols-2', 3: 'sm:grid-cols-3', 4: 'sm:grid-cols-4' }[count] ?? 'sm:grid-cols-2'
+})
+
+const { list, onMove, onAdd } = useDropList(() => props.node.id)
 
 function onSelect(): void {
   store.select(props.node.id)
@@ -46,6 +54,10 @@ function onSelect(): void {
 
 function onDelete(): void {
   store.removeElement(props.node.id)
+}
+
+function onDuplicate(): void {
+  store.duplicateElement(props.node.id)
 }
 </script>
 
@@ -60,7 +72,7 @@ function onDelete(): void {
       class="absolute -top-2.5 end-2 z-10 hidden items-center gap-1 group-hover:flex"
       :class="{ '!flex': selected }"
     >
-      <span class="rounded bg-indigo-600 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+      <span class="cursor-grab rounded bg-indigo-600 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
         {{ definition?.label ?? node.type }}
       </span>
       <span
@@ -69,6 +81,15 @@ function onDelete(): void {
       >
         if
       </span>
+      <button
+        type="button"
+        class="rounded bg-gray-500 px-1.5 py-0.5 text-[10px] font-semibold text-white hover:bg-gray-600"
+        :aria-label="t('canvas.duplicate')"
+        :data-testid="`canvas-duplicate-${node.id}`"
+        @click.stop="onDuplicate"
+      >
+        ⧉
+      </button>
       <button
         type="button"
         class="rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-white hover:bg-red-600"
@@ -96,24 +117,32 @@ function onDelete(): void {
         {{ definition?.label }}
         <span v-if="node.props.label"> — {{ node.props.label }}</span>
       </p>
-      <div
-        v-if="(node.children ?? []).length > 0"
-        class="flex flex-col gap-2"
-        :class="node.type === 'columns' ? 'sm:grid sm:grid-cols-2 sm:gap-2' : ''"
+      <draggable
+        v-model="list"
+        item-key="id"
+        group="canvas"
+        class="flex min-h-12 flex-col gap-2"
+        :class="columnsClass ? `sm:grid ${columnsClass}` : ''"
+        :data-parent-id="node.id"
+        ghost-class="opacity-40"
+        :move="onMove"
+        @add="onAdd"
       >
-        <BuilderNode
-          v-for="child in node.children ?? []"
-          :key="child.id"
-          :node="child"
-          :parent-path="path"
-        />
-      </div>
-      <p
-        v-else
-        class="py-3 text-center text-xs text-gray-400"
-      >
-        {{ t('canvas.container.empty') }}
-      </p>
+        <template #item="{ element }">
+          <BuilderNode
+            :node="element"
+            :parent-path="path"
+          />
+        </template>
+        <template #footer>
+          <p
+            v-if="(node.children ?? []).length === 0"
+            class="pointer-events-none py-3 text-center text-xs text-gray-400"
+          >
+            {{ t('canvas.container.empty') }}
+          </p>
+        </template>
+      </draggable>
     </div>
   </div>
 </template>

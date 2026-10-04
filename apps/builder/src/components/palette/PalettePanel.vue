@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import draggable from 'vuedraggable'
 import SvgIcon from '@/components/ui/SvgIcon.vue'
 import { t } from '@/i18n'
 import { listElements } from '@/registry'
+import { createNode } from '@/registry/factory'
 import type { ElementCategory, ElementDefinition } from '@/registry/types'
 import { useBuilderStore } from '@/stores/builder'
 
@@ -27,6 +29,11 @@ const items = computed<ElementDefinition[]>(() => {
 
 function add(type: string): void {
   store.addElement(type)
+}
+
+/** Drag-clone: dropping a palette item materializes a fresh node. */
+function clone(def: ElementDefinition) {
+  return createNode(def.type, store.takenNames)
 }
 </script>
 
@@ -62,34 +69,43 @@ function add(type: string): void {
         {{ t(`palette.category.${c}`) }}
       </button>
     </div>
-    <ul class="flex flex-1 flex-col gap-1.5 overflow-y-auto">
-      <li
-        v-for="def in items"
-        :key="def.type"
-      >
-        <button
-          type="button"
-          class="flex w-full items-center gap-2 rounded-md border border-gray-200 bg-white px-2 py-2 text-start hover:border-indigo-400 hover:bg-indigo-50"
-          :data-testid="`palette-item-${def.type}`"
-          :title="def.description"
-          @click="add(def.type)"
+    <draggable
+      :list="items"
+      item-key="type"
+      class="flex flex-1 flex-col gap-1.5 overflow-y-auto"
+      tag="ul"
+      :group="{ name: 'canvas', pull: 'clone', put: false }"
+      :sort="false"
+      :clone="clone"
+    >
+      <template #item="{ element: def }">
+        <li>
+          <button
+            type="button"
+            class="flex w-full cursor-grab items-center gap-2 rounded-md border border-gray-200 bg-white px-2 py-2 text-start hover:border-indigo-400 hover:bg-indigo-50"
+            :data-testid="`palette-item-${def.type}`"
+            :title="def.description"
+            @click="add(def.type)"
+          >
+            <SvgIcon
+              class="text-gray-500"
+              :svg="def.icon"
+            />
+            <span class="min-w-0">
+              <span class="block truncate text-sm font-medium text-gray-800">{{ def.label }}</span>
+              <span class="block truncate text-xs text-gray-500">{{ def.description }}</span>
+            </span>
+          </button>
+        </li>
+      </template>
+      <template #footer>
+        <li
+          v-if="items.length === 0"
+          class="px-2 py-4 text-center text-xs text-gray-400"
         >
-          <SvgIcon
-            class="text-gray-500"
-            :svg="def.icon"
-          />
-          <span class="min-w-0">
-            <span class="block truncate text-sm font-medium text-gray-800">{{ def.label }}</span>
-            <span class="block truncate text-xs text-gray-500">{{ def.description }}</span>
-          </span>
-        </button>
-      </li>
-      <li
-        v-if="items.length === 0"
-        class="px-2 py-4 text-center text-xs text-gray-400"
-      >
-        {{ t('palette.empty') }}
-      </li>
-    </ul>
+          {{ t('palette.empty') }}
+        </li>
+      </template>
+    </draggable>
   </div>
 </template>

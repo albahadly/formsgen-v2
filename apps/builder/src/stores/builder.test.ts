@@ -1,6 +1,11 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { useBuilderStore } from './builder'
+import {
+  canDropInto,
+  containerDepth,
+  subtreeHeight,
+  useBuilderStore,
+} from './builder'
 
 describe('builder store', () => {
   beforeEach(() => {
@@ -88,5 +93,67 @@ describe('builder store', () => {
     expect(node.validation).toEqual([{ rule: 'required' }])
     store.setValidation(node.id, [])
     expect(node.validation).toBeUndefined()
+  })
+
+  it('setChildren replaces root and container lists (drag-and-drop path)', () => {
+    const store = useBuilderStore()
+    const group = store.addElement('group')
+    store.select(null)
+    const field = store.addElement('text')
+    // simulate dragging the field into the group
+    store.setChildren(null, [group])
+    store.setChildren(group.id, [field])
+    expect(store.schema.tree).toHaveLength(1)
+    expect(group.children?.[0]?.id).toBe(field.id)
+  })
+
+  it('duplicateElement deep-clones with fresh ids and unique names', () => {
+    const store = useBuilderStore()
+    const group = store.addElement('group')
+    const field = store.addElement('text') // nested via selected container
+    const copy = store.duplicateElement(group.id)!
+    expect(store.schema.tree).toHaveLength(2)
+    expect(copy.id).not.toBe(group.id)
+    expect(copy.children?.[0]?.id).not.toBe(field.id)
+    expect(copy.children?.[0]?.name).not.toBe(field.name)
+    expect(store.selectedId).toBe(copy.id)
+  })
+})
+
+describe('drop guards', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
+
+  it('subtreeHeight and containerDepth', () => {
+    const store = useBuilderStore()
+    const g1 = store.addElement('group')
+    const g2 = store.addElement('group') // nested in g1 (selected container)
+    store.addElement('text') // nested in g2
+    expect(subtreeHeight(g1)).toBe(3)
+    expect(containerDepth(store.schema.tree, null)).toBe(0)
+    expect(containerDepth(store.schema.tree, g1.id)).toBe(1)
+    expect(containerDepth(store.schema.tree, g2.id)).toBe(2)
+  })
+
+  it('rejects dropping a container into its own subtree', () => {
+    const store = useBuilderStore()
+    const g1 = store.addElement('group')
+    const g2 = store.addElement('group')
+    expect(canDropInto(store.schema.tree, g1, g2.id)).toBe(false)
+    expect(canDropInto(store.schema.tree, g1, g1.id)).toBe(false)
+    expect(canDropInto(store.schema.tree, g2, null)).toBe(true)
+  })
+
+  it('rejects drops beyond the max nesting depth', () => {
+    const store = useBuilderStore()
+    store.addElement('group') // depth 1 container
+    store.addElement('group') // depth 2
+    store.addElement('group') // depth 3
+    const g4 = store.addElement('group') // depth 4
+    const tall = store.duplicateElement(store.schema.tree[0]!.id)! // height-4 subtree
+    expect(canDropInto(store.schema.tree, tall, g4.id)).toBe(false)
+    const flat = store.addElement('text')
+    expect(canDropInto(store.schema.tree, flat, g4.id)).toBe(true)
   })
 })

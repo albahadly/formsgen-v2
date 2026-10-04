@@ -70,6 +70,52 @@ describe('palette → canvas → properties workflow', () => {
     expect(wrapper.find('[data-testid="properties-empty"]').exists()).toBe(true)
   })
 
+  it('duplicates a node from the canvas chrome', async () => {
+    const { wrapper, store } = mountApp()
+    await wrapper.get('[data-testid="palette-item-text"]').trigger('click')
+    const id = store.schema.tree[0]!.id
+    await wrapper.get(`[data-testid="canvas-duplicate-${id}"]`).trigger('click')
+    expect(store.schema.tree).toHaveLength(2)
+    expect(store.schema.tree[1]?.name).toBe('text_2')
+  })
+
+  it('keyboard: Delete removes and Escape deselects on the canvas', async () => {
+    const { wrapper, store } = mountApp()
+    await wrapper.get('[data-testid="palette-item-text"]').trigger('click')
+    const canvas = wrapper.get('[data-testid="panel-canvas"]')
+    await canvas.trigger('keydown', { key: 'Escape' })
+    expect(store.selectedId).toBeNull()
+    store.select(store.schema.tree[0]!.id)
+    await canvas.trigger('keydown', { key: 'Delete' })
+    expect(store.schema.tree).toHaveLength(0)
+  })
+
+  it('keyboard: arrows walk the flattened tree', async () => {
+    const { wrapper, store } = mountApp()
+    await wrapper.get('[data-testid="palette-item-text"]').trigger('click')
+    store.select(null)
+    await wrapper.get('[data-testid="palette-item-textarea"]').trigger('click')
+    store.select(null)
+    const canvas = wrapper.get('[data-testid="panel-canvas"]')
+    await canvas.trigger('keydown', { key: 'ArrowDown' })
+    expect(store.selectedId).toBe(store.schema.tree[0]!.id)
+    await canvas.trigger('keydown', { key: 'ArrowDown' })
+    expect(store.selectedId).toBe(store.schema.tree[1]!.id)
+    await canvas.trigger('keydown', { key: 'ArrowUp' })
+    expect(store.selectedId).toBe(store.schema.tree[0]!.id)
+  })
+
+  it('tree outline lists nested rows and selects on click', async () => {
+    const { wrapper, store } = mountApp()
+    await wrapper.get('[data-testid="tree-toggle"]').trigger('click')
+    expect(wrapper.find('[data-testid="panel-tree"]').exists()).toBe(true)
+    await wrapper.get('[data-testid="palette-item-text"]').trigger('click')
+    const id = store.schema.tree[0]!.id
+    store.select(null)
+    await wrapper.get(`[data-testid="tree-row-${id}"]`).trigger('click')
+    expect(store.selectedId).toBe(id)
+  })
+
   it('adds into a selected container and renders nested chrome', async () => {
     const { wrapper, store } = mountApp()
     const structureTab = wrapper
