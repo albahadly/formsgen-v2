@@ -178,6 +178,47 @@ describe('palette → canvas → properties workflow', () => {
     expect(wrapper.find('[data-testid="settings-dialog"]').exists()).toBe(false)
   })
 
+  it('settings theme: colors, presets, custom values, resets — and the canvas follows', async () => {
+    const { wrapper, store } = mountApp()
+    await wrapper.get('[data-testid="preview-theme-toggle"]').trigger('click') // dark preview
+    await wrapper.get('[data-testid="open-settings"]').trigger('click')
+    const canvas = () => wrapper.get('[data-testid="panel-canvas"] .fg-form')
+    expect(wrapper.get('[data-testid="settings-theme-reset"]').attributes('disabled')).toBeDefined()
+
+    await wrapper.get('[data-testid="settings-theme-color-primary"]').setValue('#0f766e')
+    await wrapper.get('[data-testid="settings-theme-color-bg"]').setValue('#fffbeb')
+    expect(store.schema.meta.theme).toEqual({ 'color-primary': '#0f766e', 'color-bg': '#fffbeb' })
+    expect(canvas().attributes('style')).toContain('--fg-color-primary: #0f766e')
+    // a custom background pins the light scheme even in dark preview
+    expect(canvas().attributes('data-fg-theme')).toBe('light')
+
+    await wrapper.get('[data-testid="settings-theme-color-bg-reset"]').trigger('click')
+    expect(store.schema.meta.theme).toEqual({ 'color-primary': '#0f766e' })
+    expect(canvas().attributes('data-fg-theme')).toBe('dark')
+
+    await wrapper.get('[data-testid="settings-theme-radius"]').setValue('none')
+    await wrapper.get('[data-testid="settings-theme-font"]').setValue('serif')
+    expect(store.schema.meta.theme?.['radius']).toBe('0px')
+    expect(store.schema.meta.theme?.['font']).toBe('Georgia, "Times New Roman", serif')
+    await wrapper.get('[data-testid="settings-theme-radius"]').setValue('medium')
+    expect(store.schema.meta.theme?.['radius']).toBeUndefined()
+
+    await wrapper.get('[data-testid="settings-theme-space"]').setValue('custom')
+    const custom = wrapper.get('[data-testid="settings-theme-space-custom"]')
+    await custom.setValue('2rem; } body {')
+    expect(wrapper.find('[data-testid="settings-theme-space-error"]').exists()).toBe(true)
+    expect(store.schema.meta.theme?.['space']).toBeUndefined()
+    await custom.setValue('2rem')
+    expect(wrapper.find('[data-testid="settings-theme-space-error"]').exists()).toBe(false)
+    expect(store.schema.meta.theme?.['space']).toBe('2rem')
+    // a custom value that is not a preset keeps the custom choice selected
+    expect((wrapper.get('[data-testid="settings-theme-space"]').element as HTMLSelectElement).value).toBe('custom')
+
+    await wrapper.get('[data-testid="settings-theme-reset"]').trigger('click')
+    expect(store.schema.meta.theme).toBeUndefined()
+    expect(canvas().attributes('style') ?? '').not.toContain('--fg-')
+  })
+
   it('keyboard: Alt+Arrows move the selected element (DnD alternative)', async () => {
     const { wrapper, store } = mountApp()
     await wrapper.get('[data-testid="palette-item-text"]').trigger('click')

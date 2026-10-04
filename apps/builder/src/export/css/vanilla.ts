@@ -1,4 +1,4 @@
-import type { ThemeTokens } from '@formsgen/renderer'
+import { resolveTheme, type ThemeTokens } from '@formsgen/renderer'
 import { SIZED_SLOTS, TONED_SLOTS, type CssFrameworkAdapter, type Slot, type SlotMods } from './types'
 
 const CLASSES: Record<Slot, string> = {
@@ -42,10 +42,13 @@ const CLASSES: Record<Slot, string> = {
 }
 
 /** Mirrors packages/renderer/src/styles.css for self-contained artifacts. */
-function baseStylesheet(theme: ThemeTokens = {}): string {
-  const overrides = Object.entries(theme)
+function baseStylesheet(theme: ThemeTokens | undefined): string {
+  // The theme goes last, at higher specificity, so the automatic dark scheme
+  // never overrides a color the author chose.
+  const overrides = Object.entries(resolveTheme(theme))
     .map(([token, value]) => `  --fg-${token}: ${value};`)
     .join('\n')
+  const themeRule = overrides ? `.fg-form.fg-form {\n${overrides}\n}\n` : ''
   return `.fg-form {
   --fg-color-bg: #ffffff;
   --fg-color-surface: #f8fafc;
@@ -58,7 +61,7 @@ function baseStylesheet(theme: ThemeTokens = {}): string {
   --fg-radius: 6px;
   --fg-space: 1rem;
   --fg-font: system-ui, sans-serif;
-${overrides ? `${overrides}\n` : ''}  font-family: var(--fg-font);
+  font-family: var(--fg-font);
   color: var(--fg-color-text);
   background: var(--fg-color-bg);
   padding: var(--fg-space);
@@ -128,7 +131,7 @@ ${overrides ? `${overrides}\n` : ''}  font-family: var(--fg-font);
     --fg-color-primary: #818cf8; --fg-color-primary-contrast: #0f172a; --fg-color-error: #f87171;
   }
 }
-`
+${themeRule}`
 }
 
 export const vanillaAdapter: CssFrameworkAdapter = {

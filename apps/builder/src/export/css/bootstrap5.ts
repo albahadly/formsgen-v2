@@ -1,3 +1,4 @@
+import { bootstrapThemeCss } from './themeBridge'
 import { swapClasses, type CssFrameworkAdapter, type Slot, type SlotMods } from './types'
 
 // Proper Bootstrap 5 idioms, not renamed vanilla classes (§7a).
@@ -37,7 +38,7 @@ const CLASSES: Record<Slot, string> = {
   tagsWrap: 'form-control d-flex flex-wrap align-items-center gap-1',
   tag: 'badge rounded-pill text-bg-secondary d-inline-flex align-items-center gap-1',
   tagRemove: 'border-0 bg-transparent p-0 ms-1 text-white',
-  tagsInput: 'border-0 p-0 flex-grow-1 shadow-none',
+  tagsInput: 'border-0 p-0 flex-grow-1 shadow-none bg-transparent',
   srOnly: 'visually-hidden',
 }
 
@@ -73,6 +74,7 @@ export const bootstrap5Adapter: CssFrameworkAdapter = {
   alignClass: (align) => `text-${align}`,
   cell: (span) => ({ class: `col-12 col-md-${span}` }),
   invalidClass: () => 'is-invalid',
+  stylesheet: (theme) => bootstrapThemeCss(theme),
   assets: () => ({
     links: ['https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css'],
     scripts: [],

@@ -2,7 +2,13 @@
 // phrases in registry/export metadata shown via tText() — must have Arabic.
 // Adding a panel label or an export target without a translation fails here.
 
-import { KNOWN_RULE_NAMES, findNodeById } from '@formsgen/renderer'
+import {
+  FONT_PRESETS,
+  KNOWN_RULE_NAMES,
+  RADIUS_PRESETS,
+  SPACE_PRESETS,
+  findNodeById,
+} from '@formsgen/renderer'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -46,6 +52,21 @@ describe('Arabic builder UI completeness', () => {
       ...listCssAdapters().map((adapter) => adapter.label),
     ]
     expect(phrases.filter((p) => !SAME_IN_ARABIC.test(p) && !hasArabicText(p))).toEqual([])
+  })
+
+  it('every theme preset has a name in both languages', () => {
+    const keys = [
+      ...FONT_PRESETS.map((p) => `settings.font.${p.id}`),
+      ...RADIUS_PRESETS.map((p) => `settings.radius.${p.id}`),
+      ...SPACE_PRESETS.map((p) => `settings.space.${p.id}`),
+    ]
+    for (const lang of ['en', 'ar'] as const) {
+      setLocale(lang)
+      expect(keys.filter((key) => t(key) === key), lang).toEqual([])
+    }
+    const english = keys.map((key) => (setLocale('en'), t(key)))
+    setLocale('ar')
+    expect(keys.filter((key, i) => t(key) === english[i])).toEqual([])
   })
 
   it('every validation rule has a readable name in both languages', () => {

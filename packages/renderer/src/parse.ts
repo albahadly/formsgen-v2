@@ -11,6 +11,7 @@ import {
   type FormSchema,
   type Rule,
 } from './schema'
+import { THEME_TOKEN_PATTERN, isSafeThemeValue } from './theme'
 
 export type ParseResult =
   | { ok: true; schema: FormSchema }
@@ -67,6 +68,22 @@ export function parseFormSchema(input: unknown): ParseResult {
     }
     if (meta['dir'] !== 'ltr' && meta['dir'] !== 'rtl') {
       errors.push('meta.dir: expected "ltr" or "rtl"')
+    }
+    const theme = meta['theme']
+    if (theme !== undefined) {
+      if (!isRecord(theme)) {
+        errors.push('meta.theme: expected an object')
+      } else {
+        // Values are written into generated CSS — reject anything that could
+        // end a declaration or rule.
+        for (const [token, value] of Object.entries(theme)) {
+          if (!THEME_TOKEN_PATTERN.test(token)) {
+            errors.push(`meta.theme.${token}: expected a token name (lowercase letters, digits, dashes)`)
+          } else if (!isSafeThemeValue(value)) {
+            errors.push(`meta.theme.${token}: expected a plain CSS value (no ; { } < > \\ @ or line breaks)`)
+          }
+        }
+      }
     }
   }
 

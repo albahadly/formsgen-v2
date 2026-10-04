@@ -20,6 +20,7 @@ Bumping `$schema` to `formsgen/v3` would make every existing document fail `pars
 |---|---|---|
 | `meta.submitButton` `{ text, align, variant, fullWidth, onLastStepOnly }` | 13 (recorded retroactively) | "Submit", start-aligned, primary, natural width, hidden until the last wizard step |
 | `ElementNode.style` `{ size: 'sm'\|'lg', hideLabel, align: 'center'\|'end', tone: 'muted'\|'primary'\|'danger', className }` | 20 | medium size, visible label, start alignment, default color, no extra class |
+| `meta.theme` token set (not new; its values became *validated*) — `color-text`, `color-bg`, `color-border`, `color-error`, `font`, `space` join `color-primary` / `radius` in the Settings UI | 21 | the built-in look. Token names must match `[a-z][a-z0-9-]*`; values must be plain CSS (no `; { } < > \ @`, backticks or line breaks, balanced quotes, ≤ 120 chars), because they are written into generated CSS |
 
 ## Alternatives considered
 

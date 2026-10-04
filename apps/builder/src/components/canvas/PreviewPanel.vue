@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FormsGenForm } from '@formsgen/renderer'
+import { FormsGenForm, pinsLightScheme } from '@formsgen/renderer'
 import { computed, ref } from 'vue'
 import { t } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'
@@ -33,7 +33,7 @@ function onSubmit(data: Record<string, unknown>): void {
         v-model="formData"
         class="rounded-lg p-6 shadow-sm"
         :schema="builder.schema"
-        :data-fg-theme="ui.previewTheme"
+        :data-fg-theme="pinsLightScheme(builder.schema.meta.theme) ? 'light' : ui.previewTheme"
         @submit="onSubmit"
       />
       <div

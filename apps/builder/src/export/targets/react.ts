@@ -18,6 +18,7 @@ import {
   resolveSubmitButton,
   toJsLiteral,
 } from '../structure'
+import { formRootClass, pinnedSchemeAttr } from '../css/themeBridge'
 import { componentName, type ExportTarget } from './types'
 
 function indentBlock(text: string, depth: number): string {
@@ -356,7 +357,7 @@ ${jumpBlock ? `${jumpBlock}\n` : ''}      fgAnnounce(fgErrorsText(Object.keys(ne
 ${submitBlock}  }
 
   return (
-    <form className="${css.classes('form')}" dir="${schema.meta.dir}" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
+    <form className="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} dir="${schema.meta.dir}" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
       <div className="${css.classes('grid')}">
 ${indentBlock(markup, 4)}
       </div>
@@ -384,7 +385,7 @@ and the submit payload are compiled into the component.
 
 ## Install
 
-1. Copy \`${name}.tsx\`${ctx.css.stylesheet ? ` and \`${name}.css\`` : ''} into any React + TypeScript project
+1. Copy \`${name}.tsx\`${ctx.css.stylesheet?.(ctx.schema.meta.theme) ? ` and \`${name}.css\`` : ''} into any React + TypeScript project
    (e.g. \`npm create vite@latest -- --template react-ts\`).
 2. Use it:
 

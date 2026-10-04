@@ -1,3 +1,4 @@
+import { tailwindThemeCss } from './themeBridge'
 import { swapClasses, type CssFrameworkAdapter, type Slot, type SlotMods } from './types'
 
 // Polished with stock Tailwind, no plugin required (§7a).
@@ -95,6 +96,7 @@ export const tailwindAdapter: CssFrameworkAdapter = {
   alignClass: (align) => `text-${align}`,
   cell: (span) => ({ class: `col-span-12 md:col-span-${span}` }),
   invalidClass: () => 'border-red-500 focus:ring-red-200',
+  stylesheet: (theme) => tailwindThemeCss(theme),
   assets: () => ({
     links: [],
     scripts: ['https://cdn.tailwindcss.com'],

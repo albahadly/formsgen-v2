@@ -71,8 +71,11 @@ export interface CssFrameworkAdapter {
   cell(span: number): CellAttrs
   /** Class(es) added to a control while invalid. */
   invalidClass(): string
-  /** Full stylesheet for generated artifacts (vanilla only). */
-  stylesheet?(theme?: ThemeTokens): string
+  /**
+   * Stylesheet for generated artifacts: vanilla's full stylesheet, or a
+   * framework's theme bridge (undefined when there is no theme to apply).
+   */
+  stylesheet?(theme?: ThemeTokens): string | undefined
   /** CDN references for the plain-HTML export. */
   assets(): { links: string[]; scripts: string[] }
   /** One line for generated READMEs naming the framework prerequisite. */

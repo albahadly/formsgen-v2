@@ -15,6 +15,7 @@ import {
 import { renderTree, stepButtonLabels, type RenderedSectionHost } from '../markup'
 import { collectSectionHosts, resolveSubmitButton } from '../structure'
 import { esc } from '@/registry/emitters/shared'
+import { formRootClass, pinnedSchemeAttr } from '../css/themeBridge'
 import type { ExportTarget } from './types'
 
 function indentBlock(text: string, depth: number): string {
@@ -412,7 +413,7 @@ ${submitBlock}    })
 ${headAssets}${headAssets && styleTag ? '\n' : ''}${styleTag}
 </head>
 <body>
-  <form id="fg-form" class="${css.classes('form')}" novalidate>
+  <form id="fg-form" class="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} novalidate>
     <div class="${css.classes('grid')}">
 ${indentBlock(markup, 3)}
     </div>

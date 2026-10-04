@@ -123,6 +123,14 @@ describe('builder store', () => {
     expect(store.schema.meta.theme).toEqual({ 'color-primary': '#123456' })
     store.setThemeToken('color-primary', null)
     expect(store.schema.meta.theme).toBeUndefined()
+
+    // values written into generated CSS must be plain: unsafe ones are refused
+    expect(store.setThemeToken('radius', '4px; } body { display: none')).toBe(false)
+    expect(store.setThemeToken('Bad Token', '4px')).toBe(false)
+    expect(store.schema.meta.theme).toBeUndefined()
+    expect(store.setThemeToken('radius', '4px')).toBe(true)
+    store.resetTheme()
+    expect(store.schema.meta.theme).toBeUndefined()
   })
 
   it('duplicateElement deep-clones with fresh ids and unique names', () => {

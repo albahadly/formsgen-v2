@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { pinsLightScheme, themeCssVariables } from '@formsgen/renderer'
 import { computed } from 'vue'
 import draggable from 'vuedraggable'
 import { t } from '@/i18n'
@@ -14,6 +15,7 @@ provideDesignContext()
 
 const { list, onMove, onAdd } = useDropList(() => null)
 const isEmpty = computed(() => store.schema.tree.length === 0)
+const themeVars = computed(() => themeCssVariables(store.schema.meta.theme))
 
 function onBackgroundClick(): void {
   store.select(null)
@@ -79,8 +81,8 @@ function onKeydown(event: KeyboardEvent): void {
   >
     <div
       class="fg-form mx-auto rounded-lg p-6 shadow-sm transition-all"
-      :style="{ maxWidth: ui.deviceWidth === '100%' ? '42rem' : ui.deviceWidth }"
-      :data-fg-theme="ui.previewTheme"
+      :style="[themeVars, { maxWidth: ui.deviceWidth === '100%' ? '42rem' : ui.deviceWidth }]"
+      :data-fg-theme="pinsLightScheme(store.schema.meta.theme) ? 'light' : ui.previewTheme"
       :dir="store.schema.meta.dir"
     >
       <draggable

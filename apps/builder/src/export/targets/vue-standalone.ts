@@ -18,6 +18,7 @@ import {
   resolveSubmitButton,
   toJsLiteral,
 } from '../structure'
+import { formRootClass, pinnedSchemeAttr } from '../css/themeBridge'
 import { componentName, type ExportTarget } from './types'
 
 function indentBlock(text: string, depth: number): string {
@@ -290,7 +291,7 @@ ${submitBlock}}
 
     const template = `<template>
   <form
-    class="${css.classes('form')}"
+    class="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme).replace(' ', '\n    ')}
     dir="${schema.meta.dir}"
     novalidate
     @submit.prevent="onSubmit"

@@ -4,6 +4,7 @@ import { useFocusTrap } from '@/composables/useFocusTrap'
 import { t } from '@/i18n'
 import { useBuilderStore, type NameError } from '@/stores/builder'
 import { useUiStore } from '@/stores/ui'
+import ThemeSection from './ThemeSection.vue'
 
 const builder = useBuilderStore()
 const ui = useUiStore()
@@ -100,16 +101,6 @@ const submitOnLastStepOnly = computed({
   set: (v: boolean) => patchSubmitButton({ onLastStepOnly: v ? undefined : false }),
 })
 
-const primaryColor = computed({
-  get: () => builder.schema.meta.theme?.['color-primary'] ?? '#4f46e5',
-  set: (v: string) => builder.setThemeToken('color-primary', v),
-})
-
-const radius = computed({
-  get: () => builder.schema.meta.theme?.['radius'] ?? '',
-  set: (v: string) => builder.setThemeToken('radius', v),
-})
-
 function onKeydown(event: KeyboardEvent): void {
   if (event.key === 'Escape') ui.closeSettings()
 }
@@ -125,7 +116,7 @@ function onKeydown(event: KeyboardEvent): void {
   >
     <div
       ref="dialogRef"
-      class="w-full max-w-md rounded-lg bg-white p-5 shadow-xl"
+      class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white p-5 shadow-xl"
       role="dialog"
       aria-modal="true"
       :aria-label="t('settings.title')"
@@ -284,27 +275,7 @@ function onKeydown(event: KeyboardEvent): void {
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 border-t border-gray-100 pt-3">
-          <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
-            {{ t('settings.primaryColor') }}
-            <input
-              v-model="primaryColor"
-              type="color"
-              class="h-9 w-full cursor-pointer rounded border border-gray-300"
-              data-testid="settings-primary-color"
-            >
-          </label>
-          <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
-            {{ t('settings.radius') }}
-            <input
-              v-model="radius"
-              type="text"
-              placeholder="6px"
-              class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal"
-              data-testid="settings-radius"
-            >
-          </label>
-        </div>
+        <ThemeSection />
       </div>
     </div>
   </div>

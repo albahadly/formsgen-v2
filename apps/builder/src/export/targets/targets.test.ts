@@ -483,7 +483,7 @@ describe('blur validation waits for a pointer press to end (no lost clicks)', ()
     const c = generate('blazor')[0]!.content
     expect(c).not.toContain('<DataAnnotationsValidator />')
     expect(c).toContain('@onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd"')
-    expect(c).toContain('style="display: contents"')
+    expect(c).toContain('<div class="fg-form" @onpointerdown="FgPointerDown"')
     expect(c).toContain('fgDeferredFields.Add(name);')
     expect(c).toContain('"FullName" => Model.FullName,')
   })

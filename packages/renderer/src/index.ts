@@ -82,6 +82,23 @@ export {
 export { errorsAnnouncement, stepAnnouncement, submittedAnnouncement } from './announcements'
 
 export {
+  FONT_PRESETS,
+  RADIUS_PRESETS,
+  SPACE_PRESETS,
+  THEME_DEFAULTS,
+  THEME_TOKEN_PATTERN,
+  isSafeThemeValue,
+  parseHexColor,
+  pinsLightScheme,
+  readableTextOn,
+  resolveTheme,
+  shadeColor,
+  themeCssVariables,
+  themeValue,
+  type ThemePreset,
+} from './theme'
+
+export {
   MESSAGES,
   defaultRuleMessage,
   fill,

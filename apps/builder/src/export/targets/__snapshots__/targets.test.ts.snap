@@ -7,8 +7,8 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
 @using System.Linq
 @using Microsoft.AspNetCore.Components.Forms
 
-<EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate class="container py-4" dir="ltr">
-    <div style="display: contents" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
+<EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate dir="ltr">
+    <div class="container py-4" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
     <div class="row g-3">
         <div class="col-12 col-md-12 text-center">
           <h2 class="fw-semibold text-primary">Kitchen Sink</h2>
@@ -161,7 +161,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
                   var fgIdx_topics = i;
                   <span class="badge rounded-pill text-bg-secondary d-inline-flex align-items-center gap-1">@Model.Topics[fgIdx_topics] <button type="button" class="border-0 bg-transparent p-0 ms-1 text-white" aria-label="Remove @(Model.Topics[fgIdx_topics])" @onclick="() => Model.Topics.RemoveAt(fgIdx_topics)">&times;</button></span>
               }
-              <input id="fg_topics" type="text" class="border-0 p-0 flex-grow-1 shadow-none" placeholder="Type and press Enter" @bind='fgTagDrafts["topics"]' @bind:after='() => FgAddTag(Model.Topics, "topics")'>
+              <input id="fg_topics" type="text" class="border-0 p-0 flex-grow-1 shadow-none bg-transparent" placeholder="Type and press Enter" @bind='fgTagDrafts["topics"]' @bind:after='() => FgAddTag(Model.Topics, "topics")'>
             </div>
             <p class="form-text mt-0">Free-text tags</p>
             <ValidationMessage For="@(() => Model.Topics)" class="invalid-feedback d-block mt-0" />
@@ -297,11 +297,11 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         </div>
     </div>
     <div class="visually-hidden" role="status" aria-live="polite" aria-atomic="true">@fgAnnouncement</div>
-    </div>
     @if (ResultJson is not null)
     {
         <pre class="mt-3 p-3 bg-dark text-success rounded small overflow-auto">@ResultJson</pre>
     }
+    </div>
 </EditForm>
 
 @code {
@@ -682,8 +682,8 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
 @using System.Linq
 @using Microsoft.AspNetCore.Components.Forms
 
-<EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate class="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" dir="ltr">
-    <div style="display: contents" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
+<EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate dir="ltr">
+    <div class="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
     <div class="grid grid-cols-12 gap-4">
         <div class="col-span-12 md:col-span-12 text-center">
           <h2 class="font-semibold text-indigo-600 dark:text-indigo-400">Kitchen Sink</h2>
@@ -972,11 +972,11 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         </div>
     </div>
     <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">@fgAnnouncement</div>
-    </div>
     @if (ResultJson is not null)
     {
         <pre class="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300">@ResultJson</pre>
     }
+    </div>
 </EditForm>
 
 @code {
@@ -1357,8 +1357,8 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
 @using System.Linq
 @using Microsoft.AspNetCore.Components.Forms
 
-<EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate class="fg-form" dir="ltr">
-    <div style="display: contents" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
+<EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate dir="ltr">
+    <div class="fg-form" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
     <div class="fg-grid">
         <div class="fg-cell fg-align-center" style="grid-column: span 12 / span 12">
           <h2 class="fg-heading fg-tone-primary">Kitchen Sink</h2>
@@ -1647,11 +1647,11 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         </div>
     </div>
     <div class="fg-sr-only" role="status" aria-live="polite" aria-atomic="true">@fgAnnouncement</div>
-    </div>
     @if (ResultJson is not null)
     {
         <pre class="fg-payload">@ResultJson</pre>
     }
+    </div>
 </EditForm>
 
 @code {
@@ -2182,7 +2182,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
           <label class="form-label fw-semibold mb-0" for="fg_topics">Topics</label>
           <div class="form-control d-flex flex-wrap align-items-center gap-1" data-fg-path="topics" data-fg-kind="tags">
             <span data-fg-tags-chips="topics"></span>
-            <input id="fg_topics" type="text" class="border-0 p-0 flex-grow-1 shadow-none" data-fg-tags-input="topics" placeholder="Type and press Enter">
+            <input id="fg_topics" type="text" class="border-0 p-0 flex-grow-1 shadow-none bg-transparent" data-fg-tags-input="topics" placeholder="Type and press Enter">
           </div>
           <p class="form-text mt-0">Free-text tags</p>
           <p id="fg_err_topics" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
@@ -4617,7 +4617,7 @@ export default function KitchenSinkForm({
               {form.topics.map((tag, index) => (
                 <span key={tag} className="badge rounded-pill text-bg-secondary d-inline-flex align-items-center gap-1">{tag} <button type="button" className="border-0 bg-transparent p-0 ms-1 text-white" aria-label={'Remove ' + (tag)} onClick={() => fgRemoveTag('topics', form.topics, index)}>×</button></span>
               ))}
-              <input id="fg_topics" type="text" className="border-0 p-0 flex-grow-1 shadow-none" value={tagDrafts['topics'] ?? ''} placeholder="Type and press Enter" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTagDrafts((d) => ({ ...d, 'topics': e.target.value }))} onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); fgAddTag('topics', form.topics) } }} onBlur={() => { fgAddTag('topics', form.topics); touch('topics') }} />
+              <input id="fg_topics" type="text" className="border-0 p-0 flex-grow-1 shadow-none bg-transparent" value={tagDrafts['topics'] ?? ''} placeholder="Type and press Enter" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTagDrafts((d) => ({ ...d, 'topics': e.target.value }))} onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); fgAddTag('topics', form.topics) } }} onBlur={() => { fgAddTag('topics', form.topics); touch('topics') }} />
             </div>
             <p className="form-text mt-0">Free-text tags</p>
             {errors['topics'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['topics']}</p>}
@@ -6422,7 +6422,7 @@ async function onSubmit(): Promise<void> {
           <label class="form-label fw-semibold mb-0" for="fg_topics">Topics</label>
           <div class="form-control d-flex flex-wrap align-items-center gap-1">
             <span v-for="(tag, index) in form.topics" :key="tag" class="badge rounded-pill text-bg-secondary d-inline-flex align-items-center gap-1">{{ tag }} <button type="button" class="border-0 bg-transparent p-0 ms-1 text-white" :aria-label="'Remove ' + (tag)" @click="fgRemoveTag('topics', index)">×</button></span>
-            <input id="fg_topics" v-model="tagDrafts['topics']" type="text" class="border-0 p-0 flex-grow-1 shadow-none" placeholder="Type and press Enter" @keydown.enter.prevent="fgAddTag('topics')" @blur="fgAddTag('topics'); touch('topics')">
+            <input id="fg_topics" v-model="tagDrafts['topics']" type="text" class="border-0 p-0 flex-grow-1 shadow-none bg-transparent" placeholder="Type and press Enter" @keydown.enter.prevent="fgAddTag('topics')" @blur="fgAddTag('topics'); touch('topics')">
           </div>
           <p class="form-text mt-0">Free-text tags</p>
           <p v-if="errors['topics']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['topics'] }}</p>

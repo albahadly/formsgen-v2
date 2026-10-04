@@ -7,10 +7,12 @@ import {
   SCHEMA_ID,
   SECTION_CONTAINERS,
   SECTION_TYPES,
+  THEME_TOKEN_PATTERN,
   collectNames,
   findNodeById,
   findParent,
   getCoreElement,
+  isSafeThemeValue,
   uniqueName,
   walkTree,
   type ColSpan,
@@ -247,18 +249,27 @@ export const useBuilderStore = defineStore('builder', {
     },
 
     /** Sets or removes one theme token on meta.theme. */
-    setThemeToken(token: string, value: string | null): void {
+    /** Sets or clears (null / '') one theme token; unsafe values are refused. */
+    setThemeToken(token: string, value: string | null): boolean {
       const theme = { ...(this.schema.meta.theme ?? {}) }
       if (value === null || value === '') {
         delete theme[token]
-      } else {
+      } else if (THEME_TOKEN_PATTERN.test(token) && isSafeThemeValue(value)) {
         theme[token] = value
+      } else {
+        return false
       }
       if (Object.keys(theme).length === 0) {
         delete this.schema.meta.theme
       } else {
         this.schema.meta.theme = theme
       }
+      return true
+    },
+
+    /** Removes every theme token (back to the built-in look). */
+    resetTheme(): void {
+      delete this.schema.meta.theme
     },
 
     /** Replaces the whole schema (project open / draft restore). */

@@ -4,6 +4,7 @@ import { getValueByPath } from '../conditions'
 import { FORM_CONTEXT, type FormContext } from '../context'
 import { pluralText, resolveMessages } from '../messages'
 import { evaluateRules } from '../rules'
+import { pinsLightScheme, themeCssVariables } from '../theme'
 import { collectVisibleFields, pickVisibleData, setValueByPath } from '../runtime'
 import type { FormSchema } from '../schema'
 import { buildDefaultData } from '../tree'
@@ -19,14 +20,10 @@ const emit = defineEmits<{
   submit: [data: Record<string, unknown>]
 }>()
 
-/** meta.theme tokens become --fg-* CSS variables on the form root. */
-const themeStyle = computed<Record<string, string>>(() => {
-  const style: Record<string, string> = {}
-  for (const [token, value] of Object.entries(props.schema.meta.theme ?? {})) {
-    style[`--fg-${token}`] = value
-  }
-  return style
-})
+/** meta.theme tokens (validated, with derived values) become --fg-* variables. */
+const themeStyle = computed(() => themeCssVariables(props.schema.meta.theme))
+/** Custom background/text colors pin the light scheme (no auto dark mode). */
+const pinnedScheme = computed(() => (pinsLightScheme(props.schema.meta.theme) ? 'light' : undefined))
 
 /** Built-in texts (rule defaults, labels, announcements) for meta.locale. */
 const messages = computed(() => resolveMessages(props.schema.meta.locale))
@@ -230,6 +227,7 @@ function onSubmit(): void {
     class="fg-form"
     :dir="schema.meta.dir"
     :style="themeStyle"
+    :data-fg-theme="pinnedScheme"
     novalidate
     @submit.prevent="onSubmit"
     @pointerdown.capture="onPointerDown"

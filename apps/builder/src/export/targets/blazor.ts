@@ -17,6 +17,8 @@ import {
 import { collectExportFields } from '../logic'
 import { renderTree, stepButtonLabels, type RenderedSectionHost } from '../markup'
 import { collectSectionHosts, fieldDefault, pathKey, resolveSubmitButton } from '../structure'
+import { scopeForBlazor } from '../css/blazorScope'
+import { formRootClass, pinnedSchemeAttr } from '../css/themeBridge'
 import { componentName, type ExportTarget } from './types'
 
 function indentBlock(text: string, depth: number): string {
@@ -472,17 +474,17 @@ ${fields.map((f) => `        ${csStr(pascalMember(f.key))},`).join('\n')}
 @using System.ComponentModel.DataAnnotations
 @using System.Text.Json
 ${extraUsings}${submitUrl ? '@using System.Net.Http.Json\n' : ''}${httpInject}
-<EditForm ${formBinding} novalidate class="${css.classes('form')}" dir="${schema.meta.dir}">
-    <div style="display: contents" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
+<EditForm ${formBinding} novalidate dir="${schema.meta.dir}">
+    <div class="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
     <div class="${css.classes('grid')}">
 ${indentBlock(markup, 2)}
     </div>
     <div class="${css.classes('srOnly')}" role="status" aria-live="polite" aria-atomic="true">@fgAnnouncement</div>${actionsBlock}
-    </div>
     @if (ResultJson is not null)
     {
         <pre class="${css.classes('payload')}">@ResultJson</pre>
     }
+    </div>
 </EditForm>
 
 @code {
@@ -520,7 +522,7 @@ ${validateStatements || '            yield break;'}
       { path: `${name}.razor`, language: 'xml', content: razor },
     ]
     if (stylesheet) {
-      files.push({ path: `${name}.razor.css`, language: 'css', content: stylesheet })
+      files.push({ path: `${name}.razor.css`, language: 'css', content: scopeForBlazor(stylesheet) })
     }
     return files
   },
@@ -541,7 +543,7 @@ typed text when the input commits (blur or Enter — note Enter inside an
 
 1. Create or open a Blazor app (\`dotnet new blazor\`); works in both
    Server and WebAssembly render modes.
-2. Copy \`${name}.razor\`${ctx.css.stylesheet ? ` and \`${name}.razor.css\` (scoped styles, picked up automatically by the build)` : ''} into your \`Components\`/\`Pages\` folder.
+2. Copy \`${name}.razor\`${ctx.css.stylesheet?.(ctx.schema.meta.theme) ? ` and \`${name}.razor.css\` (scoped styles, picked up automatically by the build)` : ''} into your \`Components\`/\`Pages\` folder.
 3. Use it: \`<${name} />\`${ctx.schema.meta.submit?.url ? `\n4. The component POSTs to \`${ctx.schema.meta.submit.url}\` on valid submit — register \`HttpClient\` in DI (WASM templates do by default).` : ''}
 
 ${ctx.css.id === 'bootstrap5' ? 'Bootstrap 5 classes are used — the default Blazor templates already ship Bootstrap, so it works out of the box.' : ctx.css.readmeNote()}
