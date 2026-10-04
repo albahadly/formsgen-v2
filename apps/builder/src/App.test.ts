@@ -1,9 +1,13 @@
-import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { createPinia } from 'pinia'
+import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it } from 'vitest'
 import App from './App.vue'
 
 describe('App shell', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
+
   it('mounts and shows the three builder panels', () => {
     const wrapper = mount(App, {
       global: { plugins: [createPinia()] },

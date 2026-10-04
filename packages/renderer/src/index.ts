@@ -5,6 +5,12 @@ export const RENDERER_VERSION = '0.0.1'
 
 export { default as FormsGenForm } from './components/FormsGenForm.vue'
 
+// Field components, exported for design-mode rendering in the builder.
+export { default as FgCheckbox } from './components/fields/FgCheckbox.vue'
+export { default as FgSelect } from './components/fields/FgSelect.vue'
+export { default as FgText } from './components/fields/FgText.vue'
+export { default as FgTextarea } from './components/fields/FgTextarea.vue'
+
 export { evaluateRules, isEmptyValue, type FieldLookup, type RuleViolation } from './rules'
 
 export {
