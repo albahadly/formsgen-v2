@@ -22,6 +22,7 @@ import {
 } from '@formsgen/renderer'
 import { nanoid } from 'nanoid'
 import { defineStore } from 'pinia'
+import { localizeNewNode } from '@/registry/contentDefaults'
 import { createSection } from '@/registry/elements/sections'
 import { createNode } from '@/registry/factory'
 
@@ -61,7 +62,7 @@ export const useBuilderStore = defineStore('builder', {
      * FIRST section receives it); otherwise it is appended at the root.
      */
     addElement(type: string): ElementNode {
-      const node = createNode(type, this.takenNames)
+      const node = localizeNewNode(createNode(type, this.takenNames), this.schema.meta.locale)
       let target = this.schema.tree
       const selected = this.selectedNode
       if (selected && getCoreElement(selected.type)?.isContainer) {
@@ -89,9 +90,9 @@ export const useBuilderStore = defineStore('builder', {
       const host = findNodeById(this.schema.tree, hostId)
       const kind = host ? SECTION_CONTAINERS[host.type] : undefined
       if (!host || !kind) return null
-      const section = createSection(
-        kind as 'tab' | 'step',
-        (host.children?.length ?? 0) + 1,
+      const section = localizeNewNode(
+        createSection(kind as 'tab' | 'step', (host.children?.length ?? 0) + 1),
+        this.schema.meta.locale,
       )
       ;(host.children ??= []).push(section)
       this.selectedId = section.id

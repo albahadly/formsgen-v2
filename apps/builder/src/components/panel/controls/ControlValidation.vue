@@ -72,7 +72,7 @@ function betweenValue(rule: Rule, bound: 0 | 1): number {
       class="flex items-center gap-1.5 rounded border border-gray-200 bg-gray-50 px-2 py-1"
       :data-testid="`rule-${rule.rule}`"
     >
-      <span class="flex-1 text-xs font-medium text-gray-700">{{ rule.rule }}</span>
+      <span class="flex-1 text-xs font-medium text-gray-700">{{ t(`properties.validation.rule.${rule.rule}`) }}</span>
       <input
         v-if="needsNumber(rule)"
         type="number"
@@ -98,6 +98,7 @@ function betweenValue(rule: Rule, bound: 0 | 1): number {
       <input
         v-else-if="needsText(rule)"
         type="text"
+        dir="ltr"
         class="w-28 rounded border border-gray-300 px-1.5 py-0.5 font-mono text-xs"
         :value="String(rule.value ?? '')"
         @input="setRuleValue(index, ($event.target as HTMLInputElement).value)"
@@ -126,7 +127,7 @@ function betweenValue(rule: Rule, bound: 0 | 1): number {
           :key="name"
           :value="name"
         >
-          {{ name }}
+          {{ t(`properties.validation.rule.${name}`) }}
         </option>
       </select>
       <button

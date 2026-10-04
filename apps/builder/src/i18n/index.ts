@@ -35,6 +35,17 @@ const en: Record<string, string> = {
   'properties.colspan.label': 'Column span',
   'properties.validation.add': 'Add rule…',
   'properties.validation.remove': 'Remove rule',
+  'properties.validation.rule.required': 'Required',
+  'properties.validation.rule.min': 'Minimum',
+  'properties.validation.rule.max': 'Maximum',
+  'properties.validation.rule.between': 'Between',
+  'properties.validation.rule.email': 'Email format',
+  'properties.validation.rule.url': 'URL format',
+  'properties.validation.rule.regex': 'Pattern (regex)',
+  'properties.validation.rule.same-as': 'Same as field',
+  'properties.colspan.auto': 'Auto',
+  'canvas.conditionalBadge': 'if',
+  'canvas.conditionalBadge.title': 'Shown only when its conditions match',
   'properties.conditions.hint': 'Show this element only when:',
   'properties.conditions.always': 'Always visible.',
   'properties.conditions.noFields': 'Add a named field first — conditions test the values of other fields.',
@@ -140,6 +151,17 @@ const ar: Record<string, string> = {
   'properties.colspan.label': 'عرض العمود',
   'properties.validation.add': 'إضافة قاعدة…',
   'properties.validation.remove': 'إزالة القاعدة',
+  'properties.validation.rule.required': 'مطلوب',
+  'properties.validation.rule.min': 'الحد الأدنى',
+  'properties.validation.rule.max': 'الحد الأقصى',
+  'properties.validation.rule.between': 'بين قيمتين',
+  'properties.validation.rule.email': 'صيغة بريد إلكتروني',
+  'properties.validation.rule.url': 'صيغة رابط',
+  'properties.validation.rule.regex': 'نمط (تعبير نمطي)',
+  'properties.validation.rule.same-as': 'مطابق لحقل',
+  'properties.colspan.auto': 'تلقائي',
+  'canvas.conditionalBadge': 'شرط',
+  'canvas.conditionalBadge.title': 'يظهر فقط عند تحقق شروطه',
   'properties.conditions.hint': 'إظهار هذا العنصر فقط عندما:',
   'properties.conditions.always': 'ظاهر دائمًا.',
   'properties.conditions.noFields': 'أضف حقلًا مسمّى أولًا — الشروط تختبر قيم الحقول الأخرى.',
@@ -269,6 +291,61 @@ const ar: Record<string, string> = {
   'element.step.description': 'خطوة واحدة في المعالج (تُسحب داخل الخطوات)',
 }
 
+/**
+ * Arabic for English UI phrases that live in registry and export metadata
+ * (panel section titles, control labels, select options, export target
+ * names) — looked up by the English text itself via tText().
+ */
+const arText: Record<string, string> = {
+  // panel sections
+  Properties: 'الخصائص',
+  Data: 'البيانات',
+  Layout: 'التخطيط',
+  Validation: 'التحقق',
+  Conditions: 'الشروط',
+  // panel controls
+  Label: 'التسمية',
+  Placeholder: 'النص الإرشادي',
+  Description: 'الوصف',
+  Options: 'الخيارات',
+  Text: 'النص',
+  Min: 'الحد الأدنى',
+  Max: 'الحد الأقصى',
+  'Min (input attribute)': 'الحد الأدنى (سمة الحقل)',
+  'Max (input attribute)': 'الحد الأقصى (سمة الحقل)',
+  Step: 'مقدار الزيادة',
+  Rows: 'عدد الأسطر',
+  'Checked by default': 'محدد افتراضيًا',
+  'Back button text': 'نص زر السابق',
+  'Next button text': 'نص زر التالي',
+  'Default for the form language': 'الافتراضي حسب لغة النموذج',
+  Columns: 'الأعمدة',
+  '2 columns': 'عمودان',
+  '3 columns': '3 أعمدة',
+  '4 columns': '4 أعمدة',
+  Level: 'المستوى',
+  // export dialog
+  'JSON schema': 'مخطط JSON',
+  'Vue (renderer package)': 'Vue (حزمة العارض)',
+  'Vue (standalone)': 'Vue (مستقل)',
+  'React (standalone)': 'React (مستقل)',
+  'HTML + JS': 'HTML + JS',
+  'Blazor (.razor)': 'Blazor (.razor)',
+  'Vanilla CSS': 'CSS عادي',
+  'The canonical FormsGen schema — re-importable into the builder.':
+    'مخطط FormsGen الأساسي — يمكن استيراده مجددًا في المنشئ.',
+  'A small SFC using @formsgen/renderer — schema-driven, always in sync.':
+    'مكوّن Vue صغير يستخدم ‎@formsgen/renderer — يعتمد على المخطط ومتزامن دائمًا.',
+  'A single self-contained SFC with zero dependencies beyond Vue.':
+    'مكوّن Vue واحد مستقل بلا أي اعتماديات سوى Vue.',
+  'A single self-contained .tsx component with zero dependencies beyond React.':
+    'مكوّن ‎.tsx واحد مستقل بلا أي اعتماديات سوى React.',
+  'A .NET 8 Razor component: EditForm + DataAnnotations + IValidatableObject.':
+    'مكوّن Razor لـ ‎.NET 8: ‏EditForm + DataAnnotations + IValidatableObject.',
+  'One self-contained .html file — opens from disk, no build step.':
+    'ملف ‎.html واحد مستقل — يُفتح مباشرة دون خطوة بناء.',
+}
+
 const catalogs: Record<BuilderLocale, Record<string, string>> = { en, ar }
 
 function readStoredLocale(): BuilderLocale {
@@ -303,6 +380,24 @@ export function toggleLocale(): void {
 
 export function t(key: string): string {
   return catalogs[locale.value][key] ?? en[key] ?? key
+}
+
+/**
+ * Translates an English UI phrase from registry/export metadata (section
+ * titles, control labels, options, target names); English passes through.
+ */
+export function tText(english: string): string {
+  return locale.value === 'ar' ? (arText[english] ?? english) : english
+}
+
+/** Whether tText() has an Arabic translation for the phrase. */
+export function hasArabicText(english: string): boolean {
+  return english in arText
+}
+
+/** A catalog entry in a specific locale (independent of the UI locale). */
+export function tFor(target: BuilderLocale, key: string): string | undefined {
+  return catalogs[target][key]
 }
 
 /** Like t(), but falls back to `fallback` (element registry metadata). */

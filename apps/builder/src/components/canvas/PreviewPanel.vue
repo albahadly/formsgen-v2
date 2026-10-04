@@ -44,7 +44,10 @@ function onSubmit(data: Record<string, unknown>): void {
         <p class="mb-2 font-semibold text-gray-300">
           {{ t('preview.submitted') }}
         </p>
-        <pre class="overflow-x-auto">{{ JSON.stringify(submitted, null, 2) }}</pre>
+        <pre
+          dir="ltr"
+          class="overflow-x-auto text-left"
+        >{{ JSON.stringify(submitted, null, 2) }}</pre>
       </div>
     </div>
   </div>

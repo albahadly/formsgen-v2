@@ -32,7 +32,8 @@ const highlighted = computed(() => {
 
 <template>
   <pre
-    class="h-full overflow-auto rounded-lg bg-[#0d1117] p-4 text-xs leading-relaxed"
+    dir="ltr"
+    class="h-full overflow-auto rounded-lg bg-[#0d1117] p-4 text-left text-xs leading-relaxed"
   ><!-- eslint-disable vue/no-v-html -- trusted: hljs output of generated code --><code
     class="hljs"
     v-html="highlighted"

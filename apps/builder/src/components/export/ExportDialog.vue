@@ -5,7 +5,7 @@ import CodeBlock from '@/components/ui/CodeBlock.vue'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { getCssAdapter, listCssAdapters, type CssFrameworkId } from '@/export/css'
 import { getTarget, listTargets, type ExportedFile } from '@/export/targets'
-import { t } from '@/i18n'
+import { t, tText } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'
 import { useUiStore } from '@/stores/ui'
 
@@ -124,11 +124,11 @@ async function downloadZip(): Promise<void> {
             class="rounded px-2.5 py-1 text-xs font-medium"
             :class="targetId === candidate.id ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-600 hover:text-gray-900'"
             :aria-selected="targetId === candidate.id"
-            :title="candidate.description"
+            :title="tText(candidate.description)"
             :data-testid="`export-target-${candidate.id}`"
             @click="targetId = candidate.id"
           >
-            {{ candidate.label }}
+            {{ tText(candidate.label) }}
           </button>
         </div>
 
@@ -144,7 +144,7 @@ async function downloadZip(): Promise<void> {
             :key="adapter.id"
             :value="adapter.id"
           >
-            {{ adapter.label }}
+            {{ tText(adapter.label) }}
           </option>
         </select>
 
@@ -185,6 +185,7 @@ async function downloadZip(): Promise<void> {
           v-for="(file, index) in viewFiles"
           :key="file.path"
           type="button"
+          dir="ltr"
           class="rounded px-2 py-0.5 font-mono text-[11px]"
           :class="index === activeFileIndex ? 'bg-indigo-50 text-indigo-700' : 'text-gray-500 hover:bg-gray-100'"
           :data-testid="`export-file-${file.path}`"

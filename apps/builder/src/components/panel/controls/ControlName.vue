@@ -29,6 +29,7 @@ function onInput(): void {
     <input
       v-model="draft"
       type="text"
+      dir="ltr"
       class="rounded border px-2 py-1.5 font-mono text-sm font-normal text-gray-900"
       :class="error ? 'border-red-400' : 'border-gray-300'"
       data-testid="control-name"

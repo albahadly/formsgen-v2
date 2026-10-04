@@ -9,7 +9,9 @@ import {
   FgStatic,
   FgText,
   FgTextarea,
+  fill,
   joinPath,
+  resolveMessages,
   type ElementNode,
 } from '@formsgen/renderer'
 import { computed, ref, watch } from 'vue'
@@ -25,6 +27,8 @@ const props = defineProps<{
 }>()
 
 const store = useBuilderStore()
+// Fallback section names are form content: they follow the form's locale.
+const formMessages = computed(() => resolveMessages(store.schema.meta.locale))
 
 const fieldComponents = {
   text: FgText,
@@ -96,7 +100,7 @@ function sectionLabel(section: ElementNode, index: number): string {
   const l = section.props['label']
   return typeof l === 'string' && l !== ''
     ? l
-    : `${sectionKind.value === 'tab' ? 'Tab' : 'Step'} ${index + 1}`
+    : fill(sectionKind.value === 'tab' ? formMessages.value.tab : formMessages.value.step, { n: index + 1 })
 }
 
 function selectSection(section: ElementNode, index: number): void {
@@ -143,8 +147,9 @@ function onDuplicate(): void {
       <span
         v-if="hasConditions"
         class="rounded bg-amber-500 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+        :title="t('canvas.conditionalBadge.title')"
       >
-        if
+        {{ t('canvas.conditionalBadge') }}
       </span>
       <button
         type="button"

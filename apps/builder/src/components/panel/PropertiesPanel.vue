@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { t, tOr } from '@/i18n'
+import { t, tOr, tText } from '@/i18n'
 import { getElement } from '@/registry'
 import type { PanelControl } from '@/registry/types'
 import { useBuilderStore } from '@/stores/builder'
@@ -52,7 +52,7 @@ function key(control: PanelControl, index: number): string {
         class="flex flex-col gap-2 border-t border-gray-100 pt-3"
       >
         <h3 class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-          {{ section.title }}
+          {{ tText(section.title) }}
         </h3>
         <template
           v-for="(control, index) in section.controls"

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ElementNode } from '@formsgen/renderer'
 import { computed } from 'vue'
-import { t } from '@/i18n'
+import { t, tText } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'
 
 interface Item {
@@ -43,7 +43,7 @@ function removeItem(index: number): void {
 
 <template>
   <div class="flex flex-col gap-1.5">
-    <span class="text-xs font-medium text-gray-600">{{ label }}</span>
+    <span class="text-xs font-medium text-gray-600">{{ tText(label) }}</span>
     <div
       v-for="(item, index) in items"
       :key="index"

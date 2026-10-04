@@ -23,5 +23,6 @@ Read the latest handoff before starting any phase (Phase Standard, REBUILD_PROMP
 | 16 | Localized built-in texts (English + Arabic) | ✅ Complete | [phase-16-arabic-messages.md](./phase-16-arabic-messages.md) |
 | 17 | Press-safe blur validation (no lost clicks) | ✅ Complete | [phase-17-press-safe-validation.md](./phase-17-press-safe-validation.md) |
 | 18 | Visual condition builder | ✅ Complete | [phase-18-condition-builder.md](./phase-18-condition-builder.md) |
+| 19 | Complete Arabic builder UI | ✅ Complete | [phase-19-arabic-builder-ui.md](./phase-19-arabic-builder-ui.md) |
 
-**All 11 planned phases are complete**, plus 10b and 12–18 from the backlog. Remaining backlog: npm publish of `@formsgen/renderer` (parked by user); see the "Not done" list in [phase-16-arabic-messages.md](./phase-16-arabic-messages.md).
+**All 11 planned phases are complete**, plus 10b and 12–19 from the backlog. Remaining backlog: npm publish of `@formsgen/renderer` (parked by user); see the "Not done" list in [phase-16-arabic-messages.md](./phase-16-arabic-messages.md).

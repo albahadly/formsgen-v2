@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ElementNode } from '@formsgen/renderer'
 import { computed } from 'vue'
+import { tText } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'
 
 const props = defineProps<{
@@ -25,7 +26,7 @@ const value = computed({
 
 <template>
   <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
-    {{ label }}
+    {{ tText(label) }}
     <select
       v-model="value"
       class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal text-gray-900"
@@ -36,7 +37,7 @@ const value = computed({
         :key="option.value"
         :value="option.value"
       >
-        {{ option.label }}
+        {{ tText(option.label) }}
       </option>
     </select>
   </label>

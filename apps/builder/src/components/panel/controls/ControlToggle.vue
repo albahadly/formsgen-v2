@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ElementNode } from '@formsgen/renderer'
 import { computed } from 'vue'
+import { tText } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'
 
 const props = defineProps<{
@@ -24,6 +25,6 @@ const value = computed({
       class="h-4 w-4 accent-indigo-600"
       :data-testid="`control-${prop}`"
     >
-    {{ label }}
+    {{ tText(label) }}
   </label>
 </template>

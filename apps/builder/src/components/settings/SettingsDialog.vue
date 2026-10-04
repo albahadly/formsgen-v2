@@ -161,6 +161,7 @@ function onKeydown(event: KeyboardEvent): void {
           <input
             v-model="nameDraft"
             type="text"
+            dir="ltr"
             class="rounded border px-2 py-1.5 font-mono text-sm font-normal"
             :class="nameError ? 'border-red-400' : 'border-gray-300'"
             data-testid="settings-name"
@@ -204,6 +205,7 @@ function onKeydown(event: KeyboardEvent): void {
             <input
               v-model="submitUrl"
               type="url"
+              dir="ltr"
               placeholder="https://api.example.com/submit"
               class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal"
               data-testid="settings-submit-url"

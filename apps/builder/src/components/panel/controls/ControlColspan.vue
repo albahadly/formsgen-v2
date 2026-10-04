@@ -26,7 +26,7 @@ const value = computed({
       data-testid="control-colspan"
     >
       <option value="">
-        Auto
+        {{ t('properties.colspan.auto') }}
       </option>
       <option
         v-for="span in spans"

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ElementNode } from '@formsgen/renderer'
 import { computed } from 'vue'
+import { tText } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'
 
 const props = defineProps<{
@@ -25,7 +26,7 @@ const value = computed({
 
 <template>
   <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
-    {{ label }}
+    {{ tText(label) }}
     <input
       v-model.number="value"
       type="number"
