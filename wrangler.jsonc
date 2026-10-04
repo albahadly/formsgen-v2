@@ -1,3 +1,5 @@
+// Cloudflare Workers static-assets deployment for builder.albahadly.com.
+// Workers Builds runs "bash build.sh" (writes apps/builder/dist/), then "npx wrangler deploy" uploads it.
 {
   "name": "formsgen-builder",
   "compatibility_date": "2026-01-01",

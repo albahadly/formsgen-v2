@@ -26,6 +26,16 @@ pnpm dev        # run the builder app
 pnpm verify     # THE gate: lint + typecheck + test + build (CI runs this)
 ```
 
+## Deployment
+
+The builder deploys to **https://builder.albahadly.com** via Cloudflare
+Workers Builds, the same pattern as the `docs` repo: Cloudflare watches this
+GitHub repo and on every push to `main` runs `bash build.sh` (build command)
+then `npx wrangler deploy` (deploy command). `wrangler.jsonc` serves
+`apps/builder/dist` as static assets with SPA fallback and binds the custom
+domain. GitHub Actions (`ci.yml`) independently runs `pnpm verify` on every
+push.
+
 ## Development process
 
 The project is built in phases (see `REBUILD_PROMPT.md` §9) under a fixed
