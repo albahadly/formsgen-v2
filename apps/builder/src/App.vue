@@ -16,6 +16,7 @@ import TreePanel from '@/components/tree/TreePanel.vue'
 import { clearDraft, readDraft, startAutosave } from '@/composables/persistence'
 import { applyLocaleToDocument, t, toggleLocale } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'
+import { startConditionPathTracking } from '@/stores/conditionPaths'
 import { useHistoryStore } from '@/stores/history'
 
 const builder = useBuilderStore()
@@ -33,6 +34,7 @@ if (draft) {
   showDraftToast.value = true
 }
 history.start()
+startConditionPathTracking()
 startAutosave()
 applyLocaleToDocument()
 

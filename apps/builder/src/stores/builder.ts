@@ -12,7 +12,9 @@ import {
   findParent,
   getCoreElement,
   uniqueName,
+  walkTree,
   type ColSpan,
+  type ConditionGroups,
   type ElementNode,
   type FormMeta,
   type FormSchema,
@@ -146,6 +148,30 @@ export const useBuilderStore = defineStore('builder', {
       } else {
         node.validation = rules
       }
+    },
+
+    /** Visibility conditions (OR of AND groups); empty groups are dropped. */
+    setConditions(id: string, groups: ConditionGroups): void {
+      const node = findNodeById(this.schema.tree, id)
+      if (!node) return
+      const kept = groups.filter((group) => group.length > 0)
+      if (kept.length === 0) {
+        delete node.conditions
+      } else {
+        node.conditions = kept
+      }
+    },
+
+    /** Re-points condition references after fields changed data path. */
+    rewriteConditionFields(renames: ReadonlyMap<string, string>): void {
+      walkTree(this.schema.tree, (node) => {
+        for (const group of node.conditions ?? []) {
+          for (const condition of group) {
+            const next = renames.get(condition.field)
+            if (next !== undefined) condition.field = next
+          }
+        }
+      })
     },
 
     /**

@@ -5,6 +5,7 @@ import { getElement } from '@/registry'
 import type { PanelControl } from '@/registry/types'
 import { useBuilderStore } from '@/stores/builder'
 import ControlColspan from './controls/ControlColspan.vue'
+import ControlConditions from './controls/ControlConditions.vue'
 import ControlItems from './controls/ControlItems.vue'
 import ControlName from './controls/ControlName.vue'
 import ControlNumber from './controls/ControlNumber.vue'
@@ -103,12 +104,10 @@ function key(control: PanelControl, index: number): string {
             v-else-if="control.kind === 'colspan'"
             :node="node"
           />
-          <p
+          <ControlConditions
             v-else-if="control.kind === 'conditions'"
-            class="rounded border border-dashed border-gray-200 px-2 py-1.5 text-[11px] text-gray-400"
-          >
-            {{ t('properties.conditions.placeholder') }}
-          </p>
+            :node="node"
+          />
         </template>
       </section>
     </template>
