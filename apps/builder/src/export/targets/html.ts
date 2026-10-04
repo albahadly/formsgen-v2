@@ -244,8 +244,7 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
       })
       input.addEventListener('blur', function () {
         addDraft()
-        touched[path] = true
-        validateField(path)
+        fgBlurValidate(path)
       })
     })
 
@@ -331,9 +330,38 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
     }
 
     var form = document.getElementById('fg-form')
+    // A blur error appearing while a pointer is held reflows the form and
+    // the release misses its target; defer blur validation until the press
+    // ends (after the click has been dispatched).
+    var fgPressing = false
+    var fgDeferred = []
+    function fgBlurValidate(path) {
+      touched[path] = true
+      if (fgPressing) {
+        if (fgDeferred.indexOf(path) === -1) fgDeferred.push(path)
+        return
+      }
+      validateField(path)
+    }
+    function fgFlushDeferred() {
+      var paths = fgDeferred
+      fgDeferred = []
+      paths.forEach(function (path) { validateField(path) })
+    }
+    function fgPointerEnd() {
+      if (!fgPressing) return
+      fgPressing = false
+      setTimeout(fgFlushDeferred, 0)
+    }
+    form.addEventListener('pointerdown', function () {
+      fgFlushDeferred()
+      fgPressing = true
+    }, true)
+    window.addEventListener('pointerup', fgPointerEnd)
+    window.addEventListener('pointercancel', fgPointerEnd)
     form.addEventListener('focusout', function (event) {
       var path = event.target.getAttribute && event.target.getAttribute('data-fg-path')
-      if (path) { touched[path] = true; validateField(path) }
+      if (path) fgBlurValidate(path)
     })
     form.addEventListener('input', onFieldEvent)
     form.addEventListener('change', onFieldEvent)

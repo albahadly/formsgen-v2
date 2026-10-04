@@ -8,7 +8,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
 @using Microsoft.AspNetCore.Components.Forms
 
 <EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate class="container py-4" dir="ltr">
-    <DataAnnotationsValidator />
+    <div style="display: contents" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
     <div class="row g-3">
         <div class="col-12 col-md-12">
           <h2 class="fw-semibold">Kitchen Sink</h2>
@@ -297,6 +297,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         </div>
     </div>
     <div class="visually-hidden" role="status" aria-live="polite" aria-atomic="true">@fgAnnouncement</div>
+    </div>
     @if (ResultJson is not null)
     {
         <pre class="mt-3 p-3 bg-dark text-success rounded small overflow-auto">@ResultJson</pre>
@@ -312,14 +313,109 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
 
     private EditContext fgEdit = default!;
     private ValidationMessageStore fgMessages = default!;
+    private bool fgPressing;
+    private readonly HashSet<string> fgDeferredFields = new();
 
     protected override void OnInitialized()
     {
         fgEdit = new EditContext(Model);
         fgMessages = new ValidationMessageStore(fgEdit);
-        // Full validation repaints everything; editing a field drops its stale messages.
-        fgEdit.OnValidationRequested += (_, _) => fgMessages.Clear();
-        fgEdit.OnFieldChanged += (_, e) => fgMessages.Clear(e.FieldIdentifier);
+        fgEdit.OnValidationRequested += (_, _) => FgValidateAll();
+        fgEdit.OnFieldChanged += (_, e) => FgFieldChanged(e.FieldIdentifier.FieldName);
+    }
+
+    private void FgPointerDown(PointerEventArgs _)
+    {
+        FgFlushDeferred();
+        fgPressing = true;
+    }
+
+    private void FgPointerEnd(PointerEventArgs _)
+    {
+        fgPressing = false;
+        FgFlushDeferred();
+    }
+
+    private void FgFieldChanged(string name)
+    {
+        if (fgPressing)
+        {
+            fgDeferredFields.Add(name);
+            return;
+        }
+        FgValidateMembers(new[] { name });
+    }
+
+    private void FgFlushDeferred()
+    {
+        if (fgDeferredFields.Count == 0) return;
+        var names = fgDeferredFields.ToArray();
+        fgDeferredFields.Clear();
+        FgValidateMembers(names);
+    }
+
+    private void FgValidateAll()
+    {
+        fgDeferredFields.Clear();
+        fgMessages.Clear();
+        FgValidateMembers(fgAllMembers);
+    }
+
+    private object? FgValue(string name) => name switch
+    {
+            "FullName" => Model.FullName,
+            "Email" => Model.Email,
+            "Website" => Model.Website,
+            "Seats" => Model.Seats,
+            "Satisfaction" => Model.Satisfaction,
+            "City" => Model.City,
+            "Zip" => Model.Zip,
+            "AccountUsername" => Model.AccountUsername,
+            "AccountPassword" => Model.AccountPassword,
+            "AccountBio" => Model.AccountBio,
+            "AccountBirthday" => Model.AccountBirthday,
+            "Plan" => Model.Plan,
+            "Interests" => Model.Interests,
+            "Channels" => Model.Channels,
+            "Topics" => Model.Topics,
+            "ContactMethod" => Model.ContactMethod,
+            "ContactPhone" => Model.ContactPhone,
+            "ContactOther" => Model.ContactOther,
+            "Twitter" => Model.Twitter,
+            "Github" => Model.Github,
+            "ShippingCity" => Model.ShippingCity,
+            "OrderNotes" => Model.OrderNotes,
+            "Newsletter" => Model.Newsletter,
+            "Terms" => Model.Terms,
+        _ => null,
+    };
+
+    // Attribute rules per property, plus the model's Validate() results for
+    // the same members (DataAnnotations alone skips Validate() while any
+    // attribute rule fails, which hid errors such as a required checkbox).
+    private bool FgValidateMembers(string[] members)
+    {
+        var ok = true;
+        foreach (var name in members)
+        {
+            var field = new FieldIdentifier(Model, name);
+            fgMessages.Clear(field);
+            var results = new List<ValidationResult>();
+            var context = new ValidationContext(Model) { MemberName = name };
+            if (!Validator.TryValidateProperty(FgValue(name), context, results)) ok = false;
+            foreach (var result in results) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
+        }
+        foreach (var result in ((IValidatableObject)Model).Validate(new ValidationContext(Model)))
+        {
+            foreach (var name in result.MemberNames)
+            {
+                if (Array.IndexOf(members, name) < 0) continue;
+                fgMessages.Add(new FieldIdentifier(Model, name), result.ErrorMessage ?? "Invalid");
+                ok = false;
+            }
+        }
+        fgEdit.NotifyValidationStateChanged();
+        return ok;
     }
 
     private async Task FgSubmit(EditContext context)
@@ -329,17 +425,6 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
             await HandleValidSubmit();
             return;
         }
-        // DataAnnotations runs IValidatableObject.Validate() only once every
-        // attribute rule passes; run it now so all errors show at once.
-        foreach (var result in ((IValidatableObject)Model).Validate(new ValidationContext(Model)))
-        {
-            foreach (var name in result.MemberNames)
-            {
-                var field = new FieldIdentifier(Model, name);
-                if (!context.GetValidationMessages(field).Any()) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
-            }
-        }
-        context.NotifyValidationStateChanged();
         await FgOnInvalidSubmit(context);
     }
 
@@ -398,31 +483,6 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         await FgAnnounce(FgErrorsText(count));
     }
 
-    private bool FgValidateMembers((string Name, object? Value)[] members)
-    {
-        var ok = true;
-        foreach (var (name, value) in members)
-        {
-            var field = new FieldIdentifier(Model, name);
-            fgMessages.Clear(field);
-            var results = new List<ValidationResult>();
-            var context = new ValidationContext(Model) { MemberName = name };
-            if (!Validator.TryValidateProperty(value, context, results)) ok = false;
-            foreach (var result in results) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
-        }
-        foreach (var result in ((IValidatableObject)Model).Validate(new ValidationContext(Model)))
-        {
-            foreach (var name in result.MemberNames)
-            {
-                if (!Array.Exists(members, m => m.Name == name)) continue;
-                fgMessages.Add(new FieldIdentifier(Model, name), result.ErrorMessage ?? "Invalid");
-                ok = false;
-            }
-        }
-        fgEdit.NotifyValidationStateChanged();
-        return ok;
-    }
-
     private static readonly string[] fgSecAnnounce_ks_wizard =
     {
         "Step 1 of 2: Shipping",
@@ -439,9 +499,9 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
     {
         var members = fgSec_ks_wizard switch
         {
-            0 => new (string Name, object? Value)[] { (nameof(KitchenSinkFormModel.ShippingCity), Model.ShippingCity) },
-            1 => new (string Name, object? Value)[] { (nameof(KitchenSinkFormModel.OrderNotes), Model.OrderNotes) },
-            _ => Array.Empty<(string Name, object? Value)>(),
+            0 => new[] { nameof(KitchenSinkFormModel.ShippingCity) },
+            1 => new[] { nameof(KitchenSinkFormModel.OrderNotes) },
+            _ => Array.Empty<string>(),
         };
         if (FgValidateMembers(members) && fgSec_ks_wizard < 1) await FgGo_ks_wizard(fgSec_ks_wizard + 1);
     }
@@ -623,7 +683,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
 @using Microsoft.AspNetCore.Components.Forms
 
 <EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate class="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" dir="ltr">
-    <DataAnnotationsValidator />
+    <div style="display: contents" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
     <div class="grid grid-cols-12 gap-4">
         <div class="col-span-12 md:col-span-12">
           <h2 class="font-semibold">Kitchen Sink</h2>
@@ -912,6 +972,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         </div>
     </div>
     <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">@fgAnnouncement</div>
+    </div>
     @if (ResultJson is not null)
     {
         <pre class="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300">@ResultJson</pre>
@@ -927,14 +988,109 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
 
     private EditContext fgEdit = default!;
     private ValidationMessageStore fgMessages = default!;
+    private bool fgPressing;
+    private readonly HashSet<string> fgDeferredFields = new();
 
     protected override void OnInitialized()
     {
         fgEdit = new EditContext(Model);
         fgMessages = new ValidationMessageStore(fgEdit);
-        // Full validation repaints everything; editing a field drops its stale messages.
-        fgEdit.OnValidationRequested += (_, _) => fgMessages.Clear();
-        fgEdit.OnFieldChanged += (_, e) => fgMessages.Clear(e.FieldIdentifier);
+        fgEdit.OnValidationRequested += (_, _) => FgValidateAll();
+        fgEdit.OnFieldChanged += (_, e) => FgFieldChanged(e.FieldIdentifier.FieldName);
+    }
+
+    private void FgPointerDown(PointerEventArgs _)
+    {
+        FgFlushDeferred();
+        fgPressing = true;
+    }
+
+    private void FgPointerEnd(PointerEventArgs _)
+    {
+        fgPressing = false;
+        FgFlushDeferred();
+    }
+
+    private void FgFieldChanged(string name)
+    {
+        if (fgPressing)
+        {
+            fgDeferredFields.Add(name);
+            return;
+        }
+        FgValidateMembers(new[] { name });
+    }
+
+    private void FgFlushDeferred()
+    {
+        if (fgDeferredFields.Count == 0) return;
+        var names = fgDeferredFields.ToArray();
+        fgDeferredFields.Clear();
+        FgValidateMembers(names);
+    }
+
+    private void FgValidateAll()
+    {
+        fgDeferredFields.Clear();
+        fgMessages.Clear();
+        FgValidateMembers(fgAllMembers);
+    }
+
+    private object? FgValue(string name) => name switch
+    {
+            "FullName" => Model.FullName,
+            "Email" => Model.Email,
+            "Website" => Model.Website,
+            "Seats" => Model.Seats,
+            "Satisfaction" => Model.Satisfaction,
+            "City" => Model.City,
+            "Zip" => Model.Zip,
+            "AccountUsername" => Model.AccountUsername,
+            "AccountPassword" => Model.AccountPassword,
+            "AccountBio" => Model.AccountBio,
+            "AccountBirthday" => Model.AccountBirthday,
+            "Plan" => Model.Plan,
+            "Interests" => Model.Interests,
+            "Channels" => Model.Channels,
+            "Topics" => Model.Topics,
+            "ContactMethod" => Model.ContactMethod,
+            "ContactPhone" => Model.ContactPhone,
+            "ContactOther" => Model.ContactOther,
+            "Twitter" => Model.Twitter,
+            "Github" => Model.Github,
+            "ShippingCity" => Model.ShippingCity,
+            "OrderNotes" => Model.OrderNotes,
+            "Newsletter" => Model.Newsletter,
+            "Terms" => Model.Terms,
+        _ => null,
+    };
+
+    // Attribute rules per property, plus the model's Validate() results for
+    // the same members (DataAnnotations alone skips Validate() while any
+    // attribute rule fails, which hid errors such as a required checkbox).
+    private bool FgValidateMembers(string[] members)
+    {
+        var ok = true;
+        foreach (var name in members)
+        {
+            var field = new FieldIdentifier(Model, name);
+            fgMessages.Clear(field);
+            var results = new List<ValidationResult>();
+            var context = new ValidationContext(Model) { MemberName = name };
+            if (!Validator.TryValidateProperty(FgValue(name), context, results)) ok = false;
+            foreach (var result in results) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
+        }
+        foreach (var result in ((IValidatableObject)Model).Validate(new ValidationContext(Model)))
+        {
+            foreach (var name in result.MemberNames)
+            {
+                if (Array.IndexOf(members, name) < 0) continue;
+                fgMessages.Add(new FieldIdentifier(Model, name), result.ErrorMessage ?? "Invalid");
+                ok = false;
+            }
+        }
+        fgEdit.NotifyValidationStateChanged();
+        return ok;
     }
 
     private async Task FgSubmit(EditContext context)
@@ -944,17 +1100,6 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
             await HandleValidSubmit();
             return;
         }
-        // DataAnnotations runs IValidatableObject.Validate() only once every
-        // attribute rule passes; run it now so all errors show at once.
-        foreach (var result in ((IValidatableObject)Model).Validate(new ValidationContext(Model)))
-        {
-            foreach (var name in result.MemberNames)
-            {
-                var field = new FieldIdentifier(Model, name);
-                if (!context.GetValidationMessages(field).Any()) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
-            }
-        }
-        context.NotifyValidationStateChanged();
         await FgOnInvalidSubmit(context);
     }
 
@@ -1013,31 +1158,6 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         await FgAnnounce(FgErrorsText(count));
     }
 
-    private bool FgValidateMembers((string Name, object? Value)[] members)
-    {
-        var ok = true;
-        foreach (var (name, value) in members)
-        {
-            var field = new FieldIdentifier(Model, name);
-            fgMessages.Clear(field);
-            var results = new List<ValidationResult>();
-            var context = new ValidationContext(Model) { MemberName = name };
-            if (!Validator.TryValidateProperty(value, context, results)) ok = false;
-            foreach (var result in results) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
-        }
-        foreach (var result in ((IValidatableObject)Model).Validate(new ValidationContext(Model)))
-        {
-            foreach (var name in result.MemberNames)
-            {
-                if (!Array.Exists(members, m => m.Name == name)) continue;
-                fgMessages.Add(new FieldIdentifier(Model, name), result.ErrorMessage ?? "Invalid");
-                ok = false;
-            }
-        }
-        fgEdit.NotifyValidationStateChanged();
-        return ok;
-    }
-
     private static readonly string[] fgSecAnnounce_ks_wizard =
     {
         "Step 1 of 2: Shipping",
@@ -1054,9 +1174,9 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
     {
         var members = fgSec_ks_wizard switch
         {
-            0 => new (string Name, object? Value)[] { (nameof(KitchenSinkFormModel.ShippingCity), Model.ShippingCity) },
-            1 => new (string Name, object? Value)[] { (nameof(KitchenSinkFormModel.OrderNotes), Model.OrderNotes) },
-            _ => Array.Empty<(string Name, object? Value)>(),
+            0 => new[] { nameof(KitchenSinkFormModel.ShippingCity) },
+            1 => new[] { nameof(KitchenSinkFormModel.OrderNotes) },
+            _ => Array.Empty<string>(),
         };
         if (FgValidateMembers(members) && fgSec_ks_wizard < 1) await FgGo_ks_wizard(fgSec_ks_wizard + 1);
     }
@@ -1238,7 +1358,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
 @using Microsoft.AspNetCore.Components.Forms
 
 <EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate class="fg-form" dir="ltr">
-    <DataAnnotationsValidator />
+    <div style="display: contents" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
     <div class="fg-grid">
         <div class="fg-cell" style="grid-column: span 12 / span 12">
           <h2 class="fg-heading">Kitchen Sink</h2>
@@ -1527,6 +1647,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         </div>
     </div>
     <div class="fg-sr-only" role="status" aria-live="polite" aria-atomic="true">@fgAnnouncement</div>
+    </div>
     @if (ResultJson is not null)
     {
         <pre class="fg-payload">@ResultJson</pre>
@@ -1542,14 +1663,109 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
 
     private EditContext fgEdit = default!;
     private ValidationMessageStore fgMessages = default!;
+    private bool fgPressing;
+    private readonly HashSet<string> fgDeferredFields = new();
 
     protected override void OnInitialized()
     {
         fgEdit = new EditContext(Model);
         fgMessages = new ValidationMessageStore(fgEdit);
-        // Full validation repaints everything; editing a field drops its stale messages.
-        fgEdit.OnValidationRequested += (_, _) => fgMessages.Clear();
-        fgEdit.OnFieldChanged += (_, e) => fgMessages.Clear(e.FieldIdentifier);
+        fgEdit.OnValidationRequested += (_, _) => FgValidateAll();
+        fgEdit.OnFieldChanged += (_, e) => FgFieldChanged(e.FieldIdentifier.FieldName);
+    }
+
+    private void FgPointerDown(PointerEventArgs _)
+    {
+        FgFlushDeferred();
+        fgPressing = true;
+    }
+
+    private void FgPointerEnd(PointerEventArgs _)
+    {
+        fgPressing = false;
+        FgFlushDeferred();
+    }
+
+    private void FgFieldChanged(string name)
+    {
+        if (fgPressing)
+        {
+            fgDeferredFields.Add(name);
+            return;
+        }
+        FgValidateMembers(new[] { name });
+    }
+
+    private void FgFlushDeferred()
+    {
+        if (fgDeferredFields.Count == 0) return;
+        var names = fgDeferredFields.ToArray();
+        fgDeferredFields.Clear();
+        FgValidateMembers(names);
+    }
+
+    private void FgValidateAll()
+    {
+        fgDeferredFields.Clear();
+        fgMessages.Clear();
+        FgValidateMembers(fgAllMembers);
+    }
+
+    private object? FgValue(string name) => name switch
+    {
+            "FullName" => Model.FullName,
+            "Email" => Model.Email,
+            "Website" => Model.Website,
+            "Seats" => Model.Seats,
+            "Satisfaction" => Model.Satisfaction,
+            "City" => Model.City,
+            "Zip" => Model.Zip,
+            "AccountUsername" => Model.AccountUsername,
+            "AccountPassword" => Model.AccountPassword,
+            "AccountBio" => Model.AccountBio,
+            "AccountBirthday" => Model.AccountBirthday,
+            "Plan" => Model.Plan,
+            "Interests" => Model.Interests,
+            "Channels" => Model.Channels,
+            "Topics" => Model.Topics,
+            "ContactMethod" => Model.ContactMethod,
+            "ContactPhone" => Model.ContactPhone,
+            "ContactOther" => Model.ContactOther,
+            "Twitter" => Model.Twitter,
+            "Github" => Model.Github,
+            "ShippingCity" => Model.ShippingCity,
+            "OrderNotes" => Model.OrderNotes,
+            "Newsletter" => Model.Newsletter,
+            "Terms" => Model.Terms,
+        _ => null,
+    };
+
+    // Attribute rules per property, plus the model's Validate() results for
+    // the same members (DataAnnotations alone skips Validate() while any
+    // attribute rule fails, which hid errors such as a required checkbox).
+    private bool FgValidateMembers(string[] members)
+    {
+        var ok = true;
+        foreach (var name in members)
+        {
+            var field = new FieldIdentifier(Model, name);
+            fgMessages.Clear(field);
+            var results = new List<ValidationResult>();
+            var context = new ValidationContext(Model) { MemberName = name };
+            if (!Validator.TryValidateProperty(FgValue(name), context, results)) ok = false;
+            foreach (var result in results) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
+        }
+        foreach (var result in ((IValidatableObject)Model).Validate(new ValidationContext(Model)))
+        {
+            foreach (var name in result.MemberNames)
+            {
+                if (Array.IndexOf(members, name) < 0) continue;
+                fgMessages.Add(new FieldIdentifier(Model, name), result.ErrorMessage ?? "Invalid");
+                ok = false;
+            }
+        }
+        fgEdit.NotifyValidationStateChanged();
+        return ok;
     }
 
     private async Task FgSubmit(EditContext context)
@@ -1559,17 +1775,6 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             await HandleValidSubmit();
             return;
         }
-        // DataAnnotations runs IValidatableObject.Validate() only once every
-        // attribute rule passes; run it now so all errors show at once.
-        foreach (var result in ((IValidatableObject)Model).Validate(new ValidationContext(Model)))
-        {
-            foreach (var name in result.MemberNames)
-            {
-                var field = new FieldIdentifier(Model, name);
-                if (!context.GetValidationMessages(field).Any()) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
-            }
-        }
-        context.NotifyValidationStateChanged();
         await FgOnInvalidSubmit(context);
     }
 
@@ -1628,31 +1833,6 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         await FgAnnounce(FgErrorsText(count));
     }
 
-    private bool FgValidateMembers((string Name, object? Value)[] members)
-    {
-        var ok = true;
-        foreach (var (name, value) in members)
-        {
-            var field = new FieldIdentifier(Model, name);
-            fgMessages.Clear(field);
-            var results = new List<ValidationResult>();
-            var context = new ValidationContext(Model) { MemberName = name };
-            if (!Validator.TryValidateProperty(value, context, results)) ok = false;
-            foreach (var result in results) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
-        }
-        foreach (var result in ((IValidatableObject)Model).Validate(new ValidationContext(Model)))
-        {
-            foreach (var name in result.MemberNames)
-            {
-                if (!Array.Exists(members, m => m.Name == name)) continue;
-                fgMessages.Add(new FieldIdentifier(Model, name), result.ErrorMessage ?? "Invalid");
-                ok = false;
-            }
-        }
-        fgEdit.NotifyValidationStateChanged();
-        return ok;
-    }
-
     private static readonly string[] fgSecAnnounce_ks_wizard =
     {
         "Step 1 of 2: Shipping",
@@ -1669,9 +1849,9 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
     {
         var members = fgSec_ks_wizard switch
         {
-            0 => new (string Name, object? Value)[] { (nameof(KitchenSinkFormModel.ShippingCity), Model.ShippingCity) },
-            1 => new (string Name, object? Value)[] { (nameof(KitchenSinkFormModel.OrderNotes), Model.OrderNotes) },
-            _ => Array.Empty<(string Name, object? Value)>(),
+            0 => new[] { nameof(KitchenSinkFormModel.ShippingCity) },
+            1 => new[] { nameof(KitchenSinkFormModel.OrderNotes) },
+            _ => Array.Empty<string>(),
         };
         if (FgValidateMembers(members) && fgSec_ks_wizard < 1) await FgGo_ks_wizard(fgSec_ks_wizard + 1);
     }
@@ -2325,8 +2505,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       })
       input.addEventListener('blur', function () {
         addDraft()
-        touched[path] = true
-        validateField(path)
+        fgBlurValidate(path)
       })
     })
 
@@ -2443,9 +2622,38 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
     }
 
     var form = document.getElementById('fg-form')
+    // A blur error appearing while a pointer is held reflows the form and
+    // the release misses its target; defer blur validation until the press
+    // ends (after the click has been dispatched).
+    var fgPressing = false
+    var fgDeferred = []
+    function fgBlurValidate(path) {
+      touched[path] = true
+      if (fgPressing) {
+        if (fgDeferred.indexOf(path) === -1) fgDeferred.push(path)
+        return
+      }
+      validateField(path)
+    }
+    function fgFlushDeferred() {
+      var paths = fgDeferred
+      fgDeferred = []
+      paths.forEach(function (path) { validateField(path) })
+    }
+    function fgPointerEnd() {
+      if (!fgPressing) return
+      fgPressing = false
+      setTimeout(fgFlushDeferred, 0)
+    }
+    form.addEventListener('pointerdown', function () {
+      fgFlushDeferred()
+      fgPressing = true
+    }, true)
+    window.addEventListener('pointerup', fgPointerEnd)
+    window.addEventListener('pointercancel', fgPointerEnd)
     form.addEventListener('focusout', function (event) {
       var path = event.target.getAttribute && event.target.getAttribute('data-fg-path')
-      if (path) { touched[path] = true; validateField(path) }
+      if (path) fgBlurValidate(path)
     })
     form.addEventListener('input', onFieldEvent)
     form.addEventListener('change', onFieldEvent)
@@ -2971,8 +3179,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
       })
       input.addEventListener('blur', function () {
         addDraft()
-        touched[path] = true
-        validateField(path)
+        fgBlurValidate(path)
       })
     })
 
@@ -3089,9 +3296,38 @@ exports[`html target > snapshot (tailwind) 1`] = `
     }
 
     var form = document.getElementById('fg-form')
+    // A blur error appearing while a pointer is held reflows the form and
+    // the release misses its target; defer blur validation until the press
+    // ends (after the click has been dispatched).
+    var fgPressing = false
+    var fgDeferred = []
+    function fgBlurValidate(path) {
+      touched[path] = true
+      if (fgPressing) {
+        if (fgDeferred.indexOf(path) === -1) fgDeferred.push(path)
+        return
+      }
+      validateField(path)
+    }
+    function fgFlushDeferred() {
+      var paths = fgDeferred
+      fgDeferred = []
+      paths.forEach(function (path) { validateField(path) })
+    }
+    function fgPointerEnd() {
+      if (!fgPressing) return
+      fgPressing = false
+      setTimeout(fgFlushDeferred, 0)
+    }
+    form.addEventListener('pointerdown', function () {
+      fgFlushDeferred()
+      fgPressing = true
+    }, true)
+    window.addEventListener('pointerup', fgPointerEnd)
+    window.addEventListener('pointercancel', fgPointerEnd)
     form.addEventListener('focusout', function (event) {
       var path = event.target.getAttribute && event.target.getAttribute('data-fg-path')
-      if (path) { touched[path] = true; validateField(path) }
+      if (path) fgBlurValidate(path)
     })
     form.addEventListener('input', onFieldEvent)
     form.addEventListener('change', onFieldEvent)
@@ -3688,8 +3924,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
       })
       input.addEventListener('blur', function () {
         addDraft()
-        touched[path] = true
-        validateField(path)
+        fgBlurValidate(path)
       })
     })
 
@@ -3806,9 +4041,38 @@ exports[`html target > snapshot (vanilla) 1`] = `
     }
 
     var form = document.getElementById('fg-form')
+    // A blur error appearing while a pointer is held reflows the form and
+    // the release misses its target; defer blur validation until the press
+    // ends (after the click has been dispatched).
+    var fgPressing = false
+    var fgDeferred = []
+    function fgBlurValidate(path) {
+      touched[path] = true
+      if (fgPressing) {
+        if (fgDeferred.indexOf(path) === -1) fgDeferred.push(path)
+        return
+      }
+      validateField(path)
+    }
+    function fgFlushDeferred() {
+      var paths = fgDeferred
+      fgDeferred = []
+      paths.forEach(function (path) { validateField(path) })
+    }
+    function fgPointerEnd() {
+      if (!fgPressing) return
+      fgPressing = false
+      setTimeout(fgFlushDeferred, 0)
+    }
+    form.addEventListener('pointerdown', function () {
+      fgFlushDeferred()
+      fgPressing = true
+    }, true)
+    window.addEventListener('pointerup', fgPointerEnd)
+    window.addEventListener('pointercancel', fgPointerEnd)
     form.addEventListener('focusout', function (event) {
       var path = event.target.getAttribute && event.target.getAttribute('data-fg-path')
-      if (path) { touched[path] = true; validateField(path) }
+      if (path) fgBlurValidate(path)
     })
     form.addEventListener('input', onFieldEvent)
     form.addEventListener('change', onFieldEvent)
@@ -3856,7 +4120,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
 
 exports[`react target > snapshot (bootstrap5) 1`] = `
 "// Generated by FormsGen — no runtime dependencies beyond React.
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 function fgIsEmpty(v) {
   if (v === null || v === undefined) return true
@@ -4110,7 +4374,41 @@ export default function KitchenSinkForm({
     if (touched.current.has(path)) validateField(path, typed)
   }
 
+  // A blur error appearing while a pointer is held reflows the form and the
+  // release misses its target; defer blur validation until the press ends.
+  // Deferred work reads the latest state through refs, not this closure.
+  const formRef = useRef(form)
+  formRef.current = form
+  const fgPressing = useRef(false)
+  const fgDeferred = useRef(new Set<string>())
+  const fgFlush = useRef(() => {})
+  fgFlush.current = () => {
+    const paths = [...fgDeferred.current]
+    fgDeferred.current.clear()
+    for (const path of paths) {
+      touched.current.add(path)
+      validateField(path, formRef.current)
+    }
+  }
+  useEffect(() => {
+    function end(): void {
+      if (!fgPressing.current) return
+      fgPressing.current = false
+      setTimeout(() => fgFlush.current(), 0)
+    }
+    window.addEventListener('pointerup', end)
+    window.addEventListener('pointercancel', end)
+    return () => {
+      window.removeEventListener('pointerup', end)
+      window.removeEventListener('pointercancel', end)
+    }
+  }, [])
+
   function touch(path: string): void {
+    if (fgPressing.current) {
+      fgDeferred.current.add(path)
+      return
+    }
     touched.current.add(path)
     validateField(path, form)
   }
@@ -4153,7 +4451,7 @@ export default function KitchenSinkForm({
   }
 
   return (
-    <form className="container py-4" dir="ltr" noValidate onSubmit={handleSubmit}>
+    <form className="container py-4" dir="ltr" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
       <div className="row g-3">
         <div className="col-12 col-md-12">
           <h2 className="fw-semibold">Kitchen Sink</h2>
@@ -4437,7 +4735,7 @@ export default function KitchenSinkForm({
 
 exports[`react target > snapshot (tailwind) 1`] = `
 "// Generated by FormsGen — no runtime dependencies beyond React.
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 function fgIsEmpty(v) {
   if (v === null || v === undefined) return true
@@ -4691,7 +4989,41 @@ export default function KitchenSinkForm({
     if (touched.current.has(path)) validateField(path, typed)
   }
 
+  // A blur error appearing while a pointer is held reflows the form and the
+  // release misses its target; defer blur validation until the press ends.
+  // Deferred work reads the latest state through refs, not this closure.
+  const formRef = useRef(form)
+  formRef.current = form
+  const fgPressing = useRef(false)
+  const fgDeferred = useRef(new Set<string>())
+  const fgFlush = useRef(() => {})
+  fgFlush.current = () => {
+    const paths = [...fgDeferred.current]
+    fgDeferred.current.clear()
+    for (const path of paths) {
+      touched.current.add(path)
+      validateField(path, formRef.current)
+    }
+  }
+  useEffect(() => {
+    function end(): void {
+      if (!fgPressing.current) return
+      fgPressing.current = false
+      setTimeout(() => fgFlush.current(), 0)
+    }
+    window.addEventListener('pointerup', end)
+    window.addEventListener('pointercancel', end)
+    return () => {
+      window.removeEventListener('pointerup', end)
+      window.removeEventListener('pointercancel', end)
+    }
+  }, [])
+
   function touch(path: string): void {
+    if (fgPressing.current) {
+      fgDeferred.current.add(path)
+      return
+    }
     touched.current.add(path)
     validateField(path, form)
   }
@@ -4734,7 +5066,7 @@ export default function KitchenSinkForm({
   }
 
   return (
-    <form className="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" dir="ltr" noValidate onSubmit={handleSubmit}>
+    <form className="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" dir="ltr" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-12 md:col-span-12">
           <h2 className="font-semibold">Kitchen Sink</h2>
@@ -5018,7 +5350,7 @@ export default function KitchenSinkForm({
 
 exports[`react target > snapshot (vanilla) 1`] = `
 "// Generated by FormsGen — no runtime dependencies beyond React.
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import './KitchenSinkForm.css'
 
 function fgIsEmpty(v) {
@@ -5273,7 +5605,41 @@ export default function KitchenSinkForm({
     if (touched.current.has(path)) validateField(path, typed)
   }
 
+  // A blur error appearing while a pointer is held reflows the form and the
+  // release misses its target; defer blur validation until the press ends.
+  // Deferred work reads the latest state through refs, not this closure.
+  const formRef = useRef(form)
+  formRef.current = form
+  const fgPressing = useRef(false)
+  const fgDeferred = useRef(new Set<string>())
+  const fgFlush = useRef(() => {})
+  fgFlush.current = () => {
+    const paths = [...fgDeferred.current]
+    fgDeferred.current.clear()
+    for (const path of paths) {
+      touched.current.add(path)
+      validateField(path, formRef.current)
+    }
+  }
+  useEffect(() => {
+    function end(): void {
+      if (!fgPressing.current) return
+      fgPressing.current = false
+      setTimeout(() => fgFlush.current(), 0)
+    }
+    window.addEventListener('pointerup', end)
+    window.addEventListener('pointercancel', end)
+    return () => {
+      window.removeEventListener('pointerup', end)
+      window.removeEventListener('pointercancel', end)
+    }
+  }, [])
+
   function touch(path: string): void {
+    if (fgPressing.current) {
+      fgDeferred.current.add(path)
+      return
+    }
     touched.current.add(path)
     validateField(path, form)
   }
@@ -5316,7 +5682,7 @@ export default function KitchenSinkForm({
   }
 
   return (
-    <form className="fg-form" dir="ltr" noValidate onSubmit={handleSubmit}>
+    <form className="fg-form" dir="ltr" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
       <div className="fg-grid">
         <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
           <h2 className="fg-heading">Kitchen Sink</h2>
@@ -5601,7 +5967,7 @@ export default function KitchenSinkForm({
 exports[`vue-standalone target > snapshot (bootstrap5) 1`] = `
 "<script setup lang="ts">
 // Generated by FormsGen — no runtime dependencies beyond Vue.
-import { nextTick, reactive, ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 
 const emit = defineEmits<{ submit: [data: Record<string, unknown>] }>()
 
@@ -5747,7 +6113,38 @@ function runValidator(path: string): void {
   else delete errors[path]
 }
 
+// A blur error appearing while a pointer is held reflows the form and the
+// release misses its target; defer blur validation until the press ends.
+let fgPressing = false
+const fgDeferred = new Set<string>()
+function fgFlushDeferred(): void {
+  const paths = [...fgDeferred]
+  fgDeferred.clear()
+  for (const path of paths) touch(path)
+}
+function fgPointerDown(): void {
+  fgFlushDeferred()
+  fgPressing = true
+}
+function fgPointerEnd(): void {
+  if (!fgPressing) return
+  fgPressing = false
+  setTimeout(fgFlushDeferred, 0)
+}
+onMounted(() => {
+  window.addEventListener('pointerup', fgPointerEnd)
+  window.addEventListener('pointercancel', fgPointerEnd)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('pointerup', fgPointerEnd)
+  window.removeEventListener('pointercancel', fgPointerEnd)
+})
+
 function touch(path: string): void {
+  if (fgPressing) {
+    fgDeferred.add(path)
+    return
+  }
   touched.add(path)
   runValidator(path)
 }
@@ -5864,6 +6261,7 @@ async function onSubmit(): Promise<void> {
     dir="ltr"
     novalidate
     @submit.prevent="onSubmit"
+    @pointerdown.capture="fgPointerDown"
   >
     <div class="row g-3">
       <div class="col-12 col-md-12">
@@ -6138,7 +6536,7 @@ async function onSubmit(): Promise<void> {
 exports[`vue-standalone target > snapshot (tailwind) 1`] = `
 "<script setup lang="ts">
 // Generated by FormsGen — no runtime dependencies beyond Vue.
-import { nextTick, reactive, ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 
 const emit = defineEmits<{ submit: [data: Record<string, unknown>] }>()
 
@@ -6284,7 +6682,38 @@ function runValidator(path: string): void {
   else delete errors[path]
 }
 
+// A blur error appearing while a pointer is held reflows the form and the
+// release misses its target; defer blur validation until the press ends.
+let fgPressing = false
+const fgDeferred = new Set<string>()
+function fgFlushDeferred(): void {
+  const paths = [...fgDeferred]
+  fgDeferred.clear()
+  for (const path of paths) touch(path)
+}
+function fgPointerDown(): void {
+  fgFlushDeferred()
+  fgPressing = true
+}
+function fgPointerEnd(): void {
+  if (!fgPressing) return
+  fgPressing = false
+  setTimeout(fgFlushDeferred, 0)
+}
+onMounted(() => {
+  window.addEventListener('pointerup', fgPointerEnd)
+  window.addEventListener('pointercancel', fgPointerEnd)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('pointerup', fgPointerEnd)
+  window.removeEventListener('pointercancel', fgPointerEnd)
+})
+
 function touch(path: string): void {
+  if (fgPressing) {
+    fgDeferred.add(path)
+    return
+  }
   touched.add(path)
   runValidator(path)
 }
@@ -6401,6 +6830,7 @@ async function onSubmit(): Promise<void> {
     dir="ltr"
     novalidate
     @submit.prevent="onSubmit"
+    @pointerdown.capture="fgPointerDown"
   >
     <div class="grid grid-cols-12 gap-4">
       <div class="col-span-12 md:col-span-12">
@@ -6675,7 +7105,7 @@ async function onSubmit(): Promise<void> {
 exports[`vue-standalone target > snapshot (vanilla) 1`] = `
 "<script setup lang="ts">
 // Generated by FormsGen — no runtime dependencies beyond Vue.
-import { nextTick, reactive, ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 
 const emit = defineEmits<{ submit: [data: Record<string, unknown>] }>()
 
@@ -6821,7 +7251,38 @@ function runValidator(path: string): void {
   else delete errors[path]
 }
 
+// A blur error appearing while a pointer is held reflows the form and the
+// release misses its target; defer blur validation until the press ends.
+let fgPressing = false
+const fgDeferred = new Set<string>()
+function fgFlushDeferred(): void {
+  const paths = [...fgDeferred]
+  fgDeferred.clear()
+  for (const path of paths) touch(path)
+}
+function fgPointerDown(): void {
+  fgFlushDeferred()
+  fgPressing = true
+}
+function fgPointerEnd(): void {
+  if (!fgPressing) return
+  fgPressing = false
+  setTimeout(fgFlushDeferred, 0)
+}
+onMounted(() => {
+  window.addEventListener('pointerup', fgPointerEnd)
+  window.addEventListener('pointercancel', fgPointerEnd)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('pointerup', fgPointerEnd)
+  window.removeEventListener('pointercancel', fgPointerEnd)
+})
+
 function touch(path: string): void {
+  if (fgPressing) {
+    fgDeferred.add(path)
+    return
+  }
   touched.add(path)
   runValidator(path)
 }
@@ -6938,6 +7399,7 @@ async function onSubmit(): Promise<void> {
     dir="ltr"
     novalidate
     @submit.prevent="onSubmit"
+    @pointerdown.capture="fgPointerDown"
   >
     <div class="fg-grid">
       <div class="fg-cell" style="grid-column: span 12 / span 12">

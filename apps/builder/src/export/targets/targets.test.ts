@@ -139,7 +139,8 @@ describe('blazor target', () => {
     const code = file!.content
     // kitchen-sink has section hosts, so the form binds the explicit EditContext
     expect(code).toContain('<EditForm EditContext="fgEdit"')
-    expect(code).toContain('<DataAnnotationsValidator />')
+    // the component validates itself with .NET DataAnnotations (see press deferral)
+    expect(code).toContain('Validator.TryValidateProperty(FgValue(name), context, results)')
     expect(code).toContain('[Required(ErrorMessage = "This field is required")]')
     expect(code).toContain('[EmailAddress(')
     expect(code).toContain('[RegularExpression(@"^[0-9]{4,6}$"')
@@ -429,6 +430,41 @@ describe('Arabic forms (meta.locale "ar") across code targets', () => {
   })
 })
 
+describe('blur validation waits for a pointer press to end (no lost clicks)', () => {
+  // An error appearing between pointerdown and pointerup reflows the form,
+  // so the release lands off the button/checkbox and the click is lost.
+  it('vue-standalone defers touch() while pressed and flushes after release', () => {
+    const c = generate('vue-standalone')[0]!.content
+    expect(c).toContain('@pointerdown.capture="fgPointerDown"')
+    expect(c).toContain("window.addEventListener('pointerup', fgPointerEnd)")
+    expect(c).toContain('setTimeout(fgFlushDeferred, 0)')
+    expect(c).toMatch(/function touch\(path: string\): void \{\n {2}if \(fgPressing\) \{/)
+  })
+
+  it('react defers touch() and validates the latest state via refs', () => {
+    const c = generate('react')[0]!.content
+    expect(c).toContain('onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}')
+    expect(c).toContain('validateField(path, formRef.current)')
+    expect(c).toContain("window.addEventListener('pointercancel', end)")
+  })
+
+  it('html routes focusout and tag blur through fgBlurValidate', () => {
+    const c = generate('html')[0]!.content
+    expect(c).toContain("form.addEventListener('pointerdown', function () {")
+    expect(c).toContain('if (path) fgBlurValidate(path)')
+    expect(c).toContain('fgBlurValidate(path)\n      })')
+  })
+
+  it('blazor holds field validation while pressed, without DataAnnotationsValidator', () => {
+    const c = generate('blazor')[0]!.content
+    expect(c).not.toContain('<DataAnnotationsValidator />')
+    expect(c).toContain('@onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd"')
+    expect(c).toContain('style="display: contents"')
+    expect(c).toContain('fgDeferredFields.Add(name);')
+    expect(c).toContain('"FullName" => Model.FullName,')
+  })
+})
+
 describe('cross-target validation parity (found via live error counts)', () => {
   it('html marks the select placeholder selected; bound targets do not need it', () => {
     // Browsers skip a disabled option for default selection, so without
@@ -460,7 +496,7 @@ describe('cross-target validation parity (found via live error counts)', () => {
     const c = generate('blazor')[0]!.content
     expect(c).toContain('private async Task FgSubmit(EditContext context)')
     expect(c).toContain('((IValidatableObject)Model).Validate(new ValidationContext(Model))')
-    expect(c).toContain('fgEdit.OnFieldChanged += (_, e) => fgMessages.Clear(e.FieldIdentifier);')
+    expect(c).toContain('fgEdit.OnValidationRequested += (_, _) => FgValidateAll();')
   })
 })
 
@@ -493,8 +529,8 @@ describe('blazor parity: multi-value controls, step gating, error jump', () => {
     const c = code()
     expect(c).toContain('<EditForm EditContext="fgEdit" OnSubmit="FgSubmit"')
     expect(c).toContain('private async Task FgNext_ks_wizard()')
-    expect(c).toContain('(nameof(KitchenSinkFormModel.ShippingCity), Model.ShippingCity)')
-    expect(c).toContain('Validator.TryValidateProperty(value, context, results)')
+    expect(c).toContain('0 => new[] { nameof(KitchenSinkFormModel.ShippingCity) },')
+    expect(c).toContain('Validator.TryValidateProperty(FgValue(name), context, results)')
     expect(c).toContain('new ValidationMessageStore(fgEdit)')
   })
 

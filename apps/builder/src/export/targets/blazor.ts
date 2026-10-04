@@ -208,20 +208,96 @@ export const blazorTarget: ExportTarget = {
     const tagsKeys = fields.filter((f) => f.node.type === 'tags').map((f) => f.key)
     const hasToggle = fields.some((f) => f.node.type === 'checkboxgroup')
 
-    // The component owns its EditContext plus a message store for errors
-    // DataAnnotationsValidator doesn't produce (step gating, and model-level
-    // Validate() results it skips while any attribute rule fails).
+    // The component validates fields itself (instead of DataAnnotationsValidator)
+    // with the same .NET Validator calls, so it can hold a field's error back
+    // while a pointer is pressed: an error appearing between pointerdown and
+    // pointerup reflows the form and the release would miss its target.
+    const valueArms = fields
+      .map((f) => `            ${csStr(pascalMember(f.key))} => Model.${pascalMember(f.key)},`)
+      .join('\n')
     const editContextBlock = `
     private EditContext fgEdit = default!;
     private ValidationMessageStore fgMessages = default!;
+    private bool fgPressing;
+    private readonly HashSet<string> fgDeferredFields = new();
 
     protected override void OnInitialized()
     {
         fgEdit = new EditContext(Model);
         fgMessages = new ValidationMessageStore(fgEdit);
-        // Full validation repaints everything; editing a field drops its stale messages.
-        fgEdit.OnValidationRequested += (_, _) => fgMessages.Clear();
-        fgEdit.OnFieldChanged += (_, e) => fgMessages.Clear(e.FieldIdentifier);
+        fgEdit.OnValidationRequested += (_, _) => FgValidateAll();
+        fgEdit.OnFieldChanged += (_, e) => FgFieldChanged(e.FieldIdentifier.FieldName);
+    }
+
+    private void FgPointerDown(PointerEventArgs _)
+    {
+        FgFlushDeferred();
+        fgPressing = true;
+    }
+
+    private void FgPointerEnd(PointerEventArgs _)
+    {
+        fgPressing = false;
+        FgFlushDeferred();
+    }
+
+    private void FgFieldChanged(string name)
+    {
+        if (fgPressing)
+        {
+            fgDeferredFields.Add(name);
+            return;
+        }
+        FgValidateMembers(new[] { name });
+    }
+
+    private void FgFlushDeferred()
+    {
+        if (fgDeferredFields.Count == 0) return;
+        var names = fgDeferredFields.ToArray();
+        fgDeferredFields.Clear();
+        FgValidateMembers(names);
+    }
+
+    private void FgValidateAll()
+    {
+        fgDeferredFields.Clear();
+        fgMessages.Clear();
+        FgValidateMembers(fgAllMembers);
+    }
+
+    private object? FgValue(string name) => name switch
+    {
+${valueArms}
+        _ => null,
+    };
+
+    // Attribute rules per property, plus the model's Validate() results for
+    // the same members (DataAnnotations alone skips Validate() while any
+    // attribute rule fails, which hid errors such as a required checkbox).
+    private bool FgValidateMembers(string[] members)
+    {
+        var ok = true;
+        foreach (var name in members)
+        {
+            var field = new FieldIdentifier(Model, name);
+            fgMessages.Clear(field);
+            var results = new List<ValidationResult>();
+            var context = new ValidationContext(Model) { MemberName = name };
+            if (!Validator.TryValidateProperty(FgValue(name), context, results)) ok = false;
+            foreach (var result in results) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
+        }
+        foreach (var result in ((IValidatableObject)Model).Validate(new ValidationContext(Model)))
+        {
+            foreach (var name in result.MemberNames)
+            {
+                if (Array.IndexOf(members, name) < 0) continue;
+                fgMessages.Add(new FieldIdentifier(Model, name), result.ErrorMessage ?? "Invalid");
+                ok = false;
+            }
+        }
+        fgEdit.NotifyValidationStateChanged();
+        return ok;
     }
 
     private async Task FgSubmit(EditContext context)
@@ -231,59 +307,19 @@ export const blazorTarget: ExportTarget = {
             await HandleValidSubmit();
             return;
         }
-        // DataAnnotations runs IValidatableObject.Validate() only once every
-        // attribute rule passes; run it now so all errors show at once.
-        foreach (var result in ((IValidatableObject)Model).Validate(new ValidationContext(Model)))
-        {
-            foreach (var name in result.MemberNames)
-            {
-                var field = new FieldIdentifier(Model, name);
-                if (!context.GetValidationMessages(field).Any()) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
-            }
-        }
-        context.NotifyValidationStateChanged();
         await FgOnInvalidSubmit(context);
     }
 `
-
-    const validateMembersBlock = stepsHosts.length
-      ? `
-    private bool FgValidateMembers((string Name, object? Value)[] members)
-    {
-        var ok = true;
-        foreach (var (name, value) in members)
-        {
-            var field = new FieldIdentifier(Model, name);
-            fgMessages.Clear(field);
-            var results = new List<ValidationResult>();
-            var context = new ValidationContext(Model) { MemberName = name };
-            if (!Validator.TryValidateProperty(value, context, results)) ok = false;
-            foreach (var result in results) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
-        }
-        foreach (var result in ((IValidatableObject)Model).Validate(new ValidationContext(Model)))
-        {
-            foreach (var name in result.MemberNames)
-            {
-                if (!Array.Exists(members, m => m.Name == name)) continue;
-                fgMessages.Add(new FieldIdentifier(Model, name), result.ErrorMessage ?? "Invalid");
-                ok = false;
-            }
-        }
-        fgEdit.NotifyValidationStateChanged();
-        return ok;
-    }
-`
-      : ''
 
     const nextBlocks = stepsHosts
       .map((host) => {
         const arms = host.sections
           .map((s) =>
             s.paths.length
-              ? `            ${s.index} => new (string Name, object? Value)[] { ${s.paths
-                  .map((p) => `(nameof(${name}Model.${memberOf(p)}), Model.${memberOf(p)})`)
+              ? `            ${s.index} => new[] { ${s.paths
+                  .map((p) => `nameof(${name}Model.${memberOf(p)})`)
                   .join(', ')} },`
-              : `            ${s.index} => Array.Empty<(string Name, object? Value)>(),`,
+              : `            ${s.index} => Array.Empty<string>(),`,
           )
           .join('\n')
         return `
@@ -303,7 +339,7 @@ ${stepAnnouncements(host, messages).map((text) => `        ${csStr(text)},`).joi
         var members = fgSec_${host.key} switch
         {
 ${arms}
-            _ => Array.Empty<(string Name, object? Value)>(),
+            _ => Array.Empty<string>(),
         };
         if (FgValidateMembers(members) && fgSec_${host.key} < ${host.sections.length - 1}) await FgGo_${host.key}(fgSec_${host.key} + 1);
     }
@@ -407,7 +443,7 @@ ${fields.map((f) => `        ${csStr(pascalMember(f.key))},`).join('\n')}
     }
 `
 
-    const helperBlocks = `${editContextBlock}${announceBlock}${validateMembersBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}`
+    const helperBlocks = `${editContextBlock}${announceBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}`
 
     const formBinding = 'EditContext="fgEdit" OnSubmit="FgSubmit"'
     const extraUsings = '@using System.Linq\n@using Microsoft.AspNetCore.Components.Forms\n'
@@ -437,11 +473,12 @@ ${fields.map((f) => `        ${csStr(pascalMember(f.key))},`).join('\n')}
 @using System.Text.Json
 ${extraUsings}${submitUrl ? '@using System.Net.Http.Json\n' : ''}${httpInject}
 <EditForm ${formBinding} novalidate class="${css.classes('form')}" dir="${schema.meta.dir}">
-    <DataAnnotationsValidator />
+    <div style="display: contents" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
     <div class="${css.classes('grid')}">
 ${indentBlock(markup, 2)}
     </div>
     <div class="${css.classes('srOnly')}" role="status" aria-live="polite" aria-atomic="true">@fgAnnouncement</div>${actionsBlock}
+    </div>
     @if (ResultJson is not null)
     {
         <pre class="${css.classes('payload')}">@ResultJson</pre>
@@ -491,7 +528,7 @@ ${validateStatements || '            yield break;'}
     const name = componentName(ctx.schema)
     return `# ${name} (Blazor, .NET 8)
 
-A single Razor component: \`EditForm\` + \`DataAnnotationsValidator\`, a
+A single Razor component: an \`EditForm\` validated with .NET DataAnnotations, a
 generated model class (attributes where a rule maps 1:1, plus
 \`IValidatableObject\` for conditional fields and required checkboxes),
 and a payload builder that excludes hidden fields and nests named groups.

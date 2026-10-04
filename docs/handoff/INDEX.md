@@ -21,5 +21,6 @@ Read the latest handoff before starting any phase (Phase Standard, REBUILD_PROMP
 | 14 | Blazor parity: multi-value, step gating, error jump | ✅ Complete | [phase-14-blazor-parity.md](./phase-14-blazor-parity.md) |
 | 15 | aria-live announcements + cross-target validation parity | ✅ Complete | [phase-15-live-region-parity.md](./phase-15-live-region-parity.md) |
 | 16 | Localized built-in texts (English + Arabic) | ✅ Complete | [phase-16-arabic-messages.md](./phase-16-arabic-messages.md) |
+| 17 | Press-safe blur validation (no lost clicks) | ✅ Complete | [phase-17-press-safe-validation.md](./phase-17-press-safe-validation.md) |
 
-**All 11 planned phases are complete**, plus 10b and 12–16 from the backlog. Remaining backlog: npm publish of `@formsgen/renderer` (parked by user); see the "Not done" list in [phase-16-arabic-messages.md](./phase-16-arabic-messages.md).
+**All 11 planned phases are complete**, plus 10b and 12–17 from the backlog. Remaining backlog: npm publish of `@formsgen/renderer` (parked by user); see the "Not done" list in [phase-16-arabic-messages.md](./phase-16-arabic-messages.md).

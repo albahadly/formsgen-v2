@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, provide, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, watch } from 'vue'
 import { getValueByPath } from '../conditions'
 import { FORM_CONTEXT, type FormContext } from '../context'
 import { pluralText, resolveMessages } from '../messages'
@@ -103,6 +103,35 @@ watch(
   { deep: true },
 )
 
+// A field's error appearing on blur reflows the form. If that happens while
+// a pointer is held (between pointerdown and pointerup), the release lands
+// on a moved target and the click is lost — so blur validation waits for
+// the press to end, then runs after the click has been dispatched.
+let pressing = false
+const deferredTouches = new Set<string>()
+function flushDeferredTouches(): void {
+  const paths = [...deferredTouches]
+  deferredTouches.clear()
+  for (const path of paths) context.touch(path)
+}
+function onPointerDown(): void {
+  flushDeferredTouches()
+  pressing = true
+}
+function onPointerEnd(): void {
+  if (!pressing) return
+  pressing = false
+  setTimeout(flushDeferredTouches, 0)
+}
+onMounted(() => {
+  window.addEventListener('pointerup', onPointerEnd)
+  window.addEventListener('pointercancel', onPointerEnd)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('pointerup', onPointerEnd)
+  window.removeEventListener('pointercancel', onPointerEnd)
+})
+
 // Steps wizards register an "at end?" probe; the submit button hides
 // until every registered wizard sits on its last step (configurable).
 const stepsHosts = reactive(new Map<string, () => boolean>())
@@ -112,6 +141,10 @@ const context: FormContext = {
   setValue: (path, value) => setValueByPath(data, path, value),
   getError: (path) => (touched.has(path) || submitted.value ? (errors[path] ?? null) : null),
   touch: (path) => {
+    if (pressing) {
+      deferredTouches.add(path)
+      return
+    }
     touched.add(path)
     validateField(path)
   },
@@ -199,6 +232,7 @@ function onSubmit(): void {
     :style="themeStyle"
     novalidate
     @submit.prevent="onSubmit"
+    @pointerdown.capture="onPointerDown"
   >
     <div class="fg-grid">
       <FgNode

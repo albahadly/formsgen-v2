@@ -334,6 +334,31 @@ describe('FormsGenForm', () => {
     expect(wrapper.get('.fg-tag-remove').attributes('aria-label')).toBe('إزالة vue')
   })
 
+  it('holds a blur error while a pointer is pressed, then shows it after release', async () => {
+    const wrapper = mountForm()
+    const email = wrapper.get('input[name="email"]')
+    await email.setValue('abc')
+    // press starts (e.g. on a checkbox below), then the email field blurs
+    await wrapper.get('form').trigger('pointerdown')
+    await email.trigger('blur')
+    expect(wrapper.text()).not.toContain('Must be a valid email address')
+    // release: the click lands first, the deferred validation runs right after
+    window.dispatchEvent(new Event('pointerup'))
+    expect(wrapper.text()).not.toContain('Must be a valid email address')
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    await nextTick()
+    expect(wrapper.text()).toContain('Must be a valid email address')
+    wrapper.unmount()
+  })
+
+  it('without a press, blur validation is immediate as before', async () => {
+    const wrapper = mountForm()
+    const email = wrapper.get('input[name="email"]')
+    await email.setValue('abc')
+    await email.trigger('blur')
+    expect(wrapper.text()).toContain('Must be a valid email address')
+  })
+
   it('tab headers show an error dot after a failed submit', async () => {
     const schema = fixtureSchema()
     // make the hidden tab's field required
