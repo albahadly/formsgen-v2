@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { isVerticalRange } from '../../elements'
 import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
 
@@ -20,6 +21,7 @@ const {
 const min = computed(() => Number(props.node.props['min'] ?? 0))
 const max = computed(() => Number(props.node.props['max'] ?? 100))
 const step = computed(() => Number(props.node.props['step'] ?? 1))
+const vertical = computed(() => isVerticalRange(props.node))
 
 const current = computed({
   get: () => String(typeof value.value === 'number' ? value.value : min.value),
@@ -49,7 +51,9 @@ const current = computed({
       :id="fieldId"
       v-model="current"
       class="fg-range"
+      :class="{ 'fg-range--vertical': vertical }"
       type="range"
+      :aria-orientation="vertical ? 'vertical' : undefined"
       :aria-describedby="describedBy"
       :name="node.name"
       :min="min"

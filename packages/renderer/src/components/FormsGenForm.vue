@@ -51,9 +51,11 @@ function deepMerge(
   return out
 }
 
-const data = reactive<Record<string, unknown>>(
-  deepMerge(buildDefaultData(props.schema.tree), props.modelValue ?? {}),
-)
+/** Snapshot of the v-model value the form started with (reset target). */
+const initialModel = JSON.stringify(props.modelValue ?? {})
+const initialData = (): Record<string, unknown> =>
+  deepMerge(buildDefaultData(props.schema.tree), JSON.parse(initialModel) as Record<string, unknown>)
+const data = reactive<Record<string, unknown>>(initialData())
 
 const errors = reactive<Record<string, string | null>>({})
 const touched = reactive<Set<string>>(new Set())
@@ -206,6 +208,20 @@ function announce(message: string): void {
   })
 }
 context.announce = announce
+
+/** Reset buttons: back to the initial values, no errors shown. */
+context.reset = () => {
+  const initial = initialData()
+  for (const key of Object.keys(data)) delete data[key]
+  Object.assign(data, initial)
+  // After the data watcher has run (it re-validates touched fields).
+  void nextTick(() => {
+    touched.clear()
+    submitted.value = false
+    for (const key of Object.keys(errors)) errors[key] = null
+    announce(messages.value.formReset)
+  })
+}
 
 function onSubmit(): void {
   submitted.value = true

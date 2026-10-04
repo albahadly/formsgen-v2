@@ -44,6 +44,21 @@ export type Slot =
   | 'tagRemove'
   | 'tagsInput'
   | 'srOnly'
+  | 'switchWrap'
+  | 'switch'
+  | 'optionsBlocks'
+  | 'optionBlock'
+  | 'optionBlockInput'
+  | 'optionsButtons'
+  | 'optionButton'
+  | 'optionButtonInput'
+  | 'image'
+  | 'link'
+  | 'quote'
+  | 'quoteText'
+  | 'quoteCite'
+  | 'buttonDanger'
+  | 'colorInput'
 
 export interface CellAttrs {
   class: string
@@ -69,6 +84,12 @@ export interface CssFrameworkAdapter {
   alignClass(align: TextAlign): string
   /** Grid cell carrying a 12-column span. */
   cell(span: number): CellAttrs
+  /**
+   * Markup shape of block/button choice options: the input inside its
+   * label ('wrap'), or input then label as siblings ('sibling', which
+   * Bootstrap's `.btn-check + .btn` pattern requires).
+   */
+  choiceLayout: 'wrap' | 'sibling'
   /** Class(es) added to a control while invalid. */
   invalidClass(): string
   /**
@@ -77,7 +98,7 @@ export interface CssFrameworkAdapter {
    */
   stylesheet?(theme?: ThemeTokens): string | undefined
   /** CDN references for the plain-HTML export. */
-  assets(): { links: string[]; scripts: string[] }
+  assets(dir?: 'ltr' | 'rtl'): { links: string[]; scripts: string[] }
   /** One line for generated READMEs naming the framework prerequisite. */
   readmeNote(): string
 }

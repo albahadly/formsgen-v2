@@ -13,7 +13,7 @@ import {
   visibilityFunctions,
 } from '../logic'
 import { renderTree, stepButtonLabels, type RenderedSectionHost } from '../markup'
-import { collectSectionHosts, resolveSubmitButton } from '../structure'
+import { collectSectionHosts, hasResetButton, resolveSubmitButton } from '../structure'
 import { esc } from '@/registry/emitters/shared'
 import { formRootClass, pinnedSchemeAttr } from '../css/themeBridge'
 import type { ExportTarget } from './types'
@@ -98,7 +98,7 @@ export const htmlTarget: ExportTarget = {
           : [],
     }))
 
-    const assets = css.assets()
+    const assets = css.assets(schema.meta.dir)
     const headAssets = [
       ...assets.links.map((href) => `  <link rel="stylesheet" href="${href}">`),
       ...assets.scripts.map((src) => `  <script src="${src}"></script>`),
@@ -123,12 +123,34 @@ export const htmlTarget: ExportTarget = {
       }).catch(function (error) { console.error('Submit failed', error) })\n`
       : ''
 
+    // Reset buttons: native form reset (restores the markup defaults) plus
+    // chips, errors, touched state and conditional blocks.
+    const resetScript = hasResetButton(schema)
+      ? `    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-reset]'), function (button) {
+      button.addEventListener('click', function () {
+        form.reset()
+        Object.keys(fgTags).forEach(function (path) {
+          fgTags[path] = []
+          if (fgTagsPaint[path]) fgTagsPaint[path]()
+        })
+        Object.keys(touched).forEach(function (path) { delete touched[path] })
+        Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })
+        document.getElementById('fg-result').hidden = true
+        updateConditions()
+        fgAnnounce(${JSON.stringify(messages.formReset)})
+      })
+    })
+
+`
+      : ''
+
     const script = `  <script>
   (function () {
     'use strict'
     ${RUNTIME_HELPERS.split('\n').join('\n    ')}
 
     var fgTags = {}
+    var fgTagsPaint = {}
     function fgControl(path) {
       return document.querySelector('[data-fg-path="' + path + '"]')
     }
@@ -240,6 +262,7 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
         if (touched[path]) validateField(path)
         updateConditions()
       }
+      fgTagsPaint[path] = paint
       input.addEventListener('keydown', function (event) {
         if (event.key === 'Enter' || event.key === ',') { event.preventDefault(); addDraft() }
       })
@@ -372,7 +395,7 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
       if (path && touched[path]) validateField(path)
     }
 
-    form.addEventListener('submit', function (event) {
+${resetScript}    form.addEventListener('submit', function (event) {
       event.preventDefault()
       var failed = 0
       Object.keys(FG_VALIDATORS).forEach(function (path) {

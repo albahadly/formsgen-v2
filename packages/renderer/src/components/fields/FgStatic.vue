@@ -1,16 +1,34 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
+import { FORM_CONTEXT } from '../../context'
+import { isSafeUrl } from '../../elements'
+import { MESSAGES } from '../../messages'
 import type { ElementNode } from '../../schema'
 
 const props = defineProps<{ node: ElementNode }>()
+const ctx = inject(FORM_CONTEXT, null)
+const messages = computed(() => ctx?.messages?.() ?? MESSAGES.en)
 
-const text = computed(() => String(props.node.props['text'] ?? ''))
+const prop = (key: string): string => {
+  const value = props.node.props[key]
+  return typeof value === 'string' ? value : ''
+}
+const text = computed(() => prop('text'))
 /** style.tone: text color (line color for a divider). */
 const toneClass = computed(() => (props.node.style?.tone ? `fg-tone-${props.node.style.tone}` : undefined))
 const level = computed(() => {
   const l = Number(props.node.props['level'] ?? 2)
   return l >= 1 && l <= 4 ? l : 2
 })
+// Unsafe URLs (javascript:, data:, …) are never rendered.
+const href = computed(() => (isSafeUrl(prop('href')) ? prop('href').trim() : undefined))
+const src = computed(() => (isSafeUrl(prop('src')) ? prop('src').trim() : undefined))
+const newTab = computed(() => props.node.props['newTab'] === true)
+const imageWidth = computed(() => {
+  const w = Number(props.node.props['width'])
+  return Number.isFinite(w) && w > 0 ? w : undefined
+})
+const cite = computed(() => prop('cite'))
 </script>
 
 <template>
@@ -26,6 +44,39 @@ const level = computed(() => {
   >
     {{ text }}
   </p>
+  <img
+    v-else-if="node.type === 'image'"
+    class="fg-image"
+    :src="src"
+    :alt="prop('alt')"
+    :width="imageWidth"
+    loading="lazy"
+  >
+  <a
+    v-else-if="node.type === 'link'"
+    class="fg-link"
+    :class="toneClass"
+    :href="href"
+    :target="newTab ? '_blank' : undefined"
+    :rel="newTab ? 'noopener noreferrer' : undefined"
+  >{{ text }}<span
+    v-if="newTab"
+    class="fg-sr-only"
+  >{{ ` ${messages.opensInNewTab}` }}</span></a>
+  <figure
+    v-else-if="node.type === 'quote'"
+    class="fg-quote"
+  >
+    <blockquote class="fg-quote-text">
+      <p>{{ text }}</p>
+    </blockquote>
+    <figcaption
+      v-if="cite"
+      class="fg-quote-cite"
+    >
+      {{ cite }}
+    </figcaption>
+  </figure>
   <component
     :is="`h${level}`"
     v-else

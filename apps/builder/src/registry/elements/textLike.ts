@@ -28,10 +28,15 @@ export interface TextLikeConfig {
   description: string
   icon: string
   defaultValidation?: ElementDefinition['defaultValidation']
+  /** false: the control has no placeholder (e.g. a color picker). */
+  placeholder?: boolean
+  /** CSS slot for the control (default 'input'). */
+  inputSlot?: 'input' | 'colorInput'
 }
 
 export function makeTextLikeElement(config: TextLikeConfig): ElementDefinition {
   const { type, inputType } = config
+  const slot = config.inputSlot ?? 'input'
   const definition: ElementDefinition = {
     type,
     category: 'fields',
@@ -39,14 +44,20 @@ export function makeTextLikeElement(config: TextLikeConfig): ElementDefinition {
     description: config.description,
     icon: config.icon,
     hasValue: true,
-    defaultProps: { label: config.label, placeholder: '' },
-    propertyPanel: commonFieldSections(),
+    defaultProps: config.placeholder === false ? { label: config.label } : { label: config.label, placeholder: '' },
+    propertyPanel:
+      config.placeholder === false
+        ? commonFieldSections().map((section) => ({
+            ...section,
+            controls: section.controls.filter((c) => !('prop' in c && c.prop === 'placeholder')),
+          }))
+        : commonFieldSections(),
     export: {
       vue: (node, ctx) =>
         fieldWrap(
           [
             labelFor(node, ctx),
-            `<input id="${ctx.id}" v-model="form.${ctx.path}" type="${inputType}" class="${ctx.css.classes('input')}"${vueInvalid(ctx)}${placeholderAttr(node)}${vueEvents(ctx)}>`,
+            `<input id="${ctx.id}" v-model="form.${ctx.path}" type="${inputType}" class="${ctx.css.classes(slot)}"${vueInvalid(ctx)}${placeholderAttr(node)}${vueEvents(ctx)}>`,
             descriptionFor(node, ctx),
             vueError(ctx),
           ],
@@ -56,7 +67,7 @@ export function makeTextLikeElement(config: TextLikeConfig): ElementDefinition {
         fieldWrap(
           [
             labelFor(node, ctx),
-            `<input id="${ctx.id}" type="${inputType}" class="${ctx.css.classes('input')}"${htmlDataAttrs(ctx, 'text')}${placeholderAttr(node)}>`,
+            `<input id="${ctx.id}" type="${inputType}" class="${ctx.css.classes(slot)}"${htmlDataAttrs(ctx, 'text')}${placeholderAttr(node)}>`,
             descriptionFor(node, ctx),
             htmlError(ctx),
           ],
@@ -66,7 +77,7 @@ export function makeTextLikeElement(config: TextLikeConfig): ElementDefinition {
         reactFieldWrap(
           [
             reactLabelFor(node, ctx),
-            `<input id="${ctx.id}" type="${inputType}" value={form.${ctx.path}} ${reactControlClass(ctx, 'input')}${placeholderAttr(node)}${reactEvents(ctx)} />`,
+            `<input id="${ctx.id}" type="${inputType}" value={form.${ctx.path}} ${reactControlClass(ctx, slot)}${placeholderAttr(node)}${reactEvents(ctx)} />`,
             reactDescription(node, ctx),
             reactError(ctx),
           ],
@@ -76,7 +87,7 @@ export function makeTextLikeElement(config: TextLikeConfig): ElementDefinition {
         fieldWrap(
           [
             labelFor(node, ctx),
-            `<InputText id="${ctx.id}" type="${inputType}" @bind-Value="Model.${pascalMember(ctx.key)}" class="${ctx.css.classes('input')}"${placeholderAttr(node)} />`,
+            `<InputText id="${ctx.id}" type="${inputType}" @bind-Value="Model.${pascalMember(ctx.key)}" class="${ctx.css.classes(slot)}"${placeholderAttr(node)} />`,
             descriptionFor(node, ctx),
             `<ValidationMessage For="@(() => Model.${pascalMember(ctx.key)})" class="${ctx.css.classes('error')}" />`,
           ],

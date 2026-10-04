@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { choiceDisplay } from '../../elements'
 import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
 
@@ -9,6 +10,9 @@ interface Item {
 }
 
 const props = defineProps<{ node: ElementNode; path: string }>()
+
+/** props.display: plain list, bordered blocks, or a segmented button row. */
+const display = computed(() => choiceDisplay(props.node))
 const {
   value,
   error,
@@ -47,18 +51,22 @@ const selected = computed({
         aria-hidden="true"
       >*</span>
     </legend>
-    <div class="fg-options">
+    <div
+      class="fg-options"
+      :class="display === 'list' ? undefined : `fg-options--${display}`"
+    >
       <label
         v-for="item in items"
         :key="item.value"
         class="fg-option"
+        :class="display === 'list' ? undefined : `fg-option--${display === 'blocks' ? 'block' : 'button'}`"
         :for="`${fieldId}-${item.value}`"
       >
         <input
           :id="`${fieldId}-${item.value}`"
           v-model="selected"
           type="radio"
-          class="fg-checkbox"
+          :class="display === 'buttons' ? 'fg-sr-only' : 'fg-checkbox'"
           :aria-describedby="describedBy"
           :name="path"
           :value="item.value"

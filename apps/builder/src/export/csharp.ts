@@ -47,6 +47,7 @@ export type CsFieldKind =
 export function csFieldKind(type: string): CsFieldKind {
   switch (type) {
     case 'checkbox':
+    case 'toggle':
       return 'bool'
     case 'number':
       return 'number'

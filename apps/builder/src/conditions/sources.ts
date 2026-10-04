@@ -5,6 +5,7 @@
 // for a checkbox, number for number/range, the option's string value…).
 
 import {
+  BOOLEAN_TYPES,
   getCoreElement,
   joinPath,
   type Condition,
@@ -81,7 +82,7 @@ export function listConditionSources(tree: ElementNode[], excludeId: string): Co
 }
 
 export function operatorsFor(type: string): ConditionOperator[] {
-  if (type === 'checkbox') return ['equals']
+  if (BOOLEAN_TYPES.has(type)) return ['equals']
   if (NUMBER_TYPES.has(type)) return NUMBER_OPS
   if (OPTION_TYPES.has(type)) return OPTION_OPS
   if (LIST_TYPES.has(type)) return LIST_OPS
@@ -90,7 +91,7 @@ export function operatorsFor(type: string): ConditionOperator[] {
 
 export function valueKindFor(source: ConditionSource, operator: ConditionOperator): ConditionValueKind {
   if (operator === 'empty' || operator === 'not-empty') return 'none'
-  if (source.type === 'checkbox') return 'boolean'
+  if (BOOLEAN_TYPES.has(source.type)) return 'boolean'
   if (operator === 'greater-than' || operator === 'less-than' || NUMBER_TYPES.has(source.type)) {
     return 'number'
   }

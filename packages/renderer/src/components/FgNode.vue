@@ -2,21 +2,13 @@
 import { computed, inject, onBeforeUnmount, ref, watch } from 'vue'
 import { isVisible } from '../conditions'
 import { FORM_CONTEXT } from '../context'
-import { getCoreElement } from '../elements'
+import { STATIC_TYPES, getCoreElement } from '../elements'
 import { MESSAGES, fill } from '../messages'
 import { joinPath } from '../runtime'
 import type { ColSpan, ElementNode } from '../schema'
-import FgCheckbox from './fields/FgCheckbox.vue'
-import FgCheckboxGroup from './fields/FgCheckboxGroup.vue'
-import FgMultiSelect from './fields/FgMultiSelect.vue'
-import FgNumber from './fields/FgNumber.vue'
-import FgRadioGroup from './fields/FgRadioGroup.vue'
-import FgRange from './fields/FgRange.vue'
-import FgSelect from './fields/FgSelect.vue'
+import { fieldComponentFor } from './fieldComponents'
+import FgButton from './fields/FgButton.vue'
 import FgStatic from './fields/FgStatic.vue'
-import FgTags from './fields/FgTags.vue'
-import FgText from './fields/FgText.vue'
-import FgTextarea from './fields/FgTextarea.vue'
 
 const props = defineProps<{
   node: ElementNode
@@ -30,32 +22,9 @@ if (!ctx) throw new Error('<FgNode> must be used inside <FormsGenForm>')
 const formCtx = ctx
 const messages = computed(() => formCtx.messages?.() ?? MESSAGES.en)
 
-// Internal component map for core field types (ADR-0001).
-const fieldComponents = {
-  text: FgText,
-  email: FgText,
-  password: FgText,
-  url: FgText,
-  phone: FgText,
-  date: FgText,
-  time: FgText,
-  textarea: FgTextarea,
-  number: FgNumber,
-  select: FgSelect,
-  multiselect: FgMultiSelect,
-  tags: FgTags,
-  radiogroup: FgRadioGroup,
-  checkbox: FgCheckbox,
-  checkboxgroup: FgCheckboxGroup,
-  range: FgRange,
-} as const
+const isStatic = computed(() => STATIC_TYPES.has(props.node.type) && props.node.type !== 'button')
 
-const staticTypes = new Set(['heading', 'paragraph', 'divider'])
-const isStatic = computed(() => staticTypes.has(props.node.type))
-
-const fieldComponent = computed(
-  () => fieldComponents[props.node.type as keyof typeof fieldComponents],
-)
+const fieldComponent = computed(() => fieldComponentFor(props.node.type))
 
 const visible = computed(() => isVisible(props.node.conditions, (f) => ctx.getValue(f)))
 
@@ -194,7 +163,7 @@ const embeddedSubmit = computed(
 
 <template>
   <div
-    v-if="visible && (fieldComponent || isStatic || isSectionHost || ['group', 'columns', 'tab', 'step'].includes(node.type))"
+    v-if="visible && (fieldComponent || isStatic || isSectionHost || ['button', 'group', 'columns', 'tab', 'step'].includes(node.type))"
     class="fg-cell"
     :class="cellClasses"
     :style="cellStyle"
@@ -207,6 +176,10 @@ const embeddedSubmit = computed(
     />
     <FgStatic
       v-else-if="isStatic"
+      :node="node"
+    />
+    <FgButton
+      v-else-if="node.type === 'button'"
       :node="node"
     />
     <fieldset

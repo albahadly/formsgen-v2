@@ -6,6 +6,7 @@ import { scopeForBlazor } from './blazorScope'
 import {
   TAILWIND_DARK_RESETS,
   TAILWIND_RINGS,
+  TAILWIND_SOLID_RINGS,
   TAILWIND_THEMED,
   bootstrapThemeCss,
   tailwindThemeCss,
@@ -39,11 +40,13 @@ const UNTHEMED_TAILWIND = new Set([
   'bg-gray-900',
   'text-green-300',
   'hover:bg-indigo-500', // themed by a dedicated shaded-primary rule
-  'text-white', // themed on the primary button via the contrast rule
+  'text-white', // themed on the primary/danger buttons via the contrast rules
+  'before:bg-white', // the switch knob
+  'hover:bg-red-500', // themed by a dedicated shaded-error rule
 ])
 
 const PALETTE =
-  /(?:[a-z-]+:)*(?:text|bg|border|ring|accent)-(?:gray|slate|indigo|red|green|white|black|blue)(?:-\d+)?(?:\/\d+)?/g
+  /(?<![\w-])(?:[a-z-]+(?:-\[[^\]\s]+\])?:)*(?:text|bg|border|ring|accent)-(?:gray|slate|indigo|red|green|white|black|blue)(?:-\d+)?(?:\/\d+)?/g
 
 describe('theme bridges', () => {
   it('emit nothing without a theme, so unthemed exports are unchanged', () => {
@@ -61,6 +64,7 @@ describe('theme bridges', () => {
     const covered = new Set([
       ...Object.values(TAILWIND_THEMED).flatMap((props) => Object.values(props).flat()),
       ...Object.values(TAILWIND_RINGS).flat(),
+      ...Object.values(TAILWIND_SOLID_RINGS).flat(),
       ...Object.keys(TAILWIND_DARK_RESETS),
       ...UNTHEMED_TAILWIND,
     ])
@@ -77,7 +81,9 @@ describe('theme bridges', () => {
 
   it('Tailwind: concrete values on the emitted classes, scoped to .fg-themed', () => {
     const css = tailwindThemeCss(THEME)!
-    expect(css).toContain('.fg-themed .bg-indigo-600 {\n  background-color: #0f766e;\n}')
+    expect(css).toContain(
+      '.fg-themed .bg-indigo-600,\n.fg-themed .checked\\:bg-indigo-600:checked,\n.fg-themed .has-\\[\\:checked\\]\\:bg-indigo-600:has(:checked) {\n  background-color: #0f766e;\n}',
+    )
     expect(css).toContain('.fg-themed .focus\\:border-indigo-500:focus')
     expect(css).toContain('.fg-themed .hover\\:bg-indigo-500:hover {\n  background-color: #0d6861;\n}')
     expect(css).toContain('.fg-themed .bg-indigo-600.text-white {\n  color: #ffffff;\n}')
@@ -220,7 +226,7 @@ describe('Blazor CSS isolation', () => {
     const vanilla = files('blazor', 'vanilla').find((f) => f.path.endsWith('.razor.css'))!.content
     expect(vanilla).toContain('::deep .fg-input, ::deep .fg-textarea, ::deep .fg-select {')
     const tw = files('blazor', 'tailwind', THEME).find((f) => f.path.endsWith('.razor.css'))!.content
-    expect(tw).toContain('.fg-themed ::deep .bg-indigo-600 {')
+    expect(tw).toContain('.fg-themed ::deep .bg-indigo-600,')
     expect(tw).not.toMatch(/^\.fg-themed \.(?!fg-)/m)
   })
 })

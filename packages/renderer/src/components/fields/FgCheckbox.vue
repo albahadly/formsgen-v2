@@ -7,6 +7,9 @@ const props = defineProps<{ node: ElementNode; path: string }>()
 const { value, error, label, description, fieldId, errorId, describedBy, required, onBlur } =
   useField(props)
 
+/** A toggle is a checkbox drawn as a switch (and announced as one). */
+const isSwitch = computed(() => props.node.type === 'toggle')
+
 const checked = computed({
   get: () => value.value === true,
   set: (v: boolean) => {
@@ -27,8 +30,9 @@ const checked = computed({
       <input
         :id="fieldId"
         v-model="checked"
-        class="fg-checkbox"
+        :class="isSwitch ? 'fg-switch' : 'fg-checkbox'"
         type="checkbox"
+        :role="isSwitch ? 'switch' : undefined"
         :name="node.name"
         :aria-invalid="error ? 'true' : undefined"
         :aria-describedby="describedBy"

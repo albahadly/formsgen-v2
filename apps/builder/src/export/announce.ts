@@ -61,7 +61,7 @@ export function errorsTextFunction(messages: MessageCatalog, typed: boolean): st
     .join(', ')
   const category = pluralCategoryExpr(messages.plural, 'count', (c) => `'${c}'`)
   return `function fgErrorsText(count${typed ? ': number' : ''})${typed ? ': string' : ''} {
-  const forms${typed ? ': Record<string, string>' : ''} = { ${forms} }
+  const forms${typed ? ': Record<string, string> & { other: string }' : ''} = { ${forms} }
   const text = forms[${category}] ?? forms.other
   return text.split('{n}').join(String(count))
 }`

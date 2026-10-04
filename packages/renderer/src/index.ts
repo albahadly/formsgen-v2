@@ -62,13 +62,21 @@ export {
 } from './schema'
 
 export {
+  BOOLEAN_TYPES,
   SECTION_CONTAINERS,
   SECTION_TYPES,
+  STATIC_TYPES,
   TEXT_INPUT_TYPES,
+  choiceDisplay,
   coreElements,
   getCoreElement,
+  isSafeUrl,
+  isVerticalRange,
+  type ChoiceDisplay,
   type CoreElementMeta,
 } from './elements'
+export { FIELD_COMPONENTS, fieldComponentFor } from './components/fieldComponents'
+export { default as FgButton } from './components/fields/FgButton.vue'
 
 export {
   buildDefaultData,

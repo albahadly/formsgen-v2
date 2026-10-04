@@ -16,7 +16,7 @@ import {
   vueInvalid,
 } from '../emitters/shared'
 import { commonFieldSections, type ElementDefinition } from '../types'
-import type { ElementNode } from '@formsgen/renderer'
+import { isVerticalRange, type ElementNode } from '@formsgen/renderer'
 
 function rangeAttrs(node: ElementNode): string {
   const parts: string[] = []
@@ -84,11 +84,25 @@ export const numberElement: ElementDefinition = {
   },
 }
 
+// Vertical sliders: the writing-mode trick every modern browser supports
+// (inline, so it works with every CSS framework). Max sits at the top.
+const VERTICAL_STYLE =
+  'writing-mode: vertical-lr; direction: rtl; align-self: flex-start; width: auto; height: 10rem'
+const VERTICAL_STYLE_JSX =
+  "{{ writingMode: 'vertical-lr', direction: 'rtl', alignSelf: 'flex-start', width: 'auto', height: '10rem' }}"
+
+function verticalAttrs(node: ElementNode, jsx = false): string {
+  if (!isVerticalRange(node)) return ''
+  return jsx
+    ? ` aria-orientation="vertical" style=${VERTICAL_STYLE_JSX}`
+    : ` aria-orientation="vertical" style="${VERTICAL_STYLE}"`
+}
+
 export const rangeElement: ElementDefinition = {
   type: 'range',
   category: 'fields',
   label: 'Slider',
-  description: 'Horizontal range slider',
+  description: 'Range slider (horizontal or vertical)',
   icon: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M4 11h10.2a3 3 0 0 1 5.6 0H20v2h-.2a3 3 0 0 1-5.6 0H4zm13 2a1 1 0 1 0-1-1 1 1 0 0 0 1 1z"/></svg>',
   hasValue: true,
   defaultProps: { label: 'Slider', min: 0, max: 100, step: 1 },
@@ -96,13 +110,22 @@ export const rangeElement: ElementDefinition = {
     { kind: 'number', prop: 'min', label: 'Min' },
     { kind: 'number', prop: 'max', label: 'Max' },
     { kind: 'number', prop: 'step', label: 'Step' },
+    {
+      kind: 'select',
+      prop: 'orientation',
+      label: 'Orientation',
+      options: [
+        { value: 'horizontal', label: 'Horizontal' },
+        { value: 'vertical', label: 'Vertical' },
+      ],
+    },
   ], ['hideLabel', 'align', 'className']),
   export: {
     vue: (node, ctx) =>
       fieldWrap(
         [
           labelFor(node, ctx),
-          `<input id="${ctx.id}" v-model.number="form.${ctx.path}" type="range" class="${ctx.css.classes('range')}"${rangeAttrs(node)} @change="touch('${ctx.path}')">`,
+          `<input id="${ctx.id}" v-model.number="form.${ctx.path}" type="range" class="${ctx.css.classes('range')}"${rangeAttrs(node)}${verticalAttrs(node)} @change="touch('${ctx.path}')">`,
           `<p class="${ctx.css.classes('description')}">{{ form.${ctx.path} }}</p>`,
           descriptionFor(node, ctx),
           vueError(ctx),
@@ -113,7 +136,7 @@ export const rangeElement: ElementDefinition = {
       fieldWrap(
         [
           labelFor(node, ctx),
-          `<input id="${ctx.id}" type="range" class="${ctx.css.classes('range')}"${htmlDataAttrs(ctx, 'number')}${rangeAttrs(node)} value="${Number(node.props['default'] ?? node.props['min'] ?? 0)}">`,
+          `<input id="${ctx.id}" type="range" class="${ctx.css.classes('range')}"${htmlDataAttrs(ctx, 'number')}${rangeAttrs(node)}${verticalAttrs(node)} value="${Number(node.props['default'] ?? node.props['min'] ?? 0)}">`,
           descriptionFor(node, ctx),
           htmlError(ctx),
         ],
@@ -123,7 +146,7 @@ export const rangeElement: ElementDefinition = {
       reactFieldWrap(
         [
           reactLabelFor(node, ctx),
-          `<input id="${ctx.id}" type="range" value={form.${ctx.path}} className="${ctx.css.classes('range')}"${rangeAttrs(node)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('${ctx.path}', Number(e.target.value)); touch('${ctx.path}') }} />`,
+          `<input id="${ctx.id}" type="range" value={form.${ctx.path}} className="${ctx.css.classes('range')}"${rangeAttrs(node)}${verticalAttrs(node, true)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('${ctx.path}', Number(e.target.value)); touch('${ctx.path}') }} />`,
           `<p className="${ctx.css.classes('description')}">{form.${ctx.path}}</p>`,
           reactDescription(node, ctx),
           reactError(ctx),
@@ -135,7 +158,7 @@ export const rangeElement: ElementDefinition = {
         [
           labelFor(node, ctx),
           // Plain input: Blazor's InputNumber hardcodes type="number".
-          `<input id="${ctx.id}" type="range" @bind="Model.${pascalMember(ctx.key)}" @bind:event="oninput" class="${ctx.css.classes('range')}"${rangeAttrs(node)} />`,
+          `<input id="${ctx.id}" type="range" @bind="Model.${pascalMember(ctx.key)}" @bind:event="oninput" class="${ctx.css.classes('range')}"${rangeAttrs(node)}${verticalAttrs(node)} />`,
           descriptionFor(node, ctx),
           `<ValidationMessage For="@(() => Model.${pascalMember(ctx.key)})" class="${ctx.css.classes('error')}" />`,
         ],

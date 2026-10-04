@@ -241,3 +241,58 @@ export function resolveSubmitButton(
     buttonStyle: fullWidth ? 'width: 100%' : '',
   }
 }
+
+/** True when the form contains a reset button (targets then emit fgReset). */
+export function hasResetButton(schema: FormSchema): boolean {
+  let found = false
+  const walk = (nodes: ElementNode[]): void => {
+    for (const node of nodes) {
+      if (node.type === 'button' && node.props['action'] !== 'link') found = true
+      walk(node.children ?? [])
+    }
+  }
+  walk(schema.tree)
+  return found
+}
+
+/** TS type for one field's value, by element type. */
+const FIELD_TS_TYPES: Record<string, string> = {
+  number: 'number | null',
+  select: 'string | null',
+  radiogroup: 'string | null',
+  checkbox: 'boolean',
+  toggle: 'boolean',
+  checkboxgroup: 'string[]',
+  multiselect: 'string[]',
+  tags: 'string[]',
+  range: 'number',
+}
+
+/** TS type literal for the form data shape, derived from the SCHEMA (Vue, React). */
+export function formDataType(schema: FormSchema): string {
+  interface TypeTree {
+    [key: string]: string | TypeTree
+  }
+  const root: TypeTree = {}
+  for (const field of collectExportFields(schema)) {
+    const segments = field.path.split('.')
+    let target = root
+    for (const segment of segments.slice(0, -1)) {
+      target = (target[segment] ??= {}) as TypeTree
+    }
+    target[segments[segments.length - 1] as string] =
+      FIELD_TS_TYPES[field.node.type] ?? 'string'
+  }
+  const render = (tree: TypeTree, indent: number): string => {
+    const pad = '  '.repeat(indent)
+    const padIn = '  '.repeat(indent + 1)
+    const body = Object.entries(tree)
+      .map(
+        ([k, v]) =>
+          `${padIn}${/^[A-Za-z_$][\w$]*$/.test(k) ? k : JSON.stringify(k)}: ${typeof v === 'string' ? v : render(v, indent + 1)}`,
+      )
+      .join('\n')
+    return `{\n${body}\n${pad}}`
+  }
+  return render(root, 0)
+}

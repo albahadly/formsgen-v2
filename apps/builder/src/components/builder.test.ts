@@ -233,6 +233,32 @@ describe('palette → canvas → properties workflow', () => {
     expect(canvas().attributes('style') ?? '').not.toContain('--fg-')
   })
 
+  it('new palette elements land on the canvas; canvas links never navigate', async () => {
+    const { wrapper, store } = mountApp()
+    for (const type of ['toggle', 'datetime', 'color', 'search', 'month', 'week', 'hidden']) {
+      await wrapper.get(`[data-testid="palette-item-${type}"]`).trigger('click')
+    }
+    const canvas = wrapper.get('[data-testid="panel-canvas"]')
+    expect(canvas.find('[role="switch"]').exists()).toBe(true)
+    expect(canvas.find('input[type="datetime-local"]').exists()).toBe(true)
+    expect(canvas.find('input[type="color"]').exists()).toBe(true)
+    expect(canvas.text()).toContain('hidden = ""')
+    await wrapper.findAll('[data-testid="panel-palette"] [role="tab"]')[1]!.trigger('click')
+    for (const type of ['quote', 'link', 'image', 'button']) {
+      await wrapper.get(`[data-testid="palette-item-${type}"]`).trigger('click')
+    }
+    const link = store.schema.tree.find((n) => n.type === 'link')!
+    store.updateProps(link.id, { href: 'https://example.com' })
+    await flushPromises()
+    const anchor = wrapper.get('[data-testid="panel-canvas"] a.fg-link')
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true })
+    anchor.element.dispatchEvent(click)
+    expect(click.defaultPrevented).toBe(true)
+    expect(store.selectedId).toBe(link.id)
+    expect(wrapper.find('[data-testid="panel-canvas"] .fg-quote').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="panel-canvas"] button.fg-button').text()).toBe('Reset')
+  })
+
   it('keyboard: Alt+Arrows move the selected element (DnD alternative)', async () => {
     const { wrapper, store } = mountApp()
     await wrapper.get('[data-testid="palette-item-text"]').trigger('click')

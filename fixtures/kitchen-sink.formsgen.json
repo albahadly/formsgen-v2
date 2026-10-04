@@ -170,6 +170,72 @@
       "validation": [{ "rule": "max", "value": 5, "message": "At most 5 topics" }]
     },
     {
+      "id": "ks-billing",
+      "type": "radiogroup",
+      "name": "billing",
+      "props": {
+        "label": "Billing",
+        "display": "buttons",
+        "items": [
+          { "value": "monthly", "label": "Monthly" },
+          { "value": "yearly", "label": "Yearly" }
+        ]
+      }
+    },
+    {
+      "id": "ks-extras",
+      "type": "checkboxgroup",
+      "name": "extras",
+      "props": {
+        "label": "Extras",
+        "display": "blocks",
+        "items": [
+          { "value": "support", "label": "Priority support" },
+          { "value": "backup", "label": "Daily backups" }
+        ]
+      }
+    },
+    {
+      "id": "ks-notify",
+      "type": "toggle",
+      "name": "notify",
+      "props": { "label": "Email notifications", "default": true }
+    },
+    {
+      "id": "ks-appointment",
+      "type": "datetime",
+      "name": "appointment",
+      "props": { "label": "Appointment" }
+    },
+    {
+      "id": "ks-brand-color",
+      "type": "color",
+      "name": "brand_color",
+      "props": { "label": "Brand color" }
+    },
+    {
+      "id": "ks-volume",
+      "type": "range",
+      "name": "volume",
+      "props": { "label": "Volume", "min": 0, "max": 10, "step": 1, "orientation": "vertical" }
+    },
+    {
+      "id": "ks-source",
+      "type": "hidden",
+      "name": "source",
+      "props": { "value": "kitchen-sink" }
+    },
+    {
+      "id": "ks-quote",
+      "type": "quote",
+      "props": { "text": "Forms are conversations.", "cite": "FormsGen" }
+    },
+    {
+      "id": "ks-docs-link",
+      "type": "link",
+      "props": { "text": "Read the docs", "href": "https://example.com/docs", "newTab": true }
+    },
+    {
       "id": "ks-contact-method",
       "type": "select",
       "name": "contact_method",
@@ -280,6 +346,11 @@
       "name": "terms",
       "props": { "label": "I accept the terms" },
       "validation": [{ "rule": "required" }]
+    },
+    {
+      "id": "ks-reset",
+      "type": "button",
+      "props": { "text": "Start over", "action": "reset", "variant": "secondary" }
     }
   ]
 }

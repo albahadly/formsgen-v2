@@ -10,19 +10,33 @@ export type ValueAccessor = (path: string) => string
 
 const js = JSON.stringify
 
-/** Static helper functions embedded once into every generated artifact. */
-export const RUNTIME_HELPERS = `function fgIsEmpty(v) {
+function runtimeHelpers(ts: boolean): string {
+  const v = ts ? 'v: unknown' : 'v'
+  const ret = (type: string): string => (ts ? `: ${type}` : '')
+  return `function fgIsEmpty(${v})${ret('boolean')} {
   if (v === null || v === undefined) return true
   if (typeof v === 'string') return v.trim() === ''
   if (Array.isArray(v)) return v.length === 0
   return false
 }
-function fgSize(v) {
+// Empty, or an unchecked checkbox/toggle (takes any type, so typed targets
+// never compare a string field with false).
+function fgIsBlank(${v})${ret('boolean')} {
+  return fgIsEmpty(v) || v === false
+}
+function fgSize(${v})${ret('number | null')} {
   if (typeof v === 'number') return Number.isFinite(v) ? v : null
   if (typeof v === 'string') return v.length
   if (Array.isArray(v)) return v.length
   return null
 }`
+}
+
+/** Static helper functions embedded once into every generated artifact (JS). */
+export const RUNTIME_HELPERS = runtimeHelpers(false)
+
+/** The same helpers with type annotations, for TypeScript targets (Vue, React). */
+export const RUNTIME_HELPERS_TS = runtimeHelpers(true)
 
 /** Rule message: custom, else the localized default baked in by
  * collectExportFields, else the English default. */
@@ -34,7 +48,7 @@ function ruleMessage(rule: Rule): string {
 function ruleTest(rule: Rule, accessor: ValueAccessor): string {
   switch (rule.rule) {
     case 'required':
-      return 'fgIsEmpty(v) || v === false'
+      return 'fgIsBlank(v)'
     case 'min':
       return `(fgSize(v) ?? -Infinity) < ${Number(rule.value)}`
     case 'max':
@@ -84,9 +98,9 @@ function conditionExpr(condition: Condition, accessor: ValueAccessor): string {
     case 'contains':
       return `(typeof ${value} === 'string' ? ${value}.includes(${js(String(condition.value))}) : Array.isArray(${value}) ? ${value}.includes(${js(condition.value ?? null)}) : false)`
     case 'empty':
-      return `(fgIsEmpty(${value}) || ${value} === false)`
+      return `fgIsBlank(${value})`
     case 'not-empty':
-      return `!(fgIsEmpty(${value}) || ${value} === false)`
+      return `!fgIsBlank(${value})`
     case 'greater-than':
       return `(Number.isFinite(Number(${value})) && Number.isFinite(Number(${js(condition.value ?? null)})) && Number(${value}) > Number(${js(condition.value ?? null)}))`
     case 'less-than':

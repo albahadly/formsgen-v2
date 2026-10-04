@@ -16,7 +16,13 @@ import {
 } from '../csharp'
 import { collectExportFields } from '../logic'
 import { renderTree, stepButtonLabels, type RenderedSectionHost } from '../markup'
-import { collectSectionHosts, fieldDefault, pathKey, resolveSubmitButton } from '../structure'
+import {
+  collectSectionHosts,
+  fieldDefault,
+  hasResetButton,
+  pathKey,
+  resolveSubmitButton,
+} from '../structure'
 import { scopeForBlazor } from '../css/blazorScope'
 import { formRootClass, pinnedSchemeAttr } from '../css/themeBridge'
 import { componentName, type ExportTarget } from './types'
@@ -223,7 +229,9 @@ export const blazorTarget: ExportTarget = {
     private bool fgPressing;
     private readonly HashSet<string> fgDeferredFields = new();
 
-    protected override void OnInitialized()
+    protected override void OnInitialized() => FgInitEdit();
+
+    private void FgInitEdit()
     {
         fgEdit = new EditContext(Model);
         fgMessages = new ValidationMessageStore(fgEdit);
@@ -445,7 +453,22 @@ ${fields.map((f) => `        ${csStr(pascalMember(f.key))},`).join('\n')}
     }
 `
 
-    const helperBlocks = `${editContextBlock}${announceBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}`
+    // Reset buttons: a fresh model (initializers hold the defaults) and a
+    // fresh EditContext, so no stale messages or touched state remain.
+    const resetBlock = hasResetButton(schema)
+      ? `
+    private async Task FgReset()
+    {
+        Model = new();
+        FgInitEdit();
+        fgDeferredFields.Clear();
+        ResultJson = null;${tagsKeys.length ? '\n        foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";' : ''}
+        await FgAnnounce(${csStr(messages.formReset)});
+    }
+`
+      : ''
+
+    const helperBlocks = `${editContextBlock}${announceBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}${resetBlock}`
 
     const formBinding = 'EditContext="fgEdit" OnSubmit="FgSubmit"'
     const extraUsings = '@using System.Linq\n@using Microsoft.AspNetCore.Components.Forms\n'

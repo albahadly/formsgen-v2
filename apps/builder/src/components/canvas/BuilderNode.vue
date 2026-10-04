@@ -1,14 +1,9 @@
 <script setup lang="ts">
 import {
-  FgCheckbox,
-  FgCheckboxGroup,
-  FgNumber,
-  FgRadioGroup,
-  FgRange,
-  FgSelect,
+  FgButton,
   FgStatic,
-  FgText,
-  FgTextarea,
+  STATIC_TYPES,
+  fieldComponentFor,
   fill,
   joinPath,
   resolveMessages,
@@ -30,29 +25,14 @@ const store = useBuilderStore()
 // Fallback section names are form content: they follow the form's locale.
 const formMessages = computed(() => resolveMessages(store.schema.meta.locale))
 
-const fieldComponents = {
-  text: FgText,
-  email: FgText,
-  password: FgText,
-  url: FgText,
-  phone: FgText,
-  date: FgText,
-  time: FgText,
-  textarea: FgTextarea,
-  number: FgNumber,
-  select: FgSelect,
-  radiogroup: FgRadioGroup,
-  checkbox: FgCheckbox,
-  checkboxgroup: FgCheckboxGroup,
-  range: FgRange,
-} as const
+const isStatic = computed(() => STATIC_TYPES.has(props.node.type) && props.node.type !== 'button')
+const fieldComponent = computed(() => fieldComponentFor(props.node.type))
+const isHidden = computed(() => props.node.type === 'hidden')
 
-const staticTypes = new Set(['heading', 'paragraph', 'divider'])
-const isStatic = computed(() => staticTypes.has(props.node.type))
-
-const fieldComponent = computed(
-  () => fieldComponents[props.node.type as keyof typeof fieldComponents],
-)
+/** Links on the design canvas select their element; they never navigate. */
+function preventNavigation(event: MouseEvent): void {
+  if ((event.target as HTMLElement | null)?.closest('a')) event.preventDefault()
+}
 const definition = computed(() => getElement(props.node.type))
 const isContainer = computed(() => definition.value?.isContainer === true)
 const selected = computed(() => store.selectedId === props.node.id)
@@ -138,6 +118,7 @@ function onDuplicate(): void {
       node.style?.align ? `fg-align-${node.style.align}` : '',
     ]"
     :data-testid="`canvas-node-${node.id}`"
+    @click.capture="preventNavigation"
     @click.stop="onSelect"
   >
     <div
@@ -186,6 +167,20 @@ function onDuplicate(): void {
       v-else-if="isStatic"
       :node="node"
     />
+
+    <FgButton
+      v-else-if="node.type === 'button'"
+      :node="node"
+    />
+
+    <p
+      v-else-if="isHidden"
+      class="flex items-center gap-2 rounded border border-dashed border-gray-300 px-2 py-1 text-xs text-gray-500"
+      dir="ltr"
+    >
+      <span class="font-semibold">{{ t('canvas.hiddenField') }}</span>
+      <code>{{ node.name }} = "{{ node.props.value }}"</code>
+    </p>
 
     <div
       v-else-if="isSectionHost"

@@ -123,6 +123,23 @@ export function renderTree(schema: FormSchema, options: MarkupOptions): string {
     const def = getElement(node.type)
     if (!core || !def) return comment(`unsupported element type: ${esc(node.type)}`)
 
+    // A hidden input takes no grid cell (only the HTML target emits markup;
+    // the bound targets carry its value in their state).
+    if (node.type === 'hidden') {
+      const path = node.name ? joinPath(parentPath, node.name) : ''
+      const key = pathKey(path)
+      return (
+        def.export?.[options.lang]?.(node, {
+          css,
+          path,
+          key,
+          id: `fg_${key}`,
+          required: false,
+          messages,
+        }) ?? ''
+      )
+    }
+
     const span = node.layout?.colSpan ?? defaultSpan
     const cell = css.cell(span)
     const condExpr = node.conditions?.length

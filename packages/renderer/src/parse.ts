@@ -1,6 +1,7 @@
 // Structural validation for untrusted schema input (project open, JSON
 // import, export round-trips). Dependency-free by design — no zod.
 
+import { isSafeUrl } from './elements'
 import {
   CLASS_TOKEN_PATTERN,
   NAME_PATTERN,
@@ -37,6 +38,8 @@ const CONDITION_OPERATORS = new Set([
   'greater-than',
   'less-than',
 ])
+
+const URL_PROPS = ['href', 'src'] as const
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -156,6 +159,14 @@ function validateNodes(
     }
     if (!isRecord(raw['props'])) {
       errors.push(`${p}.props: expected an object`)
+    } else {
+      // Link/image targets end up in generated markup.
+      for (const key of URL_PROPS) {
+        const url = raw['props'][key]
+        if (url !== undefined && url !== '' && !isSafeUrl(url)) {
+          errors.push(`${p}.props.${key}: expected an http(s), mailto:, tel: or relative URL`)
+        }
+      }
     }
 
     const name = raw['name']

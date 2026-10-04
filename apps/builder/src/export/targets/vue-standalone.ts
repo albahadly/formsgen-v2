@@ -4,7 +4,7 @@
 
 import { resolveMessages } from '@formsgen/renderer'
 import { errorsTextFunction, stepAnnouncementsLiteral, submittedText } from '../announce'
-import { RUNTIME_HELPERS } from '../compile'
+import { RUNTIME_HELPERS_TS } from '../compile'
 import {
   collectExportFields,
   payloadExpr,
@@ -15,6 +15,8 @@ import { renderTree, stepButtonLabels, type RenderedSectionHost } from '../marku
 import {
   collectSectionHosts,
   defaultsObject,
+  formDataType,
+  hasResetButton,
   resolveSubmitButton,
   toJsLiteral,
 } from '../structure'
@@ -160,6 +162,17 @@ function fgRemoveTag(path: string, index: number): void {
 }`
         : ''
 
+    // Reset buttons: back to the defaults, no errors, announced.
+    const resetLogic = hasResetButton(schema)
+      ? `function fgReset(): void {
+  Object.assign(form, ${indentBlock(toJsLiteral(defaultsObject(schema)), 1).trimStart()})
+  for (const key of Object.keys(errors)) delete errors[key]
+  touched.clear()
+  result.value = null${tagsFields.length > 0 ? `\n  for (const key of Object.keys(tagDrafts)) tagDrafts[key] = ''` : ''}
+  fgAnnounce(${JSON.stringify(messages.formReset)})
+}`
+      : ''
+
     const submitUrl = schema.meta.submit?.url
     const submitBlock = submitUrl
       ? `    try {
@@ -179,7 +192,9 @@ import { nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 
 const emit = defineEmits<{ submit: [data: Record<string, unknown>] }>()
 
-const form = reactive(${toJsLiteral(defaultsObject(schema))})
+type FormData = ${formDataType(schema)}
+
+const form = reactive<FormData>(${toJsLiteral(defaultsObject(schema))})
 
 const errors = reactive<Record<string, string>>({})
 const touched = new Set<string>()
@@ -195,7 +210,7 @@ function fgAnnounce(message: string): void {
 }
 ${errorsTextFunction(messages, true)}
 
-${RUNTIME_HELPERS}
+${RUNTIME_HELPERS_TS}
 
 ${visibilityFunctions(fields, accessor)}
 
@@ -258,7 +273,7 @@ function validateAll(): boolean {
   }
   return ok
 }
-${sectionState ? `\n${sectionState}\n` : ''}${sectionPaths ? `\n${sectionPaths}\n` : ''}${stepLogic ? `\n${stepLogic}\n` : ''}${jumpLogic ? `\n${jumpLogic}\n` : ''}${tagsLogic ? `\n${tagsLogic}\n` : ''}
+${sectionState ? `\n${sectionState}\n` : ''}${sectionPaths ? `\n${sectionPaths}\n` : ''}${stepLogic ? `\n${stepLogic}\n` : ''}${jumpLogic ? `\n${jumpLogic}\n` : ''}${tagsLogic ? `\n${tagsLogic}\n` : ''}${resetLogic ? `\n${resetLogic}\n` : ''}
 function buildPayload(): Record<string, unknown> {
   return ${indentBlock(payloadExpr(schema, accessor), 1).trimStart()}
 }

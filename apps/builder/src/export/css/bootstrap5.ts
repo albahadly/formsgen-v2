@@ -40,6 +40,21 @@ const CLASSES: Record<Slot, string> = {
   tagRemove: 'border-0 bg-transparent p-0 ms-1 text-white',
   tagsInput: 'border-0 p-0 flex-grow-1 shadow-none bg-transparent',
   srOnly: 'visually-hidden',
+  switchWrap: 'form-check form-switch',
+  switch: 'form-check-input',
+  optionsBlocks: 'd-grid gap-2',
+  optionBlock: 'btn btn-outline-primary text-start',
+  optionBlockInput: 'btn-check',
+  optionsButtons: 'btn-group flex-wrap',
+  optionButton: 'btn btn-outline-primary',
+  optionButtonInput: 'btn-check',
+  image: 'img-fluid rounded',
+  link: 'link-primary',
+  quote: 'mb-0',
+  quoteText: 'blockquote',
+  quoteCite: 'blockquote-footer mb-0',
+  buttonDanger: 'btn btn-danger',
+  colorInput: 'form-control form-control-color',
 }
 
 // Bootstrap's own size modifiers are designed to be appended.
@@ -73,12 +88,16 @@ export const bootstrap5Adapter: CssFrameworkAdapter = {
   classes: bootstrapClasses,
   alignClass: (align) => `text-${align}`,
   cell: (span) => ({ class: `col-12 col-md-${span}` }),
+  choiceLayout: 'sibling',
   invalidClass: () => 'is-invalid',
   stylesheet: (theme) => bootstrapThemeCss(theme),
-  assets: () => ({
-    links: ['https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css'],
+  // Bootstrap mirrors its components only in its RTL build.
+  assets: (dir) => ({
+    links: [
+      `https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap${dir === 'rtl' ? '.rtl' : ''}.min.css`,
+    ],
     scripts: [],
   }),
   readmeNote: () =>
-    'Markup uses Bootstrap 5 classes — the host project must include Bootstrap 5 CSS (npm package or CDN link).',
+    'Markup uses Bootstrap 5 classes — the host project must include Bootstrap 5 CSS (npm package or CDN link; for right-to-left forms, its RTL build `bootstrap.rtl.min.css`).',
 }

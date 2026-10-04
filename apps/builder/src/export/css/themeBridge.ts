@@ -74,6 +74,17 @@ export function bootstrapThemeCss(theme: ThemeTokens | undefined): string | unde
       `border-color: ${hover};`,
     ])
     css += rule(`.${THEMED_CLASS} .btn:focus-visible`, [`box-shadow: 0 0 0 0.25rem ${alpha(primary, 0.5)};`])
+    // Choice blocks/buttons (.btn-check + .btn-outline-primary)
+    css += rule(`.${THEMED_CLASS} .btn-outline-primary`, [
+      `--bs-btn-color: ${primary};`,
+      `--bs-btn-border-color: ${primary};`,
+      `--bs-btn-hover-color: ${contrast};`,
+      `--bs-btn-hover-bg: ${primary};`,
+      `--bs-btn-hover-border-color: ${primary};`,
+      `--bs-btn-active-color: ${contrast};`,
+      `--bs-btn-active-bg: ${primary};`,
+      `--bs-btn-active-border-color: ${primary};`,
+    ])
     css += rule(
       `.${THEMED_CLASS} .form-control:focus, .${THEMED_CLASS} .form-select:focus, .${THEMED_CLASS} .form-check-input:focus`,
       [`border-color: ${primary};`, `box-shadow: 0 0 0 0.25rem ${alpha(primary, 0.25)};`],
@@ -130,6 +141,22 @@ export function bootstrapThemeCss(theme: ThemeTokens | undefined): string | unde
       `--bs-form-invalid-border-color: ${error};`,
     )
     if (rgb) root.push(`--bs-danger-rgb: ${rgb.join(', ')};`)
+    const onError = t['color-error-contrast']!
+    const errorHover = shadeColor(error, 0.12)
+    css += rule(`.${THEMED_CLASS} .btn-danger`, [
+      `--bs-btn-color: ${onError};`,
+      `--bs-btn-bg: ${error};`,
+      `--bs-btn-border-color: ${error};`,
+      `--bs-btn-hover-color: ${onError};`,
+      `--bs-btn-hover-bg: ${errorHover};`,
+      `--bs-btn-hover-border-color: ${errorHover};`,
+      `--bs-btn-active-color: ${onError};`,
+      `--bs-btn-active-bg: ${errorHover};`,
+      `--bs-btn-active-border-color: ${errorHover};`,
+      `color: ${onError};`,
+      `background-color: ${error};`,
+      `border-color: ${error};`,
+    ])
   }
   if (t['radius']) {
     root.push(
@@ -158,13 +185,27 @@ const VARIANT_PSEUDO: Record<string, string> = {
   hover: ':hover',
   focus: ':focus',
   'focus-within': ':focus-within',
+  'focus-visible': ':focus-visible',
+  checked: ':checked',
+  'has-[:checked]': ':has(:checked)',
+  'has-[:focus-visible]': ':has(:focus-visible)',
+}
+
+/** The variant prefix of a class (`has-[:checked]:bg-x` → `has-[:checked]`). */
+function variantOf(className: string): string {
+  let depth = 0
+  for (let i = className.length - 1; i >= 0; i--) {
+    const c = className[i]
+    if (c === ']') depth++
+    else if (c === '[') depth--
+    else if (c === ':' && depth === 0) return className.slice(0, i)
+  }
+  return ''
 }
 
 /** `.fg-themed .hover\:bg-x:hover` — dark: variants are themed in every scheme. */
 function twSelector(className: string): string {
-  const parts = className.split(':')
-  const variant = parts.length > 1 ? parts[0]! : ''
-  return `.${THEMED_CLASS} .${cls(className)}${VARIANT_PSEUDO[variant] ?? ''}`
+  return `.${THEMED_CLASS} .${cls(className)}${VARIANT_PSEUDO[variantOf(className)] ?? ''}`
 }
 
 /**
@@ -179,17 +220,26 @@ export const TAILWIND_THEMED: Record<string, Record<string, string[]>> = {
   },
   'color-primary': {
     color: ['text-indigo-600', 'dark:text-indigo-400'],
-    'background-color': ['bg-indigo-600'],
-    'border-color': ['border-indigo-500', 'border-indigo-600', 'focus:border-indigo-500'],
+    'background-color': ['bg-indigo-600', 'checked:bg-indigo-600', 'has-[:checked]:bg-indigo-600'],
+    'border-color': [
+      'border-indigo-500',
+      'border-indigo-600',
+      'focus:border-indigo-500',
+      'has-[:checked]:border-indigo-600',
+    ],
     'accent-color': ['accent-indigo-600'],
   },
+  'color-primary-contrast': { color: ['has-[:checked]:text-white'] },
   'color-bg': { 'background-color': ['bg-white', 'dark:bg-gray-800'] },
   'color-border': {
     'border-color': ['border-gray-200', 'border-gray-300', 'dark:border-gray-600', 'dark:border-gray-700'],
+    // the switch track while off
+    'background-color': ['bg-gray-300', 'dark:bg-gray-600'],
   },
   'color-error': {
     color: ['text-red-600', 'dark:text-red-400', 'hover:text-red-600'],
     'border-color': ['border-red-500'],
+    'background-color': ['bg-red-600'],
   },
   radius: { 'border-radius': ['rounded-md', 'rounded-lg'] },
   space: { gap: ['gap-4'] },
@@ -208,14 +258,26 @@ export const TAILWIND_DARK_RESETS: Record<string, [property: string, value: stri
   'dark:bg-gray-800': ['background-color', '#ffffff'],
   'dark:bg-gray-800/50': ['background-color', '#f9fafb'],
   'dark:bg-gray-700': ['background-color', '#f3f4f6'],
+  'dark:bg-gray-600': ['background-color', '#d1d5db'],
   'dark:border-gray-600': ['border-color', '#d1d5db'],
   'dark:border-gray-700': ['border-color', '#e5e7eb'],
 }
 
 /** Ring utilities take an rgba color through --tw-ring-color. */
 export const TAILWIND_RINGS: Record<string, string[]> = {
-  'color-primary': ['focus:ring-indigo-200', 'focus:ring-indigo-300', 'focus-within:ring-indigo-200'],
-  'color-error': ['focus:ring-red-200'],
+  'color-primary': [
+    'focus:ring-indigo-200',
+    'focus:ring-indigo-300',
+    'focus-within:ring-indigo-200',
+    'focus-visible:ring-indigo-300',
+    'has-[:focus-visible]:ring-indigo-300',
+  ],
+  'color-error': ['focus:ring-red-200', 'focus:ring-red-300'],
+}
+
+/** Rings that mark a selection: drawn in the full token color. */
+export const TAILWIND_SOLID_RINGS: Record<string, string[]> = {
+  'color-primary': ['has-[:checked]:ring-indigo-600'],
 }
 
 export function tailwindThemeCss(theme: ThemeTokens | undefined): string | undefined {
@@ -244,6 +306,15 @@ export function tailwindThemeCss(theme: ThemeTokens | undefined): string | undef
   for (const [token, classes] of Object.entries(TAILWIND_RINGS)) {
     const value = t[token]
     if (value) css += rule(classes.map(twSelector).join(',\n'), [`--tw-ring-color: ${alpha(value, 0.35)};`])
+  }
+  for (const [token, classes] of Object.entries(TAILWIND_SOLID_RINGS)) {
+    const value = t[token]
+    if (value) css += rule(classes.map(twSelector).join(',\n'), [`--tw-ring-color: ${value};`])
+  }
+  const error = t['color-error']
+  if (error) {
+    css += rule(`.${THEMED_CLASS} .${cls('hover:bg-red-500')}:hover`, [`background-color: ${shadeColor(error, 0.12)};`])
+    css += rule(`.${THEMED_CLASS} .bg-red-600.text-white`, [`color: ${t['color-error-contrast']};`])
   }
   const primary = t['color-primary']
   if (primary) {

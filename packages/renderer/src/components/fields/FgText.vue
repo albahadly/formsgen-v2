@@ -49,7 +49,7 @@ const text = computed({
       :id="fieldId"
       v-model="text"
       class="fg-input"
-      :class="sizeClass"
+      :class="[sizeClass, { 'fg-input--color': inputType === 'color' }]"
       :type="inputType"
       :name="node.name"
       :placeholder="placeholder"

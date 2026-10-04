@@ -1,8 +1,10 @@
 import { getCoreElement } from '@formsgen/renderer'
-import { checkboxElement } from './elements/checkbox'
+import { buttonElement } from './elements/button'
+import { checkboxElement, toggleElement } from './elements/checkbox'
 import { checkboxGroupElement, radioGroupElement } from './elements/choiceGroups'
 import { columnsElement } from './elements/columns'
 import { groupElement } from './elements/group'
+import { hiddenElement } from './elements/hidden'
 import { numberElement, rangeElement } from './elements/number'
 import { multiSelectElement, selectElement } from './elements/select'
 import { tagsElement } from './elements/tags'
@@ -15,17 +17,25 @@ import {
 import {
   dividerElement,
   headingElement,
+  imageElement,
+  linkElement,
   paragraphElement,
+  quoteElement,
 } from './elements/staticElements'
 import { textElement } from './elements/text'
 import { textareaElement } from './elements/textarea'
 import {
+  colorElement,
   dateElement,
+  datetimeElement,
   emailElement,
+  monthElement,
   passwordElement,
   phoneElement,
+  searchElement,
   timeElement,
   urlElement,
+  weekElement,
 } from './elements/textVariants'
 import type { ElementCategory, ElementDefinition } from './types'
 
@@ -63,18 +73,29 @@ for (const def of [
   phoneElement,
   passwordElement,
   urlElement,
+  searchElement,
   dateElement,
   timeElement,
+  datetimeElement,
+  monthElement,
+  weekElement,
+  colorElement,
   selectElement,
   multiSelectElement,
   tagsElement,
   radioGroupElement,
   checkboxElement,
+  toggleElement,
   checkboxGroupElement,
   rangeElement,
+  hiddenElement,
   // static
   headingElement,
   paragraphElement,
+  quoteElement,
+  imageElement,
+  linkElement,
+  buttonElement,
   dividerElement,
   // structure
   groupElement,

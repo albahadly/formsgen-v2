@@ -15,6 +15,7 @@ export const THEME_DEFAULTS: Readonly<Record<string, string>> = {
   'color-primary': '#4f46e5',
   'color-primary-contrast': '#ffffff',
   'color-error': '#dc2626',
+  'color-error-contrast': '#ffffff',
   radius: '6px',
   space: '1rem',
   font: 'system-ui, sans-serif',
@@ -205,6 +206,10 @@ export function resolveTheme(theme: ThemeTokens | undefined): ThemeTokens {
   const primary = resolved['color-primary']
   if (primary && !resolved['color-primary-contrast']) {
     resolved['color-primary-contrast'] = readableTextOn(primary)
+  }
+  const error = resolved['color-error']
+  if (error && !resolved['color-error-contrast']) {
+    resolved['color-error-contrast'] = readableTextOn(error)
   }
   return resolved
 }

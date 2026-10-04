@@ -5,8 +5,17 @@
 import type { ElementNode } from '@formsgen/renderer'
 import type { EmitCtx } from '../types'
 
+/**
+ * Escapes text for markup in every target. `@` becomes an entity too: in a
+ * Razor file it would start C# code ("Follow @formsgen" would not compile).
+ */
 export const esc = (s: string): string =>
-  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+  s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/@/g, '&#64;')
 
 export function labelFor(node: ElementNode, ctx: EmitCtx): string {
   const text = esc(String(node.props['label'] ?? ''))
@@ -81,7 +90,10 @@ export function reactError(ctx: EmitCtx): string {
 }
 
 /** className expression switching to the invalid classes while errored. */
-export function reactControlClass(ctx: EmitCtx, slot: 'input' | 'textarea' | 'select'): string {
+export function reactControlClass(
+  ctx: EmitCtx,
+  slot: 'input' | 'textarea' | 'select' | 'colorInput',
+): string {
   const base = ctx.css.classes(slot)
   return `className={errors['${ctx.path}'] ? "${base} ${ctx.css.invalidClass()}" : "${base}"}`
 }

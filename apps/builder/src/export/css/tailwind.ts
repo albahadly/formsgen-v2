@@ -48,6 +48,26 @@ const CLASSES: Record<Slot, string> = {
   tagRemove: 'text-gray-500 hover:text-red-600',
   tagsInput: 'min-w-24 flex-1 border-none bg-transparent text-sm focus:outline-none',
   srOnly: 'sr-only',
+  switchWrap: 'flex items-center gap-2',
+  switch:
+    "relative h-5 w-9 shrink-0 cursor-pointer appearance-none rounded-full bg-gray-300 transition-colors before:absolute before:start-0.5 before:top-0.5 before:h-4 before:w-4 before:rounded-full before:bg-white before:shadow before:transition-all before:content-[''] checked:bg-indigo-600 checked:before:start-[1.125rem] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 dark:bg-gray-600",
+  optionsBlocks: 'flex flex-col gap-2',
+  optionBlock:
+    'flex cursor-pointer items-center gap-3 rounded-md border border-gray-300 px-3 py-2 text-sm has-[:checked]:border-indigo-600 has-[:checked]:ring-1 has-[:checked]:ring-indigo-600 dark:border-gray-600',
+  optionBlockInput: 'h-4 w-4 accent-indigo-600',
+  optionsButtons: 'flex flex-wrap',
+  optionButton:
+    'relative -ms-px cursor-pointer border border-gray-300 px-4 py-2 text-sm font-semibold first:ms-0 first:rounded-s-md last:rounded-e-md has-[:checked]:z-10 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-600 has-[:checked]:text-white has-[:focus-visible]:z-20 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-300 dark:border-gray-600',
+  optionButtonInput: 'sr-only',
+  image: 'block h-auto max-w-full rounded-md',
+  link: 'font-medium text-indigo-600 underline underline-offset-2 dark:text-indigo-400',
+  quote: 'border-s-4 border-gray-300 ps-4 dark:border-gray-600',
+  quoteText: 'text-base italic',
+  quoteCite: 'mt-1.5 text-sm text-gray-500 dark:text-gray-400',
+  buttonDanger:
+    'rounded-md bg-red-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-300',
+  colorInput:
+    'h-10 w-16 cursor-pointer rounded-md border border-gray-300 bg-white p-1 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800',
 }
 
 // Size and color are swapped in place: two padding or color utilities on
@@ -95,6 +115,7 @@ export const tailwindAdapter: CssFrameworkAdapter = {
   classes: tailwindClasses,
   alignClass: (align) => `text-${align}`,
   cell: (span) => ({ class: `col-span-12 md:col-span-${span}` }),
+  choiceLayout: 'wrap',
   invalidClass: () => 'border-red-500 focus:ring-red-200',
   stylesheet: (theme) => tailwindThemeCss(theme),
   assets: () => ({

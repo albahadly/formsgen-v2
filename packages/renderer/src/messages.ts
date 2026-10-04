@@ -46,6 +46,10 @@ export interface MessageCatalog {
   /** {n} */
   errors: PluralForms
   submitted: string
+  /** Announced after a reset button restores the initial values. */
+  formReset: string
+  /** Visually hidden suffix on links that open a new tab. */
+  opensInNewTab: string
   /** {index} {total} {label} — index is 1-based */
   stepProgress: string
 }
@@ -73,6 +77,8 @@ const en: MessageCatalog = {
     other: '{n} errors. Please fix the highlighted fields.',
   },
   submitted: 'Form submitted.',
+  formReset: 'The form was reset.',
+  opensInNewTab: '(opens in a new tab)',
   stepProgress: 'Step {index} of {total}: {label}',
 }
 
@@ -102,6 +108,8 @@ const ar: MessageCatalog = {
     other: '{n} خطأ. يرجى تصحيح الحقول المحددة.',
   },
   submitted: 'تم إرسال النموذج.',
+  formReset: 'تمت إعادة تعيين النموذج.',
+  opensInNewTab: '(يُفتح في علامة تبويب جديدة)',
   stepProgress: 'الخطوة {index} من {total}: {label}',
 }
 

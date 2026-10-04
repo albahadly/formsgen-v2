@@ -6,21 +6,30 @@ import { getElement, listElements } from './index'
 describe('element registry', () => {
   it('registers the full catalog', () => {
     expect(listElements().map((d) => d.type).sort()).toEqual([
+      'button',
       'checkbox',
       'checkboxgroup',
+      'color',
       'columns',
       'date',
+      'datetime',
       'divider',
       'email',
       'group',
       'heading',
+      'hidden',
+      'image',
+      'link',
+      'month',
       'multiselect',
       'number',
       'paragraph',
       'password',
       'phone',
+      'quote',
       'radiogroup',
       'range',
+      'search',
       'select',
       'step',
       'steps',
@@ -30,7 +39,9 @@ describe('element registry', () => {
       'text',
       'textarea',
       'time',
+      'toggle',
       'url',
+      'week',
     ])
   })
 
@@ -44,11 +55,15 @@ describe('element registry', () => {
       'tabs',
     ])
     expect(listElements('static').map((d) => d.type).sort()).toEqual([
+      'button',
       'divider',
       'heading',
+      'image',
+      'link',
       'paragraph',
+      'quote',
     ])
-    expect(listElements('fields')).toHaveLength(16)
+    expect(listElements('fields')).toHaveLength(23)
   })
 
   it('every definition matches its core semantics in the renderer', () => {
@@ -68,7 +83,10 @@ describe('element registry', () => {
       if (def.hasValue) {
         const controls = def.propertyPanel.flatMap((s) => s.controls)
         expect(controls.some((c) => c.kind === 'name'), `${def.type} name control`).toBe(true)
-        expect(controls.some((c) => c.kind === 'validation'), `${def.type} validation`).toBe(true)
+        // A hidden input carries a fixed value: nothing to validate.
+        if (def.type !== 'hidden') {
+          expect(controls.some((c) => c.kind === 'validation'), `${def.type} validation`).toBe(true)
+        }
       }
     }
   })
