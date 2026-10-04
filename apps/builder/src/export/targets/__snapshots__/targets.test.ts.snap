@@ -235,6 +235,10 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
               {
                   <button type="button" class="btn btn-primary" @onclick="() => fgSec_ks_wizard++">Next</button>
               }
+              @if (fgSec_ks_wizard == 1)
+              {
+                  <button class="btn btn-primary" type="submit">Submit</button>
+              }
             </div>
           </div>
         </div>
@@ -256,12 +260,6 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
             <ValidationMessage For="@(() => Model.Terms)" class="invalid-feedback d-block mt-0" />
           </div>
         </div>
-    </div>
-    <div class="mt-3">
-        @if (fgSec_ks_wizard == 1)
-        {
-            <button class="btn btn-primary" type="submit">Submit</button>
-        }
     </div>
     @if (ResultJson is not null)
     {
@@ -624,6 +622,10 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
               {
                   <button type="button" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" @onclick="() => fgSec_ks_wizard++">Next</button>
               }
+              @if (fgSec_ks_wizard == 1)
+              {
+                  <button class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" type="submit">Submit</button>
+              }
             </div>
           </div>
         </div>
@@ -645,12 +647,6 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
             <ValidationMessage For="@(() => Model.Terms)" class="text-xs text-red-600" />
           </div>
         </div>
-    </div>
-    <div class="mt-4">
-        @if (fgSec_ks_wizard == 1)
-        {
-            <button class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" type="submit">Submit</button>
-        }
     </div>
     @if (ResultJson is not null)
     {
@@ -1013,6 +1009,10 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
               {
                   <button type="button" class="fg-button fg-button--primary" @onclick="() => fgSec_ks_wizard++">Next</button>
               }
+              @if (fgSec_ks_wizard == 1)
+              {
+                  <button class="fg-button fg-button--primary" type="submit">Submit</button>
+              }
             </div>
           </div>
         </div>
@@ -1034,12 +1034,6 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             <ValidationMessage For="@(() => Model.Terms)" class="fg-error" />
           </div>
         </div>
-    </div>
-    <div class="fg-actions">
-        @if (fgSec_ks_wizard == 1)
-        {
-            <button class="fg-button fg-button--primary" type="submit">Submit</button>
-        }
     </div>
     @if (ResultJson is not null)
     {
@@ -1417,6 +1411,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
           <div class="mt-3 d-flex justify-content-between gap-2">
             <button type="button" class="btn btn-outline-secondary" data-fg-step-back="ks_wizard" hidden>Back</button>
             <button type="button" class="btn btn-primary" data-fg-step-next="ks_wizard">Next</button>
+            <button type="submit" class="btn btn-primary" data-fg-submit hidden>Submit</button>
           </div>
         </div>
       </div>
@@ -1438,9 +1433,6 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
           <p id="fg_err_terms" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
         </div>
       </div>
-    </div>
-    <div class="mt-3">
-      <button class="btn btn-primary" data-fg-submit type="submit" hidden>Submit</button>
     </div>
     <pre id="fg-result" class="mt-3 p-3 bg-dark text-success rounded small overflow-auto" hidden></pre>
   </form>
@@ -2048,6 +2040,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
           <div class="mt-4 flex justify-between gap-2">
             <button type="button" class="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-step-back="ks_wizard" hidden>Back</button>
             <button type="button" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" data-fg-step-next="ks_wizard">Next</button>
+            <button type="submit" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" data-fg-submit hidden>Submit</button>
           </div>
         </div>
       </div>
@@ -2069,9 +2062,6 @@ exports[`html target > snapshot (tailwind) 1`] = `
           <p id="fg_err_terms" class="text-xs text-red-600" role="alert" hidden></p>
         </div>
       </div>
-    </div>
-    <div class="mt-4">
-      <button class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" data-fg-submit type="submit" hidden>Submit</button>
     </div>
     <pre id="fg-result" class="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300" hidden></pre>
   </form>
@@ -2749,6 +2739,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <div class="fg-step-actions">
             <button type="button" class="fg-button fg-button--secondary" data-fg-step-back="ks_wizard" hidden>Back</button>
             <button type="button" class="fg-button fg-button--primary" data-fg-step-next="ks_wizard">Next</button>
+            <button type="submit" class="fg-button fg-button--primary" data-fg-submit hidden>Submit</button>
           </div>
         </div>
       </div>
@@ -2770,9 +2761,6 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <p id="fg_err_terms" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-    </div>
-    <div class="fg-actions">
-      <button class="fg-button fg-button--primary" data-fg-submit type="submit" hidden>Submit</button>
     </div>
     <pre id="fg-result" class="fg-payload" hidden></pre>
   </form>
@@ -3659,6 +3647,7 @@ export default function KitchenSinkForm({
             <div className="mt-3 d-flex justify-content-between gap-2">
               {fgSec_ks_wizard > 0 && <button type="button" className="btn btn-outline-secondary" onClick={() => setFgSec_ks_wizard(fgSec_ks_wizard - 1)}>Back</button>}
               {fgSec_ks_wizard < 1 && <button type="button" className="btn btn-primary" onClick={fgNext_ks_wizard}>Next</button>}
+              {fgSec_ks_wizard === 1 && <button type="submit" className="btn btn-primary">Submit</button>}
             </div>
           </div>
         </div>
@@ -3680,9 +3669,6 @@ export default function KitchenSinkForm({
             {errors['terms'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['terms']}</p>}
           </div>
         </div>
-      </div>
-      <div className="mt-3">
-        {fgSec_ks_wizard === 1 && <button className="btn btn-primary" type="submit">Submit</button>}
       </div>
       {result && <pre className="mt-3 p-3 bg-dark text-success rounded small overflow-auto">{JSON.stringify(result, null, 2)}</pre>}
     </form>
@@ -4220,6 +4206,7 @@ export default function KitchenSinkForm({
             <div className="mt-4 flex justify-between gap-2">
               {fgSec_ks_wizard > 0 && <button type="button" className="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" onClick={() => setFgSec_ks_wizard(fgSec_ks_wizard - 1)}>Back</button>}
               {fgSec_ks_wizard < 1 && <button type="button" className="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" onClick={fgNext_ks_wizard}>Next</button>}
+              {fgSec_ks_wizard === 1 && <button type="submit" className="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300">Submit</button>}
             </div>
           </div>
         </div>
@@ -4241,9 +4228,6 @@ export default function KitchenSinkForm({
             {errors['terms'] && <p className="text-xs text-red-600" role="alert">{errors['terms']}</p>}
           </div>
         </div>
-      </div>
-      <div className="mt-4">
-        {fgSec_ks_wizard === 1 && <button className="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" type="submit">Submit</button>}
       </div>
       {result && <pre className="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300">{JSON.stringify(result, null, 2)}</pre>}
     </form>
@@ -4782,6 +4766,7 @@ export default function KitchenSinkForm({
             <div className="fg-step-actions">
               {fgSec_ks_wizard > 0 && <button type="button" className="fg-button fg-button--secondary" onClick={() => setFgSec_ks_wizard(fgSec_ks_wizard - 1)}>Back</button>}
               {fgSec_ks_wizard < 1 && <button type="button" className="fg-button fg-button--primary" onClick={fgNext_ks_wizard}>Next</button>}
+              {fgSec_ks_wizard === 1 && <button type="submit" className="fg-button fg-button--primary">Submit</button>}
             </div>
           </div>
         </div>
@@ -4803,9 +4788,6 @@ export default function KitchenSinkForm({
             {errors['terms'] && <p className="fg-error" role="alert">{errors['terms']}</p>}
           </div>
         </div>
-      </div>
-      <div className="fg-actions">
-        {fgSec_ks_wizard === 1 && <button className="fg-button fg-button--primary" type="submit">Submit</button>}
       </div>
       {result && <pre className="fg-payload">{JSON.stringify(result, null, 2)}</pre>}
     </form>
@@ -5300,6 +5282,7 @@ async function onSubmit(): Promise<void> {
           <div class="mt-3 d-flex justify-content-between gap-2">
             <button v-if="fgSec_ks_wizard > 0" type="button" class="btn btn-outline-secondary" @click="fgSec_ks_wizard--">Back</button>
             <button v-if="fgSec_ks_wizard < 1" type="button" class="btn btn-primary" @click="fgNext_ks_wizard()">Next</button>
+            <button v-if="fgSec_ks_wizard === 1" type="submit" class="btn btn-primary">Submit</button>
           </div>
         </div>
       </div>
@@ -5321,9 +5304,6 @@ async function onSubmit(): Promise<void> {
           <p v-if="errors['terms']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['terms'] }}</p>
         </div>
       </div>
-    </div>
-    <div class="mt-3">
-      <button v-if="fgSec_ks_wizard === 1" class="btn btn-primary" type="submit">Submit</button>
     </div>
     <pre v-if="result" class="mt-3 p-3 bg-dark text-success rounded small overflow-auto">{{ JSON.stringify(result, null, 2) }}</pre>
   </form>
@@ -5817,6 +5797,7 @@ async function onSubmit(): Promise<void> {
           <div class="mt-4 flex justify-between gap-2">
             <button v-if="fgSec_ks_wizard > 0" type="button" class="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" @click="fgSec_ks_wizard--">Back</button>
             <button v-if="fgSec_ks_wizard < 1" type="button" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" @click="fgNext_ks_wizard()">Next</button>
+            <button v-if="fgSec_ks_wizard === 1" type="submit" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300">Submit</button>
           </div>
         </div>
       </div>
@@ -5838,9 +5819,6 @@ async function onSubmit(): Promise<void> {
           <p v-if="errors['terms']" class="text-xs text-red-600" role="alert">{{ errors['terms'] }}</p>
         </div>
       </div>
-    </div>
-    <div class="mt-4">
-      <button v-if="fgSec_ks_wizard === 1" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" type="submit">Submit</button>
     </div>
     <pre v-if="result" class="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300">{{ JSON.stringify(result, null, 2) }}</pre>
   </form>
@@ -6334,6 +6312,7 @@ async function onSubmit(): Promise<void> {
           <div class="fg-step-actions">
             <button v-if="fgSec_ks_wizard > 0" type="button" class="fg-button fg-button--secondary" @click="fgSec_ks_wizard--">Back</button>
             <button v-if="fgSec_ks_wizard < 1" type="button" class="fg-button fg-button--primary" @click="fgNext_ks_wizard()">Next</button>
+            <button v-if="fgSec_ks_wizard === 1" type="submit" class="fg-button fg-button--primary">Submit</button>
           </div>
         </div>
       </div>
@@ -6355,9 +6334,6 @@ async function onSubmit(): Promise<void> {
           <p v-if="errors['terms']" class="fg-error" role="alert">{{ errors['terms'] }}</p>
         </div>
       </div>
-    </div>
-    <div class="fg-actions">
-      <button v-if="fgSec_ks_wizard === 1" class="fg-button fg-button--primary" type="submit">Submit</button>
     </div>
     <pre v-if="result" class="fg-payload">{{ JSON.stringify(result, null, 2) }}</pre>
   </form>

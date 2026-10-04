@@ -158,6 +158,17 @@ if (props.node.type === 'steps') {
   )
   onBeforeUnmount(() => formCtx.unregisterStepsHost?.(props.node.id))
 }
+
+// When this wizard owns the submit, it replaces Next on the last step.
+const embedsSubmit = computed(
+  () =>
+    props.node.type === 'steps' &&
+    formCtx.submitEmbedHostId?.() === props.node.id &&
+    activeIndex.value >= sections.value.length - 1,
+)
+const embeddedSubmit = computed(
+  () => formCtx.submitButtonSpec?.() ?? { text: 'Submit', secondary: false },
+)
 </script>
 
 <template>
@@ -298,6 +309,14 @@ if (props.node.type === 'steps') {
           @click="nextStep"
         >
           {{ nextText }}
+        </button>
+        <button
+          v-if="embedsSubmit"
+          type="submit"
+          class="fg-button"
+          :class="embeddedSubmit.secondary ? 'fg-button--secondary' : 'fg-button--primary'"
+        >
+          {{ embeddedSubmit.text }}
         </button>
       </div>
     </div>

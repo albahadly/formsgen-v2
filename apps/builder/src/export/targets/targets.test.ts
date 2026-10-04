@@ -189,17 +189,23 @@ describe('tabs/steps across code targets', () => {
     expect(code).toContain('@onclick="() => fgSec_ks_wizard++"')
   })
 
-  it('submit button is gated behind the wizard last step in every target', () => {
-    // kitchen-sink has the ks-wizard steps host -> gating is the default
+  it('submit replaces Next inside the single wizard in every target', () => {
+    // kitchen-sink has the ks-wizard steps host -> the submit button moves
+    // into its step actions row and the bottom actions row disappears
     const vue = generate('vue-standalone')[0]!.content
-    expect(vue).toContain('v-if="fgSec_ks_wizard === 1"')
+    expect(vue).toContain('<button v-if="fgSec_ks_wizard === 1" type="submit"')
+    expect(vue).not.toContain('<div class="fg-actions">')
     const react = generate('react')[0]!.content
-    expect(react).toContain('{fgSec_ks_wizard === 1 && <button')
+    expect(react).toContain('{fgSec_ks_wizard === 1 && <button type="submit"')
+    expect(react).not.toContain('className="fg-actions"')
     const html = generate('html')[0]!.content
-    expect(html).toContain('data-fg-submit type="submit" hidden')
+    expect(html).toContain('data-fg-submit hidden>Submit</button>')
     expect(html).toContain('var FG_SUBMIT_GATE = ["ks_wizard"]')
+    expect(html).not.toContain('<div class="fg-actions">')
     const blazor = generate('blazor')[0]!.content
-    expect(blazor).toContain('@if (fgSec_ks_wizard == 1)')
+    expect(blazor).toMatch(
+      /@if \(fgSec_ks_wizard == 1\)\s*\{\s*<button class="[^"]*" type="submit">Submit<\/button>/,
+    )
   })
 
   it('meta.submitButton configures text, style, placement and gating', () => {

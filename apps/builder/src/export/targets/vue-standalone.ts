@@ -37,6 +37,13 @@ export const vueStandaloneTarget: ExportTarget = {
     const fields = collectExportFields(schema)
     const hosts = collectSectionHosts(schema)
 
+    // Submit button: configurable text/placement/style (meta.submitButton).
+    // With exactly ONE gating wizard, the submit replaces Next on its last
+    // step; otherwise the bottom button is shown/gated.
+    const sb = resolveSubmitButton(schema, hosts)
+    const embeddedHost = sb.gatingHosts.length === 1 ? sb.gatingHosts[0]! : null
+    const submitClass = css.classes(sb.secondary ? 'buttonSecondary' : 'submitButton')
+
     const renderSections = (host: RenderedSectionHost): string => {
       const state = `fgSec_${host.key}`
       if (host.kind === 'tabs') {
@@ -62,7 +69,11 @@ export const vueStandaloneTarget: ExportTarget = {
         .join('\n')
       const last = host.sections.length - 1
       const labels = stepButtonLabels(host)
-      return `<div>\n  <ol class="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div class="${css.classes('stepActions')}">\n    <button v-if="${state} > 0" type="button" class="${css.classes('buttonSecondary')}" @click="${state}--">${labels.back}</button>\n    <button v-if="${state} < ${last}" type="button" class="${css.classes('submitButton')}" @click="fgNext_${host.key}()">${labels.next}</button>\n  </div>\n</div>`
+      const embeddedSubmit =
+        embeddedHost?.key === host.key
+          ? `\n    <button v-if="${state} === ${last}" type="submit" class="${submitClass}">${sb.text}</button>`
+          : ''
+      return `<div>\n  <ol class="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div class="${css.classes('stepActions')}">\n    <button v-if="${state} > 0" type="button" class="${css.classes('buttonSecondary')}" @click="${state}--">${labels.back}</button>\n    <button v-if="${state} < ${last}" type="button" class="${css.classes('submitButton')}" @click="fgNext_${host.key}()">${labels.next}</button>${embeddedSubmit}\n  </div>\n</div>`
     }
 
     const markup = renderTree(schema, {
@@ -215,13 +226,16 @@ ${submitBlock}}
     const stylesheet = css.stylesheet?.(schema.meta.theme)
     const styleBlock = stylesheet ? `\n\n<style scoped>\n${stylesheet}</style>` : ''
 
-    // Submit button: configurable text/placement/style, hidden until every
-    // steps wizard reaches its last step (meta.submitButton).
-    const sb = resolveSubmitButton(schema, hosts)
-    const submitGate = sb.gatingHosts.length
-      ? ` v-if="${sb.gatingHosts.map((h) => `fgSec_${h.key} === ${h.sections.length - 1}`).join(' && ')}"`
-      : ''
-    const submitButton = `<button${submitGate} class="${css.classes(sb.secondary ? 'buttonSecondary' : 'submitButton')}"${sb.buttonStyle ? ` style="${sb.buttonStyle}"` : ''} type="submit">${sb.text}</button>`
+    // Bottom actions row: omitted when the wizard embeds the submit.
+    const submitGate =
+      !embeddedHost && sb.gatingHosts.length
+        ? ` v-if="${sb.gatingHosts.map((h) => `fgSec_${h.key} === ${h.sections.length - 1}`).join(' && ')}"`
+        : ''
+    const actionsBlock = embeddedHost
+      ? ''
+      : `\n    <div class="${css.classes('actions')}"${sb.actionsStyle ? ` style="${sb.actionsStyle}"` : ''}>
+      <button${submitGate} class="${submitClass}"${sb.buttonStyle ? ` style="${sb.buttonStyle}"` : ''} type="submit">${sb.text}</button>
+    </div>`
 
     const template = `<template>
   <form
@@ -232,10 +246,7 @@ ${submitBlock}}
   >
     <div class="${css.classes('grid')}">
 ${indentBlock(markup, 3)}
-    </div>
-    <div class="${css.classes('actions')}"${sb.actionsStyle ? ` style="${sb.actionsStyle}"` : ''}>
-      ${submitButton}
-    </div>
+    </div>${actionsBlock}
     <pre v-if="result" class="${css.classes('payload')}">{{ JSON.stringify(result, null, 2) }}</pre>
   </form>
 </template>`

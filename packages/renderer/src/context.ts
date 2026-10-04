@@ -19,6 +19,14 @@ export interface FormContext {
    */
   registerStepsHost?(id: string, atEnd: () => boolean): void
   unregisterStepsHost?(id: string): void
+  /**
+   * When exactly one steps wizard gates the submit, it renders the submit
+   * button itself (in its actions row, where Next sits). Returns that
+   * wizard's node id, or null when the form keeps the bottom button.
+   */
+  submitEmbedHostId?(): string | null
+  /** Resolved submit button label/style for the embedding wizard. */
+  submitButtonSpec?(): { text: string; secondary: boolean }
 }
 
 export const FORM_CONTEXT: InjectionKey<FormContext> = Symbol('formsgen-form')

@@ -218,23 +218,30 @@ describe('FormsGenForm', () => {
     expect(labels).toContain('السابق')
   })
 
-  it('submit button hides until the steps wizard reaches its last step', async () => {
-    const wrapper = mountForm()
+  it('submit button replaces Next inside the wizard on its last step', async () => {
+    const schema = fixtureSchema()
+    schema.meta.submitButton = { text: 'Finish', variant: 'secondary' }
+    const wrapper = mount(FormsGenForm, { props: { schema } })
     // wizard registration lands one tick after mount
     await nextTick()
-    expect(wrapper.find('.fg-actions button[type="submit"]').exists()).toBe(false)
+    expect(wrapper.find('button[type="submit"]').exists()).toBe(false)
     await wrapper.get('input[name="shipping_city"]').setValue('Muscat')
     const next = wrapper
       .findAll('.fg-step-actions button')
       .find((b) => b.text() === 'Next')!
     await next.trigger('click')
-    expect(wrapper.find('.fg-actions button[type="submit"]').exists()).toBe(true)
-    // going Back hides it again
+    // submit renders in the wizard's actions row, styled from meta
+    const submit = wrapper.get('.fg-step-actions button[type="submit"]')
+    expect(submit.text()).toBe('Finish')
+    expect(submit.classes()).toContain('fg-button--secondary')
+    // ...and the bottom actions row stays empty
+    expect(wrapper.find('.fg-actions button').exists()).toBe(false)
+    // going Back removes it again
     const back = wrapper
       .findAll('.fg-step-actions button')
       .find((b) => b.text() === 'Back')!
     await back.trigger('click')
-    expect(wrapper.find('.fg-actions button[type="submit"]').exists()).toBe(false)
+    expect(wrapper.find('button[type="submit"]').exists()).toBe(false)
   })
 
   it('meta.submitButton configures text, style, placement and gating', () => {

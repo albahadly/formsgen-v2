@@ -114,6 +114,11 @@ const context: FormContext = {
   unregisterStepsHost: (id) => {
     stepsHosts.delete(id)
   },
+  submitEmbedHostId: () => embeddedHostId.value,
+  submitButtonSpec: () => ({
+    text: submitText.value,
+    secondary: submitCfg.value?.variant === 'secondary',
+  }),
 }
 provide(FORM_CONTEXT, context)
 
@@ -135,8 +140,16 @@ const actionsStyle = computed<Record<string, string>>(() => {
 const submitStyle = computed<Record<string, string>>(() =>
   submitCfg.value?.fullWidth ? { width: '100%' } : {},
 )
+// With exactly one gating wizard, the submit button moves INTO its step
+// actions row (same slot as Next); the bottom button then never renders.
+const embeddedHostId = computed(() => {
+  if (submitCfg.value?.onLastStepOnly === false) return null
+  const ids = [...stepsHosts.keys()]
+  return ids.length === 1 ? (ids[0] ?? null) : null
+})
 const submitVisible = computed(() => {
   if (submitCfg.value?.onLastStepOnly === false) return true
+  if (embeddedHostId.value) return false
   for (const atEnd of stepsHosts.values()) {
     if (!atEnd()) return false
   }

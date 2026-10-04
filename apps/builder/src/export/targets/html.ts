@@ -34,6 +34,13 @@ export const htmlTarget: ExportTarget = {
     const fields = collectExportFields(schema)
     const hosts = collectSectionHosts(schema)
 
+    // Submit button: configurable text/placement/style (meta.submitButton).
+    // With exactly ONE gating wizard, the submit replaces Next on its last
+    // step (shown/hidden by fgUpdateSubmit); otherwise it sits at the bottom.
+    const sb = resolveSubmitButton(schema, hosts)
+    const embeddedHost = sb.gatingHosts.length === 1 ? sb.gatingHosts[0]! : null
+    const submitClass = css.classes(sb.secondary ? 'buttonSecondary' : 'submitButton')
+
     // Conditional wrappers register their test expressions by index.
     const conditionTests: string[] = []
     const conditionAttr = (_node: ElementNode, expr: string): string => {
@@ -64,7 +71,11 @@ export const htmlTarget: ExportTarget = {
         )
         .join('\n')
       const labels = stepButtonLabels(host)
-      return `<div>\n  <ol class="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div class="${css.classes('stepActions')}">\n    <button type="button" class="${css.classes('buttonSecondary')}" data-fg-step-back="${host.key}" hidden>${labels.back}</button>\n    <button type="button" class="${css.classes('submitButton')}" data-fg-step-next="${host.key}">${labels.next}</button>\n  </div>\n</div>`
+      const embeddedSubmit =
+        embeddedHost?.key === host.key
+          ? `\n    <button type="submit" class="${submitClass}" data-fg-submit hidden>${sb.text}</button>`
+          : ''
+      return `<div>\n  <ol class="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div class="${css.classes('stepActions')}">\n    <button type="button" class="${css.classes('buttonSecondary')}" data-fg-step-back="${host.key}" hidden>${labels.back}</button>\n    <button type="button" class="${css.classes('submitButton')}" data-fg-step-next="${host.key}">${labels.next}</button>${embeddedSubmit}\n  </div>\n</div>`
     }
 
     const markup = renderTree(schema, { lang: 'html', css, accessor, conditionAttr, renderSections })
@@ -89,9 +100,12 @@ export const htmlTarget: ExportTarget = {
     const stylesheet = css.stylesheet?.(schema.meta.theme)
     const styleTag = stylesheet ? `  <style>\n${indentBlock(stylesheet, 1)}  </style>` : ''
 
-    // Submit button: configurable text/placement/style, hidden until every
-    // steps wizard reaches its last step (meta.submitButton).
-    const sb = resolveSubmitButton(schema, hosts)
+    // Bottom actions row: omitted when the wizard embeds the submit.
+    const actionsBlock = embeddedHost
+      ? ''
+      : `\n    <div class="${css.classes('actions')}"${sb.actionsStyle ? ` style="${sb.actionsStyle}"` : ''}>
+      <button class="${submitClass}"${sb.buttonStyle ? ` style="${sb.buttonStyle}"` : ''} data-fg-submit type="submit"${sb.gatingHosts.length ? ' hidden' : ''}>${sb.text}</button>
+    </div>`
 
     const submitUrl = schema.meta.submit?.url
     const submitBlock = submitUrl
@@ -355,10 +369,7 @@ ${headAssets}${headAssets && styleTag ? '\n' : ''}${styleTag}
   <form id="fg-form" class="${css.classes('form')}" novalidate>
     <div class="${css.classes('grid')}">
 ${indentBlock(markup, 3)}
-    </div>
-    <div class="${css.classes('actions')}"${sb.actionsStyle ? ` style="${sb.actionsStyle}"` : ''}>
-      <button class="${css.classes(sb.secondary ? 'buttonSecondary' : 'submitButton')}"${sb.buttonStyle ? ` style="${sb.buttonStyle}"` : ''} data-fg-submit type="submit"${sb.gatingHosts.length ? ' hidden' : ''}>${sb.text}</button>
-    </div>
+    </div>${actionsBlock}
     <pre id="fg-result" class="${css.classes('payload')}" hidden></pre>
   </form>
 ${script}
