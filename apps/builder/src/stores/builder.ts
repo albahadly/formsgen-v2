@@ -157,6 +157,12 @@ export const useBuilderStore = defineStore('builder', {
       return copy
     },
 
+    /** Replaces the whole schema (project open / draft restore). */
+    loadSchema(schema: FormSchema): void {
+      this.schema = schema
+      this.selectedId = null
+    },
+
     reset(): void {
       this.schema = createEmptySchema()
       this.selectedId = null
