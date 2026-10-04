@@ -21,6 +21,10 @@ describe('element registry', () => {
       'radiogroup',
       'range',
       'select',
+      'step',
+      'steps',
+      'tab',
+      'tabs',
       'text',
       'textarea',
       'time',
@@ -29,7 +33,14 @@ describe('element registry', () => {
   })
 
   it('filters by category', () => {
-    expect(listElements('structure').map((d) => d.type).sort()).toEqual(['columns', 'group'])
+    expect(listElements('structure').map((d) => d.type).sort()).toEqual([
+      'columns',
+      'group',
+      'step',
+      'steps',
+      'tab',
+      'tabs',
+    ])
     expect(listElements('static').map((d) => d.type).sort()).toEqual([
       'divider',
       'heading',

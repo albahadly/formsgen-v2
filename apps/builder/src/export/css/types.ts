@@ -31,6 +31,14 @@ export type Slot =
   | 'heading'
   | 'paragraph'
   | 'divider'
+  | 'tabList'
+  | 'tabButton'
+  | 'tabButtonActive'
+  | 'stepList'
+  | 'stepItem'
+  | 'stepItemActive'
+  | 'stepActions'
+  | 'buttonSecondary'
 
 export interface CellAttrs {
   class: string

@@ -26,6 +26,14 @@ const CLASSES: Record<Slot, string> = {
   heading: 'fw-semibold',
   paragraph: 'text-secondary',
   divider: 'border-top',
+  tabList: 'nav nav-tabs mb-3',
+  tabButton: 'nav-link',
+  tabButtonActive: 'nav-link active',
+  stepList: 'nav mb-3 gap-3 small text-secondary list-unstyled d-flex flex-wrap',
+  stepItem: 'd-inline-flex align-items-center gap-2',
+  stepItemActive: 'd-inline-flex align-items-center gap-2 fw-semibold text-body',
+  stepActions: 'mt-3 d-flex justify-content-between gap-2',
+  buttonSecondary: 'btn btn-outline-secondary',
 }
 
 export const bootstrap5Adapter: CssFrameworkAdapter = {

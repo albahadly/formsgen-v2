@@ -3,6 +3,7 @@
 // AND every ancestor's), default values, and payload structure.
 
 import {
+  SECTION_CONTAINERS,
   getCoreElement,
   joinPath,
   type ConditionGroups,
@@ -91,8 +92,7 @@ export function isRequired(node: ElementNode): boolean {
   return node.validation?.some((r) => r.rule === 'required') ?? false
 }
 
-/** Pretty JS object literal with stable key order (for generated code). */
-export function toJsLiteral(value: unknown, indent = 0): string {
+/** Pretty JS object literal with stable key order (for generated code). */export function toJsLiteral(value: unknown, indent = 0): string {
   const pad = '  '.repeat(indent)
   const padIn = '  '.repeat(indent + 1)
   if (Array.isArray(value)) {
@@ -108,4 +108,79 @@ export function toJsLiteral(value: unknown, indent = 0): string {
     return `{\n${body}\n${pad}}`
   }
   return JSON.stringify(value)
+}
+
+// ---- tabs / steps section hosts ----
+
+export interface SectionInfo {
+  node: ElementNode
+  label: string
+  index: number
+  /** Data paths of value fields inside this section (conditions aside). */
+  paths: string[]
+}
+
+export interface SectionHostInfo {
+  node: ElementNode
+  kind: 'tabs' | 'steps'
+  /** Identifier-safe key derived from the node id. */
+  key: string
+  sections: SectionInfo[]
+}
+
+export function sectionKey(node: ElementNode): string {
+  return node.id.replace(/[^A-Za-z0-9]/g, '_')
+}
+
+/** Data paths of all value fields in a subtree, from `basePath`. */
+export function subtreeFieldPaths(nodes: ElementNode[], basePath: string): string[] {
+  const paths: string[] = []
+  const walk = (children: ElementNode[], base: string): void => {
+    for (const child of children) {
+      const core = getCoreElement(child.type)
+      if (!core) continue
+      if (core.isContainer) {
+        walk(child.children ?? [], child.name ? joinPath(base, child.name) : base)
+      } else if (core.hasValue && child.name) {
+        paths.push(joinPath(base, child.name))
+      }
+    }
+  }
+  walk(nodes, basePath)
+  return paths
+}
+
+/** Every tabs/steps host in the schema, with labels and per-section paths. */
+export function collectSectionHosts(schema: FormSchema): SectionHostInfo[] {
+  const hosts: SectionHostInfo[] = []
+  const walk = (nodes: ElementNode[], basePath: string): void => {
+    for (const node of nodes) {
+      const core = getCoreElement(node.type)
+      if (!core?.isContainer) continue
+      const childPath = node.name ? joinPath(basePath, node.name) : basePath
+      const sectionType = SECTION_CONTAINERS[node.type]
+      if (sectionType) {
+        const sections = (node.children ?? [])
+          .filter((c) => c.type === sectionType)
+          .map((section, index) => ({
+            node: section,
+            index,
+            label:
+              typeof section.props['label'] === 'string' && section.props['label'] !== ''
+                ? (section.props['label'] as string)
+                : `${sectionType === 'tab' ? 'Tab' : 'Step'} ${index + 1}`,
+            paths: subtreeFieldPaths(section.children ?? [], childPath),
+          }))
+        hosts.push({
+          node,
+          kind: node.type as 'tabs' | 'steps',
+          key: sectionKey(node),
+          sections,
+        })
+      }
+      walk(node.children ?? [], childPath)
+    }
+  }
+  walk(schema.tree, '')
+  return hosts
 }

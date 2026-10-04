@@ -9,8 +9,8 @@ import {
   validatorsLiteral,
   visibilityFunctions,
 } from '../logic'
-import { renderTree } from '../markup'
-import { defaultsObject, toJsLiteral } from '../structure'
+import { renderTree, type RenderedSectionHost } from '../markup'
+import { collectSectionHosts, defaultsObject, toJsLiteral } from '../structure'
 import { componentName, type ExportTarget } from './types'
 
 function indentBlock(text: string, depth: number): string {
@@ -73,6 +73,34 @@ export const reactTarget: ExportTarget = {
     const formAccessor = (path: string): string => `form.${path}`
     const fields = collectExportFields(schema)
     const defaults = defaultsObject(schema)
+    const hosts = collectSectionHosts(schema)
+
+    const renderSections = (host: RenderedSectionHost): string => {
+      const state = `fgSec_${host.key}`
+      const panels = host.sections
+        .map(
+          (s) =>
+            `  <div style={{ display: ${state} === ${s.index} ? undefined : 'none' }}>\n${indentBlock(s.html, 2)}\n  </div>`,
+        )
+        .join('\n')
+      if (host.kind === 'tabs') {
+        const buttons = host.sections
+          .map(
+            (s) =>
+              `    <button type="button" className={${state} === ${s.index} ? "${css.classes('tabButtonActive')}" : "${css.classes('tabButton')}"} onClick={() => setFgSec_${host.key}(${s.index})}>${s.label}</button>`,
+          )
+          .join('\n')
+        return `<div>\n  <div className="${css.classes('tabList')}" role="tablist">\n${buttons}\n  </div>\n${panels}\n</div>`
+      }
+      const items = host.sections
+        .map(
+          (s) =>
+            `    <li className={${state} === ${s.index} ? "${css.classes('stepItemActive')}" : "${css.classes('stepItem')}"}>${s.index + 1}. ${s.label}</li>`,
+        )
+        .join('\n')
+      const last = host.sections.length - 1
+      return `<div>\n  <ol className="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div className="${css.classes('stepActions')}">\n    {${state} > 0 && <button type="button" className="${css.classes('buttonSecondary')}" onClick={() => setFgSec_${host.key}(${state} - 1)}>Back</button>}\n    {${state} < ${last} && <button type="button" className="${css.classes('submitButton')}" onClick={fgNext_${host.key}}>Next</button>}\n  </div>\n</div>`
+    }
 
     const markup = renderTree(schema, {
       lang: 'react',
@@ -82,7 +110,38 @@ export const reactTarget: ExportTarget = {
       comment: (text) => `{/* ${text} */}`,
       conditionAttr: () => '',
       wrapConditional: (expr, block) => `{(${expr}) && (\n${indentBlock(block, 1)}\n)}`,
+      renderSections,
     })
+
+    const stepPathsConsts = hosts
+      .filter((host) => host.kind === 'steps')
+      .map(
+        (host) =>
+          `const fgStepPaths_${host.key} = [${host.sections.map((s) => `[${s.paths.map((p) => JSON.stringify(p)).join(', ')}]`).join(', ')}]`,
+      )
+      .join('\n')
+
+    const sectionHooks = hosts
+      .map((host) => `  const [fgSec_${host.key}, setFgSec_${host.key}] = useState(0)`)
+      .join('\n')
+
+    const stepHandlers = hosts
+      .filter((host) => host.kind === 'steps')
+      .map(
+        (host) => `  function fgNext_${host.key}(): void {
+    let ok = true
+    const next = { ...errors }
+    for (const path of fgStepPaths_${host.key}[fgSec_${host.key}] ?? []) {
+      touched.current.add(path)
+      const validate = validators[path]
+      const message = validate ? validate(form) : null
+      if (message) { next[path] = message; ok = false } else { delete next[path] }
+    }
+    setErrors(next)
+    if (ok && fgSec_${host.key} < ${host.sections.length - 1}) setFgSec_${host.key}(fgSec_${host.key} + 1)
+  }`,
+      )
+      .join('\n\n')
 
     const submitUrl = schema.meta.submit?.url
     const submitBlock = submitUrl
@@ -117,7 +176,7 @@ const validators: Record<string, (data: FormData) => string | null> = ${validato
 function buildPayload(data: FormData): Record<string, unknown> {
   return ${indentBlock(payloadExpr(schema, dataAccessor, (key) => `fgVisible_${key}(data)`), 1).trimStart()}
 }
-
+${stepPathsConsts ? `\n${stepPathsConsts}\n` : ''}
 export default function ${name}({
   onSubmit,
 }: {
@@ -127,6 +186,7 @@ export default function ${name}({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [result, setResult] = useState<Record<string, unknown> | null>(null)
   const touched = useRef(new Set<string>())
+${sectionHooks ? `${sectionHooks}\n` : ''}${stepHandlers ? `\n${stepHandlers}\n` : ''}
 
   function applyError(path: string, message: string | null): void {
     setErrors((prev) => {

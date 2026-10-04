@@ -9,8 +9,8 @@ import {
   validatorsLiteral,
   visibilityFunctions,
 } from '../logic'
-import { renderTree } from '../markup'
-import { defaultsObject, toJsLiteral } from '../structure'
+import { renderTree, type RenderedSectionHost } from '../markup'
+import { collectSectionHosts, defaultsObject, toJsLiteral } from '../structure'
 import { componentName, type ExportTarget } from './types'
 
 function indentBlock(text: string, depth: number): string {
@@ -30,6 +30,34 @@ export const vueStandaloneTarget: ExportTarget = {
     const name = componentName(schema)
     const accessor = (path: string): string => `form.${path}`
     const fields = collectExportFields(schema)
+    const hosts = collectSectionHosts(schema)
+
+    const renderSections = (host: RenderedSectionHost): string => {
+      const state = `fgSec_${host.key}`
+      if (host.kind === 'tabs') {
+        const buttons = host.sections
+          .map(
+            (s) =>
+              `    <button type="button" :class="${state} === ${s.index} ? '${css.classes('tabButtonActive')}' : '${css.classes('tabButton')}'" @click="${state} = ${s.index}">${s.label}</button>`,
+          )
+          .join('\n')
+        const panels = host.sections
+          .map((s) => `  <div v-show="${state} === ${s.index}">\n${indentBlock(s.html, 2)}\n  </div>`)
+          .join('\n')
+        return `<div>\n  <div class="${css.classes('tabList')}" role="tablist">\n${buttons}\n  </div>\n${panels}\n</div>`
+      }
+      const items = host.sections
+        .map(
+          (s) =>
+            `    <li :class="${state} === ${s.index} ? '${css.classes('stepItemActive')}' : '${css.classes('stepItem')}'">${s.index + 1}. ${s.label}</li>`,
+        )
+        .join('\n')
+      const panels = host.sections
+        .map((s) => `  <div v-show="${state} === ${s.index}">\n${indentBlock(s.html, 2)}\n  </div>`)
+        .join('\n')
+      const last = host.sections.length - 1
+      return `<div>\n  <ol class="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div class="${css.classes('stepActions')}">\n    <button v-if="${state} > 0" type="button" class="${css.classes('buttonSecondary')}" @click="${state}--">Back</button>\n    <button v-if="${state} < ${last}" type="button" class="${css.classes('submitButton')}" @click="fgNext_${host.key}()">Next</button>\n  </div>\n</div>`
+    }
 
     const markup = renderTree(schema, {
       lang: 'vue',
@@ -37,7 +65,28 @@ export const vueStandaloneTarget: ExportTarget = {
       accessor,
       // Single-quoted so JSON string literals inside stay intact.
       conditionAttr: (_node, expr) => ` v-if='${expr.replace(/'/g, '&#39;')}'`,
+      renderSections,
     })
+
+    // Section state + per-step validation gates.
+    const sectionState = hosts
+      .map((host) => `const fgSec_${host.key} = ref(0)`)
+      .join('\n')
+    const stepLogic = hosts
+      .filter((host) => host.kind === 'steps')
+      .map((host) => {
+        const paths = `[${host.sections.map((s) => `[${s.paths.map((p) => JSON.stringify(p)).join(', ')}]`).join(', ')}]`
+        return `const fgStepPaths_${host.key} = ${paths}
+function fgNext_${host.key}(): void {
+  let ok = true
+  for (const path of fgStepPaths_${host.key}[fgSec_${host.key}.value] ?? []) {
+    touch(path)
+    if (errors[path]) ok = false
+  }
+  if (ok && fgSec_${host.key}.value < ${host.sections.length - 1}) fgSec_${host.key}.value++
+}`
+      })
+      .join('\n\n')
 
     const submitUrl = schema.meta.submit?.url
     const submitBlock = submitUrl
@@ -96,7 +145,7 @@ function validateAll(): boolean {
   }
   return ok
 }
-
+${sectionState ? `\n${sectionState}\n` : ''}${stepLogic ? `\n${stepLogic}\n` : ''}
 function buildPayload(): Record<string, unknown> {
   return ${indentBlock(payloadExpr(schema, accessor), 1).trimStart()}
 }

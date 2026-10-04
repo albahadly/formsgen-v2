@@ -61,6 +61,8 @@ export interface ElementDefinition {
   defaultProps: Record<string, unknown>
   defaultValidation?: Rule[]
   propertyPanel: PanelSection[]
+  /** Containers that scaffold initial children when created (tabs/steps). */
+  createChildren?: (() => ElementNode[]) | undefined
   /**
    * Per-target-language markup emitters for value elements (phase 8+).
    * Containers are rendered structurally by the target scaffolds. A type

@@ -223,6 +223,28 @@ describe('palette → canvas → properties workflow', () => {
     expect(wrapper.get(`#${describedBy}`).text()).toBe('This field is required')
   })
 
+  it('tabs host: section headers, add, and routing palette adds into tabs', async () => {
+    const { wrapper, store } = mountApp()
+    const structureTab = wrapper
+      .findAll('[role="tab"]')
+      .find((b) => b.text() === 'Structure')!
+    await structureTab.trigger('click')
+    await wrapper.get('[data-testid="palette-item-tabs"]').trigger('click')
+    const tabs = store.schema.tree[0]!
+    expect(tabs.children).toHaveLength(2)
+    const firstTab = tabs.children![0]!
+    expect(wrapper.find(`[data-testid="section-tab-${firstTab.id}"]`).exists()).toBe(true)
+    // host selected -> a field lands in the first section
+    store.select(tabs.id)
+    const fieldsTab = wrapper.findAll('[role="tab"]').find((b) => b.text() === 'Fields')!
+    await fieldsTab.trigger('click')
+    await wrapper.get('[data-testid="palette-item-text"]').trigger('click')
+    expect(firstTab.children).toHaveLength(1)
+    // add a third section from the canvas chrome
+    await wrapper.get(`[data-testid="section-add-${tabs.id}"]`).trigger('click')
+    expect(tabs.children).toHaveLength(3)
+  })
+
   it('adds into a selected container and renders nested chrome', async () => {
     const { wrapper, store } = mountApp()
     const structureTab = wrapper

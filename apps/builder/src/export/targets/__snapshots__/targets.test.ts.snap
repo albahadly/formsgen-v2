@@ -159,6 +159,80 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
             </div>
         }
         <div class="col-12 col-md-12">
+          <div>
+            <div class="nav nav-tabs mb-3" role="tablist">
+              <button type="button" class="@(fgSec_ks_social_tabs == 0 ? "nav-link active" : "nav-link")" @onclick="() => fgSec_ks_social_tabs = 0">Social</button>
+              <button type="button" class="@(fgSec_ks_social_tabs == 1 ? "nav-link active" : "nav-link")" @onclick="() => fgSec_ks_social_tabs = 1">Code</button>
+            </div>
+          @if (fgSec_ks_social_tabs == 0)
+          {
+              <div class="row g-3">
+                <div class="col-12 col-md-12">
+                  <div class="d-flex flex-column gap-1">
+                    <label class="form-label fw-semibold mb-0" for="fg_twitter">Twitter handle</label>
+                    <InputText id="fg_twitter" @bind-Value="Model.Twitter" class="form-control" />
+                    <ValidationMessage For="@(() => Model.Twitter)" class="invalid-feedback d-block mt-0" />
+                  </div>
+                </div>
+              </div>
+          }
+          @if (fgSec_ks_social_tabs == 1)
+          {
+              <div class="row g-3">
+                <div class="col-12 col-md-12">
+                  <div class="d-flex flex-column gap-1">
+                    <label class="form-label fw-semibold mb-0" for="fg_github">GitHub username</label>
+                    <InputText id="fg_github" @bind-Value="Model.Github" class="form-control" />
+                    <ValidationMessage For="@(() => Model.Github)" class="invalid-feedback d-block mt-0" />
+                  </div>
+                </div>
+              </div>
+          }
+          </div>
+        </div>
+        <div class="col-12 col-md-12">
+          <div>
+            <ol class="nav mb-3 gap-3 small text-secondary list-unstyled d-flex flex-wrap">
+              <li class="@(fgSec_ks_wizard == 0 ? "d-inline-flex align-items-center gap-2 fw-semibold text-body" : "d-inline-flex align-items-center gap-2")">1. Shipping</li>
+              <li class="@(fgSec_ks_wizard == 1 ? "d-inline-flex align-items-center gap-2 fw-semibold text-body" : "d-inline-flex align-items-center gap-2")">2. Review</li>
+            </ol>
+          @if (fgSec_ks_wizard == 0)
+          {
+              <div class="row g-3">
+                <div class="col-12 col-md-12">
+                  <div class="d-flex flex-column gap-1">
+                    <label class="form-label fw-semibold mb-0" for="fg_shipping_city">Shipping city<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+                    <InputText id="fg_shipping_city" @bind-Value="Model.ShippingCity" class="form-control" />
+                    <ValidationMessage For="@(() => Model.ShippingCity)" class="invalid-feedback d-block mt-0" />
+                  </div>
+                </div>
+              </div>
+          }
+          @if (fgSec_ks_wizard == 1)
+          {
+              <div class="row g-3">
+                <div class="col-12 col-md-12">
+                  <div class="d-flex flex-column gap-1">
+                    <label class="form-label fw-semibold mb-0" for="fg_order_notes">Order notes</label>
+                    <InputTextArea id="fg_order_notes" @bind-Value="Model.OrderNotes" class="form-control" rows="3" />
+                    <ValidationMessage For="@(() => Model.OrderNotes)" class="invalid-feedback d-block mt-0" />
+                  </div>
+                </div>
+              </div>
+          }
+            <div class="mt-3 d-flex justify-content-between gap-2">
+              @if (fgSec_ks_wizard > 0)
+              {
+                  <button type="button" class="btn btn-outline-secondary" @onclick="() => fgSec_ks_wizard--">Back</button>
+              }
+              @if (fgSec_ks_wizard < 1)
+              {
+                  <button type="button" class="btn btn-primary" @onclick="() => fgSec_ks_wizard++">Next</button>
+              }
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-md-12">
           <div class="d-flex flex-column gap-1">
             <div class="form-check">
               <InputCheckbox id="fg_newsletter" @bind-Value="Model.Newsletter" class="form-check-input" />
@@ -190,6 +264,9 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
     private KitchenSinkFormModel Model { get; set; } = new();
     private string? ResultJson { get; set; }
 
+    private int fgSec_ks_social_tabs = 0;
+    private int fgSec_ks_wizard = 0;
+
     private void HandleValidSubmit()
     {
         var payload = BuildPayload();
@@ -217,6 +294,10 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         payload["contact_method"] = string.IsNullOrEmpty(Model.ContactMethod) ? null : Model.ContactMethod;
         if (((Equals(Model.ContactMethod, "phone")))) payload["contact_phone"] = Model.ContactPhone;
         if (((Equals(Model.ContactMethod, "other")))) payload["contact_other"] = Model.ContactOther;
+        payload["twitter"] = Model.Twitter;
+        payload["github"] = Model.Github;
+        payload["shipping_city"] = Model.ShippingCity;
+        payload["order_notes"] = Model.OrderNotes;
         payload["newsletter"] = Model.Newsletter;
         payload["terms"] = Model.Terms;
         return payload;
@@ -269,6 +350,15 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         public string ContactPhone { get; set; } = "";
 
         public string ContactOther { get; set; } = "";
+
+        public string Twitter { get; set; } = "";
+
+        public string Github { get; set; } = "";
+
+        [Required(ErrorMessage = "This field is required")]
+        public string ShippingCity { get; set; } = "";
+
+        public string OrderNotes { get; set; } = "";
 
         public bool Newsletter { get; set; } = true;
 
@@ -442,6 +532,80 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
             </div>
         }
         <div class="col-span-12 md:col-span-12">
+          <div>
+            <div class="mb-4 flex flex-wrap gap-1 border-b border-gray-200 dark:border-gray-700" role="tablist">
+              <button type="button" class="@(fgSec_ks_social_tabs == 0 ? "-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600" : "-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700")" @onclick="() => fgSec_ks_social_tabs = 0">Social</button>
+              <button type="button" class="@(fgSec_ks_social_tabs == 1 ? "-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600" : "-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700")" @onclick="() => fgSec_ks_social_tabs = 1">Code</button>
+            </div>
+          @if (fgSec_ks_social_tabs == 0)
+          {
+              <div class="grid grid-cols-12 gap-4">
+                <div class="col-span-12 md:col-span-12">
+                  <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-semibold" for="fg_twitter">Twitter handle</label>
+                    <InputText id="fg_twitter" @bind-Value="Model.Twitter" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
+                    <ValidationMessage For="@(() => Model.Twitter)" class="text-xs text-red-600" />
+                  </div>
+                </div>
+              </div>
+          }
+          @if (fgSec_ks_social_tabs == 1)
+          {
+              <div class="grid grid-cols-12 gap-4">
+                <div class="col-span-12 md:col-span-12">
+                  <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-semibold" for="fg_github">GitHub username</label>
+                    <InputText id="fg_github" @bind-Value="Model.Github" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
+                    <ValidationMessage For="@(() => Model.Github)" class="text-xs text-red-600" />
+                  </div>
+                </div>
+              </div>
+          }
+          </div>
+        </div>
+        <div class="col-span-12 md:col-span-12">
+          <div>
+            <ol class="mb-4 flex flex-wrap gap-4 text-sm text-gray-500">
+              <li class="@(fgSec_ks_wizard == 0 ? "flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100" : "flex items-center gap-2")">1. Shipping</li>
+              <li class="@(fgSec_ks_wizard == 1 ? "flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100" : "flex items-center gap-2")">2. Review</li>
+            </ol>
+          @if (fgSec_ks_wizard == 0)
+          {
+              <div class="grid grid-cols-12 gap-4">
+                <div class="col-span-12 md:col-span-12">
+                  <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-semibold" for="fg_shipping_city">Shipping city<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+                    <InputText id="fg_shipping_city" @bind-Value="Model.ShippingCity" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
+                    <ValidationMessage For="@(() => Model.ShippingCity)" class="text-xs text-red-600" />
+                  </div>
+                </div>
+              </div>
+          }
+          @if (fgSec_ks_wizard == 1)
+          {
+              <div class="grid grid-cols-12 gap-4">
+                <div class="col-span-12 md:col-span-12">
+                  <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-semibold" for="fg_order_notes">Order notes</label>
+                    <InputTextArea id="fg_order_notes" @bind-Value="Model.OrderNotes" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="3" />
+                    <ValidationMessage For="@(() => Model.OrderNotes)" class="text-xs text-red-600" />
+                  </div>
+                </div>
+              </div>
+          }
+            <div class="mt-4 flex justify-between gap-2">
+              @if (fgSec_ks_wizard > 0)
+              {
+                  <button type="button" class="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" @onclick="() => fgSec_ks_wizard--">Back</button>
+              }
+              @if (fgSec_ks_wizard < 1)
+              {
+                  <button type="button" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" @onclick="() => fgSec_ks_wizard++">Next</button>
+              }
+            </div>
+          </div>
+        </div>
+        <div class="col-span-12 md:col-span-12">
           <div class="flex flex-col gap-1.5">
             <div class="flex items-center gap-2">
               <InputCheckbox id="fg_newsletter" @bind-Value="Model.Newsletter" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" />
@@ -473,6 +637,9 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
     private KitchenSinkFormModel Model { get; set; } = new();
     private string? ResultJson { get; set; }
 
+    private int fgSec_ks_social_tabs = 0;
+    private int fgSec_ks_wizard = 0;
+
     private void HandleValidSubmit()
     {
         var payload = BuildPayload();
@@ -500,6 +667,10 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         payload["contact_method"] = string.IsNullOrEmpty(Model.ContactMethod) ? null : Model.ContactMethod;
         if (((Equals(Model.ContactMethod, "phone")))) payload["contact_phone"] = Model.ContactPhone;
         if (((Equals(Model.ContactMethod, "other")))) payload["contact_other"] = Model.ContactOther;
+        payload["twitter"] = Model.Twitter;
+        payload["github"] = Model.Github;
+        payload["shipping_city"] = Model.ShippingCity;
+        payload["order_notes"] = Model.OrderNotes;
         payload["newsletter"] = Model.Newsletter;
         payload["terms"] = Model.Terms;
         return payload;
@@ -552,6 +723,15 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         public string ContactPhone { get; set; } = "";
 
         public string ContactOther { get; set; } = "";
+
+        public string Twitter { get; set; } = "";
+
+        public string Github { get; set; } = "";
+
+        [Required(ErrorMessage = "This field is required")]
+        public string ShippingCity { get; set; } = "";
+
+        public string OrderNotes { get; set; } = "";
 
         public bool Newsletter { get; set; } = true;
 
@@ -725,6 +905,80 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             </div>
         }
         <div class="fg-cell" style="grid-column: span 12 / span 12">
+          <div>
+            <div class="fg-tab-list" role="tablist">
+              <button type="button" class="@(fgSec_ks_social_tabs == 0 ? "fg-tab-button fg-tab-button--active" : "fg-tab-button")" @onclick="() => fgSec_ks_social_tabs = 0">Social</button>
+              <button type="button" class="@(fgSec_ks_social_tabs == 1 ? "fg-tab-button fg-tab-button--active" : "fg-tab-button")" @onclick="() => fgSec_ks_social_tabs = 1">Code</button>
+            </div>
+          @if (fgSec_ks_social_tabs == 0)
+          {
+              <div class="fg-grid">
+                <div class="fg-cell" style="grid-column: span 12 / span 12">
+                  <div class="fg-field">
+                    <label class="fg-label" for="fg_twitter">Twitter handle</label>
+                    <InputText id="fg_twitter" @bind-Value="Model.Twitter" class="fg-input" />
+                    <ValidationMessage For="@(() => Model.Twitter)" class="fg-error" />
+                  </div>
+                </div>
+              </div>
+          }
+          @if (fgSec_ks_social_tabs == 1)
+          {
+              <div class="fg-grid">
+                <div class="fg-cell" style="grid-column: span 12 / span 12">
+                  <div class="fg-field">
+                    <label class="fg-label" for="fg_github">GitHub username</label>
+                    <InputText id="fg_github" @bind-Value="Model.Github" class="fg-input" />
+                    <ValidationMessage For="@(() => Model.Github)" class="fg-error" />
+                  </div>
+                </div>
+              </div>
+          }
+          </div>
+        </div>
+        <div class="fg-cell" style="grid-column: span 12 / span 12">
+          <div>
+            <ol class="fg-step-list">
+              <li class="@(fgSec_ks_wizard == 0 ? "fg-step-item fg-step-item--active" : "fg-step-item")">1. Shipping</li>
+              <li class="@(fgSec_ks_wizard == 1 ? "fg-step-item fg-step-item--active" : "fg-step-item")">2. Review</li>
+            </ol>
+          @if (fgSec_ks_wizard == 0)
+          {
+              <div class="fg-grid">
+                <div class="fg-cell" style="grid-column: span 12 / span 12">
+                  <div class="fg-field">
+                    <label class="fg-label" for="fg_shipping_city">Shipping city<span class="fg-required" aria-hidden="true">*</span></label>
+                    <InputText id="fg_shipping_city" @bind-Value="Model.ShippingCity" class="fg-input" />
+                    <ValidationMessage For="@(() => Model.ShippingCity)" class="fg-error" />
+                  </div>
+                </div>
+              </div>
+          }
+          @if (fgSec_ks_wizard == 1)
+          {
+              <div class="fg-grid">
+                <div class="fg-cell" style="grid-column: span 12 / span 12">
+                  <div class="fg-field">
+                    <label class="fg-label" for="fg_order_notes">Order notes</label>
+                    <InputTextArea id="fg_order_notes" @bind-Value="Model.OrderNotes" class="fg-textarea" rows="3" />
+                    <ValidationMessage For="@(() => Model.OrderNotes)" class="fg-error" />
+                  </div>
+                </div>
+              </div>
+          }
+            <div class="fg-step-actions">
+              @if (fgSec_ks_wizard > 0)
+              {
+                  <button type="button" class="fg-button fg-button--secondary" @onclick="() => fgSec_ks_wizard--">Back</button>
+              }
+              @if (fgSec_ks_wizard < 1)
+              {
+                  <button type="button" class="fg-button fg-button--primary" @onclick="() => fgSec_ks_wizard++">Next</button>
+              }
+            </div>
+          </div>
+        </div>
+        <div class="fg-cell" style="grid-column: span 12 / span 12">
           <div class="fg-field">
             <div class="fg-checkbox-row">
               <InputCheckbox id="fg_newsletter" @bind-Value="Model.Newsletter" class="fg-checkbox" />
@@ -756,6 +1010,9 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
     private KitchenSinkFormModel Model { get; set; } = new();
     private string? ResultJson { get; set; }
 
+    private int fgSec_ks_social_tabs = 0;
+    private int fgSec_ks_wizard = 0;
+
     private void HandleValidSubmit()
     {
         var payload = BuildPayload();
@@ -783,6 +1040,10 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         payload["contact_method"] = string.IsNullOrEmpty(Model.ContactMethod) ? null : Model.ContactMethod;
         if (((Equals(Model.ContactMethod, "phone")))) payload["contact_phone"] = Model.ContactPhone;
         if (((Equals(Model.ContactMethod, "other")))) payload["contact_other"] = Model.ContactOther;
+        payload["twitter"] = Model.Twitter;
+        payload["github"] = Model.Github;
+        payload["shipping_city"] = Model.ShippingCity;
+        payload["order_notes"] = Model.OrderNotes;
         payload["newsletter"] = Model.Newsletter;
         payload["terms"] = Model.Terms;
         return payload;
@@ -835,6 +1096,15 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         public string ContactPhone { get; set; } = "";
 
         public string ContactOther { get; set; } = "";
+
+        public string Twitter { get; set; } = "";
+
+        public string Github { get; set; } = "";
+
+        [Required(ErrorMessage = "This field is required")]
+        public string ShippingCity { get; set; } = "";
+
+        public string OrderNotes { get; set; } = "";
 
         public bool Newsletter { get; set; } = true;
 
@@ -1017,6 +1287,70 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         </div>
       </div>
       <div class="col-12 col-md-12">
+        <div>
+          <div class="nav nav-tabs mb-3" role="tablist">
+            <button type="button" class="nav-link active" data-fg-sec-btn="ks_social_tabs:0">Social</button>
+            <button type="button" class="nav-link" data-fg-sec-btn="ks_social_tabs:1">Code</button>
+          </div>
+          <div data-fg-sec-panel="ks_social_tabs:0">
+          <div class="row g-3">
+            <div class="col-12 col-md-12">
+              <div class="d-flex flex-column gap-1">
+                <label class="form-label fw-semibold mb-0" for="fg_twitter">Twitter handle</label>
+                <input id="fg_twitter" type="text" class="form-control" data-fg-path="twitter" data-fg-kind="text">
+                <p id="fg_err_twitter" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+              </div>
+            </div>
+          </div>
+          </div>
+          <div data-fg-sec-panel="ks_social_tabs:1" hidden>
+          <div class="row g-3">
+            <div class="col-12 col-md-12">
+              <div class="d-flex flex-column gap-1">
+                <label class="form-label fw-semibold mb-0" for="fg_github">GitHub username</label>
+                <input id="fg_github" type="text" class="form-control" data-fg-path="github" data-fg-kind="text">
+                <p id="fg_err_github" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+              </div>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <div>
+          <ol class="nav mb-3 gap-3 small text-secondary list-unstyled d-flex flex-wrap">
+            <li class="d-inline-flex align-items-center gap-2 fw-semibold text-body" data-fg-sec-item="ks_wizard:0">1. Shipping</li>
+            <li class="d-inline-flex align-items-center gap-2" data-fg-sec-item="ks_wizard:1">2. Review</li>
+          </ol>
+          <div data-fg-sec-panel="ks_wizard:0">
+          <div class="row g-3">
+            <div class="col-12 col-md-12">
+              <div class="d-flex flex-column gap-1">
+                <label class="form-label fw-semibold mb-0" for="fg_shipping_city">Shipping city<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+                <input id="fg_shipping_city" type="text" class="form-control" data-fg-path="shipping_city" data-fg-kind="text">
+                <p id="fg_err_shipping_city" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+              </div>
+            </div>
+          </div>
+          </div>
+          <div data-fg-sec-panel="ks_wizard:1" hidden>
+          <div class="row g-3">
+            <div class="col-12 col-md-12">
+              <div class="d-flex flex-column gap-1">
+                <label class="form-label fw-semibold mb-0" for="fg_order_notes">Order notes</label>
+                <textarea id="fg_order_notes" class="form-control" rows="3" data-fg-path="order_notes" data-fg-kind="text"></textarea>
+                <p id="fg_err_order_notes" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+              </div>
+            </div>
+          </div>
+          </div>
+          <div class="mt-3 d-flex justify-content-between gap-2">
+            <button type="button" class="btn btn-outline-secondary" data-fg-step-back="ks_wizard" hidden>Back</button>
+            <button type="button" class="btn btn-primary" data-fg-step-next="ks_wizard">Next</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
         <div class="d-flex flex-column gap-1">
           <div class="form-check">
             <input id="fg_newsletter" type="checkbox" class="form-check-input" data-fg-path="newsletter" data-fg-kind="checkbox" checked>
@@ -1141,6 +1475,11 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       if (fgIsEmpty(v) || v === false) return "This field is required"
       return null
       },
+      'shipping_city': function () {
+      const v = fgGet("shipping_city")
+      if (fgIsEmpty(v) || v === false) return "This field is required"
+      return null
+      },
       'terms': function () {
       const v = fgGet("terms")
       if (fgIsEmpty(v) || v === false) return "This field is required"
@@ -1180,6 +1519,61 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       })
     }
 
+    var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"nav-link active","tabBase":"nav-link","stepActive":"d-inline-flex align-items-center gap-2 fw-semibold text-body","stepBase":"d-inline-flex align-items-center gap-2","stepPaths":[["twitter"],["github"]]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"nav-link active","tabBase":"nav-link","stepActive":"d-inline-flex align-items-center gap-2 fw-semibold text-body","stepBase":"d-inline-flex align-items-center gap-2","stepPaths":[["shipping_city"],["order_notes"]]}]
+    var fgSecState = {}
+    function fgSetSec(meta, index) {
+      fgSecState[meta.key] = index
+      var panels = document.querySelectorAll('[data-fg-sec-panel]')
+      Array.prototype.forEach.call(panels, function (panel) {
+        var value = panel.getAttribute('data-fg-sec-panel')
+        if (value.indexOf(meta.key + ':') === 0) panel.hidden = value !== meta.key + ':' + index
+      })
+      Array.prototype.forEach.call(
+        document.querySelectorAll('[data-fg-sec-btn^="' + meta.key + ':"]'),
+        function (btn) {
+          var active = btn.getAttribute('data-fg-sec-btn') === meta.key + ':' + index
+          btn.className = active ? meta.tabActive : meta.tabBase
+        },
+      )
+      Array.prototype.forEach.call(
+        document.querySelectorAll('[data-fg-sec-item^="' + meta.key + ':"]'),
+        function (item) {
+          var active = item.getAttribute('data-fg-sec-item') === meta.key + ':' + index
+          item.className = active ? meta.stepActive : meta.stepBase
+        },
+      )
+      var back = document.querySelector('[data-fg-step-back="' + meta.key + '"]')
+      var nextBtn = document.querySelector('[data-fg-step-next="' + meta.key + '"]')
+      if (back) back.hidden = index === 0
+      if (nextBtn) nextBtn.hidden = index >= meta.count - 1
+    }
+    FG_SECTIONS.forEach(function (meta) {
+      fgSecState[meta.key] = 0
+      Array.prototype.forEach.call(
+        document.querySelectorAll('[data-fg-sec-btn^="' + meta.key + ':"]'),
+        function (btn) {
+          btn.addEventListener('click', function () {
+            fgSetSec(meta, Number(btn.getAttribute('data-fg-sec-btn').split(':')[1]))
+          })
+        },
+      )
+      var back = document.querySelector('[data-fg-step-back="' + meta.key + '"]')
+      var nextBtn = document.querySelector('[data-fg-step-next="' + meta.key + '"]')
+      if (back) back.addEventListener('click', function () {
+        fgSetSec(meta, Math.max(0, fgSecState[meta.key] - 1))
+      })
+      if (nextBtn) nextBtn.addEventListener('click', function () {
+        var ok = true
+        var paths = meta.stepPaths[fgSecState[meta.key]] || []
+        paths.forEach(function (path) {
+          touched[path] = true
+          if (!validateField(path)) ok = false
+        })
+        if (ok) fgSetSec(meta, Math.min(meta.count - 1, fgSecState[meta.key] + 1))
+      })
+      fgSetSec(meta, 0)
+    })
+
     function buildPayload() {
       return {
         "full_name": fgGet("full_name"),
@@ -1200,6 +1594,10 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         "contact_method": fgGet("contact_method"),
         ...(fgVisible_contact_phone() ? { "contact_phone": fgGet("contact_phone") } : {}),
         ...(fgVisible_contact_other() ? { "contact_other": fgGet("contact_other") } : {}),
+        "twitter": fgGet("twitter"),
+        "github": fgGet("github"),
+        "shipping_city": fgGet("shipping_city"),
+        "order_notes": fgGet("order_notes"),
         "newsletter": fgGet("newsletter"),
         "terms": fgGet("terms"),
       }
@@ -1409,6 +1807,70 @@ exports[`html target > snapshot (tailwind) 1`] = `
         </div>
       </div>
       <div class="col-span-12 md:col-span-12">
+        <div>
+          <div class="mb-4 flex flex-wrap gap-1 border-b border-gray-200 dark:border-gray-700" role="tablist">
+            <button type="button" class="-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600" data-fg-sec-btn="ks_social_tabs:0">Social</button>
+            <button type="button" class="-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700" data-fg-sec-btn="ks_social_tabs:1">Code</button>
+          </div>
+          <div data-fg-sec-panel="ks_social_tabs:0">
+          <div class="grid grid-cols-12 gap-4">
+            <div class="col-span-12 md:col-span-12">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-semibold" for="fg_twitter">Twitter handle</label>
+                <input id="fg_twitter" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="twitter" data-fg-kind="text">
+                <p id="fg_err_twitter" class="text-xs text-red-600" role="alert" hidden></p>
+              </div>
+            </div>
+          </div>
+          </div>
+          <div data-fg-sec-panel="ks_social_tabs:1" hidden>
+          <div class="grid grid-cols-12 gap-4">
+            <div class="col-span-12 md:col-span-12">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-semibold" for="fg_github">GitHub username</label>
+                <input id="fg_github" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="github" data-fg-kind="text">
+                <p id="fg_err_github" class="text-xs text-red-600" role="alert" hidden></p>
+              </div>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div>
+          <ol class="mb-4 flex flex-wrap gap-4 text-sm text-gray-500">
+            <li class="flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100" data-fg-sec-item="ks_wizard:0">1. Shipping</li>
+            <li class="flex items-center gap-2" data-fg-sec-item="ks_wizard:1">2. Review</li>
+          </ol>
+          <div data-fg-sec-panel="ks_wizard:0">
+          <div class="grid grid-cols-12 gap-4">
+            <div class="col-span-12 md:col-span-12">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-semibold" for="fg_shipping_city">Shipping city<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+                <input id="fg_shipping_city" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="shipping_city" data-fg-kind="text">
+                <p id="fg_err_shipping_city" class="text-xs text-red-600" role="alert" hidden></p>
+              </div>
+            </div>
+          </div>
+          </div>
+          <div data-fg-sec-panel="ks_wizard:1" hidden>
+          <div class="grid grid-cols-12 gap-4">
+            <div class="col-span-12 md:col-span-12">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-semibold" for="fg_order_notes">Order notes</label>
+                <textarea id="fg_order_notes" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="3" data-fg-path="order_notes" data-fg-kind="text"></textarea>
+                <p id="fg_err_order_notes" class="text-xs text-red-600" role="alert" hidden></p>
+              </div>
+            </div>
+          </div>
+          </div>
+          <div class="mt-4 flex justify-between gap-2">
+            <button type="button" class="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-step-back="ks_wizard" hidden>Back</button>
+            <button type="button" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" data-fg-step-next="ks_wizard">Next</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
         <div class="flex flex-col gap-1.5">
           <div class="flex items-center gap-2">
             <input id="fg_newsletter" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" data-fg-path="newsletter" data-fg-kind="checkbox" checked>
@@ -1533,6 +1995,11 @@ exports[`html target > snapshot (tailwind) 1`] = `
       if (fgIsEmpty(v) || v === false) return "This field is required"
       return null
       },
+      'shipping_city': function () {
+      const v = fgGet("shipping_city")
+      if (fgIsEmpty(v) || v === false) return "This field is required"
+      return null
+      },
       'terms': function () {
       const v = fgGet("terms")
       if (fgIsEmpty(v) || v === false) return "This field is required"
@@ -1572,6 +2039,61 @@ exports[`html target > snapshot (tailwind) 1`] = `
       })
     }
 
+    var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600","tabBase":"-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700","stepActive":"flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100","stepBase":"flex items-center gap-2","stepPaths":[["twitter"],["github"]]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600","tabBase":"-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700","stepActive":"flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100","stepBase":"flex items-center gap-2","stepPaths":[["shipping_city"],["order_notes"]]}]
+    var fgSecState = {}
+    function fgSetSec(meta, index) {
+      fgSecState[meta.key] = index
+      var panels = document.querySelectorAll('[data-fg-sec-panel]')
+      Array.prototype.forEach.call(panels, function (panel) {
+        var value = panel.getAttribute('data-fg-sec-panel')
+        if (value.indexOf(meta.key + ':') === 0) panel.hidden = value !== meta.key + ':' + index
+      })
+      Array.prototype.forEach.call(
+        document.querySelectorAll('[data-fg-sec-btn^="' + meta.key + ':"]'),
+        function (btn) {
+          var active = btn.getAttribute('data-fg-sec-btn') === meta.key + ':' + index
+          btn.className = active ? meta.tabActive : meta.tabBase
+        },
+      )
+      Array.prototype.forEach.call(
+        document.querySelectorAll('[data-fg-sec-item^="' + meta.key + ':"]'),
+        function (item) {
+          var active = item.getAttribute('data-fg-sec-item') === meta.key + ':' + index
+          item.className = active ? meta.stepActive : meta.stepBase
+        },
+      )
+      var back = document.querySelector('[data-fg-step-back="' + meta.key + '"]')
+      var nextBtn = document.querySelector('[data-fg-step-next="' + meta.key + '"]')
+      if (back) back.hidden = index === 0
+      if (nextBtn) nextBtn.hidden = index >= meta.count - 1
+    }
+    FG_SECTIONS.forEach(function (meta) {
+      fgSecState[meta.key] = 0
+      Array.prototype.forEach.call(
+        document.querySelectorAll('[data-fg-sec-btn^="' + meta.key + ':"]'),
+        function (btn) {
+          btn.addEventListener('click', function () {
+            fgSetSec(meta, Number(btn.getAttribute('data-fg-sec-btn').split(':')[1]))
+          })
+        },
+      )
+      var back = document.querySelector('[data-fg-step-back="' + meta.key + '"]')
+      var nextBtn = document.querySelector('[data-fg-step-next="' + meta.key + '"]')
+      if (back) back.addEventListener('click', function () {
+        fgSetSec(meta, Math.max(0, fgSecState[meta.key] - 1))
+      })
+      if (nextBtn) nextBtn.addEventListener('click', function () {
+        var ok = true
+        var paths = meta.stepPaths[fgSecState[meta.key]] || []
+        paths.forEach(function (path) {
+          touched[path] = true
+          if (!validateField(path)) ok = false
+        })
+        if (ok) fgSetSec(meta, Math.min(meta.count - 1, fgSecState[meta.key] + 1))
+      })
+      fgSetSec(meta, 0)
+    })
+
     function buildPayload() {
       return {
         "full_name": fgGet("full_name"),
@@ -1592,6 +2114,10 @@ exports[`html target > snapshot (tailwind) 1`] = `
         "contact_method": fgGet("contact_method"),
         ...(fgVisible_contact_phone() ? { "contact_phone": fgGet("contact_phone") } : {}),
         ...(fgVisible_contact_other() ? { "contact_other": fgGet("contact_other") } : {}),
+        "twitter": fgGet("twitter"),
+        "github": fgGet("github"),
+        "shipping_city": fgGet("shipping_city"),
+        "order_notes": fgGet("order_notes"),
         "newsletter": fgGet("newsletter"),
         "terms": fgGet("terms"),
       }
@@ -1683,6 +2209,14 @@ exports[`html target > snapshot (vanilla) 1`] = `
   .fg-heading { margin: 0; }
   .fg-paragraph { margin: 0; color: var(--fg-color-muted); }
   .fg-divider { border: none; border-block-start: 1px solid var(--fg-color-border); margin-block: 0.25rem; }
+  .fg-tab-list { display: flex; flex-wrap: wrap; gap: 0.25rem; border-block-end: 1px solid var(--fg-color-border); margin-block-end: var(--fg-space); }
+  .fg-tab-button { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.5rem 0.875rem; font: inherit; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); background: none; border: none; border-block-end: 2px solid transparent; cursor: pointer; }
+  .fg-tab-button--active { color: var(--fg-color-primary); border-block-end-color: var(--fg-color-primary); }
+  .fg-step-list { display: flex; flex-wrap: wrap; gap: var(--fg-space); margin: 0 0 var(--fg-space); padding: 0; list-style: none; }
+  .fg-step-item { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: var(--fg-color-muted); }
+  .fg-step-item--active { color: var(--fg-color-text); font-weight: 600; }
+  .fg-step-actions { display: flex; justify-content: space-between; gap: 0.5rem; margin-block-start: var(--fg-space); }
+  .fg-button--secondary { background: var(--fg-color-surface); color: var(--fg-color-text); border-color: var(--fg-color-border); }
   .fg-group { margin: 0; padding: var(--fg-space); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
   .fg-group-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); }
   .fg-actions { margin-block-start: var(--fg-space); }
@@ -1857,6 +2391,70 @@ exports[`html target > snapshot (vanilla) 1`] = `
         </div>
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div>
+          <div class="fg-tab-list" role="tablist">
+            <button type="button" class="fg-tab-button fg-tab-button--active" data-fg-sec-btn="ks_social_tabs:0">Social</button>
+            <button type="button" class="fg-tab-button" data-fg-sec-btn="ks_social_tabs:1">Code</button>
+          </div>
+          <div data-fg-sec-panel="ks_social_tabs:0">
+          <div class="fg-grid">
+            <div class="fg-cell" style="grid-column: span 12 / span 12">
+              <div class="fg-field">
+                <label class="fg-label" for="fg_twitter">Twitter handle</label>
+                <input id="fg_twitter" type="text" class="fg-input" data-fg-path="twitter" data-fg-kind="text">
+                <p id="fg_err_twitter" class="fg-error" role="alert" hidden></p>
+              </div>
+            </div>
+          </div>
+          </div>
+          <div data-fg-sec-panel="ks_social_tabs:1" hidden>
+          <div class="fg-grid">
+            <div class="fg-cell" style="grid-column: span 12 / span 12">
+              <div class="fg-field">
+                <label class="fg-label" for="fg_github">GitHub username</label>
+                <input id="fg_github" type="text" class="fg-input" data-fg-path="github" data-fg-kind="text">
+                <p id="fg_err_github" class="fg-error" role="alert" hidden></p>
+              </div>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div>
+          <ol class="fg-step-list">
+            <li class="fg-step-item fg-step-item--active" data-fg-sec-item="ks_wizard:0">1. Shipping</li>
+            <li class="fg-step-item" data-fg-sec-item="ks_wizard:1">2. Review</li>
+          </ol>
+          <div data-fg-sec-panel="ks_wizard:0">
+          <div class="fg-grid">
+            <div class="fg-cell" style="grid-column: span 12 / span 12">
+              <div class="fg-field">
+                <label class="fg-label" for="fg_shipping_city">Shipping city<span class="fg-required" aria-hidden="true">*</span></label>
+                <input id="fg_shipping_city" type="text" class="fg-input" data-fg-path="shipping_city" data-fg-kind="text">
+                <p id="fg_err_shipping_city" class="fg-error" role="alert" hidden></p>
+              </div>
+            </div>
+          </div>
+          </div>
+          <div data-fg-sec-panel="ks_wizard:1" hidden>
+          <div class="fg-grid">
+            <div class="fg-cell" style="grid-column: span 12 / span 12">
+              <div class="fg-field">
+                <label class="fg-label" for="fg_order_notes">Order notes</label>
+                <textarea id="fg_order_notes" class="fg-textarea" rows="3" data-fg-path="order_notes" data-fg-kind="text"></textarea>
+                <p id="fg_err_order_notes" class="fg-error" role="alert" hidden></p>
+              </div>
+            </div>
+          </div>
+          </div>
+          <div class="fg-step-actions">
+            <button type="button" class="fg-button fg-button--secondary" data-fg-step-back="ks_wizard" hidden>Back</button>
+            <button type="button" class="fg-button fg-button--primary" data-fg-step-next="ks_wizard">Next</button>
+          </div>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
         <div class="fg-field">
           <div class="fg-checkbox-row">
             <input id="fg_newsletter" type="checkbox" class="fg-checkbox" data-fg-path="newsletter" data-fg-kind="checkbox" checked>
@@ -1981,6 +2579,11 @@ exports[`html target > snapshot (vanilla) 1`] = `
       if (fgIsEmpty(v) || v === false) return "This field is required"
       return null
       },
+      'shipping_city': function () {
+      const v = fgGet("shipping_city")
+      if (fgIsEmpty(v) || v === false) return "This field is required"
+      return null
+      },
       'terms': function () {
       const v = fgGet("terms")
       if (fgIsEmpty(v) || v === false) return "This field is required"
@@ -2020,6 +2623,61 @@ exports[`html target > snapshot (vanilla) 1`] = `
       })
     }
 
+    var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"fg-tab-button fg-tab-button--active","tabBase":"fg-tab-button","stepActive":"fg-step-item fg-step-item--active","stepBase":"fg-step-item","stepPaths":[["twitter"],["github"]]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"fg-tab-button fg-tab-button--active","tabBase":"fg-tab-button","stepActive":"fg-step-item fg-step-item--active","stepBase":"fg-step-item","stepPaths":[["shipping_city"],["order_notes"]]}]
+    var fgSecState = {}
+    function fgSetSec(meta, index) {
+      fgSecState[meta.key] = index
+      var panels = document.querySelectorAll('[data-fg-sec-panel]')
+      Array.prototype.forEach.call(panels, function (panel) {
+        var value = panel.getAttribute('data-fg-sec-panel')
+        if (value.indexOf(meta.key + ':') === 0) panel.hidden = value !== meta.key + ':' + index
+      })
+      Array.prototype.forEach.call(
+        document.querySelectorAll('[data-fg-sec-btn^="' + meta.key + ':"]'),
+        function (btn) {
+          var active = btn.getAttribute('data-fg-sec-btn') === meta.key + ':' + index
+          btn.className = active ? meta.tabActive : meta.tabBase
+        },
+      )
+      Array.prototype.forEach.call(
+        document.querySelectorAll('[data-fg-sec-item^="' + meta.key + ':"]'),
+        function (item) {
+          var active = item.getAttribute('data-fg-sec-item') === meta.key + ':' + index
+          item.className = active ? meta.stepActive : meta.stepBase
+        },
+      )
+      var back = document.querySelector('[data-fg-step-back="' + meta.key + '"]')
+      var nextBtn = document.querySelector('[data-fg-step-next="' + meta.key + '"]')
+      if (back) back.hidden = index === 0
+      if (nextBtn) nextBtn.hidden = index >= meta.count - 1
+    }
+    FG_SECTIONS.forEach(function (meta) {
+      fgSecState[meta.key] = 0
+      Array.prototype.forEach.call(
+        document.querySelectorAll('[data-fg-sec-btn^="' + meta.key + ':"]'),
+        function (btn) {
+          btn.addEventListener('click', function () {
+            fgSetSec(meta, Number(btn.getAttribute('data-fg-sec-btn').split(':')[1]))
+          })
+        },
+      )
+      var back = document.querySelector('[data-fg-step-back="' + meta.key + '"]')
+      var nextBtn = document.querySelector('[data-fg-step-next="' + meta.key + '"]')
+      if (back) back.addEventListener('click', function () {
+        fgSetSec(meta, Math.max(0, fgSecState[meta.key] - 1))
+      })
+      if (nextBtn) nextBtn.addEventListener('click', function () {
+        var ok = true
+        var paths = meta.stepPaths[fgSecState[meta.key]] || []
+        paths.forEach(function (path) {
+          touched[path] = true
+          if (!validateField(path)) ok = false
+        })
+        if (ok) fgSetSec(meta, Math.min(meta.count - 1, fgSecState[meta.key] + 1))
+      })
+      fgSetSec(meta, 0)
+    })
+
     function buildPayload() {
       return {
         "full_name": fgGet("full_name"),
@@ -2040,6 +2698,10 @@ exports[`html target > snapshot (vanilla) 1`] = `
         "contact_method": fgGet("contact_method"),
         ...(fgVisible_contact_phone() ? { "contact_phone": fgGet("contact_phone") } : {}),
         ...(fgVisible_contact_other() ? { "contact_other": fgGet("contact_other") } : {}),
+        "twitter": fgGet("twitter"),
+        "github": fgGet("github"),
+        "shipping_city": fgGet("shipping_city"),
+        "order_notes": fgGet("order_notes"),
         "newsletter": fgGet("newsletter"),
         "terms": fgGet("terms"),
       }
@@ -2117,6 +2779,10 @@ type FormData = {
   contact_method: string | null
   contact_phone: string
   contact_other: string
+  twitter: string
+  github: string
+  shipping_city: string
+  order_notes: string
   newsletter: boolean
   terms: boolean
 }
@@ -2140,6 +2806,10 @@ const INITIAL: FormData = {
   contact_method: null,
   contact_phone: "",
   contact_other: "",
+  twitter: "",
+  github: "",
+  shipping_city: "",
+  order_notes: "",
   newsletter: true,
   terms: false
 }
@@ -2201,6 +2871,11 @@ const validators: Record<string, (data: FormData) => string | null> = {
   if (fgIsEmpty(v) || v === false) return "This field is required"
   return null
   },
+  'shipping_city': function (data: FormData) {
+  const v = data.shipping_city
+  if (fgIsEmpty(v) || v === false) return "This field is required"
+  return null
+  },
   'terms': function (data: FormData) {
   const v = data.terms
   if (fgIsEmpty(v) || v === false) return "This field is required"
@@ -2228,10 +2903,16 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "contact_method": data.contact_method,
     ...(fgVisible_contact_phone(data) ? { "contact_phone": data.contact_phone } : {}),
     ...(fgVisible_contact_other(data) ? { "contact_other": data.contact_other } : {}),
+    "twitter": data.twitter,
+    "github": data.github,
+    "shipping_city": data.shipping_city,
+    "order_notes": data.order_notes,
     "newsletter": data.newsletter,
     "terms": data.terms,
   }
 }
+
+const fgStepPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
 
 export default function KitchenSinkForm({
   onSubmit,
@@ -2242,6 +2923,22 @@ export default function KitchenSinkForm({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [result, setResult] = useState<Record<string, unknown> | null>(null)
   const touched = useRef(new Set<string>())
+  const [fgSec_ks_social_tabs, setFgSec_ks_social_tabs] = useState(0)
+  const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)
+
+  function fgNext_ks_wizard(): void {
+    let ok = true
+    const next = { ...errors }
+    for (const path of fgStepPaths_ks_wizard[fgSec_ks_wizard] ?? []) {
+      touched.current.add(path)
+      const validate = validators[path]
+      const message = validate ? validate(form) : null
+      if (message) { next[path] = message; ok = false } else { delete next[path] }
+    }
+    setErrors(next)
+    if (ok && fgSec_ks_wizard < 1) setFgSec_ks_wizard(fgSec_ks_wizard + 1)
+  }
+
 
   function applyError(path: string, message: string | null): void {
     setErrors((prev) => {
@@ -2458,6 +3155,70 @@ export default function KitchenSinkForm({
           </div>
         )}
         <div className="col-12 col-md-12">
+          <div>
+            <div className="nav nav-tabs mb-3" role="tablist">
+              <button type="button" className={fgSec_ks_social_tabs === 0 ? "nav-link active" : "nav-link"} onClick={() => setFgSec_ks_social_tabs(0)}>Social</button>
+              <button type="button" className={fgSec_ks_social_tabs === 1 ? "nav-link active" : "nav-link"} onClick={() => setFgSec_ks_social_tabs(1)}>Code</button>
+            </div>
+            <div style={{ display: fgSec_ks_social_tabs === 0 ? undefined : 'none' }}>
+              <div className="row g-3">
+                <div className="col-12 col-md-12">
+                  <div className="d-flex flex-column gap-1">
+                    <label className="form-label fw-semibold mb-0" htmlFor="fg_twitter">Twitter handle</label>
+                    <input id="fg_twitter" type="text" value={form.twitter} className={errors['twitter'] ? "form-control is-invalid" : "form-control"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('twitter', e.target.value)} onBlur={() => touch('twitter')} />
+                    {errors['twitter'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['twitter']}</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style={{ display: fgSec_ks_social_tabs === 1 ? undefined : 'none' }}>
+              <div className="row g-3">
+                <div className="col-12 col-md-12">
+                  <div className="d-flex flex-column gap-1">
+                    <label className="form-label fw-semibold mb-0" htmlFor="fg_github">GitHub username</label>
+                    <input id="fg_github" type="text" value={form.github} className={errors['github'] ? "form-control is-invalid" : "form-control"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('github', e.target.value)} onBlur={() => touch('github')} />
+                    {errors['github'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['github']}</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="col-12 col-md-12">
+          <div>
+            <ol className="nav mb-3 gap-3 small text-secondary list-unstyled d-flex flex-wrap">
+              <li className={fgSec_ks_wizard === 0 ? "d-inline-flex align-items-center gap-2 fw-semibold text-body" : "d-inline-flex align-items-center gap-2"}>1. Shipping</li>
+              <li className={fgSec_ks_wizard === 1 ? "d-inline-flex align-items-center gap-2 fw-semibold text-body" : "d-inline-flex align-items-center gap-2"}>2. Review</li>
+            </ol>
+            <div style={{ display: fgSec_ks_wizard === 0 ? undefined : 'none' }}>
+              <div className="row g-3">
+                <div className="col-12 col-md-12">
+                  <div className="d-flex flex-column gap-1">
+                    <label className="form-label fw-semibold mb-0" htmlFor="fg_shipping_city">Shipping city<span className="text-danger ms-1" aria-hidden="true">*</span></label>
+                    <input id="fg_shipping_city" type="text" value={form.shipping_city} className={errors['shipping_city'] ? "form-control is-invalid" : "form-control"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('shipping_city', e.target.value)} onBlur={() => touch('shipping_city')} />
+                    {errors['shipping_city'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['shipping_city']}</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style={{ display: fgSec_ks_wizard === 1 ? undefined : 'none' }}>
+              <div className="row g-3">
+                <div className="col-12 col-md-12">
+                  <div className="d-flex flex-column gap-1">
+                    <label className="form-label fw-semibold mb-0" htmlFor="fg_order_notes">Order notes</label>
+                    <textarea id="fg_order_notes" rows={3} value={form.order_notes} className={errors['order_notes'] ? "form-control is-invalid" : "form-control"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('order_notes', e.target.value)} onBlur={() => touch('order_notes')} />
+                    {errors['order_notes'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['order_notes']}</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 d-flex justify-content-between gap-2">
+              {fgSec_ks_wizard > 0 && <button type="button" className="btn btn-outline-secondary" onClick={() => setFgSec_ks_wizard(fgSec_ks_wizard - 1)}>Back</button>}
+              {fgSec_ks_wizard < 1 && <button type="button" className="btn btn-primary" onClick={fgNext_ks_wizard}>Next</button>}
+            </div>
+          </div>
+        </div>
+        <div className="col-12 col-md-12">
           <div className="d-flex flex-column gap-1">
             <div className="form-check">
               <input id="fg_newsletter" type="checkbox" checked={form.newsletter} className="form-check-input" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('newsletter', e.target.checked); touch('newsletter') }} />
@@ -2522,6 +3283,10 @@ type FormData = {
   contact_method: string | null
   contact_phone: string
   contact_other: string
+  twitter: string
+  github: string
+  shipping_city: string
+  order_notes: string
   newsletter: boolean
   terms: boolean
 }
@@ -2545,6 +3310,10 @@ const INITIAL: FormData = {
   contact_method: null,
   contact_phone: "",
   contact_other: "",
+  twitter: "",
+  github: "",
+  shipping_city: "",
+  order_notes: "",
   newsletter: true,
   terms: false
 }
@@ -2606,6 +3375,11 @@ const validators: Record<string, (data: FormData) => string | null> = {
   if (fgIsEmpty(v) || v === false) return "This field is required"
   return null
   },
+  'shipping_city': function (data: FormData) {
+  const v = data.shipping_city
+  if (fgIsEmpty(v) || v === false) return "This field is required"
+  return null
+  },
   'terms': function (data: FormData) {
   const v = data.terms
   if (fgIsEmpty(v) || v === false) return "This field is required"
@@ -2633,10 +3407,16 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "contact_method": data.contact_method,
     ...(fgVisible_contact_phone(data) ? { "contact_phone": data.contact_phone } : {}),
     ...(fgVisible_contact_other(data) ? { "contact_other": data.contact_other } : {}),
+    "twitter": data.twitter,
+    "github": data.github,
+    "shipping_city": data.shipping_city,
+    "order_notes": data.order_notes,
     "newsletter": data.newsletter,
     "terms": data.terms,
   }
 }
+
+const fgStepPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
 
 export default function KitchenSinkForm({
   onSubmit,
@@ -2647,6 +3427,22 @@ export default function KitchenSinkForm({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [result, setResult] = useState<Record<string, unknown> | null>(null)
   const touched = useRef(new Set<string>())
+  const [fgSec_ks_social_tabs, setFgSec_ks_social_tabs] = useState(0)
+  const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)
+
+  function fgNext_ks_wizard(): void {
+    let ok = true
+    const next = { ...errors }
+    for (const path of fgStepPaths_ks_wizard[fgSec_ks_wizard] ?? []) {
+      touched.current.add(path)
+      const validate = validators[path]
+      const message = validate ? validate(form) : null
+      if (message) { next[path] = message; ok = false } else { delete next[path] }
+    }
+    setErrors(next)
+    if (ok && fgSec_ks_wizard < 1) setFgSec_ks_wizard(fgSec_ks_wizard + 1)
+  }
+
 
   function applyError(path: string, message: string | null): void {
     setErrors((prev) => {
@@ -2863,6 +3659,70 @@ export default function KitchenSinkForm({
           </div>
         )}
         <div className="col-span-12 md:col-span-12">
+          <div>
+            <div className="mb-4 flex flex-wrap gap-1 border-b border-gray-200 dark:border-gray-700" role="tablist">
+              <button type="button" className={fgSec_ks_social_tabs === 0 ? "-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600" : "-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700"} onClick={() => setFgSec_ks_social_tabs(0)}>Social</button>
+              <button type="button" className={fgSec_ks_social_tabs === 1 ? "-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600" : "-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700"} onClick={() => setFgSec_ks_social_tabs(1)}>Code</button>
+            </div>
+            <div style={{ display: fgSec_ks_social_tabs === 0 ? undefined : 'none' }}>
+              <div className="grid grid-cols-12 gap-4">
+                <div className="col-span-12 md:col-span-12">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-semibold" htmlFor="fg_twitter">Twitter handle</label>
+                    <input id="fg_twitter" type="text" value={form.twitter} className={errors['twitter'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('twitter', e.target.value)} onBlur={() => touch('twitter')} />
+                    {errors['twitter'] && <p className="text-xs text-red-600" role="alert">{errors['twitter']}</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style={{ display: fgSec_ks_social_tabs === 1 ? undefined : 'none' }}>
+              <div className="grid grid-cols-12 gap-4">
+                <div className="col-span-12 md:col-span-12">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-semibold" htmlFor="fg_github">GitHub username</label>
+                    <input id="fg_github" type="text" value={form.github} className={errors['github'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('github', e.target.value)} onBlur={() => touch('github')} />
+                    {errors['github'] && <p className="text-xs text-red-600" role="alert">{errors['github']}</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="col-span-12 md:col-span-12">
+          <div>
+            <ol className="mb-4 flex flex-wrap gap-4 text-sm text-gray-500">
+              <li className={fgSec_ks_wizard === 0 ? "flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100" : "flex items-center gap-2"}>1. Shipping</li>
+              <li className={fgSec_ks_wizard === 1 ? "flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100" : "flex items-center gap-2"}>2. Review</li>
+            </ol>
+            <div style={{ display: fgSec_ks_wizard === 0 ? undefined : 'none' }}>
+              <div className="grid grid-cols-12 gap-4">
+                <div className="col-span-12 md:col-span-12">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-semibold" htmlFor="fg_shipping_city">Shipping city<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+                    <input id="fg_shipping_city" type="text" value={form.shipping_city} className={errors['shipping_city'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('shipping_city', e.target.value)} onBlur={() => touch('shipping_city')} />
+                    {errors['shipping_city'] && <p className="text-xs text-red-600" role="alert">{errors['shipping_city']}</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style={{ display: fgSec_ks_wizard === 1 ? undefined : 'none' }}>
+              <div className="grid grid-cols-12 gap-4">
+                <div className="col-span-12 md:col-span-12">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-semibold" htmlFor="fg_order_notes">Order notes</label>
+                    <textarea id="fg_order_notes" rows={3} value={form.order_notes} className={errors['order_notes'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('order_notes', e.target.value)} onBlur={() => touch('order_notes')} />
+                    {errors['order_notes'] && <p className="text-xs text-red-600" role="alert">{errors['order_notes']}</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 flex justify-between gap-2">
+              {fgSec_ks_wizard > 0 && <button type="button" className="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" onClick={() => setFgSec_ks_wizard(fgSec_ks_wizard - 1)}>Back</button>}
+              {fgSec_ks_wizard < 1 && <button type="button" className="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" onClick={fgNext_ks_wizard}>Next</button>}
+            </div>
+          </div>
+        </div>
+        <div className="col-span-12 md:col-span-12">
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2">
               <input id="fg_newsletter" type="checkbox" checked={form.newsletter} className="h-4 w-4 rounded border-gray-300 accent-indigo-600" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('newsletter', e.target.checked); touch('newsletter') }} />
@@ -2928,6 +3788,10 @@ type FormData = {
   contact_method: string | null
   contact_phone: string
   contact_other: string
+  twitter: string
+  github: string
+  shipping_city: string
+  order_notes: string
   newsletter: boolean
   terms: boolean
 }
@@ -2951,6 +3815,10 @@ const INITIAL: FormData = {
   contact_method: null,
   contact_phone: "",
   contact_other: "",
+  twitter: "",
+  github: "",
+  shipping_city: "",
+  order_notes: "",
   newsletter: true,
   terms: false
 }
@@ -3012,6 +3880,11 @@ const validators: Record<string, (data: FormData) => string | null> = {
   if (fgIsEmpty(v) || v === false) return "This field is required"
   return null
   },
+  'shipping_city': function (data: FormData) {
+  const v = data.shipping_city
+  if (fgIsEmpty(v) || v === false) return "This field is required"
+  return null
+  },
   'terms': function (data: FormData) {
   const v = data.terms
   if (fgIsEmpty(v) || v === false) return "This field is required"
@@ -3039,10 +3912,16 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "contact_method": data.contact_method,
     ...(fgVisible_contact_phone(data) ? { "contact_phone": data.contact_phone } : {}),
     ...(fgVisible_contact_other(data) ? { "contact_other": data.contact_other } : {}),
+    "twitter": data.twitter,
+    "github": data.github,
+    "shipping_city": data.shipping_city,
+    "order_notes": data.order_notes,
     "newsletter": data.newsletter,
     "terms": data.terms,
   }
 }
+
+const fgStepPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
 
 export default function KitchenSinkForm({
   onSubmit,
@@ -3053,6 +3932,22 @@ export default function KitchenSinkForm({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [result, setResult] = useState<Record<string, unknown> | null>(null)
   const touched = useRef(new Set<string>())
+  const [fgSec_ks_social_tabs, setFgSec_ks_social_tabs] = useState(0)
+  const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)
+
+  function fgNext_ks_wizard(): void {
+    let ok = true
+    const next = { ...errors }
+    for (const path of fgStepPaths_ks_wizard[fgSec_ks_wizard] ?? []) {
+      touched.current.add(path)
+      const validate = validators[path]
+      const message = validate ? validate(form) : null
+      if (message) { next[path] = message; ok = false } else { delete next[path] }
+    }
+    setErrors(next)
+    if (ok && fgSec_ks_wizard < 1) setFgSec_ks_wizard(fgSec_ks_wizard + 1)
+  }
+
 
   function applyError(path: string, message: string | null): void {
     setErrors((prev) => {
@@ -3269,6 +4164,70 @@ export default function KitchenSinkForm({
           </div>
         )}
         <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+          <div>
+            <div className="fg-tab-list" role="tablist">
+              <button type="button" className={fgSec_ks_social_tabs === 0 ? "fg-tab-button fg-tab-button--active" : "fg-tab-button"} onClick={() => setFgSec_ks_social_tabs(0)}>Social</button>
+              <button type="button" className={fgSec_ks_social_tabs === 1 ? "fg-tab-button fg-tab-button--active" : "fg-tab-button"} onClick={() => setFgSec_ks_social_tabs(1)}>Code</button>
+            </div>
+            <div style={{ display: fgSec_ks_social_tabs === 0 ? undefined : 'none' }}>
+              <div className="fg-grid">
+                <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+                  <div className="fg-field">
+                    <label className="fg-label" htmlFor="fg_twitter">Twitter handle</label>
+                    <input id="fg_twitter" type="text" value={form.twitter} className={errors['twitter'] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('twitter', e.target.value)} onBlur={() => touch('twitter')} />
+                    {errors['twitter'] && <p className="fg-error" role="alert">{errors['twitter']}</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style={{ display: fgSec_ks_social_tabs === 1 ? undefined : 'none' }}>
+              <div className="fg-grid">
+                <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+                  <div className="fg-field">
+                    <label className="fg-label" htmlFor="fg_github">GitHub username</label>
+                    <input id="fg_github" type="text" value={form.github} className={errors['github'] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('github', e.target.value)} onBlur={() => touch('github')} />
+                    {errors['github'] && <p className="fg-error" role="alert">{errors['github']}</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+          <div>
+            <ol className="fg-step-list">
+              <li className={fgSec_ks_wizard === 0 ? "fg-step-item fg-step-item--active" : "fg-step-item"}>1. Shipping</li>
+              <li className={fgSec_ks_wizard === 1 ? "fg-step-item fg-step-item--active" : "fg-step-item"}>2. Review</li>
+            </ol>
+            <div style={{ display: fgSec_ks_wizard === 0 ? undefined : 'none' }}>
+              <div className="fg-grid">
+                <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+                  <div className="fg-field">
+                    <label className="fg-label" htmlFor="fg_shipping_city">Shipping city<span className="fg-required" aria-hidden="true">*</span></label>
+                    <input id="fg_shipping_city" type="text" value={form.shipping_city} className={errors['shipping_city'] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('shipping_city', e.target.value)} onBlur={() => touch('shipping_city')} />
+                    {errors['shipping_city'] && <p className="fg-error" role="alert">{errors['shipping_city']}</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style={{ display: fgSec_ks_wizard === 1 ? undefined : 'none' }}>
+              <div className="fg-grid">
+                <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+                  <div className="fg-field">
+                    <label className="fg-label" htmlFor="fg_order_notes">Order notes</label>
+                    <textarea id="fg_order_notes" rows={3} value={form.order_notes} className={errors['order_notes'] ? "fg-textarea fg-invalid" : "fg-textarea"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('order_notes', e.target.value)} onBlur={() => touch('order_notes')} />
+                    {errors['order_notes'] && <p className="fg-error" role="alert">{errors['order_notes']}</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="fg-step-actions">
+              {fgSec_ks_wizard > 0 && <button type="button" className="fg-button fg-button--secondary" onClick={() => setFgSec_ks_wizard(fgSec_ks_wizard - 1)}>Back</button>}
+              {fgSec_ks_wizard < 1 && <button type="button" className="fg-button fg-button--primary" onClick={fgNext_ks_wizard}>Next</button>}
+            </div>
+          </div>
+        </div>
+        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
           <div className="fg-field">
             <div className="fg-checkbox-row">
               <input id="fg_newsletter" type="checkbox" checked={form.newsletter} className="fg-checkbox" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('newsletter', e.target.checked); touch('newsletter') }} />
@@ -3323,6 +4282,10 @@ const form = reactive({
   contact_method: null,
   contact_phone: "",
   contact_other: "",
+  twitter: "",
+  github: "",
+  shipping_city: "",
+  order_notes: "",
   newsletter: true,
   terms: false
 })
@@ -3401,6 +4364,11 @@ const validators: Record<string, () => string | null> = {
   if (fgIsEmpty(v) || v === false) return "This field is required"
   return null
   },
+  'shipping_city': function () {
+  const v = form.shipping_city
+  if (fgIsEmpty(v) || v === false) return "This field is required"
+  return null
+  },
   'terms': function () {
   const v = form.terms
   if (fgIsEmpty(v) || v === false) return "This field is required"
@@ -3435,6 +4403,19 @@ function validateAll(): boolean {
   return ok
 }
 
+const fgSec_ks_social_tabs = ref(0)
+const fgSec_ks_wizard = ref(0)
+
+const fgStepPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
+function fgNext_ks_wizard(): void {
+  let ok = true
+  for (const path of fgStepPaths_ks_wizard[fgSec_ks_wizard.value] ?? []) {
+    touch(path)
+    if (errors[path]) ok = false
+  }
+  if (ok && fgSec_ks_wizard.value < 1) fgSec_ks_wizard.value++
+}
+
 function buildPayload(): Record<string, unknown> {
   return {
     "full_name": form.full_name,
@@ -3455,6 +4436,10 @@ function buildPayload(): Record<string, unknown> {
     "contact_method": form.contact_method,
     ...(fgVisible_contact_phone() ? { "contact_phone": form.contact_phone } : {}),
     ...(fgVisible_contact_other() ? { "contact_other": form.contact_other } : {}),
+    "twitter": form.twitter,
+    "github": form.github,
+    "shipping_city": form.shipping_city,
+    "order_notes": form.order_notes,
     "newsletter": form.newsletter,
     "terms": form.terms,
   }
@@ -3633,6 +4618,70 @@ async function onSubmit(): Promise<void> {
         </div>
       </div>
       <div class="col-12 col-md-12">
+        <div>
+          <div class="nav nav-tabs mb-3" role="tablist">
+            <button type="button" :class="fgSec_ks_social_tabs === 0 ? 'nav-link active' : 'nav-link'" @click="fgSec_ks_social_tabs = 0">Social</button>
+            <button type="button" :class="fgSec_ks_social_tabs === 1 ? 'nav-link active' : 'nav-link'" @click="fgSec_ks_social_tabs = 1">Code</button>
+          </div>
+          <div v-show="fgSec_ks_social_tabs === 0">
+            <div class="row g-3">
+              <div class="col-12 col-md-12">
+                <div class="d-flex flex-column gap-1">
+                  <label class="form-label fw-semibold mb-0" for="fg_twitter">Twitter handle</label>
+                  <input id="fg_twitter" v-model="form.twitter" type="text" class="form-control" :class="{ 'is-invalid': !!errors['twitter'] }" @blur="touch('twitter')" @input="revalidate('twitter')">
+                  <p v-if="errors['twitter']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['twitter'] }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-show="fgSec_ks_social_tabs === 1">
+            <div class="row g-3">
+              <div class="col-12 col-md-12">
+                <div class="d-flex flex-column gap-1">
+                  <label class="form-label fw-semibold mb-0" for="fg_github">GitHub username</label>
+                  <input id="fg_github" v-model="form.github" type="text" class="form-control" :class="{ 'is-invalid': !!errors['github'] }" @blur="touch('github')" @input="revalidate('github')">
+                  <p v-if="errors['github']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['github'] }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <div>
+          <ol class="nav mb-3 gap-3 small text-secondary list-unstyled d-flex flex-wrap">
+            <li :class="fgSec_ks_wizard === 0 ? 'd-inline-flex align-items-center gap-2 fw-semibold text-body' : 'd-inline-flex align-items-center gap-2'">1. Shipping</li>
+            <li :class="fgSec_ks_wizard === 1 ? 'd-inline-flex align-items-center gap-2 fw-semibold text-body' : 'd-inline-flex align-items-center gap-2'">2. Review</li>
+          </ol>
+          <div v-show="fgSec_ks_wizard === 0">
+            <div class="row g-3">
+              <div class="col-12 col-md-12">
+                <div class="d-flex flex-column gap-1">
+                  <label class="form-label fw-semibold mb-0" for="fg_shipping_city">Shipping city<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+                  <input id="fg_shipping_city" v-model="form.shipping_city" type="text" class="form-control" :class="{ 'is-invalid': !!errors['shipping_city'] }" @blur="touch('shipping_city')" @input="revalidate('shipping_city')">
+                  <p v-if="errors['shipping_city']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['shipping_city'] }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-show="fgSec_ks_wizard === 1">
+            <div class="row g-3">
+              <div class="col-12 col-md-12">
+                <div class="d-flex flex-column gap-1">
+                  <label class="form-label fw-semibold mb-0" for="fg_order_notes">Order notes</label>
+                  <textarea id="fg_order_notes" v-model="form.order_notes" class="form-control" rows="3" :class="{ 'is-invalid': !!errors['order_notes'] }" @blur="touch('order_notes')" @input="revalidate('order_notes')"></textarea>
+                  <p v-if="errors['order_notes']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['order_notes'] }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3 d-flex justify-content-between gap-2">
+            <button v-if="fgSec_ks_wizard > 0" type="button" class="btn btn-outline-secondary" @click="fgSec_ks_wizard--">Back</button>
+            <button v-if="fgSec_ks_wizard < 1" type="button" class="btn btn-primary" @click="fgNext_ks_wizard()">Next</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
         <div class="d-flex flex-column gap-1">
           <div class="form-check">
             <input id="fg_newsletter" v-model="form.newsletter" type="checkbox" class="form-check-input" @change="touch('newsletter')">
@@ -3686,6 +4735,10 @@ const form = reactive({
   contact_method: null,
   contact_phone: "",
   contact_other: "",
+  twitter: "",
+  github: "",
+  shipping_city: "",
+  order_notes: "",
   newsletter: true,
   terms: false
 })
@@ -3764,6 +4817,11 @@ const validators: Record<string, () => string | null> = {
   if (fgIsEmpty(v) || v === false) return "This field is required"
   return null
   },
+  'shipping_city': function () {
+  const v = form.shipping_city
+  if (fgIsEmpty(v) || v === false) return "This field is required"
+  return null
+  },
   'terms': function () {
   const v = form.terms
   if (fgIsEmpty(v) || v === false) return "This field is required"
@@ -3798,6 +4856,19 @@ function validateAll(): boolean {
   return ok
 }
 
+const fgSec_ks_social_tabs = ref(0)
+const fgSec_ks_wizard = ref(0)
+
+const fgStepPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
+function fgNext_ks_wizard(): void {
+  let ok = true
+  for (const path of fgStepPaths_ks_wizard[fgSec_ks_wizard.value] ?? []) {
+    touch(path)
+    if (errors[path]) ok = false
+  }
+  if (ok && fgSec_ks_wizard.value < 1) fgSec_ks_wizard.value++
+}
+
 function buildPayload(): Record<string, unknown> {
   return {
     "full_name": form.full_name,
@@ -3818,6 +4889,10 @@ function buildPayload(): Record<string, unknown> {
     "contact_method": form.contact_method,
     ...(fgVisible_contact_phone() ? { "contact_phone": form.contact_phone } : {}),
     ...(fgVisible_contact_other() ? { "contact_other": form.contact_other } : {}),
+    "twitter": form.twitter,
+    "github": form.github,
+    "shipping_city": form.shipping_city,
+    "order_notes": form.order_notes,
     "newsletter": form.newsletter,
     "terms": form.terms,
   }
@@ -3996,6 +5071,70 @@ async function onSubmit(): Promise<void> {
         </div>
       </div>
       <div class="col-span-12 md:col-span-12">
+        <div>
+          <div class="mb-4 flex flex-wrap gap-1 border-b border-gray-200 dark:border-gray-700" role="tablist">
+            <button type="button" :class="fgSec_ks_social_tabs === 0 ? '-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600' : '-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700'" @click="fgSec_ks_social_tabs = 0">Social</button>
+            <button type="button" :class="fgSec_ks_social_tabs === 1 ? '-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600' : '-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700'" @click="fgSec_ks_social_tabs = 1">Code</button>
+          </div>
+          <div v-show="fgSec_ks_social_tabs === 0">
+            <div class="grid grid-cols-12 gap-4">
+              <div class="col-span-12 md:col-span-12">
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-sm font-semibold" for="fg_twitter">Twitter handle</label>
+                  <input id="fg_twitter" v-model="form.twitter" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['twitter'] }" @blur="touch('twitter')" @input="revalidate('twitter')">
+                  <p v-if="errors['twitter']" class="text-xs text-red-600" role="alert">{{ errors['twitter'] }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-show="fgSec_ks_social_tabs === 1">
+            <div class="grid grid-cols-12 gap-4">
+              <div class="col-span-12 md:col-span-12">
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-sm font-semibold" for="fg_github">GitHub username</label>
+                  <input id="fg_github" v-model="form.github" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['github'] }" @blur="touch('github')" @input="revalidate('github')">
+                  <p v-if="errors['github']" class="text-xs text-red-600" role="alert">{{ errors['github'] }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div>
+          <ol class="mb-4 flex flex-wrap gap-4 text-sm text-gray-500">
+            <li :class="fgSec_ks_wizard === 0 ? 'flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100' : 'flex items-center gap-2'">1. Shipping</li>
+            <li :class="fgSec_ks_wizard === 1 ? 'flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100' : 'flex items-center gap-2'">2. Review</li>
+          </ol>
+          <div v-show="fgSec_ks_wizard === 0">
+            <div class="grid grid-cols-12 gap-4">
+              <div class="col-span-12 md:col-span-12">
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-sm font-semibold" for="fg_shipping_city">Shipping city<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+                  <input id="fg_shipping_city" v-model="form.shipping_city" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['shipping_city'] }" @blur="touch('shipping_city')" @input="revalidate('shipping_city')">
+                  <p v-if="errors['shipping_city']" class="text-xs text-red-600" role="alert">{{ errors['shipping_city'] }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-show="fgSec_ks_wizard === 1">
+            <div class="grid grid-cols-12 gap-4">
+              <div class="col-span-12 md:col-span-12">
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-sm font-semibold" for="fg_order_notes">Order notes</label>
+                  <textarea id="fg_order_notes" v-model="form.order_notes" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="3" :class="{ 'border-red-500 focus:ring-red-200': !!errors['order_notes'] }" @blur="touch('order_notes')" @input="revalidate('order_notes')"></textarea>
+                  <p v-if="errors['order_notes']" class="text-xs text-red-600" role="alert">{{ errors['order_notes'] }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 flex justify-between gap-2">
+            <button v-if="fgSec_ks_wizard > 0" type="button" class="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" @click="fgSec_ks_wizard--">Back</button>
+            <button v-if="fgSec_ks_wizard < 1" type="button" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" @click="fgNext_ks_wizard()">Next</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
         <div class="flex flex-col gap-1.5">
           <div class="flex items-center gap-2">
             <input id="fg_newsletter" v-model="form.newsletter" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" @change="touch('newsletter')">
@@ -4049,6 +5188,10 @@ const form = reactive({
   contact_method: null,
   contact_phone: "",
   contact_other: "",
+  twitter: "",
+  github: "",
+  shipping_city: "",
+  order_notes: "",
   newsletter: true,
   terms: false
 })
@@ -4127,6 +5270,11 @@ const validators: Record<string, () => string | null> = {
   if (fgIsEmpty(v) || v === false) return "This field is required"
   return null
   },
+  'shipping_city': function () {
+  const v = form.shipping_city
+  if (fgIsEmpty(v) || v === false) return "This field is required"
+  return null
+  },
   'terms': function () {
   const v = form.terms
   if (fgIsEmpty(v) || v === false) return "This field is required"
@@ -4161,6 +5309,19 @@ function validateAll(): boolean {
   return ok
 }
 
+const fgSec_ks_social_tabs = ref(0)
+const fgSec_ks_wizard = ref(0)
+
+const fgStepPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
+function fgNext_ks_wizard(): void {
+  let ok = true
+  for (const path of fgStepPaths_ks_wizard[fgSec_ks_wizard.value] ?? []) {
+    touch(path)
+    if (errors[path]) ok = false
+  }
+  if (ok && fgSec_ks_wizard.value < 1) fgSec_ks_wizard.value++
+}
+
 function buildPayload(): Record<string, unknown> {
   return {
     "full_name": form.full_name,
@@ -4181,6 +5342,10 @@ function buildPayload(): Record<string, unknown> {
     "contact_method": form.contact_method,
     ...(fgVisible_contact_phone() ? { "contact_phone": form.contact_phone } : {}),
     ...(fgVisible_contact_other() ? { "contact_other": form.contact_other } : {}),
+    "twitter": form.twitter,
+    "github": form.github,
+    "shipping_city": form.shipping_city,
+    "order_notes": form.order_notes,
     "newsletter": form.newsletter,
     "terms": form.terms,
   }
@@ -4359,6 +5524,70 @@ async function onSubmit(): Promise<void> {
         </div>
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div>
+          <div class="fg-tab-list" role="tablist">
+            <button type="button" :class="fgSec_ks_social_tabs === 0 ? 'fg-tab-button fg-tab-button--active' : 'fg-tab-button'" @click="fgSec_ks_social_tabs = 0">Social</button>
+            <button type="button" :class="fgSec_ks_social_tabs === 1 ? 'fg-tab-button fg-tab-button--active' : 'fg-tab-button'" @click="fgSec_ks_social_tabs = 1">Code</button>
+          </div>
+          <div v-show="fgSec_ks_social_tabs === 0">
+            <div class="fg-grid">
+              <div class="fg-cell" style="grid-column: span 12 / span 12">
+                <div class="fg-field">
+                  <label class="fg-label" for="fg_twitter">Twitter handle</label>
+                  <input id="fg_twitter" v-model="form.twitter" type="text" class="fg-input" :class="{ 'fg-invalid': !!errors['twitter'] }" @blur="touch('twitter')" @input="revalidate('twitter')">
+                  <p v-if="errors['twitter']" class="fg-error" role="alert">{{ errors['twitter'] }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-show="fgSec_ks_social_tabs === 1">
+            <div class="fg-grid">
+              <div class="fg-cell" style="grid-column: span 12 / span 12">
+                <div class="fg-field">
+                  <label class="fg-label" for="fg_github">GitHub username</label>
+                  <input id="fg_github" v-model="form.github" type="text" class="fg-input" :class="{ 'fg-invalid': !!errors['github'] }" @blur="touch('github')" @input="revalidate('github')">
+                  <p v-if="errors['github']" class="fg-error" role="alert">{{ errors['github'] }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div>
+          <ol class="fg-step-list">
+            <li :class="fgSec_ks_wizard === 0 ? 'fg-step-item fg-step-item--active' : 'fg-step-item'">1. Shipping</li>
+            <li :class="fgSec_ks_wizard === 1 ? 'fg-step-item fg-step-item--active' : 'fg-step-item'">2. Review</li>
+          </ol>
+          <div v-show="fgSec_ks_wizard === 0">
+            <div class="fg-grid">
+              <div class="fg-cell" style="grid-column: span 12 / span 12">
+                <div class="fg-field">
+                  <label class="fg-label" for="fg_shipping_city">Shipping city<span class="fg-required" aria-hidden="true">*</span></label>
+                  <input id="fg_shipping_city" v-model="form.shipping_city" type="text" class="fg-input" :class="{ 'fg-invalid': !!errors['shipping_city'] }" @blur="touch('shipping_city')" @input="revalidate('shipping_city')">
+                  <p v-if="errors['shipping_city']" class="fg-error" role="alert">{{ errors['shipping_city'] }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-show="fgSec_ks_wizard === 1">
+            <div class="fg-grid">
+              <div class="fg-cell" style="grid-column: span 12 / span 12">
+                <div class="fg-field">
+                  <label class="fg-label" for="fg_order_notes">Order notes</label>
+                  <textarea id="fg_order_notes" v-model="form.order_notes" class="fg-textarea" rows="3" :class="{ 'fg-invalid': !!errors['order_notes'] }" @blur="touch('order_notes')" @input="revalidate('order_notes')"></textarea>
+                  <p v-if="errors['order_notes']" class="fg-error" role="alert">{{ errors['order_notes'] }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="fg-step-actions">
+            <button v-if="fgSec_ks_wizard > 0" type="button" class="fg-button fg-button--secondary" @click="fgSec_ks_wizard--">Back</button>
+            <button v-if="fgSec_ks_wizard < 1" type="button" class="fg-button fg-button--primary" @click="fgNext_ks_wizard()">Next</button>
+          </div>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
         <div class="fg-field">
           <div class="fg-checkbox-row">
             <input id="fg_newsletter" v-model="form.newsletter" type="checkbox" class="fg-checkbox" @change="touch('newsletter')">
@@ -4427,6 +5656,14 @@ async function onSubmit(): Promise<void> {
 .fg-heading { margin: 0; }
 .fg-paragraph { margin: 0; color: var(--fg-color-muted); }
 .fg-divider { border: none; border-block-start: 1px solid var(--fg-color-border); margin-block: 0.25rem; }
+.fg-tab-list { display: flex; flex-wrap: wrap; gap: 0.25rem; border-block-end: 1px solid var(--fg-color-border); margin-block-end: var(--fg-space); }
+.fg-tab-button { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.5rem 0.875rem; font: inherit; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); background: none; border: none; border-block-end: 2px solid transparent; cursor: pointer; }
+.fg-tab-button--active { color: var(--fg-color-primary); border-block-end-color: var(--fg-color-primary); }
+.fg-step-list { display: flex; flex-wrap: wrap; gap: var(--fg-space); margin: 0 0 var(--fg-space); padding: 0; list-style: none; }
+.fg-step-item { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: var(--fg-color-muted); }
+.fg-step-item--active { color: var(--fg-color-text); font-weight: 600; }
+.fg-step-actions { display: flex; justify-content: space-between; gap: 0.5rem; margin-block-start: var(--fg-space); }
+.fg-button--secondary { background: var(--fg-color-surface); color: var(--fg-color-text); border-color: var(--fg-color-border); }
 .fg-group { margin: 0; padding: var(--fg-space); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
 .fg-group-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); }
 .fg-actions { margin-block-start: var(--fg-space); }

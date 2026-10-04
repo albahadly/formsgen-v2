@@ -11,7 +11,8 @@ import {
   validatorsLiteral,
   visibilityFunctions,
 } from '../logic'
-import { renderTree } from '../markup'
+import { renderTree, type RenderedSectionHost } from '../markup'
+import { collectSectionHosts } from '../structure'
 import { esc } from '@/registry/emitters/shared'
 import type { ExportTarget } from './types'
 
@@ -31,6 +32,7 @@ export const htmlTarget: ExportTarget = {
   generate: ({ schema, css }) => {
     const accessor = (path: string): string => `fgGet(${JSON.stringify(path)})`
     const fields = collectExportFields(schema)
+    const hosts = collectSectionHosts(schema)
 
     // Conditional wrappers register their test expressions by index.
     const conditionTests: string[] = []
@@ -39,7 +41,43 @@ export const htmlTarget: ExportTarget = {
       return ` data-fg-cond="${conditionTests.length - 1}"`
     }
 
-    const markup = renderTree(schema, { lang: 'html', css, accessor, conditionAttr })
+    const renderSections = (host: RenderedSectionHost): string => {
+      const panels = host.sections
+        .map(
+          (s) =>
+            `  <div data-fg-sec-panel="${host.key}:${s.index}"${s.index > 0 ? ' hidden' : ''}>\n${indentBlock(s.html, 1)}\n  </div>`,
+        )
+        .join('\n')
+      if (host.kind === 'tabs') {
+        const buttons = host.sections
+          .map(
+            (s) =>
+              `    <button type="button" class="${s.index === 0 ? css.classes('tabButtonActive') : css.classes('tabButton')}" data-fg-sec-btn="${host.key}:${s.index}">${s.label}</button>`,
+          )
+          .join('\n')
+        return `<div>\n  <div class="${css.classes('tabList')}" role="tablist">\n${buttons}\n  </div>\n${panels}\n</div>`
+      }
+      const items = host.sections
+        .map(
+          (s) =>
+            `    <li class="${s.index === 0 ? css.classes('stepItemActive') : css.classes('stepItem')}" data-fg-sec-item="${host.key}:${s.index}">${s.index + 1}. ${s.label}</li>`,
+        )
+        .join('\n')
+      return `<div>\n  <ol class="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div class="${css.classes('stepActions')}">\n    <button type="button" class="${css.classes('buttonSecondary')}" data-fg-step-back="${host.key}" hidden>Back</button>\n    <button type="button" class="${css.classes('submitButton')}" data-fg-step-next="${host.key}">Next</button>\n  </div>\n</div>`
+    }
+
+    const markup = renderTree(schema, { lang: 'html', css, accessor, conditionAttr, renderSections })
+
+    const sectionsMeta = hosts.map((host) => ({
+      key: host.key,
+      kind: host.kind,
+      count: host.sections.length,
+      tabActive: css.classes('tabButtonActive'),
+      tabBase: css.classes('tabButton'),
+      stepActive: css.classes('stepItemActive'),
+      stepBase: css.classes('stepItem'),
+      stepPaths: host.sections.map((s) => s.paths),
+    }))
 
     const assets = css.assets()
     const headAssets = [
@@ -126,6 +164,61 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
         if (el) el.hidden = !c.test()
       })
     }
+
+    var FG_SECTIONS = ${JSON.stringify(sectionsMeta)}
+    var fgSecState = {}
+    function fgSetSec(meta, index) {
+      fgSecState[meta.key] = index
+      var panels = document.querySelectorAll('[data-fg-sec-panel]')
+      Array.prototype.forEach.call(panels, function (panel) {
+        var value = panel.getAttribute('data-fg-sec-panel')
+        if (value.indexOf(meta.key + ':') === 0) panel.hidden = value !== meta.key + ':' + index
+      })
+      Array.prototype.forEach.call(
+        document.querySelectorAll('[data-fg-sec-btn^="' + meta.key + ':"]'),
+        function (btn) {
+          var active = btn.getAttribute('data-fg-sec-btn') === meta.key + ':' + index
+          btn.className = active ? meta.tabActive : meta.tabBase
+        },
+      )
+      Array.prototype.forEach.call(
+        document.querySelectorAll('[data-fg-sec-item^="' + meta.key + ':"]'),
+        function (item) {
+          var active = item.getAttribute('data-fg-sec-item') === meta.key + ':' + index
+          item.className = active ? meta.stepActive : meta.stepBase
+        },
+      )
+      var back = document.querySelector('[data-fg-step-back="' + meta.key + '"]')
+      var nextBtn = document.querySelector('[data-fg-step-next="' + meta.key + '"]')
+      if (back) back.hidden = index === 0
+      if (nextBtn) nextBtn.hidden = index >= meta.count - 1
+    }
+    FG_SECTIONS.forEach(function (meta) {
+      fgSecState[meta.key] = 0
+      Array.prototype.forEach.call(
+        document.querySelectorAll('[data-fg-sec-btn^="' + meta.key + ':"]'),
+        function (btn) {
+          btn.addEventListener('click', function () {
+            fgSetSec(meta, Number(btn.getAttribute('data-fg-sec-btn').split(':')[1]))
+          })
+        },
+      )
+      var back = document.querySelector('[data-fg-step-back="' + meta.key + '"]')
+      var nextBtn = document.querySelector('[data-fg-step-next="' + meta.key + '"]')
+      if (back) back.addEventListener('click', function () {
+        fgSetSec(meta, Math.max(0, fgSecState[meta.key] - 1))
+      })
+      if (nextBtn) nextBtn.addEventListener('click', function () {
+        var ok = true
+        var paths = meta.stepPaths[fgSecState[meta.key]] || []
+        paths.forEach(function (path) {
+          touched[path] = true
+          if (!validateField(path)) ok = false
+        })
+        if (ok) fgSetSec(meta, Math.min(meta.count - 1, fgSecState[meta.key] + 1))
+      })
+      fgSetSec(meta, 0)
+    })
 
     function buildPayload() {
       return ${payloadExpr(schema, accessor).split('\n').join('\n      ')}

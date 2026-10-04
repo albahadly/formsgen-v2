@@ -18,6 +18,6 @@ export function createNode(type: string, takenNames: Iterable<string>): ElementN
   }
   if (def.hasValue) node.name = uniqueName(type, takenNames)
   if (def.defaultValidation) node.validation = structuredClone(def.defaultValidation)
-  if (def.isContainer) node.children = []
+  if (def.isContainer) node.children = def.createChildren ? def.createChildren() : []
   return node
 }

@@ -176,6 +176,104 @@
   color: var(--fg-color-muted);
 }
 
+.fg-tab-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  border-block-end: 1px solid var(--fg-color-border);
+  margin-block-end: var(--fg-space);
+}
+
+.fg-tab-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--fg-color-muted);
+  background: none;
+  border: none;
+  border-block-end: 2px solid transparent;
+  cursor: pointer;
+}
+
+.fg-tab-button--active {
+  color: var(--fg-color-primary);
+  border-block-end-color: var(--fg-color-primary);
+}
+
+.fg-tab-button--error {
+  color: var(--fg-color-error);
+}
+
+.fg-tab-error-dot {
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: 50%;
+  background: var(--fg-color-error);
+}
+
+.fg-step-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fg-space);
+  margin: 0 0 var(--fg-space);
+  padding: 0;
+  list-style: none;
+}
+
+.fg-step-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--fg-color-muted);
+}
+
+.fg-step-item--active {
+  color: var(--fg-color-text);
+  font-weight: 600;
+}
+
+.fg-step-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--fg-color-surface);
+  border: 1px solid var(--fg-color-border);
+}
+
+.fg-step-item--active .fg-step-dot {
+  background: var(--fg-color-primary);
+  border-color: var(--fg-color-primary);
+  color: var(--fg-color-primary-contrast);
+}
+
+.fg-step-item--done .fg-step-dot {
+  border-color: var(--fg-color-primary);
+  color: var(--fg-color-primary);
+}
+
+.fg-step-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-block-start: var(--fg-space);
+}
+
+.fg-button--secondary {
+  background: var(--fg-color-surface);
+  color: var(--fg-color-text);
+  border-color: var(--fg-color-border);
+}
+
 .fg-actions {
   margin-block-start: var(--fg-space);
 }

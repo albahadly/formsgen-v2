@@ -81,6 +81,11 @@ describe('buildDefaultData', () => {
       contact_method: null,
       contact_phone: '',
       contact_other: '',
+      // tabs/steps sections are data-transparent:
+      twitter: '',
+      github: '',
+      shipping_city: '',
+      order_notes: '',
       newsletter: true, // props.default wins over the type default
       terms: false,
     })

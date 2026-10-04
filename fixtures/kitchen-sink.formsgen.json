@@ -171,6 +171,73 @@
       ]
     },
     {
+      "id": "ks-social-tabs",
+      "type": "tabs",
+      "props": {},
+      "children": [
+        {
+          "id": "ks-tab-social",
+          "type": "tab",
+          "props": { "label": "Social" },
+          "children": [
+            {
+              "id": "ks-twitter",
+              "type": "text",
+              "name": "twitter",
+              "props": { "label": "Twitter handle" }
+            }
+          ]
+        },
+        {
+          "id": "ks-tab-code",
+          "type": "tab",
+          "props": { "label": "Code" },
+          "children": [
+            {
+              "id": "ks-github",
+              "type": "text",
+              "name": "github",
+              "props": { "label": "GitHub username" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ks-wizard",
+      "type": "steps",
+      "props": {},
+      "children": [
+        {
+          "id": "ks-step-shipping",
+          "type": "step",
+          "props": { "label": "Shipping" },
+          "children": [
+            {
+              "id": "ks-shipping-city",
+              "type": "text",
+              "name": "shipping_city",
+              "props": { "label": "Shipping city" },
+              "validation": [{ "rule": "required" }]
+            }
+          ]
+        },
+        {
+          "id": "ks-step-review",
+          "type": "step",
+          "props": { "label": "Review" },
+          "children": [
+            {
+              "id": "ks-order-notes",
+              "type": "textarea",
+              "name": "order_notes",
+              "props": { "label": "Order notes" }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "ks-newsletter",
       "type": "checkbox",
       "name": "newsletter",

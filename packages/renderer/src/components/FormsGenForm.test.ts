@@ -19,6 +19,7 @@ async function fillValidForm(wrapper: ReturnType<typeof mountForm>) {
   await wrapper.get('input[name="username"]').setValue('jane')
   await wrapper.get('input[id$="-pro"]').setValue(true) // radio: plan = pro
   await wrapper.get('select[name="contact_method"]').setValue('email')
+  await wrapper.get('input[name="shipping_city"]').setValue('Muscat') // step 1
   await wrapper.get('input[name="terms"]').setValue(true)
 }
 
@@ -81,6 +82,10 @@ describe('FormsGenForm', () => {
       plan: 'pro',
       interests: [],
       contact_method: 'email',
+      twitter: '',
+      github: '',
+      shipping_city: 'Muscat',
+      order_notes: '',
       newsletter: true,
       terms: true,
     })
@@ -154,6 +159,56 @@ describe('FormsGenForm', () => {
     expect(wrapper.get('h2.fg-heading').text()).toBe('Kitchen Sink')
     expect(wrapper.find('p.fg-paragraph').exists()).toBe(true)
     expect(wrapper.find('hr.fg-divider').exists()).toBe(true)
+  })
+
+  it('tabs: only the active tab renders; clicking switches', async () => {
+    const wrapper = mountForm()
+    expect(wrapper.find('input[name="twitter"]').exists()).toBe(true)
+    expect(wrapper.find('input[name="github"]').exists()).toBe(false)
+    const codeTab = wrapper
+      .findAll('.fg-tab-button')
+      .find((b) => b.text().includes('Code'))!
+    await codeTab.trigger('click')
+    expect(wrapper.find('input[name="github"]').exists()).toBe(true)
+    expect(wrapper.find('input[name="twitter"]').exists()).toBe(false)
+  })
+
+  it('steps: Next is blocked until the current step validates', async () => {
+    const wrapper = mountForm()
+    expect(wrapper.find('input[name="shipping_city"]').exists()).toBe(true)
+    expect(wrapper.find('textarea[name="order_notes"]').exists()).toBe(false)
+    const next = wrapper
+      .findAll('.fg-step-actions button')
+      .find((b) => b.text() === 'Next')!
+    await next.trigger('click')
+    // required shipping_city is empty -> stays on step 1 with an error
+    expect(wrapper.find('textarea[name="order_notes"]').exists()).toBe(false)
+    expect(wrapper.text()).toContain('This field is required')
+    await wrapper.get('input[name="shipping_city"]').setValue('Muscat')
+    await next.trigger('click')
+    expect(wrapper.find('textarea[name="order_notes"]').exists()).toBe(true)
+    // Back returns to step 1 with the value intact
+    const back = wrapper
+      .findAll('.fg-step-actions button')
+      .find((b) => b.text() === 'Back')!
+    await back.trigger('click')
+    expect(
+      (wrapper.get('input[name="shipping_city"]').element as HTMLInputElement).value,
+    ).toBe('Muscat')
+  })
+
+  it('tab headers show an error dot after a failed submit', async () => {
+    const schema = fixtureSchema()
+    // make the hidden tab's field required
+    const tabs = schema.tree.find((n) => n.id === 'ks-social-tabs')!
+    tabs.children![1]!.children![0]!.validation = [{ rule: 'required' }]
+    const wrapper = mount(FormsGenForm, { props: { schema } })
+    await wrapper.get('form').trigger('submit')
+    const codeTab = wrapper
+      .findAll('.fg-tab-button')
+      .find((b) => b.text().includes('Code'))!
+    expect(codeTab.classes()).toContain('fg-tab-button--error')
+    expect(codeTab.find('.fg-tab-error-dot').exists()).toBe(true)
   })
 
   it('merges a provided modelValue over defaults', () => {

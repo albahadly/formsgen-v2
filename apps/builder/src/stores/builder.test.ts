@@ -1,6 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
+  acceptsChildType,
   canDropInto,
   containerDepth,
   subtreeHeight,
@@ -134,6 +135,62 @@ describe('builder store', () => {
     expect(copy.children?.[0]?.id).not.toBe(field.id)
     expect(copy.children?.[0]?.name).not.toBe(field.name)
     expect(store.selectedId).toBe(copy.id)
+  })
+})
+
+describe('tabs/steps section rules', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
+
+  it('acceptsChildType enforces host/section pairing', () => {
+    expect(acceptsChildType('tabs', 'tab')).toBe(true)
+    expect(acceptsChildType('tabs', 'text')).toBe(false)
+    expect(acceptsChildType('steps', 'step')).toBe(true)
+    expect(acceptsChildType('steps', 'tab')).toBe(false)
+    expect(acceptsChildType('tab', 'text')).toBe(true)
+    expect(acceptsChildType('tab', 'step')).toBe(false)
+    expect(acceptsChildType('group', 'tab')).toBe(false)
+    expect(acceptsChildType(null, 'tab')).toBe(false)
+    expect(acceptsChildType(null, 'tabs')).toBe(true)
+  })
+
+  it('creating tabs scaffolds two sections; addSection appends more', () => {
+    const store = useBuilderStore()
+    const tabs = store.addElement('tabs')
+    expect(tabs.children?.map((c) => c.type)).toEqual(['tab', 'tab'])
+    const added = store.addSection(tabs.id)
+    expect(added?.type).toBe('tab')
+    expect(tabs.children).toHaveLength(3)
+    expect(store.selectedId).toBe(added!.id)
+  })
+
+  it('addElement with a tabs host selected lands in the first tab', () => {
+    const store = useBuilderStore()
+    const tabs = store.addElement('tabs')
+    store.select(tabs.id)
+    const field = store.addElement('text')
+    expect(tabs.children![0]!.children?.map((c) => c.id)).toEqual([field.id])
+  })
+
+  it('canDropInto refuses sections outside hosts and fields in hosts', () => {
+    const store = useBuilderStore()
+    const tabs = store.addElement('tabs')
+    const tab = tabs.children![0]!
+    store.select(tab.id)
+    const field = store.addElement('text')
+    expect(canDropInto(store.schema.tree, field, tabs.id)).toBe(false)
+    expect(canDropInto(store.schema.tree, field, tab.id)).toBe(true)
+    expect(canDropInto(store.schema.tree, tab, null)).toBe(false)
+    expect(canDropInto(store.schema.tree, tab, tabs.id)).toBe(true)
+  })
+
+  it('moveOut refuses to lift a section out of its host', () => {
+    const store = useBuilderStore()
+    const tabs = store.addElement('tabs')
+    const tab = tabs.children![0]!
+    expect(store.moveOut(tab.id)).toBe(false)
+    expect(tabs.children).toHaveLength(2)
   })
 })
 

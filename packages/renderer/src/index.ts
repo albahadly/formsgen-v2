@@ -53,6 +53,8 @@ export {
 } from './schema'
 
 export {
+  SECTION_CONTAINERS,
+  SECTION_TYPES,
   TEXT_INPUT_TYPES,
   coreElements,
   getCoreElement,

@@ -14,8 +14,8 @@ import {
   type CsFieldKind,
 } from '../csharp'
 import { collectExportFields } from '../logic'
-import { renderTree } from '../markup'
-import { fieldDefault, pathKey } from '../structure'
+import { renderTree, type RenderedSectionHost } from '../markup'
+import { collectSectionHosts, fieldDefault, pathKey } from '../structure'
 import { componentName, type ExportTarget } from './types'
 
 function indentBlock(text: string, depth: number): string {
@@ -36,7 +36,41 @@ export const blazorTarget: ExportTarget = {
   generate: ({ schema, css }) => {
     const name = componentName(schema)
     const fields = collectExportFields(schema)
+    const hosts = collectSectionHosts(schema)
     const accessor = (path: string): string => `Model.${pascalMember(pathKey(path))}`
+
+    // Tabs/steps: int state fields + @if-rendered panels. Per-step
+    // validation is NOT gated here — EditForm validates on final submit
+    // (DataAnnotations is submit-scoped; see the generated README).
+    const renderSections = (host: RenderedSectionHost): string => {
+      const state = `fgSec_${host.key}`
+      const panels = host.sections
+        .map(
+          (s) => `@if (${state} == ${s.index})\n{\n${indentBlock(s.html, 1)}\n}`,
+        )
+        .join('\n')
+      if (host.kind === 'tabs') {
+        const buttons = host.sections
+          .map(
+            (s) =>
+              `    <button type="button" class="@(${state} == ${s.index} ? "${css.classes('tabButtonActive')}" : "${css.classes('tabButton')}")" @onclick="() => ${state} = ${s.index}">${s.label}</button>`,
+          )
+          .join('\n')
+        return `<div>\n  <div class="${css.classes('tabList')}" role="tablist">\n${buttons}\n  </div>\n${panels}\n</div>`
+      }
+      const items = host.sections
+        .map(
+          (s) =>
+            `    <li class="@(${state} == ${s.index} ? "${css.classes('stepItemActive')}" : "${css.classes('stepItem')}")">${s.index + 1}. ${s.label}</li>`,
+        )
+        .join('\n')
+      const last = host.sections.length - 1
+      return `<div>\n  <ol class="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div class="${css.classes('stepActions')}">\n    @if (${state} > 0)\n    {\n        <button type="button" class="${css.classes('buttonSecondary')}" @onclick="() => ${state}--">Back</button>\n    }\n    @if (${state} < ${last})\n    {\n        <button type="button" class="${css.classes('submitButton')}" @onclick="() => ${state}++">Next</button>\n    }\n  </div>\n</div>`
+    }
+
+    const sectionFields = hosts
+      .map((host) => `    private int fgSec_${host.key} = 0;`)
+      .join('\n')
 
     const markup = renderTree(schema, {
       lang: 'blazor',
@@ -46,6 +80,7 @@ export const blazorTarget: ExportTarget = {
       // Conditions in markup are C#, not JS.
       conditionExpr: (groups) => csConditions(groups, (key) => `Model.${pascalMember(key)}`),
       wrapConditional: (expr, block) => `@if (${expr})\n{\n${indentBlock(block, 1)}\n}`,
+      renderSections,
     })
 
     // Model properties (flat: one per field, PascalCase of the data path).
@@ -172,7 +207,7 @@ ${indentBlock(markup, 2)}
 @code {
     private ${name}Model Model { get; set; } = new();
     private string? ResultJson { get; set; }
-
+${sectionFields ? `\n${sectionFields}\n` : ''}
     private ${submitUrl ? 'async Task' : 'void'} HandleValidSubmit()
     {
         var payload = BuildPayload();

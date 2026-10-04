@@ -15,5 +15,6 @@ Read the latest handoff before starting any phase (Phase Standard, REBUILD_PROMP
 | 09 | React + Blazor export targets | ✅ Complete | [phase-09-react-blazor.md](./phase-09-react-blazor.md) |
 | 10 | Full element catalog | ✅ Complete (13 new types; tabs/steps/files deferred — see handoff) | [phase-10-catalog.md](./phase-10-catalog.md) |
 | 11 | Polish: a11y, RTL, README, demo fixture | ✅ Complete | [phase-11-polish.md](./phase-11-polish.md) |
+| 10b | Tabs + Steps (wizard) containers | ✅ Complete | [phase-10b-tabs-steps.md](./phase-10b-tabs-steps.md) |
 
-**All 11 planned phases are complete.** Post-plan backlog: see the pointers section of [phase-11-polish.md](./phase-11-polish.md).
+**All 11 planned phases are complete**, plus 10b from the backlog. Remaining backlog: see the pointers sections of [phase-11-polish.md](./phase-11-polish.md) and [phase-10b-tabs-steps.md](./phase-10b-tabs-steps.md).

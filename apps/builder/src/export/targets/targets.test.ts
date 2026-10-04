@@ -155,6 +155,41 @@ describe('blazor target', () => {
   })
 })
 
+describe('tabs/steps across code targets', () => {
+  it('vue-standalone wires section refs and step gating', () => {
+    const [file] = generate('vue-standalone')
+    const code = file!.content
+    expect(code).toContain('const fgSec_ks_social_tabs = ref(0)')
+    expect(code).toContain('const fgStepPaths_ks_wizard = [["shipping_city"], ["order_notes"]]')
+    expect(code).toContain('function fgNext_ks_wizard()')
+    expect(code).toContain(`v-show="fgSec_ks_wizard === 1"`)
+  })
+
+  it('react wires useState sections and a step handler', () => {
+    const [file] = generate('react')
+    const code = file!.content
+    expect(code).toContain('const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)')
+    expect(code).toContain('function fgNext_ks_wizard(): void')
+    expect(code).toContain("fgStepPaths_ks_wizard[fgSec_ks_wizard] ?? []")
+  })
+
+  it('html emits section metadata and runtime hooks', () => {
+    const [file] = generate('html')
+    const code = file!.content
+    expect(code).toContain('data-fg-sec-panel="ks_social_tabs:1" hidden')
+    expect(code).toContain('data-fg-step-next="ks_wizard"')
+    expect(code).toContain('"stepPaths":[["shipping_city"],["order_notes"]]')
+  })
+
+  it('blazor renders @if panels and int section fields', () => {
+    const [file] = generate('blazor')
+    const code = file!.content
+    expect(code).toContain('private int fgSec_ks_wizard = 0;')
+    expect(code).toContain('@if (fgSec_ks_wizard == 0)')
+    expect(code).toContain('@onclick="() => fgSec_ks_wizard++"')
+  })
+})
+
 describe('html target', () => {
   it.each(frameworks)('snapshot (%s)', (framework) => {
     const [file] = generate('html', framework)

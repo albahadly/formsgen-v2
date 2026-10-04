@@ -30,6 +30,17 @@ const CLASSES: Record<Slot, string> = {
   heading: 'font-semibold',
   paragraph: 'text-sm text-gray-600 dark:text-gray-300',
   divider: 'border-t border-gray-200 dark:border-gray-700',
+  tabList: 'mb-4 flex flex-wrap gap-1 border-b border-gray-200 dark:border-gray-700',
+  tabButton:
+    '-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700',
+  tabButtonActive:
+    '-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600',
+  stepList: 'mb-4 flex flex-wrap gap-4 text-sm text-gray-500',
+  stepItem: 'flex items-center gap-2',
+  stepItemActive: 'flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100',
+  stepActions: 'mt-4 flex justify-between gap-2',
+  buttonSecondary:
+    'rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50',
 }
 
 export const tailwindAdapter: CssFrameworkAdapter = {

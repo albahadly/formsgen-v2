@@ -5,6 +5,8 @@
 import {
   NAME_PATTERN,
   SCHEMA_ID,
+  SECTION_CONTAINERS,
+  SECTION_TYPES,
   collectNames,
   findNodeById,
   findParent,
@@ -18,6 +20,7 @@ import {
 } from '@formsgen/renderer'
 import { nanoid } from 'nanoid'
 import { defineStore } from 'pinia'
+import { createSection } from '@/registry/elements/sections'
 import { createNode } from '@/registry/factory'
 
 export function createEmptySchema(): FormSchema {
@@ -51,19 +54,46 @@ export const useBuilderStore = defineStore('builder', {
   },
   actions: {
     /**
-     * Adds a new element of `type`. When the selection is a container, the
-     * element is added inside it; otherwise it is appended at the root.
+     * Adds a new element of `type`. When the selection is a container that
+     * accepts it, the element is added inside it (for tabs/steps hosts the
+     * FIRST section receives it); otherwise it is appended at the root.
      */
     addElement(type: string): ElementNode {
       const node = createNode(type, this.takenNames)
+      let target = this.schema.tree
       const selected = this.selectedNode
-      const target =
-        selected && getCoreElement(selected.type)?.isContainer
-          ? (selected.children ??= [])
-          : this.schema.tree
+      if (selected && getCoreElement(selected.type)?.isContainer) {
+        if (acceptsChildType(selected.type, type)) {
+          target = selected.children ??= []
+        } else if (SECTION_CONTAINERS[selected.type]) {
+          // Selected a tabs/steps host: drop into its first section.
+          const first = (selected.children ?? []).find(
+            (c) => c.type === SECTION_CONTAINERS[selected.type],
+          )
+          if (first && acceptsChildType(first.type, type)) target = first.children ??= []
+        }
+      }
+      if (target === this.schema.tree && !acceptsChildType(null, type)) {
+        // Section nodes can't live at the root; wrap-less add is refused.
+        return node
+      }
       target.push(node)
       this.selectedId = node.id
       return node
+    },
+
+    /** Appends a new tab/step to a tabs/steps host and selects it. */
+    addSection(hostId: string): ElementNode | null {
+      const host = findNodeById(this.schema.tree, hostId)
+      const kind = host ? SECTION_CONTAINERS[host.type] : undefined
+      if (!host || !kind) return null
+      const section = createSection(
+        kind as 'tab' | 'step',
+        (host.children?.length ?? 0) + 1,
+      )
+      ;(host.children ??= []).push(section)
+      this.selectedId = section.id
+      return section
     },
 
     removeElement(id: string): void {
@@ -208,8 +238,9 @@ export const useBuilderStore = defineStore('builder', {
       const parent = findParent(this.schema.tree, id)
       if (!parent) return false
       const grandparent = findParent(this.schema.tree, parent.id)
-      const targetList = grandparent ? (grandparent.children ?? []) : this.schema.tree
       const node = findNodeById(this.schema.tree, id)!
+      if (!acceptsChildType(grandparent?.type ?? null, node.type)) return false
+      const targetList = grandparent ? (grandparent.children ?? []) : this.schema.tree
       parent.children = (parent.children ?? []).filter((n) => n.id !== id)
       targetList.splice(targetList.findIndex((n) => n.id === parent.id) + 1, 0, node)
       return true
@@ -264,14 +295,30 @@ export function containerDepth(tree: ElementNode[], parentId: string | null): nu
 export const MAX_NESTING_DEPTH = 5
 
 /**
+ * Type-level containment rules: tabs/steps hosts accept ONLY their section
+ * type, section nodes live ONLY in their host, and nothing else nests a
+ * section. `parentType === null` means the root list.
+ */
+export function acceptsChildType(parentType: string | null, childType: string): boolean {
+  const requiredHost = SECTION_TYPES[childType]
+  if (requiredHost) return parentType === requiredHost
+  const sectionOnly = parentType ? SECTION_CONTAINERS[parentType] : undefined
+  if (sectionOnly) return false // host takes only its section type (handled above)
+  return true
+}
+
+/**
  * Whether `node` may be dropped into the list owned by `targetParentId`:
- * never into its own subtree, never beyond MAX_NESTING_DEPTH.
+ * type rules first, then never into its own subtree, then depth.
  */
 export function canDropInto(
   tree: ElementNode[],
   node: ElementNode,
   targetParentId: string | null,
 ): boolean {
+  const parent = targetParentId === null ? null : findNodeById(tree, targetParentId)
+  if (targetParentId !== null && !parent) return false
+  if (!acceptsChildType(parent?.type ?? null, node.type)) return false
   if (targetParentId !== null) {
     if (targetParentId === node.id) return false
     if (node.children && findNodeById(node.children, targetParentId)) return false

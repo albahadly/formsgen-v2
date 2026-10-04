@@ -26,6 +26,14 @@ const CLASSES: Record<Slot, string> = {
   heading: 'fg-heading',
   paragraph: 'fg-paragraph',
   divider: 'fg-divider',
+  tabList: 'fg-tab-list',
+  tabButton: 'fg-tab-button',
+  tabButtonActive: 'fg-tab-button fg-tab-button--active',
+  stepList: 'fg-step-list',
+  stepItem: 'fg-step-item',
+  stepItemActive: 'fg-step-item fg-step-item--active',
+  stepActions: 'fg-step-actions',
+  buttonSecondary: 'fg-button fg-button--secondary',
 }
 
 /** Mirrors packages/renderer/src/styles.css for self-contained artifacts. */
@@ -75,6 +83,14 @@ ${overrides ? `${overrides}\n` : ''}  font-family: var(--fg-font);
 .fg-heading { margin: 0; }
 .fg-paragraph { margin: 0; color: var(--fg-color-muted); }
 .fg-divider { border: none; border-block-start: 1px solid var(--fg-color-border); margin-block: 0.25rem; }
+.fg-tab-list { display: flex; flex-wrap: wrap; gap: 0.25rem; border-block-end: 1px solid var(--fg-color-border); margin-block-end: var(--fg-space); }
+.fg-tab-button { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.5rem 0.875rem; font: inherit; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); background: none; border: none; border-block-end: 2px solid transparent; cursor: pointer; }
+.fg-tab-button--active { color: var(--fg-color-primary); border-block-end-color: var(--fg-color-primary); }
+.fg-step-list { display: flex; flex-wrap: wrap; gap: var(--fg-space); margin: 0 0 var(--fg-space); padding: 0; list-style: none; }
+.fg-step-item { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: var(--fg-color-muted); }
+.fg-step-item--active { color: var(--fg-color-text); font-weight: 600; }
+.fg-step-actions { display: flex; justify-content: space-between; gap: 0.5rem; margin-block-start: var(--fg-space); }
+.fg-button--secondary { background: var(--fg-color-surface); color: var(--fg-color-text); border-color: var(--fg-color-border); }
 .fg-group { margin: 0; padding: var(--fg-space); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
 .fg-group-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); }
 .fg-actions { margin-block-start: var(--fg-space); }

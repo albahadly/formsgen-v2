@@ -6,6 +6,12 @@ import { groupElement } from './elements/group'
 import { numberElement, rangeElement } from './elements/number'
 import { selectElement } from './elements/select'
 import {
+  stepElement,
+  stepsElement,
+  tabElement,
+  tabsElement,
+} from './elements/sections'
+import {
   dividerElement,
   headingElement,
   paragraphElement,
@@ -70,6 +76,10 @@ for (const def of [
   // structure
   groupElement,
   columnsElement,
+  tabsElement,
+  tabElement,
+  stepsElement,
+  stepElement,
 ]) {
   registerElement(def)
 }

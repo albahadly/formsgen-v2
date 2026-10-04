@@ -3,6 +3,7 @@
 // via the CSS adapter and delegates leaf fields to the registry emitters.
 
 import {
+  SECTION_CONTAINERS,
   getCoreElement,
   joinPath,
   type ElementNode,
@@ -39,6 +40,28 @@ export interface MarkupOptions {
    * conditions to C#). Defaults to the shared JS compiler.
    */
   conditionExpr?: ((groups: NonNullable<ElementNode['conditions']>) => string) | undefined
+  /**
+   * Renders a tabs/steps host from its pre-rendered section panels; each
+   * target wires its own active-section state. Without it, sections render
+   * sequentially as labeled fieldsets.
+   */
+  renderSections?: ((host: RenderedSectionHost) => string) | undefined
+}
+
+export interface RenderedSection {
+  node: ElementNode
+  label: string
+  index: number
+  /** The section's children, already rendered as a grid block. */
+  html: string
+}
+
+export interface RenderedSectionHost {
+  node: ElementNode
+  kind: 'tabs' | 'steps'
+  /** Identifier-safe key for generated state names. */
+  key: string
+  sections: RenderedSection[]
 }
 
 function indentBlock(text: string, depth: number): string {
@@ -84,7 +107,34 @@ export function renderTree(schema: FormSchema, options: MarkupOptions): string {
     let inner: string
     if (core.isContainer) {
       const childPath = node.name ? joinPath(parentPath, node.name) : parentPath
-      if (node.type === 'columns') {
+      const sectionType = SECTION_CONTAINERS[node.type]
+      if (sectionType) {
+        const sections: RenderedSection[] = (node.children ?? [])
+          .filter((c) => c.type === sectionType)
+          .map((section, index) => ({
+            node: section,
+            index,
+            label:
+              typeof section.props['label'] === 'string' && section.props['label'] !== ''
+                ? esc(section.props['label'] as string)
+                : `${sectionType === 'tab' ? 'Tab' : 'Step'} ${index + 1}`,
+            html: `<div ${classAttr}="${css.classes('grid')}">\n${indentBlock(renderNodes(section.children ?? [], childPath, 12), 1)}\n</div>`,
+          }))
+        const host: RenderedSectionHost = {
+          node,
+          kind: node.type as 'tabs' | 'steps',
+          key: node.id.replace(/[^A-Za-z0-9]/g, '_'),
+          sections,
+        }
+        inner = options.renderSections
+          ? options.renderSections(host)
+          : sections
+              .map(
+                (s) =>
+                  `<fieldset ${classAttr}="${css.classes('group')}">\n  <legend ${classAttr}="${css.classes('groupLabel')}">${s.label}</legend>\n${indentBlock(s.html, 1)}\n</fieldset>`,
+              )
+              .join('\n')
+      } else if (node.type === 'columns') {
         const count = Number(node.props['count'] ?? 2)
         const childSpan = Math.max(1, Math.round(12 / count))
         inner = `<div ${classAttr}="${css.classes('grid')}">\n${indentBlock(renderNodes(node.children ?? [], childPath, childSpan), 1)}\n</div>`

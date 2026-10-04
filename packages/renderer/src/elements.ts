@@ -54,6 +54,22 @@ export const coreElements: Record<string, CoreElementMeta> = {
   divider: meta('divider', false, false, () => undefined),
   group: meta('group', false, true, () => undefined),
   columns: meta('columns', false, true, () => undefined),
+  tabs: meta('tabs', false, true, () => undefined),
+  tab: meta('tab', false, true, () => undefined),
+  steps: meta('steps', false, true, () => undefined),
+  step: meta('step', false, true, () => undefined),
+}
+
+/** Container types whose children are restricted to one section type. */
+export const SECTION_CONTAINERS: Record<string, string> = {
+  tabs: 'tab',
+  steps: 'step',
+}
+
+/** Section types that may ONLY live inside their parent container type. */
+export const SECTION_TYPES: Record<string, string> = {
+  tab: 'tabs',
+  step: 'steps',
 }
 
 export function getCoreElement(type: string): CoreElementMeta | undefined {
