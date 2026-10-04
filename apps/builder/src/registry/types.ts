@@ -3,7 +3,7 @@
 // per element type in ./elements; nothing about a type is hardcoded in the
 // palette, canvas, or properties panel.
 
-import type { ElementNode, Rule } from '@formsgen/renderer'
+import type { ElementNode, MessageCatalog, Rule } from '@formsgen/renderer'
 import type { CssFrameworkAdapter } from '@/export/css/types'
 
 export type ElementCategory = 'fields' | 'static' | 'structure'
@@ -18,6 +18,8 @@ export interface EmitCtx {
   /** DOM id for the control. */
   id: string
   required: boolean
+  /** Built-in texts for the form's locale. */
+  messages: MessageCatalog
 }
 
 /** Emits the element's field markup for one target language. */

@@ -1,5 +1,5 @@
 import {
-  SUBMITTED_ANNOUNCEMENT,
+  submittedAnnouncement,
   errorsAnnouncement,
   parseFormSchema,
   stepAnnouncement,
@@ -10,8 +10,10 @@ import kitchenSink from '../../../../../fixtures/kitchen-sink.formsgen.json'
 import { getCssAdapter, listCssAdapters, type CssFrameworkId } from '../css'
 import { getTarget, listTargets } from './index'
 
+// parseFormSchema returns the object it was given: clone so a test that
+// mutates its schema cannot leak into later tests.
 function fixture(): FormSchema {
-  const result = parseFormSchema(kitchenSink)
+  const result = parseFormSchema(JSON.parse(JSON.stringify(kitchenSink)))
   if (!result.ok) throw new Error(result.errors.join('\n'))
   return result.schema
 }
@@ -313,7 +315,7 @@ describe('aria-live announcements across code targets', () => {
     expect(c).toContain(JSON.stringify(step2))
     expect(c).toContain(JSON.stringify(oneError))
     expect(c).toContain('fgAnnounce(fgErrorsText(Object.keys(errors).length))')
-    expect(c).toContain(`fgAnnounce(${JSON.stringify(SUBMITTED_ANNOUNCEMENT)})`)
+    expect(c).toContain(`fgAnnounce(${JSON.stringify(submittedAnnouncement())})`)
     expect(c).toContain('@click="fgGo_ks_wizard(fgSec_ks_wizard - 1)"')
   })
 
@@ -339,7 +341,7 @@ describe('aria-live announcements across code targets', () => {
     expect(c).toContain('private async Task FgOnInvalidSubmit(EditContext context)')
     expect(c).toContain(JSON.stringify(step2))
     expect(c).toContain(JSON.stringify(oneError))
-    expect(c).toContain(`await FgAnnounce(${JSON.stringify(SUBMITTED_ANNOUNCEMENT)});`)
+    expect(c).toContain(`await FgAnnounce(${JSON.stringify(submittedAnnouncement())});`)
     expect(c).toContain('@onclick="() => FgGo_ks_wizard(fgSec_ks_wizard - 1)"')
   })
 
@@ -363,6 +365,70 @@ describe('aria-live announcements across code targets', () => {
   })
 })
 
+describe('Arabic forms (meta.locale "ar") across code targets', () => {
+  const arabic = (): FormSchema => {
+    const schema = fixture()
+    schema.meta.locale = 'ar'
+    schema.meta.dir = 'rtl'
+    return schema
+  }
+  const gen = (id: string) =>
+    getTarget(id)!.generate({ schema: arabic(), css: getCssAdapter('vanilla') })[0]!.content
+
+  it.each(['vue-standalone', 'react', 'html', 'blazor'])(
+    '%s emits Arabic rule messages, buttons, steps and tag labels',
+    (id) => {
+      const c = gen(id)
+      expect(c).toContain('هذا الحقل مطلوب')
+      expect(c).toContain('يجب إدخال رابط صالح')
+      expect(c).toContain('يجب أن يكون بين 3 و20')
+      expect(c).not.toContain('This field is required')
+      expect(c).toContain('التالي')
+      expect(c).toContain('السابق')
+      expect(c).toContain('إرسال')
+      expect(c).toContain('الخطوة 2 من 2: Review')
+      expect(c).toContain('تم إرسال النموذج.')
+      expect(c).toContain('إزالة')
+      expect(c).not.toMatch(/>(Submit|Next|Back)</)
+    },
+  )
+
+  it('custom rule messages and authored button texts are kept verbatim', () => {
+    const schema = arabic()
+    const raw = JSON.parse(JSON.stringify(schema)) as { tree: { id: string; props: Record<string, unknown>; validation?: { rule: string; message?: string }[] }[] }
+    raw.tree.find((n) => n.id === 'ks-full-name')!.validation = [{ rule: 'required', message: 'اكتب اسمك' }]
+    raw.tree.find((n) => n.id === 'ks-wizard')!.props['nextText'] = 'متابعة'
+    const parsed = parseFormSchema(raw as unknown as Record<string, unknown>)
+    if (!parsed.ok) throw new Error(parsed.errors.join('\n'))
+    const c = getTarget('vue-standalone')!.generate({ schema: parsed.schema, css: getCssAdapter('vanilla') })[0]!.content
+    expect(c).toContain('اكتب اسمك')
+    expect(c).toContain('متابعة')
+  })
+
+  it('generated JS plural function matches the renderer for counts 1–120', () => {
+    const html = gen('html')
+    const fn = /function fgErrorsText\(count\) \{[\s\S]*?\n\s*\}/.exec(html)?.[0]
+    expect(fn).toBeTruthy()
+    const fgErrorsText = new Function(`${fn}; return fgErrorsText`)() as (n: number) => string
+    for (let n = 1; n <= 120; n++) {
+      expect(fgErrorsText(n), String(n)).toBe(errorsAnnouncement(n, 'ar'))
+    }
+  })
+
+  it('blazor carries the six-way Arabic plural forms', () => {
+    const c = gen('blazor')
+    expect(c).toContain('["two"] = "خطآن. يرجى تصحيح الحقول المحددة."')
+    expect(c).toContain('count % 100 >= 3 && count % 100 <= 10 ? "few"')
+    expect(c).toContain('aria-label="إزالة @(Model.Topics[fgIdx_topics])"')
+  })
+
+  it('english forms are unaffected', () => {
+    const c = generate('vue-standalone')[0]!.content
+    expect(c).toContain('This field is required')
+    expect(c).not.toContain('هذا الحقل مطلوب')
+  })
+})
+
 describe('cross-target validation parity (found via live error counts)', () => {
   it('html marks the select placeholder selected; bound targets do not need it', () => {
     // Browsers skip a disabled option for default selection, so without
@@ -379,6 +445,15 @@ describe('cross-target validation parity (found via live error counts)', () => {
     expect(c).toContain('if (!(string.IsNullOrWhiteSpace(Website)) && (!Uri.TryCreate(Website')
     // Required fields keep attributes ([Required] short-circuits the rest).
     expect(c).toMatch(/\[EmailAddress\([^\]]*\]\s*public string Email/)
+  })
+
+  it('every target opts out of native browser validation', () => {
+    // Without it, an invalid type="url"/"email" value makes the browser block
+    // submit with its own popup before the form's handler runs.
+    expect(generate('blazor')[0]!.content).toContain('<EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate')
+    expect(generate('html')[0]!.content).toMatch(/<form id="fg-form"[^>]*novalidate/)
+    expect(generate('vue-standalone')[0]!.content).toMatch(/<form[\s\S]*?novalidate[\s\S]*?@submit\.prevent/)
+    expect(generate('react')[0]!.content).toContain('noValidate onSubmit={handleSubmit}')
   })
 
   it('blazor: submit surfaces model-level errors alongside attribute errors', () => {

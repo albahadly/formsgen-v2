@@ -6,6 +6,7 @@ import {
   FORM_CONTEXT,
   buildDefaultData,
   getValueByPath,
+  resolveMessages,
   setValueByPath,
   type FormContext,
 } from '@formsgen/renderer'
@@ -35,6 +36,7 @@ export function provideDesignContext(): void {
     touch: () => undefined,
     isSubmitted: () => false,
     submitCount: () => 0,
+    messages: () => resolveMessages(store.schema.meta.locale),
   }
   provide(FORM_CONTEXT, ctx)
 }

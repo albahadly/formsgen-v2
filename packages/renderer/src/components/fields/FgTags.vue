@@ -1,11 +1,17 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
+import { FORM_CONTEXT } from '../../context'
+import { MESSAGES, fill } from '../../messages'
 import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
 
 const props = defineProps<{ node: ElementNode; path: string }>()
 const { value, error, label, description, placeholder, required, fieldId, errorId, describedBy, onBlur } =
   useField(props)
+
+const ctx = inject(FORM_CONTEXT)
+const removeLabel = (tag: string): string =>
+  fill((ctx?.messages?.() ?? MESSAGES.en).removeTag, { tag })
 
 const draft = ref('')
 
@@ -53,7 +59,7 @@ function onBackspace(): void {
         <button
           type="button"
           class="fg-tag-remove"
-          :aria-label="`Remove ${tag}`"
+          :aria-label="removeLabel(tag)"
           @click="removeTag(index)"
         >
           ×

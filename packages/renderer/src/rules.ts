@@ -2,6 +2,7 @@
 // catalog. The builder's preview uses it directly; export targets must
 // reproduce these exact semantics (shared-semantics tests, phase 8+).
 
+import { MESSAGES, defaultRuleMessage, type MessageCatalog } from './messages'
 import type { Rule } from './schema'
 
 export interface RuleViolation {
@@ -29,28 +30,6 @@ function sizeOf(value: unknown): number | null {
   return null
 }
 
-function defaultMessage(rule: Rule): string {
-  switch (rule.rule) {
-    case 'required':
-      return 'This field is required'
-    case 'min':
-      return `Must be at least ${String(rule.value)}`
-    case 'max':
-      return `Must be at most ${String(rule.value)}`
-    case 'between': {
-      const [lo, hi] = Array.isArray(rule.value) ? rule.value : [undefined, undefined]
-      return `Must be between ${String(lo)} and ${String(hi)}`
-    }
-    case 'email':
-      return 'Must be a valid email address'
-    case 'url':
-      return 'Must be a valid URL'
-    case 'regex':
-      return 'Invalid format'
-    case 'same-as':
-      return `Must match ${String(rule.value)}`
-  }
-}
 
 function violates(rule: Rule, value: unknown, lookup: FieldLookup): boolean {
   switch (rule.rule) {
@@ -103,13 +82,14 @@ export function evaluateRules(
   rules: Rule[] | undefined,
   value: unknown,
   lookup: FieldLookup = () => undefined,
+  messages: MessageCatalog = MESSAGES.en,
 ): RuleViolation[] {
   if (!rules || rules.length === 0) return []
   const violations: RuleViolation[] = []
   for (const rule of rules) {
     if (rule.rule !== 'required' && isEmptyValue(value)) continue
     if (violates(rule, value, lookup)) {
-      violations.push({ rule: rule.rule, message: rule.message ?? defaultMessage(rule) })
+      violations.push({ rule: rule.rule, message: rule.message ?? defaultRuleMessage(rule, messages) })
     }
   }
   return violations

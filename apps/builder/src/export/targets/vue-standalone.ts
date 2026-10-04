@@ -2,7 +2,8 @@
 // compiled validation and conditions — compiles as-is in a fresh
 // `npm create vue@latest` project (REBUILD_PROMPT §7 target 3).
 
-import { SUBMITTED_TEXT, errorsTextFunction, stepAnnouncementsLiteral } from '../announce'
+import { resolveMessages } from '@formsgen/renderer'
+import { errorsTextFunction, stepAnnouncementsLiteral, submittedText } from '../announce'
 import { RUNTIME_HELPERS } from '../compile'
 import {
   collectExportFields,
@@ -37,6 +38,7 @@ export const vueStandaloneTarget: ExportTarget = {
     const accessor = (path: string): string => `form.${path}`
     const fields = collectExportFields(schema)
     const hosts = collectSectionHosts(schema)
+    const messages = resolveMessages(schema.meta.locale)
 
     // Submit button: configurable text/placement/style (meta.submitButton).
     // With exactly ONE gating wizard, the submit replaces Next on its last
@@ -99,7 +101,7 @@ export const vueStandaloneTarget: ExportTarget = {
     const stepLogic = hosts
       .filter((host) => host.kind === 'steps')
       .map(
-        (host) => `const fgSecAnnounce_${host.key} = ${stepAnnouncementsLiteral(host)}
+        (host) => `const fgSecAnnounce_${host.key} = ${stepAnnouncementsLiteral(host, messages)}
 function fgGo_${host.key}(index: number): void {
   fgSec_${host.key}.value = index
   fgAnnounce(fgSecAnnounce_${host.key}[index] ?? '')
@@ -190,7 +192,7 @@ function fgAnnounce(message: string): void {
     fgAnnouncement.value = message
   })
 }
-${errorsTextFunction(true)}
+${errorsTextFunction(messages, true)}
 
 ${RUNTIME_HELPERS}
 
@@ -236,7 +238,7 @@ async function onSubmit(): Promise<void> {
   }
   const data = buildPayload()
   result.value = data
-  fgAnnounce(${SUBMITTED_TEXT})
+  fgAnnounce(${submittedText(messages)})
   emit('submit', data)
 ${submitBlock}}
 </script>`

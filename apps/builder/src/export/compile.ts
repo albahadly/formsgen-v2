@@ -3,7 +3,7 @@
 // MUST match @formsgen/renderer's rules.ts / conditions.ts — the behavioral
 // tests in compile.test.ts run the generated code against the same cases.
 
-import type { Condition, ConditionGroups, Rule } from '@formsgen/renderer'
+import { defaultRuleMessage, type Condition, type ConditionGroups, type Rule } from '@formsgen/renderer'
 
 /** Accessor: produces a JS expression reading a field's value by data path. */
 export type ValueAccessor = (path: string) => string
@@ -24,28 +24,10 @@ function fgSize(v) {
   return null
 }`
 
+/** Rule message: custom, else the localized default baked in by
+ * collectExportFields, else the English default. */
 function ruleMessage(rule: Rule): string {
-  if (rule.message) return rule.message
-  switch (rule.rule) {
-    case 'required':
-      return 'This field is required'
-    case 'min':
-      return `Must be at least ${String(rule.value)}`
-    case 'max':
-      return `Must be at most ${String(rule.value)}`
-    case 'between': {
-      const [lo, hi] = Array.isArray(rule.value) ? rule.value : [undefined, undefined]
-      return `Must be between ${String(lo)} and ${String(hi)}`
-    }
-    case 'email':
-      return 'Must be a valid email address'
-    case 'url':
-      return 'Must be a valid URL'
-    case 'regex':
-      return 'Invalid format'
-    case 'same-as':
-      return `Must match ${String(rule.value)}`
-  }
+  return rule.message ?? defaultRuleMessage(rule)
 }
 
 /** JS condition (true = violated) for one rule over the expression `v`. */

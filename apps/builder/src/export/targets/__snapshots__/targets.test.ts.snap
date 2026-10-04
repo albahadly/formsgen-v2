@@ -7,7 +7,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
 @using System.Linq
 @using Microsoft.AspNetCore.Components.Forms
 
-<EditForm EditContext="fgEdit" OnSubmit="FgSubmit" class="container py-4" dir="ltr">
+<EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate class="container py-4" dir="ltr">
     <DataAnnotationsValidator />
     <div class="row g-3">
         <div class="col-12 col-md-12">
@@ -159,7 +159,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
               @for (var i = 0; i < Model.Topics.Count; i++)
               {
                   var fgIdx_topics = i;
-                  <span class="badge rounded-pill text-bg-secondary d-inline-flex align-items-center gap-1">@Model.Topics[fgIdx_topics] <button type="button" class="border-0 bg-transparent p-0 ms-1 text-white" aria-label="Remove @Model.Topics[fgIdx_topics]" @onclick="() => Model.Topics.RemoveAt(fgIdx_topics)">&times;</button></span>
+                  <span class="badge rounded-pill text-bg-secondary d-inline-flex align-items-center gap-1">@Model.Topics[fgIdx_topics] <button type="button" class="border-0 bg-transparent p-0 ms-1 text-white" aria-label="Remove @(Model.Topics[fgIdx_topics])" @onclick="() => Model.Topics.RemoveAt(fgIdx_topics)">&times;</button></span>
               }
               <input id="fg_topics" type="text" class="border-0 p-0 flex-grow-1 shadow-none" placeholder="Type and press Enter" @bind='fgTagDrafts["topics"]' @bind:after='() => FgAddTag(Model.Topics, "topics")'>
             </div>
@@ -354,8 +354,14 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         StateHasChanged();
     }
 
-    private static string FgErrorsText(int count) =>
-        count == 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields.";
+    private static readonly Dictionary<string, string> fgErrorForms = new() { ["one"] = "1 error. Please fix the highlighted fields.", ["other"] = "{n} errors. Please fix the highlighted fields." };
+
+    private static string FgErrorsText(int count)
+    {
+        var category = count == 1 ? "one" : "other";
+        var text = fgErrorForms.TryGetValue(category, out var form) ? form : fgErrorForms["other"];
+        return text.Replace("{n}", count.ToString());
+    }
 
     private static readonly string[] fgAllMembers =
     {
@@ -616,7 +622,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
 @using System.Linq
 @using Microsoft.AspNetCore.Components.Forms
 
-<EditForm EditContext="fgEdit" OnSubmit="FgSubmit" class="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" dir="ltr">
+<EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate class="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" dir="ltr">
     <DataAnnotationsValidator />
     <div class="grid grid-cols-12 gap-4">
         <div class="col-span-12 md:col-span-12">
@@ -768,7 +774,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
               @for (var i = 0; i < Model.Topics.Count; i++)
               {
                   var fgIdx_topics = i;
-                  <span class="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700">@Model.Topics[fgIdx_topics] <button type="button" class="text-gray-500 hover:text-red-600" aria-label="Remove @Model.Topics[fgIdx_topics]" @onclick="() => Model.Topics.RemoveAt(fgIdx_topics)">&times;</button></span>
+                  <span class="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700">@Model.Topics[fgIdx_topics] <button type="button" class="text-gray-500 hover:text-red-600" aria-label="Remove @(Model.Topics[fgIdx_topics])" @onclick="() => Model.Topics.RemoveAt(fgIdx_topics)">&times;</button></span>
               }
               <input id="fg_topics" type="text" class="min-w-24 flex-1 border-none bg-transparent text-sm focus:outline-none" placeholder="Type and press Enter" @bind='fgTagDrafts["topics"]' @bind:after='() => FgAddTag(Model.Topics, "topics")'>
             </div>
@@ -963,8 +969,14 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         StateHasChanged();
     }
 
-    private static string FgErrorsText(int count) =>
-        count == 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields.";
+    private static readonly Dictionary<string, string> fgErrorForms = new() { ["one"] = "1 error. Please fix the highlighted fields.", ["other"] = "{n} errors. Please fix the highlighted fields." };
+
+    private static string FgErrorsText(int count)
+    {
+        var category = count == 1 ? "one" : "other";
+        var text = fgErrorForms.TryGetValue(category, out var form) ? form : fgErrorForms["other"];
+        return text.Replace("{n}", count.ToString());
+    }
 
     private static readonly string[] fgAllMembers =
     {
@@ -1225,7 +1237,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
 @using System.Linq
 @using Microsoft.AspNetCore.Components.Forms
 
-<EditForm EditContext="fgEdit" OnSubmit="FgSubmit" class="fg-form" dir="ltr">
+<EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate class="fg-form" dir="ltr">
     <DataAnnotationsValidator />
     <div class="fg-grid">
         <div class="fg-cell" style="grid-column: span 12 / span 12">
@@ -1377,7 +1389,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
               @for (var i = 0; i < Model.Topics.Count; i++)
               {
                   var fgIdx_topics = i;
-                  <span class="fg-tag">@Model.Topics[fgIdx_topics] <button type="button" class="fg-tag-remove" aria-label="Remove @Model.Topics[fgIdx_topics]" @onclick="() => Model.Topics.RemoveAt(fgIdx_topics)">&times;</button></span>
+                  <span class="fg-tag">@Model.Topics[fgIdx_topics] <button type="button" class="fg-tag-remove" aria-label="Remove @(Model.Topics[fgIdx_topics])" @onclick="() => Model.Topics.RemoveAt(fgIdx_topics)">&times;</button></span>
               }
               <input id="fg_topics" type="text" class="fg-tags-input" placeholder="Type and press Enter" @bind='fgTagDrafts["topics"]' @bind:after='() => FgAddTag(Model.Topics, "topics")'>
             </div>
@@ -1572,8 +1584,14 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         StateHasChanged();
     }
 
-    private static string FgErrorsText(int count) =>
-        count == 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields.";
+    private static readonly Dictionary<string, string> fgErrorForms = new() { ["one"] = "1 error. Please fix the highlighted fields.", ["other"] = "{n} errors. Please fix the highlighted fields." };
+
+    private static string FgErrorsText(int count)
+    {
+        var category = count == 1 ? "one" : "other";
+        var text = fgErrorForms.TryGetValue(category, out var form) ? form : fgErrorForms["other"];
+        return text.Replace("{n}", count.ToString());
+    }
 
     private static readonly string[] fgAllMembers =
     {
@@ -2280,7 +2298,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
           var remove = document.createElement('button')
           remove.type = 'button'
           remove.className = "border-0 bg-transparent p-0 ms-1 text-white"
-          remove.setAttribute('aria-label', 'Remove ' + tag)
+          remove.setAttribute('aria-label', 'Remove ' + (tag))
           remove.textContent = '\\u00d7'
           remove.addEventListener('click', function () {
             fgTags[path].splice(index, 1)
@@ -2320,7 +2338,9 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       setTimeout(function () { live.textContent = message }, 50)
     }
     function fgErrorsText(count) {
-      return count === 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields."
+      const forms = { one: "1 error. Please fix the highlighted fields.", other: "{n} errors. Please fix the highlighted fields." }
+      const text = forms[count == 1 ? 'one' : 'other'] ?? forms.other
+      return text.split('{n}').join(String(count))
     }
 
     var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"nav-link active","tabBase":"nav-link","stepActive":"d-inline-flex align-items-center gap-2 fw-semibold text-body","stepBase":"d-inline-flex align-items-center gap-2","stepPaths":[["twitter"],["github"]],"announce":[]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"nav-link active","tabBase":"nav-link","stepActive":"d-inline-flex align-items-center gap-2 fw-semibold text-body","stepBase":"d-inline-flex align-items-center gap-2","stepPaths":[["shipping_city"],["order_notes"]],"announce":["Step 1 of 2: Shipping","Step 2 of 2: Review"]}]
@@ -2924,7 +2944,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
           var remove = document.createElement('button')
           remove.type = 'button'
           remove.className = "text-gray-500 hover:text-red-600"
-          remove.setAttribute('aria-label', 'Remove ' + tag)
+          remove.setAttribute('aria-label', 'Remove ' + (tag))
           remove.textContent = '\\u00d7'
           remove.addEventListener('click', function () {
             fgTags[path].splice(index, 1)
@@ -2964,7 +2984,9 @@ exports[`html target > snapshot (tailwind) 1`] = `
       setTimeout(function () { live.textContent = message }, 50)
     }
     function fgErrorsText(count) {
-      return count === 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields."
+      const forms = { one: "1 error. Please fix the highlighted fields.", other: "{n} errors. Please fix the highlighted fields." }
+      const text = forms[count == 1 ? 'one' : 'other'] ?? forms.other
+      return text.split('{n}').join(String(count))
     }
 
     var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600","tabBase":"-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700","stepActive":"flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100","stepBase":"flex items-center gap-2","stepPaths":[["twitter"],["github"]],"announce":[]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600","tabBase":"-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700","stepActive":"flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100","stepBase":"flex items-center gap-2","stepPaths":[["shipping_city"],["order_notes"]],"announce":["Step 1 of 2: Shipping","Step 2 of 2: Review"]}]
@@ -3639,7 +3661,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           var remove = document.createElement('button')
           remove.type = 'button'
           remove.className = "fg-tag-remove"
-          remove.setAttribute('aria-label', 'Remove ' + tag)
+          remove.setAttribute('aria-label', 'Remove ' + (tag))
           remove.textContent = '\\u00d7'
           remove.addEventListener('click', function () {
             fgTags[path].splice(index, 1)
@@ -3679,7 +3701,9 @@ exports[`html target > snapshot (vanilla) 1`] = `
       setTimeout(function () { live.textContent = message }, 50)
     }
     function fgErrorsText(count) {
-      return count === 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields."
+      const forms = { one: "1 error. Please fix the highlighted fields.", other: "{n} errors. Please fix the highlighted fields." }
+      const text = forms[count == 1 ? 'one' : 'other'] ?? forms.other
+      return text.split('{n}').join(String(count))
     }
 
     var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"fg-tab-button fg-tab-button--active","tabBase":"fg-tab-button","stepActive":"fg-step-item fg-step-item--active","stepBase":"fg-step-item","stepPaths":[["twitter"],["github"]],"announce":[]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"fg-tab-button fg-tab-button--active","tabBase":"fg-tab-button","stepActive":"fg-step-item fg-step-item--active","stepBase":"fg-step-item","stepPaths":[["shipping_city"],["order_notes"]],"announce":["Step 1 of 2: Shipping","Step 2 of 2: Review"]}]
@@ -4015,7 +4039,9 @@ const fgSecPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
 const fgSecAnnounce_ks_wizard = ["Step 1 of 2: Shipping", "Step 2 of 2: Review"]
 
 function fgErrorsText(count: number): string {
-  return count === 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields."
+  const forms: Record<string, string> = { one: "1 error. Please fix the highlighted fields.", other: "{n} errors. Please fix the highlighted fields." }
+  const text = forms[count == 1 ? 'one' : 'other'] ?? forms.other
+  return text.split('{n}').join(String(count))
 }
 
 export default function KitchenSinkForm({
@@ -4279,7 +4305,7 @@ export default function KitchenSinkForm({
             <label className="form-label fw-semibold mb-0" htmlFor="fg_topics">Topics</label>
             <div className="form-control d-flex flex-wrap align-items-center gap-1">
               {form.topics.map((tag, index) => (
-                <span key={tag} className="badge rounded-pill text-bg-secondary d-inline-flex align-items-center gap-1">{tag} <button type="button" className="border-0 bg-transparent p-0 ms-1 text-white" aria-label={\`Remove \${tag}\`} onClick={() => fgRemoveTag('topics', form.topics, index)}>×</button></span>
+                <span key={tag} className="badge rounded-pill text-bg-secondary d-inline-flex align-items-center gap-1">{tag} <button type="button" className="border-0 bg-transparent p-0 ms-1 text-white" aria-label={'Remove ' + (tag)} onClick={() => fgRemoveTag('topics', form.topics, index)}>×</button></span>
               ))}
               <input id="fg_topics" type="text" className="border-0 p-0 flex-grow-1 shadow-none" value={tagDrafts['topics'] ?? ''} placeholder="Type and press Enter" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTagDrafts((d) => ({ ...d, 'topics': e.target.value }))} onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); fgAddTag('topics', form.topics) } }} onBlur={() => { fgAddTag('topics', form.topics); touch('topics') }} />
             </div>
@@ -4594,7 +4620,9 @@ const fgSecPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
 const fgSecAnnounce_ks_wizard = ["Step 1 of 2: Shipping", "Step 2 of 2: Review"]
 
 function fgErrorsText(count: number): string {
-  return count === 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields."
+  const forms: Record<string, string> = { one: "1 error. Please fix the highlighted fields.", other: "{n} errors. Please fix the highlighted fields." }
+  const text = forms[count == 1 ? 'one' : 'other'] ?? forms.other
+  return text.split('{n}').join(String(count))
 }
 
 export default function KitchenSinkForm({
@@ -4858,7 +4886,7 @@ export default function KitchenSinkForm({
             <label className="text-sm font-semibold" htmlFor="fg_topics">Topics</label>
             <div className="flex flex-wrap items-center gap-1.5 rounded-md border border-gray-300 bg-white px-2 py-1.5 shadow-sm focus-within:ring-2 focus-within:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800">
               {form.topics.map((tag, index) => (
-                <span key={tag} className="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700">{tag} <button type="button" className="text-gray-500 hover:text-red-600" aria-label={\`Remove \${tag}\`} onClick={() => fgRemoveTag('topics', form.topics, index)}>×</button></span>
+                <span key={tag} className="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700">{tag} <button type="button" className="text-gray-500 hover:text-red-600" aria-label={'Remove ' + (tag)} onClick={() => fgRemoveTag('topics', form.topics, index)}>×</button></span>
               ))}
               <input id="fg_topics" type="text" className="min-w-24 flex-1 border-none bg-transparent text-sm focus:outline-none" value={tagDrafts['topics'] ?? ''} placeholder="Type and press Enter" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTagDrafts((d) => ({ ...d, 'topics': e.target.value }))} onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); fgAddTag('topics', form.topics) } }} onBlur={() => { fgAddTag('topics', form.topics); touch('topics') }} />
             </div>
@@ -5174,7 +5202,9 @@ const fgSecPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
 const fgSecAnnounce_ks_wizard = ["Step 1 of 2: Shipping", "Step 2 of 2: Review"]
 
 function fgErrorsText(count: number): string {
-  return count === 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields."
+  const forms: Record<string, string> = { one: "1 error. Please fix the highlighted fields.", other: "{n} errors. Please fix the highlighted fields." }
+  const text = forms[count == 1 ? 'one' : 'other'] ?? forms.other
+  return text.split('{n}').join(String(count))
 }
 
 export default function KitchenSinkForm({
@@ -5438,7 +5468,7 @@ export default function KitchenSinkForm({
             <label className="fg-label" htmlFor="fg_topics">Topics</label>
             <div className="fg-tags">
               {form.topics.map((tag, index) => (
-                <span key={tag} className="fg-tag">{tag} <button type="button" className="fg-tag-remove" aria-label={\`Remove \${tag}\`} onClick={() => fgRemoveTag('topics', form.topics, index)}>×</button></span>
+                <span key={tag} className="fg-tag">{tag} <button type="button" className="fg-tag-remove" aria-label={'Remove ' + (tag)} onClick={() => fgRemoveTag('topics', form.topics, index)}>×</button></span>
               ))}
               <input id="fg_topics" type="text" className="fg-tags-input" value={tagDrafts['topics'] ?? ''} placeholder="Type and press Enter" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTagDrafts((d) => ({ ...d, 'topics': e.target.value }))} onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); fgAddTag('topics', form.topics) } }} onBlur={() => { fgAddTag('topics', form.topics); touch('topics') }} />
             </div>
@@ -5617,7 +5647,9 @@ function fgAnnounce(message: string): void {
   })
 }
 function fgErrorsText(count: number): string {
-  return count === 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields."
+  const forms: Record<string, string> = { one: "1 error. Please fix the highlighted fields.", other: "{n} errors. Please fix the highlighted fields." }
+  const text = forms[count == 1 ? 'one' : 'other'] ?? forms.other
+  return text.split('{n}').join(String(count))
 }
 
 function fgIsEmpty(v) {
@@ -5979,7 +6011,7 @@ async function onSubmit(): Promise<void> {
         <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold mb-0" for="fg_topics">Topics</label>
           <div class="form-control d-flex flex-wrap align-items-center gap-1">
-            <span v-for="(tag, index) in form.topics" :key="tag" class="badge rounded-pill text-bg-secondary d-inline-flex align-items-center gap-1">{{ tag }} <button type="button" class="border-0 bg-transparent p-0 ms-1 text-white" :aria-label="'Remove ' + tag" @click="fgRemoveTag('topics', index)">×</button></span>
+            <span v-for="(tag, index) in form.topics" :key="tag" class="badge rounded-pill text-bg-secondary d-inline-flex align-items-center gap-1">{{ tag }} <button type="button" class="border-0 bg-transparent p-0 ms-1 text-white" :aria-label="'Remove ' + (tag)" @click="fgRemoveTag('topics', index)">×</button></span>
             <input id="fg_topics" v-model="tagDrafts['topics']" type="text" class="border-0 p-0 flex-grow-1 shadow-none" placeholder="Type and press Enter" @keydown.enter.prevent="fgAddTag('topics')" @blur="fgAddTag('topics'); touch('topics')">
           </div>
           <p class="form-text mt-0">Free-text tags</p>
@@ -6152,7 +6184,9 @@ function fgAnnounce(message: string): void {
   })
 }
 function fgErrorsText(count: number): string {
-  return count === 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields."
+  const forms: Record<string, string> = { one: "1 error. Please fix the highlighted fields.", other: "{n} errors. Please fix the highlighted fields." }
+  const text = forms[count == 1 ? 'one' : 'other'] ?? forms.other
+  return text.split('{n}').join(String(count))
 }
 
 function fgIsEmpty(v) {
@@ -6514,7 +6548,7 @@ async function onSubmit(): Promise<void> {
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_topics">Topics</label>
           <div class="flex flex-wrap items-center gap-1.5 rounded-md border border-gray-300 bg-white px-2 py-1.5 shadow-sm focus-within:ring-2 focus-within:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800">
-            <span v-for="(tag, index) in form.topics" :key="tag" class="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700">{{ tag }} <button type="button" class="text-gray-500 hover:text-red-600" :aria-label="'Remove ' + tag" @click="fgRemoveTag('topics', index)">×</button></span>
+            <span v-for="(tag, index) in form.topics" :key="tag" class="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700">{{ tag }} <button type="button" class="text-gray-500 hover:text-red-600" :aria-label="'Remove ' + (tag)" @click="fgRemoveTag('topics', index)">×</button></span>
             <input id="fg_topics" v-model="tagDrafts['topics']" type="text" class="min-w-24 flex-1 border-none bg-transparent text-sm focus:outline-none" placeholder="Type and press Enter" @keydown.enter.prevent="fgAddTag('topics')" @blur="fgAddTag('topics'); touch('topics')">
           </div>
           <p class="text-xs text-gray-500 dark:text-gray-400">Free-text tags</p>
@@ -6687,7 +6721,9 @@ function fgAnnounce(message: string): void {
   })
 }
 function fgErrorsText(count: number): string {
-  return count === 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields."
+  const forms: Record<string, string> = { one: "1 error. Please fix the highlighted fields.", other: "{n} errors. Please fix the highlighted fields." }
+  const text = forms[count == 1 ? 'one' : 'other'] ?? forms.other
+  return text.split('{n}').join(String(count))
 }
 
 function fgIsEmpty(v) {
@@ -7049,7 +7085,7 @@ async function onSubmit(): Promise<void> {
         <div class="fg-field">
           <label class="fg-label" for="fg_topics">Topics</label>
           <div class="fg-tags">
-            <span v-for="(tag, index) in form.topics" :key="tag" class="fg-tag">{{ tag }} <button type="button" class="fg-tag-remove" :aria-label="'Remove ' + tag" @click="fgRemoveTag('topics', index)">×</button></span>
+            <span v-for="(tag, index) in form.topics" :key="tag" class="fg-tag">{{ tag }} <button type="button" class="fg-tag-remove" :aria-label="'Remove ' + (tag)" @click="fgRemoveTag('topics', index)">×</button></span>
             <input id="fg_topics" v-model="tagDrafts['topics']" type="text" class="fg-tags-input" placeholder="Type and press Enter" @keydown.enter.prevent="fgAddTag('topics')" @blur="fgAddTag('topics'); touch('topics')">
           </div>
           <p class="fg-description">Free-text tags</p>

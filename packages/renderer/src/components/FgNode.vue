@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, inject, onBeforeUnmount, ref, watch } from 'vue'
-import { stepAnnouncement } from '../announcements'
 import { isVisible } from '../conditions'
 import { FORM_CONTEXT } from '../context'
 import { getCoreElement } from '../elements'
+import { MESSAGES, fill } from '../messages'
 import { joinPath } from '../runtime'
 import type { ColSpan, ElementNode } from '../schema'
 import FgCheckbox from './fields/FgCheckbox.vue'
@@ -28,6 +28,7 @@ const ctx = inject(FORM_CONTEXT)
 if (!ctx) throw new Error('<FgNode> must be used inside <FormsGenForm>')
 // Hoisted function declarations below don't see the narrowing above.
 const formCtx = ctx
+const messages = computed(() => formCtx.messages?.() ?? MESSAGES.en)
 
 // Internal component map for core field types (ADR-0001).
 const fieldComponents = {
@@ -93,7 +94,7 @@ function sectionLabel(section: ElementNode, index: number): string {
   const l = section.props['label']
   return typeof l === 'string' && l !== ''
     ? l
-    : `${sectionType.value === 'tab' ? 'Tab' : 'Step'} ${index + 1}`
+    : fill(sectionType.value === 'tab' ? messages.value.tab : messages.value.step, { n: index + 1 })
 }
 
 /** Data paths of all value fields inside a section (conditions aside). */
@@ -148,15 +149,21 @@ function goToStep(index: number): void {
   const section = sections.value[index]
   if (!section) return
   activeIndex.value = index
-  formCtx.announce?.(stepAnnouncement(index, sections.value.length, sectionLabel(section, index)))
+  formCtx.announce?.(
+    fill(messages.value.stepProgress, {
+      index: index + 1,
+      total: sections.value.length,
+      label: sectionLabel(section, index),
+    }),
+  )
 }
 
 function buttonText(prop: string, fallback: string): string {
   const value = props.node.props[prop]
   return typeof value === 'string' && value !== '' ? value : fallback
 }
-const backText = computed(() => buttonText('backText', 'Back'))
-const nextText = computed(() => buttonText('nextText', 'Next'))
+const backText = computed(() => buttonText('backText', messages.value.back))
+const nextText = computed(() => buttonText('nextText', messages.value.next))
 
 // Steps wizards gate the form's submit button until their last step.
 // A hidden wizard (conditions) never holds the button hostage.
@@ -176,7 +183,7 @@ const embedsSubmit = computed(
     activeIndex.value >= sections.value.length - 1,
 )
 const embeddedSubmit = computed(
-  () => formCtx.submitButtonSpec?.() ?? { text: 'Submit', secondary: false },
+  () => formCtx.submitButtonSpec?.() ?? { text: messages.value.submit, secondary: false },
 )
 </script>
 

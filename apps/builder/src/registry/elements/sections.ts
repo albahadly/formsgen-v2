@@ -33,8 +33,8 @@ const stepsPanel: ElementDefinition['propertyPanel'] = [
   {
     title: 'Properties',
     controls: [
-      { kind: 'text', prop: 'backText', label: 'Back button text' },
-      { kind: 'text', prop: 'nextText', label: 'Next button text' },
+      { kind: 'text', prop: 'backText', label: 'Back button text', placeholder: 'Default for the form language' },
+      { kind: 'text', prop: 'nextText', label: 'Next button text', placeholder: 'Default for the form language' },
     ],
   },
   { title: 'Layout', controls: [{ kind: 'colspan' }] },
@@ -71,7 +71,7 @@ export const stepsElement: ElementDefinition = {
   description: 'Multi-step wizard with per-step validation',
   icon: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M4 15h4v4H4zm6-5h4v9h-4zm6-5h4v14h-4z"/></svg>',
   isContainer: true,
-  defaultProps: { backText: 'Back', nextText: 'Next' },
+  defaultProps: {},
   propertyPanel: stepsPanel,
   createChildren: () => [createSection('step', 1), createSection('step', 2)],
 }

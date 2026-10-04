@@ -8,6 +8,7 @@ import type { ElementNode } from '@formsgen/renderer'
 import {
   blazorValidationMessage,
   descriptionFor,
+  esc,
   fieldWrap,
   htmlError,
   labelFor,
@@ -20,6 +21,18 @@ import {
   vueError,
 } from '../emitters/shared'
 import { commonFieldSections, type ElementDefinition, type EmitCtx } from '../types'
+import { jsTemplate } from '@/export/announce'
+
+/** Razor attribute text for a `{name}` template with Razor expressions. */
+function razorTemplate(template: string, vars: Record<string, string>): string {
+  return template
+    .split(/(\{\w+\})/)
+    .map((part) => {
+      const name = /^\{(\w+)\}$/.exec(part)?.[1]
+      return name !== undefined && name in vars ? vars[name] : esc(part).replace(/@/g, '@@')
+    })
+    .join('')
+}
 
 function htmlChipsShell(node: ElementNode, ctx: EmitCtx): string {
   return `<div class="${ctx.css.classes('tagsWrap')}" data-fg-path="${ctx.path}" data-fg-kind="tags">\n    <span data-fg-tags-chips="${ctx.path}"></span>\n    <input id="${ctx.id}" type="text" class="${ctx.css.classes('tagsInput')}" data-fg-tags-input="${ctx.path}"${placeholderAttr(node)}>\n  </div>`
@@ -39,7 +52,7 @@ export const tagsElement: ElementDefinition = {
       fieldWrap(
         [
           labelFor(node, ctx),
-          `<div class="${ctx.css.classes('tagsWrap')}">\n    <span v-for="(tag, index) in form.${ctx.path}" :key="tag" class="${ctx.css.classes('tag')}">{{ tag }} <button type="button" class="${ctx.css.classes('tagRemove')}" :aria-label="'Remove ' + tag" @click="fgRemoveTag('${ctx.path}', index)">×</button></span>\n    <input id="${ctx.id}" v-model="tagDrafts['${ctx.path}']" type="text" class="${ctx.css.classes('tagsInput')}"${placeholderAttr(node)} @keydown.enter.prevent="fgAddTag('${ctx.path}')" @blur="fgAddTag('${ctx.path}'); touch('${ctx.path}')">\n  </div>`,
+          `<div class="${ctx.css.classes('tagsWrap')}">\n    <span v-for="(tag, index) in form.${ctx.path}" :key="tag" class="${ctx.css.classes('tag')}">{{ tag }} <button type="button" class="${ctx.css.classes('tagRemove')}" :aria-label="${jsTemplate(ctx.messages.removeTag, { tag: 'tag' })}" @click="fgRemoveTag('${ctx.path}', index)">×</button></span>\n    <input id="${ctx.id}" v-model="tagDrafts['${ctx.path}']" type="text" class="${ctx.css.classes('tagsInput')}"${placeholderAttr(node)} @keydown.enter.prevent="fgAddTag('${ctx.path}')" @blur="fgAddTag('${ctx.path}'); touch('${ctx.path}')">\n  </div>`,
           descriptionFor(node, ctx),
           vueError(ctx),
         ],
@@ -54,7 +67,7 @@ export const tagsElement: ElementDefinition = {
       reactFieldWrap(
         [
           reactLabelFor(node, ctx),
-          `<div className="${ctx.css.classes('tagsWrap')}">\n    {form.${ctx.path}.map((tag, index) => (\n      <span key={tag} className="${ctx.css.classes('tag')}">{tag} <button type="button" className="${ctx.css.classes('tagRemove')}" aria-label={\`Remove \${tag}\`} onClick={() => fgRemoveTag('${ctx.path}', form.${ctx.path}, index)}>×</button></span>\n    ))}\n    <input id="${ctx.id}" type="text" className="${ctx.css.classes('tagsInput')}" value={tagDrafts['${ctx.path}'] ?? ''}${placeholderAttr(node)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTagDrafts((d) => ({ ...d, '${ctx.path}': e.target.value }))} onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); fgAddTag('${ctx.path}', form.${ctx.path}) } }} onBlur={() => { fgAddTag('${ctx.path}', form.${ctx.path}); touch('${ctx.path}') }} />\n  </div>`,
+          `<div className="${ctx.css.classes('tagsWrap')}">\n    {form.${ctx.path}.map((tag, index) => (\n      <span key={tag} className="${ctx.css.classes('tag')}">{tag} <button type="button" className="${ctx.css.classes('tagRemove')}" aria-label={${jsTemplate(ctx.messages.removeTag, { tag: 'tag' })}} onClick={() => fgRemoveTag('${ctx.path}', form.${ctx.path}, index)}>×</button></span>\n    ))}\n    <input id="${ctx.id}" type="text" className="${ctx.css.classes('tagsInput')}" value={tagDrafts['${ctx.path}'] ?? ''}${placeholderAttr(node)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTagDrafts((d) => ({ ...d, '${ctx.path}': e.target.value }))} onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); fgAddTag('${ctx.path}', form.${ctx.path}) } }} onBlur={() => { fgAddTag('${ctx.path}', form.${ctx.path}); touch('${ctx.path}') }} />\n  </div>`,
           reactDescription(node, ctx),
           reactError(ctx),
         ],
@@ -66,7 +79,7 @@ export const tagsElement: ElementDefinition = {
       return fieldWrap(
         [
           labelFor(node, ctx),
-          `<div class="${ctx.css.classes('tagsWrap')}">\n    @for (var i = 0; i < ${member}.Count; i++)\n    {\n        var ${idx} = i;\n        <span class="${ctx.css.classes('tag')}">@${member}[${idx}] <button type="button" class="${ctx.css.classes('tagRemove')}" aria-label="Remove @${member}[${idx}]" @onclick="() => ${member}.RemoveAt(${idx})">&times;</button></span>\n    }\n    <input id="${ctx.id}" type="text" class="${ctx.css.classes('tagsInput')}"${placeholderAttr(node)} @bind='fgTagDrafts[${JSON.stringify(ctx.key)}]' @bind:after='() => FgAddTag(${member}, ${JSON.stringify(ctx.key)})'>\n  </div>`,
+          `<div class="${ctx.css.classes('tagsWrap')}">\n    @for (var i = 0; i < ${member}.Count; i++)\n    {\n        var ${idx} = i;\n        <span class="${ctx.css.classes('tag')}">@${member}[${idx}] <button type="button" class="${ctx.css.classes('tagRemove')}" aria-label="${razorTemplate(ctx.messages.removeTag, { tag: `@(${member}[${idx}])` })}" @onclick="() => ${member}.RemoveAt(${idx})">&times;</button></span>\n    }\n    <input id="${ctx.id}" type="text" class="${ctx.css.classes('tagsInput')}"${placeholderAttr(node)} @bind='fgTagDrafts[${JSON.stringify(ctx.key)}]' @bind:after='() => FgAddTag(${member}, ${JSON.stringify(ctx.key)})'>\n  </div>`,
           descriptionFor(node, ctx),
           blazorValidationMessage(ctx),
         ],

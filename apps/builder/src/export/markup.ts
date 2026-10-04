@@ -4,10 +4,13 @@
 
 import {
   SECTION_CONTAINERS,
+  fill,
   getCoreElement,
   joinPath,
+  resolveMessages,
   type ElementNode,
   type FormSchema,
+  type MessageCatalog,
 } from '@formsgen/renderer'
 import { getElement } from '@/registry'
 import type { EmitterLang } from '@/registry/types'
@@ -62,6 +65,8 @@ export interface RenderedSectionHost {
   /** Identifier-safe key for generated state names. */
   key: string
   sections: RenderedSection[]
+  /** Built-in texts for the form's locale. */
+  messages: MessageCatalog
 }
 
 /** Escaped Back/Next button labels for a steps host (props backText/nextText). */
@@ -70,7 +75,7 @@ export function stepButtonLabels(host: RenderedSectionHost): { back: string; nex
     const value = host.node.props[prop]
     return esc(typeof value === 'string' && value !== '' ? value : fallback)
   }
-  return { back: read('backText', 'Back'), next: read('nextText', 'Next') }
+  return { back: read('backText', host.messages.back), next: read('nextText', host.messages.next) }
 }
 
 function indentBlock(text: string, depth: number): string {
@@ -83,6 +88,7 @@ function indentBlock(text: string, depth: number): string {
 
 export function renderTree(schema: FormSchema, options: MarkupOptions): string {
   const { css } = options
+  const messages = resolveMessages(schema.meta.locale)
   const classAttr = options.classAttr ?? 'class'
   const comment = options.comment ?? ((text: string) => `<!-- ${text} -->`)
 
@@ -126,7 +132,7 @@ export function renderTree(schema: FormSchema, options: MarkupOptions): string {
             label:
               typeof section.props['label'] === 'string' && section.props['label'] !== ''
                 ? esc(section.props['label'] as string)
-                : `${sectionType === 'tab' ? 'Tab' : 'Step'} ${index + 1}`,
+                : esc(fill(sectionType === 'tab' ? messages.tab : messages.step, { n: index + 1 })),
             html: `<div ${classAttr}="${css.classes('grid')}">\n${indentBlock(renderNodes(section.children ?? [], childPath, 12), 1)}\n</div>`,
           }))
         const host: RenderedSectionHost = {
@@ -134,6 +140,7 @@ export function renderTree(schema: FormSchema, options: MarkupOptions): string {
           kind: node.type as 'tabs' | 'steps',
           key: node.id.replace(/[^A-Za-z0-9]/g, '_'),
           sections,
+          messages,
         }
         inner = options.renderSections
           ? options.renderSections(host)
@@ -168,6 +175,7 @@ export function renderTree(schema: FormSchema, options: MarkupOptions): string {
           key,
           id: `fg_${key}`,
           required: isRequired(node),
+          messages,
         })
       }
     }

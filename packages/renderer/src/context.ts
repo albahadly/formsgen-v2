@@ -1,4 +1,5 @@
 import type { InjectionKey } from 'vue'
+import type { MessageCatalog } from './messages'
 
 /** Injected by <FormsGenForm> into every field/container component. */
 export interface FormContext {
@@ -29,6 +30,8 @@ export interface FormContext {
   submitButtonSpec?(): { text: string; secondary: boolean }
   /** Speak a message through the form's polite aria-live region. */
   announce?(message: string): void
+  /** Built-in texts for the form's locale (English when absent). */
+  messages?(): MessageCatalog
 }
 
 export const FORM_CONTEXT: InjectionKey<FormContext> = Symbol('formsgen-form')

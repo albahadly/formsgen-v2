@@ -4,14 +4,8 @@
 // visibility properties, and a payload builder that reconstructs the
 // nested data shape (REBUILD_PROMPT §7 target 6).
 
-import {
-  SUBMITTED_ANNOUNCEMENT,
-  errorsAnnouncement,
-  getCoreElement,
-  joinPath,
-  stepAnnouncement,
-  type ElementNode,
-} from '@formsgen/renderer'
+import { getCoreElement, joinPath, resolveMessages, type ElementNode } from '@formsgen/renderer'
+import { errorsTextFunctionCs, stepAnnouncements } from '../announce'
 import { pascalMember } from '@/registry/emitters/shared'
 import {
   csAttributes,
@@ -44,6 +38,7 @@ export const blazorTarget: ExportTarget = {
     const name = componentName(schema)
     const fields = collectExportFields(schema)
     const hosts = collectSectionHosts(schema)
+    const messages = resolveMessages(schema.meta.locale)
     const accessor = (path: string): string => `Model.${pascalMember(pathKey(path))}`
 
     // Submit button: configurable text/placement/style (meta.submitButton).
@@ -294,7 +289,7 @@ export const blazorTarget: ExportTarget = {
         return `
     private static readonly string[] fgSecAnnounce_${host.key} =
     {
-${host.sections.map((s) => `        ${csStr(stepAnnouncement(s.index, host.sections.length, s.label))},`).join('\n')}
+${stepAnnouncements(host, messages).map((text) => `        ${csStr(text)},`).join('\n')}
     };
 
     private async Task FgGo_${host.key}(int index)
@@ -386,7 +381,6 @@ ${hosts
       : ''
 
     // aria-live: clear, re-render, then set — so repeated text re-announces.
-    const errorsMany = errorsAnnouncement(2).replace(/^2 /, ' ')
     const announceBlock = `
     private string fgAnnouncement = "";
 
@@ -399,8 +393,7 @@ ${hosts
         StateHasChanged();
     }
 
-    private static string FgErrorsText(int count) =>
-        count == 1 ? ${csStr(errorsAnnouncement(1))} : count + ${csStr(errorsMany)};
+${errorsTextFunctionCs(messages, csStr)}
 
     private static readonly string[] fgAllMembers =
     {
@@ -443,7 +436,7 @@ ${fields.map((f) => `        ${csStr(pascalMember(f.key))},`).join('\n')}
 @using System.ComponentModel.DataAnnotations
 @using System.Text.Json
 ${extraUsings}${submitUrl ? '@using System.Net.Http.Json\n' : ''}${httpInject}
-<EditForm ${formBinding} class="${css.classes('form')}" dir="${schema.meta.dir}">
+<EditForm ${formBinding} novalidate class="${css.classes('form')}" dir="${schema.meta.dir}">
     <DataAnnotationsValidator />
     <div class="${css.classes('grid')}">
 ${indentBlock(markup, 2)}
@@ -463,7 +456,7 @@ ${sectionFields ? `\n${sectionFields}\n` : ''}${helperBlocks}
     {
         var payload = BuildPayload();
         ResultJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
-${submitCall}        await FgAnnounce(${csStr(SUBMITTED_ANNOUNCEMENT)});
+${submitCall}        await FgAnnounce(${csStr(messages.submitted)});
     }
 
     private Dictionary<string, object?> BuildPayload()

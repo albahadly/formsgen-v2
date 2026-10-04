@@ -300,6 +300,40 @@ describe('FormsGenForm', () => {
     expect(wrapper.get('[data-fg-live]').text()).toBe('Form submitted.')
   })
 
+  it('speaks the form language: Arabic messages, labels and announcements for meta.locale "ar"', async () => {
+    const schema = fixtureSchema()
+    schema.meta.locale = 'ar-OM'
+    schema.meta.dir = 'rtl'
+    const wrapper = mount(FormsGenForm, { props: { schema } })
+    await nextTick()
+    const live = wrapper.get('[data-fg-live]')
+    const stepButtons = (): string[] => wrapper.findAll('.fg-step-actions button').map((b) => b.text())
+
+    // wizard fallbacks
+    expect(stepButtons()).toEqual(['التالي'])
+    await wrapper.get('form').trigger('submit')
+    await nextTick()
+    expect(wrapper.text()).toContain('هذا الحقل مطلوب')
+    expect(wrapper.text()).not.toContain('This field is required')
+    expect(live.text()).toMatch(/أخطاء|خطأً|خطأ/)
+
+    await wrapper.get('input[name="shipping_city"]').setValue('مسقط')
+    await wrapper
+      .findAll('.fg-step-actions button')
+      .find((b) => b.text() === 'التالي')!
+      .trigger('click')
+    await nextTick()
+    expect(live.text()).toBe('الخطوة 2 من 2: Review')
+    // last step: Back + the embedded Arabic submit
+    expect(stepButtons()).toEqual(['السابق', 'إرسال'])
+
+    // chips remove-button label
+    const tags = wrapper.get('.fg-tags-input')
+    await tags.setValue('vue')
+    await tags.trigger('keydown', { key: 'Enter' })
+    expect(wrapper.get('.fg-tag-remove').attributes('aria-label')).toBe('إزالة vue')
+  })
+
   it('tab headers show an error dot after a failed submit', async () => {
     const schema = fixtureSchema()
     // make the hidden tab's field required

@@ -2,7 +2,8 @@
 // (React 18+) with useState, compiled validation and conditions
 // (REBUILD_PROMPT §7 target 5). Added as a plugin — no core changes.
 
-import { SUBMITTED_TEXT, errorsTextFunction, stepAnnouncementsLiteral } from '../announce'
+import { resolveMessages } from '@formsgen/renderer'
+import { errorsTextFunction, stepAnnouncementsLiteral, submittedText } from '../announce'
 import { RUNTIME_HELPERS } from '../compile'
 import {
   collectExportFields,
@@ -82,6 +83,7 @@ export const reactTarget: ExportTarget = {
     const fields = collectExportFields(schema)
     const defaults = defaultsObject(schema)
     const hosts = collectSectionHosts(schema)
+    const messages = resolveMessages(schema.meta.locale)
 
     // Submit button: configurable text/placement/style (meta.submitButton).
     // With exactly ONE gating wizard, the submit replaces Next on its last
@@ -168,7 +170,7 @@ export const reactTarget: ExportTarget = {
       .join('\n\n')
     const stepAnnounceConsts = hosts
       .filter((host) => host.kind === 'steps')
-      .map((host) => `const fgSecAnnounce_${host.key} = ${stepAnnouncementsLiteral(host)}`)
+      .map((host) => `const fgSecAnnounce_${host.key} = ${stepAnnouncementsLiteral(host, messages)}`)
       .join('\n')
 
     // On a failed submit, move each tabs/steps host to its first section
@@ -248,7 +250,7 @@ function buildPayload(data: FormData): Record<string, unknown> {
   return ${indentBlock(payloadExpr(schema, dataAccessor, (key) => `fgVisible_${key}(data)`), 1).trimStart()}
 }
 ${sectionPathsConsts ? `\n${sectionPathsConsts}\n` : ''}${stepAnnounceConsts ? `${stepAnnounceConsts}\n` : ''}
-${errorsTextFunction(true)}
+${errorsTextFunction(messages, true)}
 
 export default function ${name}({
   onSubmit,
@@ -315,7 +317,7 @@ ${jumpBlock ? `${jumpBlock}\n` : ''}      fgAnnounce(fgErrorsText(Object.keys(ne
     }
     const data = buildPayload(form)
     setResult(data)
-    fgAnnounce(${SUBMITTED_TEXT})
+    fgAnnounce(${submittedText(messages)})
     onSubmit?.(data)
 ${submitBlock}  }
 

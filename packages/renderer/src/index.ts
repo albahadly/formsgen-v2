@@ -74,7 +74,19 @@ export {
   walkTree,
 } from './tree'
 
-export { SUBMITTED_ANNOUNCEMENT, errorsAnnouncement, stepAnnouncement } from './announcements'
+export { errorsAnnouncement, stepAnnouncement, submittedAnnouncement } from './announcements'
+
+export {
+  MESSAGES,
+  defaultRuleMessage,
+  fill,
+  pluralCategory,
+  pluralText,
+  resolveMessages,
+  type MessageCatalog,
+  type PluralCategory,
+  type PluralForms,
+} from './messages'
 
 export {
   KNOWN_CONDITION_OPERATORS,

@@ -3,7 +3,7 @@
 // rest (conditional fields, required checkboxes), and condition
 // expressions as C# bools. Semantics mirror @formsgen/renderer.
 
-import type { Condition, ConditionGroups, Rule } from '@formsgen/renderer'
+import { defaultRuleMessage, type Condition, type ConditionGroups, type Rule } from '@formsgen/renderer'
 import { pascalMember } from '@/registry/emitters/shared'
 import type { ExportField } from './structure'
 
@@ -29,28 +29,10 @@ function csLiteral(value: unknown): string {
   return csStr(String(value))
 }
 
+/** Rule message: custom, else the localized default baked in by
+ * collectExportFields, else the English default. */
 function ruleMessage(rule: Rule): string {
-  if (rule.message) return rule.message
-  switch (rule.rule) {
-    case 'required':
-      return 'This field is required'
-    case 'min':
-      return `Must be at least ${String(rule.value)}`
-    case 'max':
-      return `Must be at most ${String(rule.value)}`
-    case 'between': {
-      const [lo, hi] = Array.isArray(rule.value) ? rule.value : [undefined, undefined]
-      return `Must be between ${String(lo)} and ${String(hi)}`
-    }
-    case 'email':
-      return 'Must be a valid email address'
-    case 'url':
-      return 'Must be a valid URL'
-    case 'regex':
-      return 'Invalid format'
-    case 'same-as':
-      return `Must match ${String(rule.value)}`
-  }
+  return rule.message ?? defaultRuleMessage(rule)
 }
 
 /** C# model shapes a field can take. */

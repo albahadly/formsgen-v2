@@ -3,8 +3,8 @@
 // stylesheet; Tailwind/Bootstrap reference their CDN assets in <head>
 // (swappable for local builds, see the generated README).
 
-import { stepAnnouncement, type ElementNode } from '@formsgen/renderer'
-import { SUBMITTED_TEXT, errorsTextFunction } from '../announce'
+import { resolveMessages, type ElementNode } from '@formsgen/renderer'
+import { errorsTextFunction, jsTemplate, stepAnnouncements, submittedText } from '../announce'
 import { RUNTIME_HELPERS } from '../compile'
 import {
   collectExportFields,
@@ -34,6 +34,7 @@ export const htmlTarget: ExportTarget = {
     const accessor = (path: string): string => `fgGet(${JSON.stringify(path)})`
     const fields = collectExportFields(schema)
     const hosts = collectSectionHosts(schema)
+    const messages = resolveMessages(schema.meta.locale)
 
     // Submit button: configurable text/placement/style (meta.submitButton).
     // With exactly ONE gating wizard, the submit replaces Next on its last
@@ -92,7 +93,7 @@ export const htmlTarget: ExportTarget = {
       stepPaths: host.sections.map((s) => s.paths),
       announce:
         host.kind === 'steps'
-          ? host.sections.map((s) => stepAnnouncement(s.index, host.sections.length, s.label))
+          ? stepAnnouncements(host, messages)
           : [],
     }))
 
@@ -216,7 +217,7 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
           var remove = document.createElement('button')
           remove.type = 'button'
           remove.className = ${JSON.stringify(css.classes('tagRemove'))}
-          remove.setAttribute('aria-label', 'Remove ' + tag)
+          remove.setAttribute('aria-label', ${jsTemplate(messages.removeTag, { tag: 'tag' })})
           remove.textContent = '\\u00d7'
           remove.addEventListener('click', function () {
             fgTags[path].splice(index, 1)
@@ -255,7 +256,7 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
       live.textContent = ''
       setTimeout(function () { live.textContent = message }, 50)
     }
-    ${errorsTextFunction(false).split('\n').join('\n    ')}
+    ${errorsTextFunction(messages, false).split('\n').join('\n    ')}
 
     var FG_SECTIONS = ${JSON.stringify(sectionsMeta).replace(/</g, '\\u003c')}
     var FG_SUBMIT_GATE = ${JSON.stringify(sb.gatingHosts.map((h) => h.key))}
@@ -366,7 +367,7 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
       var out = document.getElementById('fg-result')
       out.textContent = JSON.stringify(data, null, 2)
       out.hidden = false
-      fgAnnounce(${SUBMITTED_TEXT})
+      fgAnnounce(${submittedText(messages)})
       console.log('Form submitted', data)
 ${submitBlock}    })
 

@@ -1,14 +1,19 @@
 // Screen-reader announcement texts spoken through the form's polite
-// aria-live region. Export targets generate code producing the SAME
-// strings (asserted in the builder's target tests).
+// aria-live region, per locale (see messages.ts). Export targets generate
+// code producing the SAME strings (asserted in the builder's target tests).
 
-export function errorsAnnouncement(count: number): string {
-  return `${count} ${count === 1 ? 'error' : 'errors'}. Please fix the highlighted fields.`
+import { fill, pluralText, resolveMessages } from './messages'
+
+export function errorsAnnouncement(count: number, locale = 'en'): string {
+  const messages = resolveMessages(locale)
+  return pluralText(messages, messages.errors, count)
 }
 
-export const SUBMITTED_ANNOUNCEMENT = 'Form submitted.'
+export function submittedAnnouncement(locale = 'en'): string {
+  return resolveMessages(locale).submitted
+}
 
 /** `index` is zero-based. */
-export function stepAnnouncement(index: number, total: number, label: string): string {
-  return `Step ${index + 1} of ${total}: ${label}`
+export function stepAnnouncement(index: number, total: number, label: string, locale = 'en'): string {
+  return fill(resolveMessages(locale).stepProgress, { index: index + 1, total, label })
 }

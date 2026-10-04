@@ -4,8 +4,11 @@
 
 import {
   SECTION_CONTAINERS,
+  defaultRuleMessage,
+  fill,
   getCoreElement,
   joinPath,
+  resolveMessages,
   type ConditionGroups,
   type ElementNode,
   type FormSchema,
@@ -25,8 +28,22 @@ export function pathKey(path: string): string {
   return path.replace(/\./g, '_')
 }
 
-/** All value-bearing fields with paths and inherited conditions. */
+/**
+ * All value-bearing fields with paths and inherited conditions. Rules
+ * without a custom message get the localized default for meta.locale
+ * filled in, so every code generator emits the form's language.
+ */
 export function collectExportFields(schema: FormSchema): ExportField[] {
+  const messages = resolveMessages(schema.meta.locale)
+  const localize = (node: ElementNode): ElementNode =>
+    node.validation?.length
+      ? {
+          ...node,
+          validation: node.validation.map((rule) =>
+            rule.message ? rule : { ...rule, message: defaultRuleMessage(rule, messages) },
+          ),
+        }
+      : node
   const fields: ExportField[] = []
   const walk = (
     nodes: ElementNode[],
@@ -42,7 +59,7 @@ export function collectExportFields(schema: FormSchema): ExportField[] {
         walk(node.children ?? [], childPath, chain)
       } else if (core.hasValue && node.name) {
         const path = joinPath(parentPath, node.name)
-        fields.push({ node, path, key: pathKey(path), conditionChain: chain })
+        fields.push({ node: localize(node), path, key: pathKey(path), conditionChain: chain })
       }
     }
   }
@@ -152,6 +169,7 @@ export function subtreeFieldPaths(nodes: ElementNode[], basePath: string): strin
 
 /** Every tabs/steps host in the schema, with labels and per-section paths. */
 export function collectSectionHosts(schema: FormSchema): SectionHostInfo[] {
+  const messages = resolveMessages(schema.meta.locale)
   const hosts: SectionHostInfo[] = []
   const walk = (nodes: ElementNode[], basePath: string): void => {
     for (const node of nodes) {
@@ -168,7 +186,7 @@ export function collectSectionHosts(schema: FormSchema): SectionHostInfo[] {
             label:
               typeof section.props['label'] === 'string' && section.props['label'] !== ''
                 ? (section.props['label'] as string)
-                : `${sectionType === 'tab' ? 'Tab' : 'Step'} ${index + 1}`,
+                : fill(sectionType === 'tab' ? messages.tab : messages.step, { n: index + 1 }),
             paths: subtreeFieldPaths(section.children ?? [], childPath),
           }))
         hosts.push({
@@ -207,7 +225,11 @@ export function resolveSubmitButton(
   const align = cfg.align === 'center' || cfg.align === 'end' ? cfg.align : 'start'
   const fullWidth = cfg.fullWidth === true
   return {
-    text: escapeHtml(typeof cfg.text === 'string' && cfg.text !== '' ? cfg.text : 'Submit'),
+    text: escapeHtml(
+      typeof cfg.text === 'string' && cfg.text !== ''
+        ? cfg.text
+        : resolveMessages(schema.meta.locale).submit,
+    ),
     align,
     secondary: cfg.variant === 'secondary',
     fullWidth,

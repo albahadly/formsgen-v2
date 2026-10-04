@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, provide, reactive, ref, watch } from 'vue'
-import { SUBMITTED_ANNOUNCEMENT, errorsAnnouncement } from '../announcements'
 import { getValueByPath } from '../conditions'
 import { FORM_CONTEXT, type FormContext } from '../context'
+import { pluralText, resolveMessages } from '../messages'
 import { evaluateRules } from '../rules'
 import { collectVisibleFields, pickVisibleData, setValueByPath } from '../runtime'
 import type { FormSchema } from '../schema'
@@ -27,6 +27,9 @@ const themeStyle = computed<Record<string, string>>(() => {
   }
   return style
 })
+
+/** Built-in texts (rule defaults, labels, announcements) for meta.locale. */
+const messages = computed(() => resolveMessages(props.schema.meta.locale))
 
 function deepMerge(
   base: Record<string, unknown>,
@@ -68,7 +71,7 @@ function validateField(path: string): void {
     errors[path] = null
     return
   }
-  const violations = evaluateRules(field.node.validation, lookup(path), lookup)
+  const violations = evaluateRules(field.node.validation, lookup(path), lookup, messages.value)
   errors[path] = violations[0]?.message ?? null
 }
 
@@ -77,7 +80,12 @@ function validateAll(): boolean {
   for (const key of Object.keys(errors)) errors[key] = null
   let ok = true
   for (const field of collectVisibleFields(props.schema.tree, data)) {
-    const violations = evaluateRules(field.node.validation, lookup(field.path), lookup)
+    const violations = evaluateRules(
+      field.node.validation,
+      lookup(field.path),
+      lookup,
+      messages.value,
+    )
     errors[field.path] = violations[0]?.message ?? null
     if (violations.length > 0) ok = false
   }
@@ -116,6 +124,7 @@ const context: FormContext = {
     stepsHosts.delete(id)
   },
   submitEmbedHostId: () => embeddedHostId.value,
+  messages: () => messages.value,
   submitButtonSpec: () => ({
     text: submitText.value,
     secondary: submitCfg.value?.variant === 'secondary',
@@ -127,7 +136,7 @@ provide(FORM_CONTEXT, context)
 const submitCfg = computed(() => props.schema.meta.submitButton)
 const submitText = computed(() => {
   const text = submitCfg.value?.text
-  return typeof text === 'string' && text !== '' ? text : 'Submit'
+  return typeof text === 'string' && text !== '' ? text : messages.value.submit
 })
 const submitClass = computed(() =>
   submitCfg.value?.variant === 'secondary'
@@ -173,10 +182,12 @@ function onSubmit(): void {
   const ok = validateAll()
   submitAttempts.value++
   if (ok) {
-    announce(SUBMITTED_ANNOUNCEMENT)
+    announce(messages.value.submitted)
     emit('submit', pickVisibleData(props.schema.tree, data))
   } else {
-    announce(errorsAnnouncement(Object.values(errors).filter(Boolean).length))
+    announce(
+      pluralText(messages.value, messages.value.errors, Object.values(errors).filter(Boolean).length),
+    )
   }
 }
 </script>

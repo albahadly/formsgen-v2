@@ -20,5 +20,6 @@ Read the latest handoff before starting any phase (Phase Standard, REBUILD_PROMP
 | 13 | Backlog: tags element, export auto-jump, axe CI | ✅ Complete | [phase-13-tags-jump-axe.md](./phase-13-tags-jump-axe.md) |
 | 14 | Blazor parity: multi-value, step gating, error jump | ✅ Complete | [phase-14-blazor-parity.md](./phase-14-blazor-parity.md) |
 | 15 | aria-live announcements + cross-target validation parity | ✅ Complete | [phase-15-live-region-parity.md](./phase-15-live-region-parity.md) |
+| 16 | Localized built-in texts (English + Arabic) | ✅ Complete | [phase-16-arabic-messages.md](./phase-16-arabic-messages.md) |
 
-**All 11 planned phases are complete**, plus 10b and 12–15 from the backlog. Remaining backlog: npm publish of `@formsgen/renderer` (parked by user); localized built-in texts; see [phase-15-live-region-parity.md](./phase-15-live-region-parity.md).
+**All 11 planned phases are complete**, plus 10b and 12–16 from the backlog. Remaining backlog: npm publish of `@formsgen/renderer` (parked by user); see the "Not done" list in [phase-16-arabic-messages.md](./phase-16-arabic-messages.md).
