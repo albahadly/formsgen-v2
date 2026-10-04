@@ -1,10 +1,25 @@
 import { getCoreElement } from '@formsgen/renderer'
 import { checkboxElement } from './elements/checkbox'
+import { checkboxGroupElement, radioGroupElement } from './elements/choiceGroups'
 import { columnsElement } from './elements/columns'
 import { groupElement } from './elements/group'
+import { numberElement, rangeElement } from './elements/number'
 import { selectElement } from './elements/select'
+import {
+  dividerElement,
+  headingElement,
+  paragraphElement,
+} from './elements/staticElements'
 import { textElement } from './elements/text'
 import { textareaElement } from './elements/textarea'
+import {
+  dateElement,
+  emailElement,
+  passwordElement,
+  phoneElement,
+  timeElement,
+  urlElement,
+} from './elements/textVariants'
 import type { ElementCategory, ElementDefinition } from './types'
 
 const definitions = new Map<string, ElementDefinition>()
@@ -30,13 +45,29 @@ export function listElements(category?: ElementCategory): ElementDefinition[] {
   return category ? all.filter((d) => d.category === category) : all
 }
 
-// Pilot set (phase 2). Later phases extend this list; adding an element
-// type = one file in ./elements plus one register call here.
+// Element catalog. Adding a type = one file in ./elements plus one entry
+// here (order defines palette order within each category).
 for (const def of [
+  // fields
   textElement,
   textareaElement,
+  numberElement,
+  emailElement,
+  phoneElement,
+  passwordElement,
+  urlElement,
+  dateElement,
+  timeElement,
   selectElement,
+  radioGroupElement,
   checkboxElement,
+  checkboxGroupElement,
+  rangeElement,
+  // static
+  headingElement,
+  paragraphElement,
+  dividerElement,
+  // structure
   groupElement,
   columnsElement,
 ]) {

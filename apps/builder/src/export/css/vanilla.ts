@@ -20,6 +20,12 @@ const CLASSES: Record<Slot, string> = {
   actions: 'fg-actions',
   submitButton: 'fg-button fg-button--primary',
   payload: 'fg-payload',
+  options: 'fg-options',
+  option: 'fg-option',
+  range: 'fg-range',
+  heading: 'fg-heading',
+  paragraph: 'fg-paragraph',
+  divider: 'fg-divider',
 }
 
 /** Mirrors packages/renderer/src/styles.css for self-contained artifacts. */
@@ -63,6 +69,12 @@ ${overrides ? `${overrides}\n` : ''}  font-family: var(--fg-font);
 .fg-checkbox { inline-size: 1rem; block-size: 1rem; accent-color: var(--fg-color-primary); }
 .fg-description { margin: 0; font-size: 0.8125rem; color: var(--fg-color-muted); }
 .fg-error { margin: 0; font-size: 0.8125rem; color: var(--fg-color-error); }
+.fg-options { display: flex; flex-direction: column; gap: 0.375rem; }
+.fg-option { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.9375rem; }
+.fg-range { inline-size: 100%; accent-color: var(--fg-color-primary); }
+.fg-heading { margin: 0; }
+.fg-paragraph { margin: 0; color: var(--fg-color-muted); }
+.fg-divider { border: none; border-block-start: 1px solid var(--fg-color-border); margin-block: 0.25rem; }
 .fg-group { margin: 0; padding: var(--fg-space); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
 .fg-group-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); }
 .fg-actions { margin-block-start: var(--fg-space); }

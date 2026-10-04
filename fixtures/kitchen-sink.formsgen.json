@@ -9,6 +9,16 @@
   },
   "tree": [
     {
+      "id": "ks-intro-heading",
+      "type": "heading",
+      "props": { "text": "Kitchen Sink", "level": 2 }
+    },
+    {
+      "id": "ks-intro-text",
+      "type": "paragraph",
+      "props": { "text": "Every implemented element appears in this form." }
+    },
+    {
       "id": "ks-full-name",
       "type": "text",
       "name": "full_name",
@@ -17,10 +27,35 @@
     },
     {
       "id": "ks-email",
-      "type": "text",
+      "type": "email",
       "name": "email",
       "props": { "label": "Email", "placeholder": "jane@example.com" },
       "validation": [{ "rule": "required" }, { "rule": "email" }]
+    },
+    {
+      "id": "ks-website",
+      "type": "url",
+      "name": "website",
+      "props": { "label": "Website" },
+      "validation": [{ "rule": "url" }]
+    },
+    {
+      "id": "ks-seats",
+      "type": "number",
+      "name": "seats",
+      "props": { "label": "Seats", "min": 1, "max": 50 },
+      "validation": [{ "rule": "min", "value": 1 }, { "rule": "max", "value": 50 }]
+    },
+    {
+      "id": "ks-satisfaction",
+      "type": "range",
+      "name": "satisfaction",
+      "props": { "label": "Satisfaction", "min": 0, "max": 10, "step": 1, "default": 5 }
+    },
+    {
+      "id": "ks-divider-1",
+      "type": "divider",
+      "props": {}
     },
     {
       "id": "ks-columns",
@@ -58,13 +93,50 @@
           "validation": [{ "rule": "required" }, { "rule": "between", "value": [3, 20] }]
         },
         {
+          "id": "ks-password",
+          "type": "password",
+          "name": "password",
+          "props": { "label": "Password" }
+        },
+        {
           "id": "ks-bio",
           "type": "textarea",
           "name": "bio",
           "props": { "label": "Bio", "rows": 4 },
           "validation": [{ "rule": "max", "value": 200 }]
+        },
+        {
+          "id": "ks-birthday",
+          "type": "date",
+          "name": "birthday",
+          "props": { "label": "Birthday" }
         }
       ]
+    },
+    {
+      "id": "ks-plan",
+      "type": "radiogroup",
+      "name": "plan",
+      "props": {
+        "label": "Plan",
+        "items": [
+          { "value": "free", "label": "Free" },
+          { "value": "pro", "label": "Pro" }
+        ]
+      },
+      "validation": [{ "rule": "required" }]
+    },
+    {
+      "id": "ks-interests",
+      "type": "checkboxgroup",
+      "name": "interests",
+      "props": {
+        "label": "Interests",
+        "items": [
+          { "value": "news", "label": "News" },
+          { "value": "product", "label": "Product updates" }
+        ]
+      }
     },
     {
       "id": "ks-contact-method",
@@ -79,6 +151,15 @@
         ]
       },
       "validation": [{ "rule": "required" }]
+    },
+    {
+      "id": "ks-contact-phone",
+      "type": "phone",
+      "name": "contact_phone",
+      "props": { "label": "Phone number" },
+      "conditions": [
+        [{ "field": "contact_method", "operator": "equals", "value": "phone" }]
+      ]
     },
     {
       "id": "ks-contact-other",

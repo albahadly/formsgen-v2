@@ -17,6 +17,7 @@ async function fillValidForm(wrapper: ReturnType<typeof mountForm>) {
   await wrapper.get('input[name="full_name"]').setValue('Jane Doe')
   await wrapper.get('input[name="email"]').setValue('jane@example.com')
   await wrapper.get('input[name="username"]').setValue('jane')
+  await wrapper.get('input[id$="-pro"]').setValue(true) // radio: plan = pro
   await wrapper.get('select[name="contact_method"]').setValue('email')
   await wrapper.get('input[name="terms"]').setValue(true)
 }
@@ -71,14 +72,20 @@ describe('FormsGenForm', () => {
     expect(payload).toEqual({
       full_name: 'Jane Doe',
       email: 'jane@example.com',
+      website: '',
+      seats: null,
+      satisfaction: 5,
       city: '',
       zip: '',
-      account: { username: 'jane', bio: '' },
+      account: { username: 'jane', password: '', bio: '', birthday: '' },
+      plan: 'pro',
+      interests: [],
       contact_method: 'email',
       newsletter: true,
       terms: true,
     })
     expect('contact_other' in payload).toBe(false)
+    expect('contact_phone' in payload).toBe(false)
   })
 
   it('includes a conditional field in the payload once visible and filled', async () => {
@@ -115,6 +122,38 @@ describe('FormsGenForm', () => {
     const style = wrapper.get('form').attributes('style') ?? ''
     expect(style).toContain('--fg-color-primary: #ff0000')
     expect(style).toContain('--fg-radius: 12px')
+  })
+
+  it('binds the new field kinds: number, checkbox group, radio, range', async () => {
+    const wrapper = mountForm()
+    await fillValidForm(wrapper)
+    await wrapper.get('input[name="seats"]').setValue('12')
+    await wrapper.get('input[id$="-news"]').setValue(true)
+    await wrapper.get('input[id$="-product"]').setValue(true)
+    await wrapper.get('form').trigger('submit')
+    const payload = wrapper.emitted('submit')![0]![0] as Record<string, unknown>
+    expect(payload['seats']).toBe(12)
+    expect(payload['interests']).toEqual(['news', 'product'])
+    expect(payload['plan']).toBe('pro')
+    expect(payload['satisfaction']).toBe(5)
+  })
+
+  it('switches between two conditional fields on one driver', async () => {
+    const wrapper = mountForm()
+    expect(wrapper.find('input[name="contact_phone"]').exists()).toBe(false)
+    await wrapper.get('select[name="contact_method"]').setValue('phone')
+    expect(wrapper.find('input[name="contact_phone"]').exists()).toBe(true)
+    expect(wrapper.find('textarea[name="contact_other"]').exists()).toBe(false)
+    await wrapper.get('select[name="contact_method"]').setValue('other')
+    expect(wrapper.find('input[name="contact_phone"]').exists()).toBe(false)
+    expect(wrapper.find('textarea[name="contact_other"]').exists()).toBe(true)
+  })
+
+  it('renders static elements without touching the data', () => {
+    const wrapper = mountForm()
+    expect(wrapper.get('h2.fg-heading').text()).toBe('Kitchen Sink')
+    expect(wrapper.find('p.fg-paragraph').exists()).toBe(true)
+    expect(wrapper.find('hr.fg-divider').exists()).toBe(true)
   })
 
   it('merges a provided modelValue over defaults', () => {

@@ -73,6 +73,17 @@ export const htmlTarget: ExportTarget = {
       var kind = el.getAttribute('data-fg-kind')
       if (kind === 'checkbox') return el.checked
       if (kind === 'select') return el.value === '' ? null : el.value
+      if (kind === 'number') return el.value === '' ? null : Number(el.value)
+      if (kind === 'radio') {
+        var checked = document.querySelector('[data-fg-path="' + path + '"]:checked')
+        return checked ? checked.value : null
+      }
+      if (kind === 'checks') {
+        return Array.prototype.map.call(
+          document.querySelectorAll('[data-fg-path="' + path + '"]:checked'),
+          function (box) { return box.value },
+        )
+      }
       return el.value
     }
 

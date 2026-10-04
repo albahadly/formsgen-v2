@@ -68,12 +68,18 @@ describe('buildDefaultData', () => {
     expect(data).toEqual({
       full_name: '',
       email: '',
+      website: '',
+      seats: null,
+      satisfaction: 5, // props.default wins over the range min
       // unnamed columns container is transparent:
       city: '',
       zip: '',
       // named group nests an object:
-      account: { username: '', bio: '' },
+      account: { username: '', password: '', bio: '', birthday: '' },
+      plan: null,
+      interests: [],
       contact_method: null,
+      contact_phone: '',
       contact_other: '',
       newsletter: true, // props.default wins over the type default
       terms: false,

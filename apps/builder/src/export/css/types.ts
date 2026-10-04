@@ -25,6 +25,12 @@ export type Slot =
   | 'actions'
   | 'submitButton'
   | 'payload'
+  | 'options'
+  | 'option'
+  | 'range'
+  | 'heading'
+  | 'paragraph'
+  | 'divider'
 
 export interface CellAttrs {
   class: string

@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { TEXT_INPUT_TYPES } from '../../elements'
 import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
 
 const props = defineProps<{ node: ElementNode; path: string }>()
 const { value, error, label, description, placeholder, required, fieldId, onBlur } =
   useField(props)
+
+const inputType = computed(() => TEXT_INPUT_TYPES[props.node.type] ?? 'text')
 
 const text = computed({
   get: () => String(value.value ?? ''),
@@ -34,7 +37,7 @@ const text = computed({
       :id="fieldId"
       v-model="text"
       class="fg-input"
-      type="text"
+      :type="inputType"
       :name="node.name"
       :placeholder="placeholder"
       :aria-invalid="error ? 'true' : undefined"

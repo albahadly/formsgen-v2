@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import {
   FgCheckbox,
+  FgCheckboxGroup,
+  FgNumber,
+  FgRadioGroup,
+  FgRange,
   FgSelect,
+  FgStatic,
   FgText,
   FgTextarea,
   joinPath,
@@ -23,10 +28,23 @@ const store = useBuilderStore()
 
 const fieldComponents = {
   text: FgText,
+  email: FgText,
+  password: FgText,
+  url: FgText,
+  phone: FgText,
+  date: FgText,
+  time: FgText,
   textarea: FgTextarea,
+  number: FgNumber,
   select: FgSelect,
+  radiogroup: FgRadioGroup,
   checkbox: FgCheckbox,
+  checkboxgroup: FgCheckboxGroup,
+  range: FgRange,
 } as const
+
+const staticTypes = new Set(['heading', 'paragraph', 'divider'])
+const isStatic = computed(() => staticTypes.has(props.node.type))
 
 const fieldComponent = computed(
   () => fieldComponents[props.node.type as keyof typeof fieldComponents],
@@ -107,6 +125,11 @@ function onDuplicate(): void {
       class="pointer-events-auto"
       :node="node"
       :path="path"
+    />
+
+    <FgStatic
+      v-else-if="isStatic"
+      :node="node"
     />
 
     <div

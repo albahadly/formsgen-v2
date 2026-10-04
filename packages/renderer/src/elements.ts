@@ -22,12 +22,36 @@ const meta = (
   defaultValue: (node: ElementNode) => unknown,
 ): CoreElementMeta => ({ type, hasValue, isContainer, defaultValue })
 
-/** Pilot element set (phase 2); grows with the catalog in later phases. */
+/** Text-like types sharing the FgText component; value = input type attr. */
+export const TEXT_INPUT_TYPES: Record<string, string> = {
+  text: 'text',
+  email: 'email',
+  password: 'password',
+  url: 'url',
+  phone: 'tel',
+  date: 'date',
+  time: 'time',
+}
+
+/** Core element catalog; builder definitions must match (ADR-0001). */
 export const coreElements: Record<string, CoreElementMeta> = {
   text: meta('text', true, false, () => ''),
+  email: meta('email', true, false, () => ''),
+  password: meta('password', true, false, () => ''),
+  url: meta('url', true, false, () => ''),
+  phone: meta('phone', true, false, () => ''),
+  date: meta('date', true, false, () => ''),
+  time: meta('time', true, false, () => ''),
   textarea: meta('textarea', true, false, () => ''),
+  number: meta('number', true, false, () => null),
   select: meta('select', true, false, () => null),
+  radiogroup: meta('radiogroup', true, false, () => null),
   checkbox: meta('checkbox', true, false, () => false),
+  checkboxgroup: meta('checkboxgroup', true, false, () => []),
+  range: meta('range', true, false, (node) => Number(node.props['min'] ?? 0)),
+  heading: meta('heading', false, false, () => undefined),
+  paragraph: meta('paragraph', false, false, () => undefined),
+  divider: meta('divider', false, false, () => undefined),
   group: meta('group', false, true, () => undefined),
   columns: meta('columns', false, true, () => undefined),
 }

@@ -5,7 +5,12 @@ import { FORM_CONTEXT } from '../context'
 import { joinPath } from '../runtime'
 import type { ColSpan, ElementNode } from '../schema'
 import FgCheckbox from './fields/FgCheckbox.vue'
+import FgCheckboxGroup from './fields/FgCheckboxGroup.vue'
+import FgNumber from './fields/FgNumber.vue'
+import FgRadioGroup from './fields/FgRadioGroup.vue'
+import FgRange from './fields/FgRange.vue'
 import FgSelect from './fields/FgSelect.vue'
+import FgStatic from './fields/FgStatic.vue'
 import FgText from './fields/FgText.vue'
 import FgTextarea from './fields/FgTextarea.vue'
 
@@ -19,7 +24,25 @@ const ctx = inject(FORM_CONTEXT)
 if (!ctx) throw new Error('<FgNode> must be used inside <FormsGenForm>')
 
 // Internal component map for core field types (ADR-0001).
-const fieldComponents = { text: FgText, textarea: FgTextarea, select: FgSelect, checkbox: FgCheckbox } as const
+const fieldComponents = {
+  text: FgText,
+  email: FgText,
+  password: FgText,
+  url: FgText,
+  phone: FgText,
+  date: FgText,
+  time: FgText,
+  textarea: FgTextarea,
+  number: FgNumber,
+  select: FgSelect,
+  radiogroup: FgRadioGroup,
+  checkbox: FgCheckbox,
+  checkboxgroup: FgCheckboxGroup,
+  range: FgRange,
+} as const
+
+const staticTypes = new Set(['heading', 'paragraph', 'divider'])
+const isStatic = computed(() => staticTypes.has(props.node.type))
 
 const fieldComponent = computed(
   () => fieldComponents[props.node.type as keyof typeof fieldComponents],
@@ -45,7 +68,7 @@ const groupLabel = computed(() => {
 
 <template>
   <div
-    v-if="visible && (fieldComponent || node.type === 'group' || node.type === 'columns')"
+    v-if="visible && (fieldComponent || isStatic || node.type === 'group' || node.type === 'columns')"
     class="fg-cell"
     :style="cellStyle"
   >
@@ -54,6 +77,10 @@ const groupLabel = computed(() => {
       v-if="fieldComponent"
       :node="node"
       :path="path"
+    />
+    <FgStatic
+      v-else-if="isStatic"
+      :node="node"
     />
     <fieldset
       v-else-if="node.type === 'group'"

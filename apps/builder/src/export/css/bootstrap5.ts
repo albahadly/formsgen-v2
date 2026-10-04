@@ -20,6 +20,12 @@ const CLASSES: Record<Slot, string> = {
   actions: 'mt-3',
   submitButton: 'btn btn-primary',
   payload: 'mt-3 p-3 bg-dark text-success rounded small overflow-auto',
+  options: 'd-flex flex-column gap-1',
+  option: 'form-check',
+  range: 'form-range',
+  heading: 'fw-semibold',
+  paragraph: 'text-secondary',
+  divider: 'border-top',
 }
 
 export const bootstrap5Adapter: CssFrameworkAdapter = {

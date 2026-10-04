@@ -24,6 +24,12 @@ const CLASSES: Record<Slot, string> = {
   submitButton:
     'rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300',
   payload: 'mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300',
+  options: 'flex flex-col gap-1.5',
+  option: 'inline-flex items-center gap-2 text-sm',
+  range: 'w-full accent-indigo-600',
+  heading: 'font-semibold',
+  paragraph: 'text-sm text-gray-600 dark:text-gray-300',
+  divider: 'border-t border-gray-200 dark:border-gray-700',
 }
 
 export const tailwindAdapter: CssFrameworkAdapter = {

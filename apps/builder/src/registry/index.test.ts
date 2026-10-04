@@ -4,20 +4,38 @@ import { createNode } from './factory'
 import { getElement, listElements } from './index'
 
 describe('element registry', () => {
-  it('registers the six pilot types', () => {
+  it('registers the full catalog', () => {
     expect(listElements().map((d) => d.type).sort()).toEqual([
       'checkbox',
+      'checkboxgroup',
       'columns',
+      'date',
+      'divider',
+      'email',
       'group',
+      'heading',
+      'number',
+      'paragraph',
+      'password',
+      'phone',
+      'radiogroup',
+      'range',
       'select',
       'text',
       'textarea',
+      'time',
+      'url',
     ])
   })
 
   it('filters by category', () => {
     expect(listElements('structure').map((d) => d.type).sort()).toEqual(['columns', 'group'])
-    expect(listElements('fields')).toHaveLength(4)
+    expect(listElements('static').map((d) => d.type).sort()).toEqual([
+      'divider',
+      'heading',
+      'paragraph',
+    ])
+    expect(listElements('fields')).toHaveLength(14)
   })
 
   it('every definition matches its core semantics in the renderer', () => {

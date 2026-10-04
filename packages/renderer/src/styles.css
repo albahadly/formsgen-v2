@@ -122,6 +122,45 @@
   color: var(--fg-color-error);
 }
 
+.fg-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.fg-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+}
+
+.fg-range {
+  inline-size: 100%;
+  accent-color: var(--fg-color-primary);
+}
+
+.fg-range-value {
+  float: inline-end;
+  font-weight: 400;
+  color: var(--fg-color-muted);
+}
+
+.fg-heading {
+  margin: 0;
+}
+
+.fg-paragraph {
+  margin: 0;
+  color: var(--fg-color-muted);
+}
+
+.fg-divider {
+  border: none;
+  border-block-start: 1px solid var(--fg-color-border);
+  margin-block: 0.25rem;
+}
+
 .fg-group {
   margin: 0;
   padding: var(--fg-space);

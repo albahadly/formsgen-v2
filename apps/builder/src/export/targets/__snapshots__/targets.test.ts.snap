@@ -9,6 +9,12 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
     <DataAnnotationsValidator />
     <div class="row g-3">
         <div class="col-12 col-md-12">
+          <h2 class="fw-semibold">Kitchen Sink</h2>
+        </div>
+        <div class="col-12 col-md-12">
+          <p class="text-secondary">Every implemented element appears in this form.</p>
+        </div>
+        <div class="col-12 col-md-12">
           <div class="d-flex flex-column gap-1">
             <label class="form-label fw-semibold mb-0" for="fg_full_name">Full name<span class="text-danger ms-1" aria-hidden="true">*</span></label>
             <InputText id="fg_full_name" @bind-Value="Model.FullName" class="form-control" placeholder="Jane Doe" />
@@ -18,9 +24,33 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         <div class="col-12 col-md-12">
           <div class="d-flex flex-column gap-1">
             <label class="form-label fw-semibold mb-0" for="fg_email">Email<span class="text-danger ms-1" aria-hidden="true">*</span></label>
-            <InputText id="fg_email" @bind-Value="Model.Email" class="form-control" placeholder="jane@example.com" />
+            <InputText id="fg_email" type="email" @bind-Value="Model.Email" class="form-control" placeholder="jane@example.com" />
             <ValidationMessage For="@(() => Model.Email)" class="invalid-feedback d-block mt-0" />
           </div>
+        </div>
+        <div class="col-12 col-md-12">
+          <div class="d-flex flex-column gap-1">
+            <label class="form-label fw-semibold mb-0" for="fg_website">Website</label>
+            <InputText id="fg_website" type="url" @bind-Value="Model.Website" class="form-control" />
+            <ValidationMessage For="@(() => Model.Website)" class="invalid-feedback d-block mt-0" />
+          </div>
+        </div>
+        <div class="col-12 col-md-12">
+          <div class="d-flex flex-column gap-1">
+            <label class="form-label fw-semibold mb-0" for="fg_seats">Seats</label>
+            <InputNumber id="fg_seats" @bind-Value="Model.Seats" class="form-control" />
+            <ValidationMessage For="@(() => Model.Seats)" class="invalid-feedback d-block mt-0" />
+          </div>
+        </div>
+        <div class="col-12 col-md-12">
+          <div class="d-flex flex-column gap-1">
+            <label class="form-label fw-semibold mb-0" for="fg_satisfaction">Satisfaction</label>
+            <input id="fg_satisfaction" type="range" @bind="Model.Satisfaction" @bind:event="oninput" class="form-range" min="0" max="10" step="1" />
+            <ValidationMessage For="@(() => Model.Satisfaction)" class="invalid-feedback d-block mt-0" />
+          </div>
+        </div>
+        <div class="col-12 col-md-12">
+          <hr class="border-top" />
         </div>
         <div class="col-12 col-md-12">
           <div class="row g-3">
@@ -53,13 +83,48 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
               </div>
               <div class="col-12 col-md-12">
                 <div class="d-flex flex-column gap-1">
+                  <label class="form-label fw-semibold mb-0" for="fg_account_password">Password</label>
+                  <InputText id="fg_account_password" type="password" @bind-Value="Model.AccountPassword" class="form-control" />
+                  <ValidationMessage For="@(() => Model.AccountPassword)" class="invalid-feedback d-block mt-0" />
+                </div>
+              </div>
+              <div class="col-12 col-md-12">
+                <div class="d-flex flex-column gap-1">
                   <label class="form-label fw-semibold mb-0" for="fg_account_bio">Bio</label>
                   <InputTextArea id="fg_account_bio" @bind-Value="Model.AccountBio" class="form-control" rows="4" />
                   <ValidationMessage For="@(() => Model.AccountBio)" class="invalid-feedback d-block mt-0" />
                 </div>
               </div>
+              <div class="col-12 col-md-12">
+                <div class="d-flex flex-column gap-1">
+                  <label class="form-label fw-semibold mb-0" for="fg_account_birthday">Birthday</label>
+                  <InputText id="fg_account_birthday" type="date" @bind-Value="Model.AccountBirthday" class="form-control" />
+                  <ValidationMessage For="@(() => Model.AccountBirthday)" class="invalid-feedback d-block mt-0" />
+                </div>
+              </div>
             </div>
           </fieldset>
+        </div>
+        <div class="col-12 col-md-12">
+          <fieldset class="d-flex flex-column gap-1">
+            <legend class="form-label fw-semibold mb-0">Plan<span class="text-danger ms-1" aria-hidden="true">*</span></legend>
+            <InputRadioGroup @bind-Value="Model.Plan">
+              <div class="d-flex flex-column gap-1">
+                <label class="form-check">
+                  <InputRadio class="form-check-input" Value="@("free")" />
+                  <span>Free</span>
+                </label>
+                <label class="form-check">
+                  <InputRadio class="form-check-input" Value="@("pro")" />
+                  <span>Pro</span>
+                </label>
+              </div>
+            </InputRadioGroup>
+            <ValidationMessage For="@(() => Model.Plan)" class="invalid-feedback d-block mt-0" />
+          </fieldset>
+        </div>
+        <div class="col-12 col-md-12">
+          <!-- element type "checkboxgroup" has no blazor emitter yet -->
         </div>
         <div class="col-12 col-md-12">
           <div class="d-flex flex-column gap-1">
@@ -73,6 +138,16 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
             <ValidationMessage For="@(() => Model.ContactMethod)" class="invalid-feedback d-block mt-0" />
           </div>
         </div>
+        @if ((Equals(Model.ContactMethod, "phone")))
+        {
+            <div class="col-12 col-md-12">
+              <div class="d-flex flex-column gap-1">
+                <label class="form-label fw-semibold mb-0" for="fg_contact_phone">Phone number</label>
+                <InputText id="fg_contact_phone" type="tel" @bind-Value="Model.ContactPhone" class="form-control" />
+                <ValidationMessage For="@(() => Model.ContactPhone)" class="invalid-feedback d-block mt-0" />
+              </div>
+            </div>
+        }
         @if ((Equals(Model.ContactMethod, "other")))
         {
             <div class="col-12 col-md-12">
@@ -126,13 +201,21 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         var payload = new Dictionary<string, object?>();
         payload["full_name"] = Model.FullName;
         payload["email"] = Model.Email;
+        payload["website"] = Model.Website;
+        payload["seats"] = Model.Seats;
+        payload["satisfaction"] = Model.Satisfaction;
         payload["city"] = Model.City;
         payload["zip"] = Model.Zip;
         var dict0 = new Dictionary<string, object?>();
         dict0["username"] = Model.AccountUsername;
+        dict0["password"] = Model.AccountPassword;
         dict0["bio"] = Model.AccountBio;
+        dict0["birthday"] = Model.AccountBirthday;
         payload["account"] = dict0;
+        payload["plan"] = string.IsNullOrEmpty(Model.Plan) ? null : Model.Plan;
+        payload["interests"] = Model.Interests;
         payload["contact_method"] = string.IsNullOrEmpty(Model.ContactMethod) ? null : Model.ContactMethod;
+        if (((Equals(Model.ContactMethod, "phone")))) payload["contact_phone"] = Model.ContactPhone;
         if (((Equals(Model.ContactMethod, "other")))) payload["contact_other"] = Model.ContactOther;
         payload["newsletter"] = Model.Newsletter;
         payload["terms"] = Model.Terms;
@@ -149,6 +232,15 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         [EmailAddress(ErrorMessage = "Must be a valid email address")]
         public string Email { get; set; } = "";
 
+        [Url(ErrorMessage = "Must be a valid URL")]
+        public string Website { get; set; } = "";
+
+        [Range(1, double.MaxValue, ErrorMessage = "Must be at least 1")]
+        [Range(double.MinValue, 50, ErrorMessage = "Must be at most 50")]
+        public double? Seats { get; set; }
+
+        public double Satisfaction { get; set; } = 5;
+
         public string City { get; set; } = "";
 
         [RegularExpression(@"^[0-9]{4,6}$", ErrorMessage = "Invalid format")]
@@ -159,11 +251,22 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         [MaxLength(20, ErrorMessage = "Must be between 3 and 20")]
         public string AccountUsername { get; set; } = "";
 
+        public string AccountPassword { get; set; } = "";
+
         [MaxLength(200, ErrorMessage = "Must be at most 200")]
         public string AccountBio { get; set; } = "";
 
+        public string AccountBirthday { get; set; } = "";
+
+        [Required(ErrorMessage = "This field is required")]
+        public string Plan { get; set; } = "";
+
+        public List<string> Interests { get; set; } = new();
+
         [Required(ErrorMessage = "This field is required")]
         public string ContactMethod { get; set; } = "";
+
+        public string ContactPhone { get; set; } = "";
 
         public string ContactOther { get; set; } = "";
 
@@ -189,6 +292,12 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
     <DataAnnotationsValidator />
     <div class="grid grid-cols-12 gap-4">
         <div class="col-span-12 md:col-span-12">
+          <h2 class="font-semibold">Kitchen Sink</h2>
+        </div>
+        <div class="col-span-12 md:col-span-12">
+          <p class="text-sm text-gray-600 dark:text-gray-300">Every implemented element appears in this form.</p>
+        </div>
+        <div class="col-span-12 md:col-span-12">
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-semibold" for="fg_full_name">Full name<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
             <InputText id="fg_full_name" @bind-Value="Model.FullName" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" placeholder="Jane Doe" />
@@ -198,9 +307,33 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         <div class="col-span-12 md:col-span-12">
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-semibold" for="fg_email">Email<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-            <InputText id="fg_email" @bind-Value="Model.Email" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" placeholder="jane@example.com" />
+            <InputText id="fg_email" type="email" @bind-Value="Model.Email" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" placeholder="jane@example.com" />
             <ValidationMessage For="@(() => Model.Email)" class="text-xs text-red-600" />
           </div>
+        </div>
+        <div class="col-span-12 md:col-span-12">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-semibold" for="fg_website">Website</label>
+            <InputText id="fg_website" type="url" @bind-Value="Model.Website" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
+            <ValidationMessage For="@(() => Model.Website)" class="text-xs text-red-600" />
+          </div>
+        </div>
+        <div class="col-span-12 md:col-span-12">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-semibold" for="fg_seats">Seats</label>
+            <InputNumber id="fg_seats" @bind-Value="Model.Seats" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
+            <ValidationMessage For="@(() => Model.Seats)" class="text-xs text-red-600" />
+          </div>
+        </div>
+        <div class="col-span-12 md:col-span-12">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-semibold" for="fg_satisfaction">Satisfaction</label>
+            <input id="fg_satisfaction" type="range" @bind="Model.Satisfaction" @bind:event="oninput" class="w-full accent-indigo-600" min="0" max="10" step="1" />
+            <ValidationMessage For="@(() => Model.Satisfaction)" class="text-xs text-red-600" />
+          </div>
+        </div>
+        <div class="col-span-12 md:col-span-12">
+          <hr class="border-t border-gray-200 dark:border-gray-700" />
         </div>
         <div class="col-span-12 md:col-span-12">
           <div class="grid grid-cols-12 gap-4">
@@ -233,13 +366,48 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
               </div>
               <div class="col-span-12 md:col-span-12">
                 <div class="flex flex-col gap-1.5">
+                  <label class="text-sm font-semibold" for="fg_account_password">Password</label>
+                  <InputText id="fg_account_password" type="password" @bind-Value="Model.AccountPassword" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
+                  <ValidationMessage For="@(() => Model.AccountPassword)" class="text-xs text-red-600" />
+                </div>
+              </div>
+              <div class="col-span-12 md:col-span-12">
+                <div class="flex flex-col gap-1.5">
                   <label class="text-sm font-semibold" for="fg_account_bio">Bio</label>
                   <InputTextArea id="fg_account_bio" @bind-Value="Model.AccountBio" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="4" />
                   <ValidationMessage For="@(() => Model.AccountBio)" class="text-xs text-red-600" />
                 </div>
               </div>
+              <div class="col-span-12 md:col-span-12">
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-sm font-semibold" for="fg_account_birthday">Birthday</label>
+                  <InputText id="fg_account_birthday" type="date" @bind-Value="Model.AccountBirthday" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
+                  <ValidationMessage For="@(() => Model.AccountBirthday)" class="text-xs text-red-600" />
+                </div>
+              </div>
             </div>
           </fieldset>
+        </div>
+        <div class="col-span-12 md:col-span-12">
+          <fieldset class="flex flex-col gap-1.5">
+            <legend class="text-sm font-semibold">Plan<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></legend>
+            <InputRadioGroup @bind-Value="Model.Plan">
+              <div class="flex flex-col gap-1.5">
+                <label class="inline-flex items-center gap-2 text-sm">
+                  <InputRadio class="h-4 w-4 rounded border-gray-300 accent-indigo-600" Value="@("free")" />
+                  <span>Free</span>
+                </label>
+                <label class="inline-flex items-center gap-2 text-sm">
+                  <InputRadio class="h-4 w-4 rounded border-gray-300 accent-indigo-600" Value="@("pro")" />
+                  <span>Pro</span>
+                </label>
+              </div>
+            </InputRadioGroup>
+            <ValidationMessage For="@(() => Model.Plan)" class="text-xs text-red-600" />
+          </fieldset>
+        </div>
+        <div class="col-span-12 md:col-span-12">
+          <!-- element type "checkboxgroup" has no blazor emitter yet -->
         </div>
         <div class="col-span-12 md:col-span-12">
           <div class="flex flex-col gap-1.5">
@@ -253,6 +421,16 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
             <ValidationMessage For="@(() => Model.ContactMethod)" class="text-xs text-red-600" />
           </div>
         </div>
+        @if ((Equals(Model.ContactMethod, "phone")))
+        {
+            <div class="col-span-12 md:col-span-12">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-semibold" for="fg_contact_phone">Phone number</label>
+                <InputText id="fg_contact_phone" type="tel" @bind-Value="Model.ContactPhone" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
+                <ValidationMessage For="@(() => Model.ContactPhone)" class="text-xs text-red-600" />
+              </div>
+            </div>
+        }
         @if ((Equals(Model.ContactMethod, "other")))
         {
             <div class="col-span-12 md:col-span-12">
@@ -306,13 +484,21 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         var payload = new Dictionary<string, object?>();
         payload["full_name"] = Model.FullName;
         payload["email"] = Model.Email;
+        payload["website"] = Model.Website;
+        payload["seats"] = Model.Seats;
+        payload["satisfaction"] = Model.Satisfaction;
         payload["city"] = Model.City;
         payload["zip"] = Model.Zip;
         var dict0 = new Dictionary<string, object?>();
         dict0["username"] = Model.AccountUsername;
+        dict0["password"] = Model.AccountPassword;
         dict0["bio"] = Model.AccountBio;
+        dict0["birthday"] = Model.AccountBirthday;
         payload["account"] = dict0;
+        payload["plan"] = string.IsNullOrEmpty(Model.Plan) ? null : Model.Plan;
+        payload["interests"] = Model.Interests;
         payload["contact_method"] = string.IsNullOrEmpty(Model.ContactMethod) ? null : Model.ContactMethod;
+        if (((Equals(Model.ContactMethod, "phone")))) payload["contact_phone"] = Model.ContactPhone;
         if (((Equals(Model.ContactMethod, "other")))) payload["contact_other"] = Model.ContactOther;
         payload["newsletter"] = Model.Newsletter;
         payload["terms"] = Model.Terms;
@@ -329,6 +515,15 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         [EmailAddress(ErrorMessage = "Must be a valid email address")]
         public string Email { get; set; } = "";
 
+        [Url(ErrorMessage = "Must be a valid URL")]
+        public string Website { get; set; } = "";
+
+        [Range(1, double.MaxValue, ErrorMessage = "Must be at least 1")]
+        [Range(double.MinValue, 50, ErrorMessage = "Must be at most 50")]
+        public double? Seats { get; set; }
+
+        public double Satisfaction { get; set; } = 5;
+
         public string City { get; set; } = "";
 
         [RegularExpression(@"^[0-9]{4,6}$", ErrorMessage = "Invalid format")]
@@ -339,11 +534,22 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         [MaxLength(20, ErrorMessage = "Must be between 3 and 20")]
         public string AccountUsername { get; set; } = "";
 
+        public string AccountPassword { get; set; } = "";
+
         [MaxLength(200, ErrorMessage = "Must be at most 200")]
         public string AccountBio { get; set; } = "";
 
+        public string AccountBirthday { get; set; } = "";
+
+        [Required(ErrorMessage = "This field is required")]
+        public string Plan { get; set; } = "";
+
+        public List<string> Interests { get; set; } = new();
+
         [Required(ErrorMessage = "This field is required")]
         public string ContactMethod { get; set; } = "";
+
+        public string ContactPhone { get; set; } = "";
 
         public string ContactOther { get; set; } = "";
 
@@ -369,6 +575,12 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
     <DataAnnotationsValidator />
     <div class="fg-grid">
         <div class="fg-cell" style="grid-column: span 12 / span 12">
+          <h2 class="fg-heading">Kitchen Sink</h2>
+        </div>
+        <div class="fg-cell" style="grid-column: span 12 / span 12">
+          <p class="fg-paragraph">Every implemented element appears in this form.</p>
+        </div>
+        <div class="fg-cell" style="grid-column: span 12 / span 12">
           <div class="fg-field">
             <label class="fg-label" for="fg_full_name">Full name<span class="fg-required" aria-hidden="true">*</span></label>
             <InputText id="fg_full_name" @bind-Value="Model.FullName" class="fg-input" placeholder="Jane Doe" />
@@ -378,9 +590,33 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         <div class="fg-cell" style="grid-column: span 12 / span 12">
           <div class="fg-field">
             <label class="fg-label" for="fg_email">Email<span class="fg-required" aria-hidden="true">*</span></label>
-            <InputText id="fg_email" @bind-Value="Model.Email" class="fg-input" placeholder="jane@example.com" />
+            <InputText id="fg_email" type="email" @bind-Value="Model.Email" class="fg-input" placeholder="jane@example.com" />
             <ValidationMessage For="@(() => Model.Email)" class="fg-error" />
           </div>
+        </div>
+        <div class="fg-cell" style="grid-column: span 12 / span 12">
+          <div class="fg-field">
+            <label class="fg-label" for="fg_website">Website</label>
+            <InputText id="fg_website" type="url" @bind-Value="Model.Website" class="fg-input" />
+            <ValidationMessage For="@(() => Model.Website)" class="fg-error" />
+          </div>
+        </div>
+        <div class="fg-cell" style="grid-column: span 12 / span 12">
+          <div class="fg-field">
+            <label class="fg-label" for="fg_seats">Seats</label>
+            <InputNumber id="fg_seats" @bind-Value="Model.Seats" class="fg-input" />
+            <ValidationMessage For="@(() => Model.Seats)" class="fg-error" />
+          </div>
+        </div>
+        <div class="fg-cell" style="grid-column: span 12 / span 12">
+          <div class="fg-field">
+            <label class="fg-label" for="fg_satisfaction">Satisfaction</label>
+            <input id="fg_satisfaction" type="range" @bind="Model.Satisfaction" @bind:event="oninput" class="fg-range" min="0" max="10" step="1" />
+            <ValidationMessage For="@(() => Model.Satisfaction)" class="fg-error" />
+          </div>
+        </div>
+        <div class="fg-cell" style="grid-column: span 12 / span 12">
+          <hr class="fg-divider" />
         </div>
         <div class="fg-cell" style="grid-column: span 12 / span 12">
           <div class="fg-grid">
@@ -413,13 +649,48 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
               </div>
               <div class="fg-cell" style="grid-column: span 12 / span 12">
                 <div class="fg-field">
+                  <label class="fg-label" for="fg_account_password">Password</label>
+                  <InputText id="fg_account_password" type="password" @bind-Value="Model.AccountPassword" class="fg-input" />
+                  <ValidationMessage For="@(() => Model.AccountPassword)" class="fg-error" />
+                </div>
+              </div>
+              <div class="fg-cell" style="grid-column: span 12 / span 12">
+                <div class="fg-field">
                   <label class="fg-label" for="fg_account_bio">Bio</label>
                   <InputTextArea id="fg_account_bio" @bind-Value="Model.AccountBio" class="fg-textarea" rows="4" />
                   <ValidationMessage For="@(() => Model.AccountBio)" class="fg-error" />
                 </div>
               </div>
+              <div class="fg-cell" style="grid-column: span 12 / span 12">
+                <div class="fg-field">
+                  <label class="fg-label" for="fg_account_birthday">Birthday</label>
+                  <InputText id="fg_account_birthday" type="date" @bind-Value="Model.AccountBirthday" class="fg-input" />
+                  <ValidationMessage For="@(() => Model.AccountBirthday)" class="fg-error" />
+                </div>
+              </div>
             </div>
           </fieldset>
+        </div>
+        <div class="fg-cell" style="grid-column: span 12 / span 12">
+          <fieldset class="fg-field">
+            <legend class="fg-label">Plan<span class="fg-required" aria-hidden="true">*</span></legend>
+            <InputRadioGroup @bind-Value="Model.Plan">
+              <div class="fg-options">
+                <label class="fg-option">
+                  <InputRadio class="fg-checkbox" Value="@("free")" />
+                  <span>Free</span>
+                </label>
+                <label class="fg-option">
+                  <InputRadio class="fg-checkbox" Value="@("pro")" />
+                  <span>Pro</span>
+                </label>
+              </div>
+            </InputRadioGroup>
+            <ValidationMessage For="@(() => Model.Plan)" class="fg-error" />
+          </fieldset>
+        </div>
+        <div class="fg-cell" style="grid-column: span 12 / span 12">
+          <!-- element type "checkboxgroup" has no blazor emitter yet -->
         </div>
         <div class="fg-cell" style="grid-column: span 12 / span 12">
           <div class="fg-field">
@@ -433,6 +704,16 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             <ValidationMessage For="@(() => Model.ContactMethod)" class="fg-error" />
           </div>
         </div>
+        @if ((Equals(Model.ContactMethod, "phone")))
+        {
+            <div class="fg-cell" style="grid-column: span 12 / span 12">
+              <div class="fg-field">
+                <label class="fg-label" for="fg_contact_phone">Phone number</label>
+                <InputText id="fg_contact_phone" type="tel" @bind-Value="Model.ContactPhone" class="fg-input" />
+                <ValidationMessage For="@(() => Model.ContactPhone)" class="fg-error" />
+              </div>
+            </div>
+        }
         @if ((Equals(Model.ContactMethod, "other")))
         {
             <div class="fg-cell" style="grid-column: span 12 / span 12">
@@ -486,13 +767,21 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         var payload = new Dictionary<string, object?>();
         payload["full_name"] = Model.FullName;
         payload["email"] = Model.Email;
+        payload["website"] = Model.Website;
+        payload["seats"] = Model.Seats;
+        payload["satisfaction"] = Model.Satisfaction;
         payload["city"] = Model.City;
         payload["zip"] = Model.Zip;
         var dict0 = new Dictionary<string, object?>();
         dict0["username"] = Model.AccountUsername;
+        dict0["password"] = Model.AccountPassword;
         dict0["bio"] = Model.AccountBio;
+        dict0["birthday"] = Model.AccountBirthday;
         payload["account"] = dict0;
+        payload["plan"] = string.IsNullOrEmpty(Model.Plan) ? null : Model.Plan;
+        payload["interests"] = Model.Interests;
         payload["contact_method"] = string.IsNullOrEmpty(Model.ContactMethod) ? null : Model.ContactMethod;
+        if (((Equals(Model.ContactMethod, "phone")))) payload["contact_phone"] = Model.ContactPhone;
         if (((Equals(Model.ContactMethod, "other")))) payload["contact_other"] = Model.ContactOther;
         payload["newsletter"] = Model.Newsletter;
         payload["terms"] = Model.Terms;
@@ -509,6 +798,15 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         [EmailAddress(ErrorMessage = "Must be a valid email address")]
         public string Email { get; set; } = "";
 
+        [Url(ErrorMessage = "Must be a valid URL")]
+        public string Website { get; set; } = "";
+
+        [Range(1, double.MaxValue, ErrorMessage = "Must be at least 1")]
+        [Range(double.MinValue, 50, ErrorMessage = "Must be at most 50")]
+        public double? Seats { get; set; }
+
+        public double Satisfaction { get; set; } = 5;
+
         public string City { get; set; } = "";
 
         [RegularExpression(@"^[0-9]{4,6}$", ErrorMessage = "Invalid format")]
@@ -519,11 +817,22 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         [MaxLength(20, ErrorMessage = "Must be between 3 and 20")]
         public string AccountUsername { get; set; } = "";
 
+        public string AccountPassword { get; set; } = "";
+
         [MaxLength(200, ErrorMessage = "Must be at most 200")]
         public string AccountBio { get; set; } = "";
 
+        public string AccountBirthday { get; set; } = "";
+
+        [Required(ErrorMessage = "This field is required")]
+        public string Plan { get; set; } = "";
+
+        public List<string> Interests { get; set; } = new();
+
         [Required(ErrorMessage = "This field is required")]
         public string ContactMethod { get; set; } = "";
+
+        public string ContactPhone { get; set; } = "";
 
         public string ContactOther { get; set; } = "";
 
@@ -553,6 +862,12 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
   <form id="fg-form" class="container py-4" novalidate>
     <div class="row g-3">
       <div class="col-12 col-md-12">
+        <h2 class="fw-semibold">Kitchen Sink</h2>
+      </div>
+      <div class="col-12 col-md-12">
+        <p class="text-secondary">Every implemented element appears in this form.</p>
+      </div>
+      <div class="col-12 col-md-12">
         <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold mb-0" for="fg_full_name">Full name<span class="text-danger ms-1" aria-hidden="true">*</span></label>
           <input id="fg_full_name" type="text" class="form-control" data-fg-path="full_name" data-fg-kind="text" placeholder="Jane Doe">
@@ -562,9 +877,33 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       <div class="col-12 col-md-12">
         <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold mb-0" for="fg_email">Email<span class="text-danger ms-1" aria-hidden="true">*</span></label>
-          <input id="fg_email" type="text" class="form-control" data-fg-path="email" data-fg-kind="text" placeholder="jane@example.com">
+          <input id="fg_email" type="email" class="form-control" data-fg-path="email" data-fg-kind="text" placeholder="jane@example.com">
           <p id="fg_err_email" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
         </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="d-flex flex-column gap-1">
+          <label class="form-label fw-semibold mb-0" for="fg_website">Website</label>
+          <input id="fg_website" type="url" class="form-control" data-fg-path="website" data-fg-kind="text">
+          <p id="fg_err_website" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="d-flex flex-column gap-1">
+          <label class="form-label fw-semibold mb-0" for="fg_seats">Seats</label>
+          <input id="fg_seats" type="number" class="form-control" data-fg-path="seats" data-fg-kind="number" min="1" max="50">
+          <p id="fg_err_seats" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="d-flex flex-column gap-1">
+          <label class="form-label fw-semibold mb-0" for="fg_satisfaction">Satisfaction</label>
+          <input id="fg_satisfaction" type="range" class="form-range" data-fg-path="satisfaction" data-fg-kind="number" min="0" max="10" step="1" value="5">
+          <p id="fg_err_satisfaction" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <hr class="border-top">
       </div>
       <div class="col-12 col-md-12">
         <div class="row g-3">
@@ -597,12 +936,58 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
             </div>
             <div class="col-12 col-md-12">
               <div class="d-flex flex-column gap-1">
+                <label class="form-label fw-semibold mb-0" for="fg_account_password">Password</label>
+                <input id="fg_account_password" type="password" class="form-control" data-fg-path="account.password" data-fg-kind="text">
+                <p id="fg_err_account_password" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+              </div>
+            </div>
+            <div class="col-12 col-md-12">
+              <div class="d-flex flex-column gap-1">
                 <label class="form-label fw-semibold mb-0" for="fg_account_bio">Bio</label>
                 <textarea id="fg_account_bio" class="form-control" rows="4" data-fg-path="account.bio" data-fg-kind="text"></textarea>
                 <p id="fg_err_account_bio" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
               </div>
             </div>
+            <div class="col-12 col-md-12">
+              <div class="d-flex flex-column gap-1">
+                <label class="form-label fw-semibold mb-0" for="fg_account_birthday">Birthday</label>
+                <input id="fg_account_birthday" type="date" class="form-control" data-fg-path="account.birthday" data-fg-kind="text">
+                <p id="fg_err_account_birthday" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+              </div>
+            </div>
           </div>
+        </fieldset>
+      </div>
+      <div class="col-12 col-md-12">
+        <fieldset class="d-flex flex-column gap-1">
+          <legend class="form-label fw-semibold mb-0">Plan<span class="text-danger ms-1" aria-hidden="true">*</span></legend>
+          <div class="d-flex flex-column gap-1">
+            <label class="form-check" for="fg_plan_free">
+              <input id="fg_plan_free" type="radio" name="plan" class="form-check-input" value="free" data-fg-path="plan" data-fg-kind="radio">
+              <span>Free</span>
+            </label>
+            <label class="form-check" for="fg_plan_pro">
+              <input id="fg_plan_pro" type="radio" name="plan" class="form-check-input" value="pro" data-fg-path="plan" data-fg-kind="radio">
+              <span>Pro</span>
+            </label>
+          </div>
+          <p id="fg_err_plan" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+        </fieldset>
+      </div>
+      <div class="col-12 col-md-12">
+        <fieldset class="d-flex flex-column gap-1">
+          <legend class="form-label fw-semibold mb-0">Interests</legend>
+          <div class="d-flex flex-column gap-1">
+            <label class="form-check" for="fg_interests_news">
+              <input id="fg_interests_news" type="checkbox" class="form-check-input" value="news" data-fg-path="interests" data-fg-kind="checks">
+              <span>News</span>
+            </label>
+            <label class="form-check" for="fg_interests_product">
+              <input id="fg_interests_product" type="checkbox" class="form-check-input" value="product" data-fg-path="interests" data-fg-kind="checks">
+              <span>Product updates</span>
+            </label>
+          </div>
+          <p id="fg_err_interests" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
         </fieldset>
       </div>
       <div class="col-12 col-md-12">
@@ -618,6 +1003,13 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         </div>
       </div>
       <div class="col-12 col-md-12" data-fg-cond="0">
+        <div class="d-flex flex-column gap-1">
+          <label class="form-label fw-semibold mb-0" for="fg_contact_phone">Phone number</label>
+          <input id="fg_contact_phone" type="tel" class="form-control" data-fg-path="contact_phone" data-fg-kind="text">
+          <p id="fg_err_contact_phone" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12" data-fg-cond="1">
         <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold mb-0" for="fg_contact_other">Describe your preferred method</label>
           <textarea id="fg_contact_other" class="form-control" rows="3" data-fg-path="contact_other" data-fg-kind="text"></textarea>
@@ -673,15 +1065,30 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       var kind = el.getAttribute('data-fg-kind')
       if (kind === 'checkbox') return el.checked
       if (kind === 'select') return el.value === '' ? null : el.value
+      if (kind === 'number') return el.value === '' ? null : Number(el.value)
+      if (kind === 'radio') {
+        var checked = document.querySelector('[data-fg-path="' + path + '"]:checked')
+        return checked ? checked.value : null
+      }
+      if (kind === 'checks') {
+        return Array.prototype.map.call(
+          document.querySelectorAll('[data-fg-path="' + path + '"]:checked'),
+          function (box) { return box.value },
+        )
+      }
       return el.value
     }
 
+    function fgVisible_contact_phone() {
+      return ((fgGet("contact_method") === "phone"))
+    }
     function fgVisible_contact_other() {
       return ((fgGet("contact_method") === "other"))
     }
 
     var FG_CONDITIONS = [
-      { index: 0, test: function () { return (fgGet("contact_method") === "other") } },
+      { index: 0, test: function () { return (fgGet("contact_method") === "phone") } },
+      { index: 1, test: function () { return (fgGet("contact_method") === "other") } },
     ]
 
     var FG_VALIDATORS = {
@@ -695,6 +1102,17 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       const v = fgGet("email")
       if (fgIsEmpty(v) || v === false) return "This field is required"
       if (!fgIsEmpty(v) && ((typeof v !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v)))) return "Must be a valid email address"
+      return null
+      },
+      'website': function () {
+      const v = fgGet("website")
+      if (!fgIsEmpty(v) && ((typeof v !== 'string' || !(() => { try { new URL(v); return true } catch { return false } })()))) return "Must be a valid URL"
+      return null
+      },
+      'seats': function () {
+      const v = fgGet("seats")
+      if (!fgIsEmpty(v) && ((fgSize(v) ?? -Infinity) < 1)) return "Must be at least 1"
+      if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 50)) return "Must be at most 50"
       return null
       },
       'zip': function () {
@@ -711,6 +1129,11 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       'account.bio': function () {
       const v = fgGet("account.bio")
       if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 200)) return "Must be at most 200"
+      return null
+      },
+      'plan': function () {
+      const v = fgGet("plan")
+      if (fgIsEmpty(v) || v === false) return "This field is required"
       return null
       },
       'contact_method': function () {
@@ -761,13 +1184,21 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       return {
         "full_name": fgGet("full_name"),
         "email": fgGet("email"),
+        "website": fgGet("website"),
+        "seats": fgGet("seats"),
+        "satisfaction": fgGet("satisfaction"),
         "city": fgGet("city"),
         "zip": fgGet("zip"),
         "account": {
           "username": fgGet("account.username"),
+          "password": fgGet("account.password"),
           "bio": fgGet("account.bio"),
+          "birthday": fgGet("account.birthday"),
         },
+        "plan": fgGet("plan"),
+        "interests": fgGet("interests"),
         "contact_method": fgGet("contact_method"),
+        ...(fgVisible_contact_phone() ? { "contact_phone": fgGet("contact_phone") } : {}),
         ...(fgVisible_contact_other() ? { "contact_other": fgGet("contact_other") } : {}),
         "newsletter": fgGet("newsletter"),
         "terms": fgGet("terms"),
@@ -823,6 +1254,12 @@ exports[`html target > snapshot (tailwind) 1`] = `
   <form id="fg-form" class="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" novalidate>
     <div class="grid grid-cols-12 gap-4">
       <div class="col-span-12 md:col-span-12">
+        <h2 class="font-semibold">Kitchen Sink</h2>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <p class="text-sm text-gray-600 dark:text-gray-300">Every implemented element appears in this form.</p>
+      </div>
+      <div class="col-span-12 md:col-span-12">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_full_name">Full name<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
           <input id="fg_full_name" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="full_name" data-fg-kind="text" placeholder="Jane Doe">
@@ -832,9 +1269,33 @@ exports[`html target > snapshot (tailwind) 1`] = `
       <div class="col-span-12 md:col-span-12">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_email">Email<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-          <input id="fg_email" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="email" data-fg-kind="text" placeholder="jane@example.com">
+          <input id="fg_email" type="email" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="email" data-fg-kind="text" placeholder="jane@example.com">
           <p id="fg_err_email" class="text-xs text-red-600" role="alert" hidden></p>
         </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_website">Website</label>
+          <input id="fg_website" type="url" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="website" data-fg-kind="text">
+          <p id="fg_err_website" class="text-xs text-red-600" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_seats">Seats</label>
+          <input id="fg_seats" type="number" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="seats" data-fg-kind="number" min="1" max="50">
+          <p id="fg_err_seats" class="text-xs text-red-600" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_satisfaction">Satisfaction</label>
+          <input id="fg_satisfaction" type="range" class="w-full accent-indigo-600" data-fg-path="satisfaction" data-fg-kind="number" min="0" max="10" step="1" value="5">
+          <p id="fg_err_satisfaction" class="text-xs text-red-600" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <hr class="border-t border-gray-200 dark:border-gray-700">
       </div>
       <div class="col-span-12 md:col-span-12">
         <div class="grid grid-cols-12 gap-4">
@@ -867,12 +1328,58 @@ exports[`html target > snapshot (tailwind) 1`] = `
             </div>
             <div class="col-span-12 md:col-span-12">
               <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-semibold" for="fg_account_password">Password</label>
+                <input id="fg_account_password" type="password" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="account.password" data-fg-kind="text">
+                <p id="fg_err_account_password" class="text-xs text-red-600" role="alert" hidden></p>
+              </div>
+            </div>
+            <div class="col-span-12 md:col-span-12">
+              <div class="flex flex-col gap-1.5">
                 <label class="text-sm font-semibold" for="fg_account_bio">Bio</label>
                 <textarea id="fg_account_bio" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="4" data-fg-path="account.bio" data-fg-kind="text"></textarea>
                 <p id="fg_err_account_bio" class="text-xs text-red-600" role="alert" hidden></p>
               </div>
             </div>
+            <div class="col-span-12 md:col-span-12">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-semibold" for="fg_account_birthday">Birthday</label>
+                <input id="fg_account_birthday" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="account.birthday" data-fg-kind="text">
+                <p id="fg_err_account_birthday" class="text-xs text-red-600" role="alert" hidden></p>
+              </div>
+            </div>
           </div>
+        </fieldset>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <fieldset class="flex flex-col gap-1.5">
+          <legend class="text-sm font-semibold">Plan<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></legend>
+          <div class="flex flex-col gap-1.5">
+            <label class="inline-flex items-center gap-2 text-sm" for="fg_plan_free">
+              <input id="fg_plan_free" type="radio" name="plan" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="free" data-fg-path="plan" data-fg-kind="radio">
+              <span>Free</span>
+            </label>
+            <label class="inline-flex items-center gap-2 text-sm" for="fg_plan_pro">
+              <input id="fg_plan_pro" type="radio" name="plan" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="pro" data-fg-path="plan" data-fg-kind="radio">
+              <span>Pro</span>
+            </label>
+          </div>
+          <p id="fg_err_plan" class="text-xs text-red-600" role="alert" hidden></p>
+        </fieldset>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <fieldset class="flex flex-col gap-1.5">
+          <legend class="text-sm font-semibold">Interests</legend>
+          <div class="flex flex-col gap-1.5">
+            <label class="inline-flex items-center gap-2 text-sm" for="fg_interests_news">
+              <input id="fg_interests_news" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="news" data-fg-path="interests" data-fg-kind="checks">
+              <span>News</span>
+            </label>
+            <label class="inline-flex items-center gap-2 text-sm" for="fg_interests_product">
+              <input id="fg_interests_product" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="product" data-fg-path="interests" data-fg-kind="checks">
+              <span>Product updates</span>
+            </label>
+          </div>
+          <p id="fg_err_interests" class="text-xs text-red-600" role="alert" hidden></p>
         </fieldset>
       </div>
       <div class="col-span-12 md:col-span-12">
@@ -888,6 +1395,13 @@ exports[`html target > snapshot (tailwind) 1`] = `
         </div>
       </div>
       <div class="col-span-12 md:col-span-12" data-fg-cond="0">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_contact_phone">Phone number</label>
+          <input id="fg_contact_phone" type="tel" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="contact_phone" data-fg-kind="text">
+          <p id="fg_err_contact_phone" class="text-xs text-red-600" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12" data-fg-cond="1">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_contact_other">Describe your preferred method</label>
           <textarea id="fg_contact_other" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="3" data-fg-path="contact_other" data-fg-kind="text"></textarea>
@@ -943,15 +1457,30 @@ exports[`html target > snapshot (tailwind) 1`] = `
       var kind = el.getAttribute('data-fg-kind')
       if (kind === 'checkbox') return el.checked
       if (kind === 'select') return el.value === '' ? null : el.value
+      if (kind === 'number') return el.value === '' ? null : Number(el.value)
+      if (kind === 'radio') {
+        var checked = document.querySelector('[data-fg-path="' + path + '"]:checked')
+        return checked ? checked.value : null
+      }
+      if (kind === 'checks') {
+        return Array.prototype.map.call(
+          document.querySelectorAll('[data-fg-path="' + path + '"]:checked'),
+          function (box) { return box.value },
+        )
+      }
       return el.value
     }
 
+    function fgVisible_contact_phone() {
+      return ((fgGet("contact_method") === "phone"))
+    }
     function fgVisible_contact_other() {
       return ((fgGet("contact_method") === "other"))
     }
 
     var FG_CONDITIONS = [
-      { index: 0, test: function () { return (fgGet("contact_method") === "other") } },
+      { index: 0, test: function () { return (fgGet("contact_method") === "phone") } },
+      { index: 1, test: function () { return (fgGet("contact_method") === "other") } },
     ]
 
     var FG_VALIDATORS = {
@@ -965,6 +1494,17 @@ exports[`html target > snapshot (tailwind) 1`] = `
       const v = fgGet("email")
       if (fgIsEmpty(v) || v === false) return "This field is required"
       if (!fgIsEmpty(v) && ((typeof v !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v)))) return "Must be a valid email address"
+      return null
+      },
+      'website': function () {
+      const v = fgGet("website")
+      if (!fgIsEmpty(v) && ((typeof v !== 'string' || !(() => { try { new URL(v); return true } catch { return false } })()))) return "Must be a valid URL"
+      return null
+      },
+      'seats': function () {
+      const v = fgGet("seats")
+      if (!fgIsEmpty(v) && ((fgSize(v) ?? -Infinity) < 1)) return "Must be at least 1"
+      if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 50)) return "Must be at most 50"
       return null
       },
       'zip': function () {
@@ -981,6 +1521,11 @@ exports[`html target > snapshot (tailwind) 1`] = `
       'account.bio': function () {
       const v = fgGet("account.bio")
       if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 200)) return "Must be at most 200"
+      return null
+      },
+      'plan': function () {
+      const v = fgGet("plan")
+      if (fgIsEmpty(v) || v === false) return "This field is required"
       return null
       },
       'contact_method': function () {
@@ -1031,13 +1576,21 @@ exports[`html target > snapshot (tailwind) 1`] = `
       return {
         "full_name": fgGet("full_name"),
         "email": fgGet("email"),
+        "website": fgGet("website"),
+        "seats": fgGet("seats"),
+        "satisfaction": fgGet("satisfaction"),
         "city": fgGet("city"),
         "zip": fgGet("zip"),
         "account": {
           "username": fgGet("account.username"),
+          "password": fgGet("account.password"),
           "bio": fgGet("account.bio"),
+          "birthday": fgGet("account.birthday"),
         },
+        "plan": fgGet("plan"),
+        "interests": fgGet("interests"),
         "contact_method": fgGet("contact_method"),
+        ...(fgVisible_contact_phone() ? { "contact_phone": fgGet("contact_phone") } : {}),
         ...(fgVisible_contact_other() ? { "contact_other": fgGet("contact_other") } : {}),
         "newsletter": fgGet("newsletter"),
         "terms": fgGet("terms"),
@@ -1124,6 +1677,12 @@ exports[`html target > snapshot (vanilla) 1`] = `
   .fg-checkbox { inline-size: 1rem; block-size: 1rem; accent-color: var(--fg-color-primary); }
   .fg-description { margin: 0; font-size: 0.8125rem; color: var(--fg-color-muted); }
   .fg-error { margin: 0; font-size: 0.8125rem; color: var(--fg-color-error); }
+  .fg-options { display: flex; flex-direction: column; gap: 0.375rem; }
+  .fg-option { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.9375rem; }
+  .fg-range { inline-size: 100%; accent-color: var(--fg-color-primary); }
+  .fg-heading { margin: 0; }
+  .fg-paragraph { margin: 0; color: var(--fg-color-muted); }
+  .fg-divider { border: none; border-block-start: 1px solid var(--fg-color-border); margin-block: 0.25rem; }
   .fg-group { margin: 0; padding: var(--fg-space); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
   .fg-group-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); }
   .fg-actions { margin-block-start: var(--fg-space); }
@@ -1143,6 +1702,12 @@ exports[`html target > snapshot (vanilla) 1`] = `
   <form id="fg-form" class="fg-form" novalidate>
     <div class="fg-grid">
       <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <h2 class="fg-heading">Kitchen Sink</h2>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <p class="fg-paragraph">Every implemented element appears in this form.</p>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_full_name">Full name<span class="fg-required" aria-hidden="true">*</span></label>
           <input id="fg_full_name" type="text" class="fg-input" data-fg-path="full_name" data-fg-kind="text" placeholder="Jane Doe">
@@ -1152,9 +1717,33 @@ exports[`html target > snapshot (vanilla) 1`] = `
       <div class="fg-cell" style="grid-column: span 12 / span 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_email">Email<span class="fg-required" aria-hidden="true">*</span></label>
-          <input id="fg_email" type="text" class="fg-input" data-fg-path="email" data-fg-kind="text" placeholder="jane@example.com">
+          <input id="fg_email" type="email" class="fg-input" data-fg-path="email" data-fg-kind="text" placeholder="jane@example.com">
           <p id="fg_err_email" class="fg-error" role="alert" hidden></p>
         </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-field">
+          <label class="fg-label" for="fg_website">Website</label>
+          <input id="fg_website" type="url" class="fg-input" data-fg-path="website" data-fg-kind="text">
+          <p id="fg_err_website" class="fg-error" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-field">
+          <label class="fg-label" for="fg_seats">Seats</label>
+          <input id="fg_seats" type="number" class="fg-input" data-fg-path="seats" data-fg-kind="number" min="1" max="50">
+          <p id="fg_err_seats" class="fg-error" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-field">
+          <label class="fg-label" for="fg_satisfaction">Satisfaction</label>
+          <input id="fg_satisfaction" type="range" class="fg-range" data-fg-path="satisfaction" data-fg-kind="number" min="0" max="10" step="1" value="5">
+          <p id="fg_err_satisfaction" class="fg-error" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <hr class="fg-divider">
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
         <div class="fg-grid">
@@ -1187,12 +1776,58 @@ exports[`html target > snapshot (vanilla) 1`] = `
             </div>
             <div class="fg-cell" style="grid-column: span 12 / span 12">
               <div class="fg-field">
+                <label class="fg-label" for="fg_account_password">Password</label>
+                <input id="fg_account_password" type="password" class="fg-input" data-fg-path="account.password" data-fg-kind="text">
+                <p id="fg_err_account_password" class="fg-error" role="alert" hidden></p>
+              </div>
+            </div>
+            <div class="fg-cell" style="grid-column: span 12 / span 12">
+              <div class="fg-field">
                 <label class="fg-label" for="fg_account_bio">Bio</label>
                 <textarea id="fg_account_bio" class="fg-textarea" rows="4" data-fg-path="account.bio" data-fg-kind="text"></textarea>
                 <p id="fg_err_account_bio" class="fg-error" role="alert" hidden></p>
               </div>
             </div>
+            <div class="fg-cell" style="grid-column: span 12 / span 12">
+              <div class="fg-field">
+                <label class="fg-label" for="fg_account_birthday">Birthday</label>
+                <input id="fg_account_birthday" type="date" class="fg-input" data-fg-path="account.birthday" data-fg-kind="text">
+                <p id="fg_err_account_birthday" class="fg-error" role="alert" hidden></p>
+              </div>
+            </div>
           </div>
+        </fieldset>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <fieldset class="fg-field">
+          <legend class="fg-label">Plan<span class="fg-required" aria-hidden="true">*</span></legend>
+          <div class="fg-options">
+            <label class="fg-option" for="fg_plan_free">
+              <input id="fg_plan_free" type="radio" name="plan" class="fg-checkbox" value="free" data-fg-path="plan" data-fg-kind="radio">
+              <span>Free</span>
+            </label>
+            <label class="fg-option" for="fg_plan_pro">
+              <input id="fg_plan_pro" type="radio" name="plan" class="fg-checkbox" value="pro" data-fg-path="plan" data-fg-kind="radio">
+              <span>Pro</span>
+            </label>
+          </div>
+          <p id="fg_err_plan" class="fg-error" role="alert" hidden></p>
+        </fieldset>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <fieldset class="fg-field">
+          <legend class="fg-label">Interests</legend>
+          <div class="fg-options">
+            <label class="fg-option" for="fg_interests_news">
+              <input id="fg_interests_news" type="checkbox" class="fg-checkbox" value="news" data-fg-path="interests" data-fg-kind="checks">
+              <span>News</span>
+            </label>
+            <label class="fg-option" for="fg_interests_product">
+              <input id="fg_interests_product" type="checkbox" class="fg-checkbox" value="product" data-fg-path="interests" data-fg-kind="checks">
+              <span>Product updates</span>
+            </label>
+          </div>
+          <p id="fg_err_interests" class="fg-error" role="alert" hidden></p>
         </fieldset>
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
@@ -1208,6 +1843,13 @@ exports[`html target > snapshot (vanilla) 1`] = `
         </div>
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12" data-fg-cond="0">
+        <div class="fg-field">
+          <label class="fg-label" for="fg_contact_phone">Phone number</label>
+          <input id="fg_contact_phone" type="tel" class="fg-input" data-fg-path="contact_phone" data-fg-kind="text">
+          <p id="fg_err_contact_phone" class="fg-error" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12" data-fg-cond="1">
         <div class="fg-field">
           <label class="fg-label" for="fg_contact_other">Describe your preferred method</label>
           <textarea id="fg_contact_other" class="fg-textarea" rows="3" data-fg-path="contact_other" data-fg-kind="text"></textarea>
@@ -1263,15 +1905,30 @@ exports[`html target > snapshot (vanilla) 1`] = `
       var kind = el.getAttribute('data-fg-kind')
       if (kind === 'checkbox') return el.checked
       if (kind === 'select') return el.value === '' ? null : el.value
+      if (kind === 'number') return el.value === '' ? null : Number(el.value)
+      if (kind === 'radio') {
+        var checked = document.querySelector('[data-fg-path="' + path + '"]:checked')
+        return checked ? checked.value : null
+      }
+      if (kind === 'checks') {
+        return Array.prototype.map.call(
+          document.querySelectorAll('[data-fg-path="' + path + '"]:checked'),
+          function (box) { return box.value },
+        )
+      }
       return el.value
     }
 
+    function fgVisible_contact_phone() {
+      return ((fgGet("contact_method") === "phone"))
+    }
     function fgVisible_contact_other() {
       return ((fgGet("contact_method") === "other"))
     }
 
     var FG_CONDITIONS = [
-      { index: 0, test: function () { return (fgGet("contact_method") === "other") } },
+      { index: 0, test: function () { return (fgGet("contact_method") === "phone") } },
+      { index: 1, test: function () { return (fgGet("contact_method") === "other") } },
     ]
 
     var FG_VALIDATORS = {
@@ -1285,6 +1942,17 @@ exports[`html target > snapshot (vanilla) 1`] = `
       const v = fgGet("email")
       if (fgIsEmpty(v) || v === false) return "This field is required"
       if (!fgIsEmpty(v) && ((typeof v !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v)))) return "Must be a valid email address"
+      return null
+      },
+      'website': function () {
+      const v = fgGet("website")
+      if (!fgIsEmpty(v) && ((typeof v !== 'string' || !(() => { try { new URL(v); return true } catch { return false } })()))) return "Must be a valid URL"
+      return null
+      },
+      'seats': function () {
+      const v = fgGet("seats")
+      if (!fgIsEmpty(v) && ((fgSize(v) ?? -Infinity) < 1)) return "Must be at least 1"
+      if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 50)) return "Must be at most 50"
       return null
       },
       'zip': function () {
@@ -1301,6 +1969,11 @@ exports[`html target > snapshot (vanilla) 1`] = `
       'account.bio': function () {
       const v = fgGet("account.bio")
       if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 200)) return "Must be at most 200"
+      return null
+      },
+      'plan': function () {
+      const v = fgGet("plan")
+      if (fgIsEmpty(v) || v === false) return "This field is required"
       return null
       },
       'contact_method': function () {
@@ -1351,13 +2024,21 @@ exports[`html target > snapshot (vanilla) 1`] = `
       return {
         "full_name": fgGet("full_name"),
         "email": fgGet("email"),
+        "website": fgGet("website"),
+        "seats": fgGet("seats"),
+        "satisfaction": fgGet("satisfaction"),
         "city": fgGet("city"),
         "zip": fgGet("zip"),
         "account": {
           "username": fgGet("account.username"),
+          "password": fgGet("account.password"),
           "bio": fgGet("account.bio"),
+          "birthday": fgGet("account.birthday"),
         },
+        "plan": fgGet("plan"),
+        "interests": fgGet("interests"),
         "contact_method": fgGet("contact_method"),
+        ...(fgVisible_contact_phone() ? { "contact_phone": fgGet("contact_phone") } : {}),
         ...(fgVisible_contact_other() ? { "contact_other": fgGet("contact_other") } : {}),
         "newsletter": fgGet("newsletter"),
         "terms": fgGet("terms"),
@@ -1420,13 +2101,21 @@ function fgSize(v) {
 type FormData = {
   full_name: string
   email: string
+  website: string
+  seats: number | null
+  satisfaction: number
   city: string
   zip: string
   account: {
     username: string
+    password: string
     bio: string
+    birthday: string
   }
+  plan: string | null
+  interests: string[]
   contact_method: string | null
+  contact_phone: string
   contact_other: string
   newsletter: boolean
   terms: boolean
@@ -1435,18 +2124,29 @@ type FormData = {
 const INITIAL: FormData = {
   full_name: "",
   email: "",
+  website: "",
+  seats: null,
+  satisfaction: 5,
   city: "",
   zip: "",
   account: {
     username: "",
-    bio: ""
+    password: "",
+    bio: "",
+    birthday: ""
   },
+  plan: null,
+  interests: [],
   contact_method: null,
+  contact_phone: "",
   contact_other: "",
   newsletter: true,
   terms: false
 }
 
+function fgVisible_contact_phone(data: FormData) {
+  return ((data.contact_method === "phone"))
+}
 function fgVisible_contact_other(data: FormData) {
   return ((data.contact_method === "other"))
 }
@@ -1462,6 +2162,17 @@ const validators: Record<string, (data: FormData) => string | null> = {
   const v = data.email
   if (fgIsEmpty(v) || v === false) return "This field is required"
   if (!fgIsEmpty(v) && ((typeof v !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v)))) return "Must be a valid email address"
+  return null
+  },
+  'website': function (data: FormData) {
+  const v = data.website
+  if (!fgIsEmpty(v) && ((typeof v !== 'string' || !(() => { try { new URL(v); return true } catch { return false } })()))) return "Must be a valid URL"
+  return null
+  },
+  'seats': function (data: FormData) {
+  const v = data.seats
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? -Infinity) < 1)) return "Must be at least 1"
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 50)) return "Must be at most 50"
   return null
   },
   'zip': function (data: FormData) {
@@ -1480,6 +2191,11 @@ const validators: Record<string, (data: FormData) => string | null> = {
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 200)) return "Must be at most 200"
   return null
   },
+  'plan': function (data: FormData) {
+  const v = data.plan
+  if (fgIsEmpty(v) || v === false) return "This field is required"
+  return null
+  },
   'contact_method': function (data: FormData) {
   const v = data.contact_method
   if (fgIsEmpty(v) || v === false) return "This field is required"
@@ -1496,13 +2212,21 @@ function buildPayload(data: FormData): Record<string, unknown> {
   return {
     "full_name": data.full_name,
     "email": data.email,
+    "website": data.website,
+    "seats": data.seats,
+    "satisfaction": data.satisfaction,
     "city": data.city,
     "zip": data.zip,
     "account": {
       "username": data.account.username,
+      "password": data.account.password,
       "bio": data.account.bio,
+      "birthday": data.account.birthday,
     },
+    "plan": data.plan,
+    "interests": data.interests,
     "contact_method": data.contact_method,
+    ...(fgVisible_contact_phone(data) ? { "contact_phone": data.contact_phone } : {}),
     ...(fgVisible_contact_other(data) ? { "contact_other": data.contact_other } : {}),
     "newsletter": data.newsletter,
     "terms": data.terms,
@@ -1570,6 +2294,12 @@ export default function KitchenSinkForm({
     <form className="container py-4" dir="ltr" noValidate onSubmit={handleSubmit}>
       <div className="row g-3">
         <div className="col-12 col-md-12">
+          <h2 className="fw-semibold">Kitchen Sink</h2>
+        </div>
+        <div className="col-12 col-md-12">
+          <p className="text-secondary">Every implemented element appears in this form.</p>
+        </div>
+        <div className="col-12 col-md-12">
           <div className="d-flex flex-column gap-1">
             <label className="form-label fw-semibold mb-0" htmlFor="fg_full_name">Full name<span className="text-danger ms-1" aria-hidden="true">*</span></label>
             <input id="fg_full_name" type="text" value={form.full_name} className={errors['full_name'] ? "form-control is-invalid" : "form-control"} placeholder="Jane Doe" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('full_name', e.target.value)} onBlur={() => touch('full_name')} />
@@ -1579,9 +2309,34 @@ export default function KitchenSinkForm({
         <div className="col-12 col-md-12">
           <div className="d-flex flex-column gap-1">
             <label className="form-label fw-semibold mb-0" htmlFor="fg_email">Email<span className="text-danger ms-1" aria-hidden="true">*</span></label>
-            <input id="fg_email" type="text" value={form.email} className={errors['email'] ? "form-control is-invalid" : "form-control"} placeholder="jane@example.com" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('email', e.target.value)} onBlur={() => touch('email')} />
+            <input id="fg_email" type="email" value={form.email} className={errors['email'] ? "form-control is-invalid" : "form-control"} placeholder="jane@example.com" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('email', e.target.value)} onBlur={() => touch('email')} />
             {errors['email'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['email']}</p>}
           </div>
+        </div>
+        <div className="col-12 col-md-12">
+          <div className="d-flex flex-column gap-1">
+            <label className="form-label fw-semibold mb-0" htmlFor="fg_website">Website</label>
+            <input id="fg_website" type="url" value={form.website} className={errors['website'] ? "form-control is-invalid" : "form-control"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('website', e.target.value)} onBlur={() => touch('website')} />
+            {errors['website'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['website']}</p>}
+          </div>
+        </div>
+        <div className="col-12 col-md-12">
+          <div className="d-flex flex-column gap-1">
+            <label className="form-label fw-semibold mb-0" htmlFor="fg_seats">Seats</label>
+            <input id="fg_seats" type="number" value={form.seats ?? ''} className={errors['seats'] ? "form-control is-invalid" : "form-control"} min="1" max="50" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('seats', e.target.value === '' ? null : Number(e.target.value))} onBlur={() => touch('seats')} />
+            {errors['seats'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['seats']}</p>}
+          </div>
+        </div>
+        <div className="col-12 col-md-12">
+          <div className="d-flex flex-column gap-1">
+            <label className="form-label fw-semibold mb-0" htmlFor="fg_satisfaction">Satisfaction</label>
+            <input id="fg_satisfaction" type="range" value={form.satisfaction} className="form-range" min="0" max="10" step="1" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('satisfaction', Number(e.target.value)); touch('satisfaction') }} />
+            <p className="form-text mt-0">{form.satisfaction}</p>
+            {errors['satisfaction'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['satisfaction']}</p>}
+          </div>
+        </div>
+        <div className="col-12 col-md-12">
+          <hr className="border-top" />
         </div>
         <div className="col-12 col-md-12">
           <div className="row g-3">
@@ -1614,13 +2369,63 @@ export default function KitchenSinkForm({
               </div>
               <div className="col-12 col-md-12">
                 <div className="d-flex flex-column gap-1">
+                  <label className="form-label fw-semibold mb-0" htmlFor="fg_account_password">Password</label>
+                  <input id="fg_account_password" type="password" value={form.account.password} className={errors['account.password'] ? "form-control is-invalid" : "form-control"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('account.password', e.target.value)} onBlur={() => touch('account.password')} />
+                  {errors['account.password'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['account.password']}</p>}
+                </div>
+              </div>
+              <div className="col-12 col-md-12">
+                <div className="d-flex flex-column gap-1">
                   <label className="form-label fw-semibold mb-0" htmlFor="fg_account_bio">Bio</label>
                   <textarea id="fg_account_bio" rows={4} value={form.account.bio} className={errors['account.bio'] ? "form-control is-invalid" : "form-control"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('account.bio', e.target.value)} onBlur={() => touch('account.bio')} />
                   {errors['account.bio'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['account.bio']}</p>}
                 </div>
               </div>
+              <div className="col-12 col-md-12">
+                <div className="d-flex flex-column gap-1">
+                  <label className="form-label fw-semibold mb-0" htmlFor="fg_account_birthday">Birthday</label>
+                  <input id="fg_account_birthday" type="date" value={form.account.birthday} className={errors['account.birthday'] ? "form-control is-invalid" : "form-control"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('account.birthday', e.target.value)} onBlur={() => touch('account.birthday')} />
+                  {errors['account.birthday'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['account.birthday']}</p>}
+                </div>
+              </div>
             </div>
           </fieldset>
+        </div>
+        <div className="col-12 col-md-12">
+          <div className="d-flex flex-column gap-1">
+            <fieldset className="d-flex flex-column gap-1">
+              <legend className="form-label fw-semibold mb-0">Plan<span className="text-danger ms-1" aria-hidden="true">*</span></legend>
+              <div className="d-flex flex-column gap-1">
+                <label className="form-check" htmlFor="fg_plan_free">
+                  <input id="fg_plan_free" type="radio" className="form-check-input" checked={form.plan === 'free'} onChange={() => { setField('plan', 'free'); touch('plan') }} />
+                  <span>Free</span>
+                </label>
+                <label className="form-check" htmlFor="fg_plan_pro">
+                  <input id="fg_plan_pro" type="radio" className="form-check-input" checked={form.plan === 'pro'} onChange={() => { setField('plan', 'pro'); touch('plan') }} />
+                  <span>Pro</span>
+                </label>
+              </div>
+            </fieldset>
+            {errors['plan'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['plan']}</p>}
+          </div>
+        </div>
+        <div className="col-12 col-md-12">
+          <div className="d-flex flex-column gap-1">
+            <fieldset className="d-flex flex-column gap-1">
+              <legend className="form-label fw-semibold mb-0">Interests</legend>
+              <div className="d-flex flex-column gap-1">
+                <label className="form-check" htmlFor="fg_interests_news">
+                  <input id="fg_interests_news" type="checkbox" className="form-check-input" checked={form.interests.includes('news')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('interests', e.target.checked ? [...form.interests, 'news'] : form.interests.filter((v) => v !== 'news')); touch('interests') }} />
+                  <span>News</span>
+                </label>
+                <label className="form-check" htmlFor="fg_interests_product">
+                  <input id="fg_interests_product" type="checkbox" className="form-check-input" checked={form.interests.includes('product')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('interests', e.target.checked ? [...form.interests, 'product'] : form.interests.filter((v) => v !== 'product')); touch('interests') }} />
+                  <span>Product updates</span>
+                </label>
+              </div>
+            </fieldset>
+            {errors['interests'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['interests']}</p>}
+          </div>
         </div>
         <div className="col-12 col-md-12">
           <div className="d-flex flex-column gap-1">
@@ -1634,6 +2439,15 @@ export default function KitchenSinkForm({
             {errors['contact_method'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['contact_method']}</p>}
           </div>
         </div>
+        {((form.contact_method === "phone")) && (
+          <div className="col-12 col-md-12">
+            <div className="d-flex flex-column gap-1">
+              <label className="form-label fw-semibold mb-0" htmlFor="fg_contact_phone">Phone number</label>
+              <input id="fg_contact_phone" type="tel" value={form.contact_phone} className={errors['contact_phone'] ? "form-control is-invalid" : "form-control"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('contact_phone', e.target.value)} onBlur={() => touch('contact_phone')} />
+              {errors['contact_phone'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['contact_phone']}</p>}
+            </div>
+          </div>
+        )}
         {((form.contact_method === "other")) && (
           <div className="col-12 col-md-12">
             <div className="d-flex flex-column gap-1">
@@ -1692,13 +2506,21 @@ function fgSize(v) {
 type FormData = {
   full_name: string
   email: string
+  website: string
+  seats: number | null
+  satisfaction: number
   city: string
   zip: string
   account: {
     username: string
+    password: string
     bio: string
+    birthday: string
   }
+  plan: string | null
+  interests: string[]
   contact_method: string | null
+  contact_phone: string
   contact_other: string
   newsletter: boolean
   terms: boolean
@@ -1707,18 +2529,29 @@ type FormData = {
 const INITIAL: FormData = {
   full_name: "",
   email: "",
+  website: "",
+  seats: null,
+  satisfaction: 5,
   city: "",
   zip: "",
   account: {
     username: "",
-    bio: ""
+    password: "",
+    bio: "",
+    birthday: ""
   },
+  plan: null,
+  interests: [],
   contact_method: null,
+  contact_phone: "",
   contact_other: "",
   newsletter: true,
   terms: false
 }
 
+function fgVisible_contact_phone(data: FormData) {
+  return ((data.contact_method === "phone"))
+}
 function fgVisible_contact_other(data: FormData) {
   return ((data.contact_method === "other"))
 }
@@ -1734,6 +2567,17 @@ const validators: Record<string, (data: FormData) => string | null> = {
   const v = data.email
   if (fgIsEmpty(v) || v === false) return "This field is required"
   if (!fgIsEmpty(v) && ((typeof v !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v)))) return "Must be a valid email address"
+  return null
+  },
+  'website': function (data: FormData) {
+  const v = data.website
+  if (!fgIsEmpty(v) && ((typeof v !== 'string' || !(() => { try { new URL(v); return true } catch { return false } })()))) return "Must be a valid URL"
+  return null
+  },
+  'seats': function (data: FormData) {
+  const v = data.seats
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? -Infinity) < 1)) return "Must be at least 1"
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 50)) return "Must be at most 50"
   return null
   },
   'zip': function (data: FormData) {
@@ -1752,6 +2596,11 @@ const validators: Record<string, (data: FormData) => string | null> = {
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 200)) return "Must be at most 200"
   return null
   },
+  'plan': function (data: FormData) {
+  const v = data.plan
+  if (fgIsEmpty(v) || v === false) return "This field is required"
+  return null
+  },
   'contact_method': function (data: FormData) {
   const v = data.contact_method
   if (fgIsEmpty(v) || v === false) return "This field is required"
@@ -1768,13 +2617,21 @@ function buildPayload(data: FormData): Record<string, unknown> {
   return {
     "full_name": data.full_name,
     "email": data.email,
+    "website": data.website,
+    "seats": data.seats,
+    "satisfaction": data.satisfaction,
     "city": data.city,
     "zip": data.zip,
     "account": {
       "username": data.account.username,
+      "password": data.account.password,
       "bio": data.account.bio,
+      "birthday": data.account.birthday,
     },
+    "plan": data.plan,
+    "interests": data.interests,
     "contact_method": data.contact_method,
+    ...(fgVisible_contact_phone(data) ? { "contact_phone": data.contact_phone } : {}),
     ...(fgVisible_contact_other(data) ? { "contact_other": data.contact_other } : {}),
     "newsletter": data.newsletter,
     "terms": data.terms,
@@ -1842,6 +2699,12 @@ export default function KitchenSinkForm({
     <form className="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" dir="ltr" noValidate onSubmit={handleSubmit}>
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-12 md:col-span-12">
+          <h2 className="font-semibold">Kitchen Sink</h2>
+        </div>
+        <div className="col-span-12 md:col-span-12">
+          <p className="text-sm text-gray-600 dark:text-gray-300">Every implemented element appears in this form.</p>
+        </div>
+        <div className="col-span-12 md:col-span-12">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold" htmlFor="fg_full_name">Full name<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
             <input id="fg_full_name" type="text" value={form.full_name} className={errors['full_name'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} placeholder="Jane Doe" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('full_name', e.target.value)} onBlur={() => touch('full_name')} />
@@ -1851,9 +2714,34 @@ export default function KitchenSinkForm({
         <div className="col-span-12 md:col-span-12">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold" htmlFor="fg_email">Email<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-            <input id="fg_email" type="text" value={form.email} className={errors['email'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} placeholder="jane@example.com" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('email', e.target.value)} onBlur={() => touch('email')} />
+            <input id="fg_email" type="email" value={form.email} className={errors['email'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} placeholder="jane@example.com" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('email', e.target.value)} onBlur={() => touch('email')} />
             {errors['email'] && <p className="text-xs text-red-600" role="alert">{errors['email']}</p>}
           </div>
+        </div>
+        <div className="col-span-12 md:col-span-12">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold" htmlFor="fg_website">Website</label>
+            <input id="fg_website" type="url" value={form.website} className={errors['website'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('website', e.target.value)} onBlur={() => touch('website')} />
+            {errors['website'] && <p className="text-xs text-red-600" role="alert">{errors['website']}</p>}
+          </div>
+        </div>
+        <div className="col-span-12 md:col-span-12">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold" htmlFor="fg_seats">Seats</label>
+            <input id="fg_seats" type="number" value={form.seats ?? ''} className={errors['seats'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} min="1" max="50" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('seats', e.target.value === '' ? null : Number(e.target.value))} onBlur={() => touch('seats')} />
+            {errors['seats'] && <p className="text-xs text-red-600" role="alert">{errors['seats']}</p>}
+          </div>
+        </div>
+        <div className="col-span-12 md:col-span-12">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold" htmlFor="fg_satisfaction">Satisfaction</label>
+            <input id="fg_satisfaction" type="range" value={form.satisfaction} className="w-full accent-indigo-600" min="0" max="10" step="1" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('satisfaction', Number(e.target.value)); touch('satisfaction') }} />
+            <p className="text-xs text-gray-500 dark:text-gray-400">{form.satisfaction}</p>
+            {errors['satisfaction'] && <p className="text-xs text-red-600" role="alert">{errors['satisfaction']}</p>}
+          </div>
+        </div>
+        <div className="col-span-12 md:col-span-12">
+          <hr className="border-t border-gray-200 dark:border-gray-700" />
         </div>
         <div className="col-span-12 md:col-span-12">
           <div className="grid grid-cols-12 gap-4">
@@ -1886,13 +2774,63 @@ export default function KitchenSinkForm({
               </div>
               <div className="col-span-12 md:col-span-12">
                 <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-semibold" htmlFor="fg_account_password">Password</label>
+                  <input id="fg_account_password" type="password" value={form.account.password} className={errors['account.password'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('account.password', e.target.value)} onBlur={() => touch('account.password')} />
+                  {errors['account.password'] && <p className="text-xs text-red-600" role="alert">{errors['account.password']}</p>}
+                </div>
+              </div>
+              <div className="col-span-12 md:col-span-12">
+                <div className="flex flex-col gap-1.5">
                   <label className="text-sm font-semibold" htmlFor="fg_account_bio">Bio</label>
                   <textarea id="fg_account_bio" rows={4} value={form.account.bio} className={errors['account.bio'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('account.bio', e.target.value)} onBlur={() => touch('account.bio')} />
                   {errors['account.bio'] && <p className="text-xs text-red-600" role="alert">{errors['account.bio']}</p>}
                 </div>
               </div>
+              <div className="col-span-12 md:col-span-12">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-semibold" htmlFor="fg_account_birthday">Birthday</label>
+                  <input id="fg_account_birthday" type="date" value={form.account.birthday} className={errors['account.birthday'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('account.birthday', e.target.value)} onBlur={() => touch('account.birthday')} />
+                  {errors['account.birthday'] && <p className="text-xs text-red-600" role="alert">{errors['account.birthday']}</p>}
+                </div>
+              </div>
             </div>
           </fieldset>
+        </div>
+        <div className="col-span-12 md:col-span-12">
+          <div className="flex flex-col gap-1.5">
+            <fieldset className="flex flex-col gap-1.5">
+              <legend className="text-sm font-semibold">Plan<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></legend>
+              <div className="flex flex-col gap-1.5">
+                <label className="inline-flex items-center gap-2 text-sm" htmlFor="fg_plan_free">
+                  <input id="fg_plan_free" type="radio" className="h-4 w-4 rounded border-gray-300 accent-indigo-600" checked={form.plan === 'free'} onChange={() => { setField('plan', 'free'); touch('plan') }} />
+                  <span>Free</span>
+                </label>
+                <label className="inline-flex items-center gap-2 text-sm" htmlFor="fg_plan_pro">
+                  <input id="fg_plan_pro" type="radio" className="h-4 w-4 rounded border-gray-300 accent-indigo-600" checked={form.plan === 'pro'} onChange={() => { setField('plan', 'pro'); touch('plan') }} />
+                  <span>Pro</span>
+                </label>
+              </div>
+            </fieldset>
+            {errors['plan'] && <p className="text-xs text-red-600" role="alert">{errors['plan']}</p>}
+          </div>
+        </div>
+        <div className="col-span-12 md:col-span-12">
+          <div className="flex flex-col gap-1.5">
+            <fieldset className="flex flex-col gap-1.5">
+              <legend className="text-sm font-semibold">Interests</legend>
+              <div className="flex flex-col gap-1.5">
+                <label className="inline-flex items-center gap-2 text-sm" htmlFor="fg_interests_news">
+                  <input id="fg_interests_news" type="checkbox" className="h-4 w-4 rounded border-gray-300 accent-indigo-600" checked={form.interests.includes('news')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('interests', e.target.checked ? [...form.interests, 'news'] : form.interests.filter((v) => v !== 'news')); touch('interests') }} />
+                  <span>News</span>
+                </label>
+                <label className="inline-flex items-center gap-2 text-sm" htmlFor="fg_interests_product">
+                  <input id="fg_interests_product" type="checkbox" className="h-4 w-4 rounded border-gray-300 accent-indigo-600" checked={form.interests.includes('product')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('interests', e.target.checked ? [...form.interests, 'product'] : form.interests.filter((v) => v !== 'product')); touch('interests') }} />
+                  <span>Product updates</span>
+                </label>
+              </div>
+            </fieldset>
+            {errors['interests'] && <p className="text-xs text-red-600" role="alert">{errors['interests']}</p>}
+          </div>
         </div>
         <div className="col-span-12 md:col-span-12">
           <div className="flex flex-col gap-1.5">
@@ -1906,6 +2844,15 @@ export default function KitchenSinkForm({
             {errors['contact_method'] && <p className="text-xs text-red-600" role="alert">{errors['contact_method']}</p>}
           </div>
         </div>
+        {((form.contact_method === "phone")) && (
+          <div className="col-span-12 md:col-span-12">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold" htmlFor="fg_contact_phone">Phone number</label>
+              <input id="fg_contact_phone" type="tel" value={form.contact_phone} className={errors['contact_phone'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('contact_phone', e.target.value)} onBlur={() => touch('contact_phone')} />
+              {errors['contact_phone'] && <p className="text-xs text-red-600" role="alert">{errors['contact_phone']}</p>}
+            </div>
+          </div>
+        )}
         {((form.contact_method === "other")) && (
           <div className="col-span-12 md:col-span-12">
             <div className="flex flex-col gap-1.5">
@@ -1965,13 +2912,21 @@ function fgSize(v) {
 type FormData = {
   full_name: string
   email: string
+  website: string
+  seats: number | null
+  satisfaction: number
   city: string
   zip: string
   account: {
     username: string
+    password: string
     bio: string
+    birthday: string
   }
+  plan: string | null
+  interests: string[]
   contact_method: string | null
+  contact_phone: string
   contact_other: string
   newsletter: boolean
   terms: boolean
@@ -1980,18 +2935,29 @@ type FormData = {
 const INITIAL: FormData = {
   full_name: "",
   email: "",
+  website: "",
+  seats: null,
+  satisfaction: 5,
   city: "",
   zip: "",
   account: {
     username: "",
-    bio: ""
+    password: "",
+    bio: "",
+    birthday: ""
   },
+  plan: null,
+  interests: [],
   contact_method: null,
+  contact_phone: "",
   contact_other: "",
   newsletter: true,
   terms: false
 }
 
+function fgVisible_contact_phone(data: FormData) {
+  return ((data.contact_method === "phone"))
+}
 function fgVisible_contact_other(data: FormData) {
   return ((data.contact_method === "other"))
 }
@@ -2007,6 +2973,17 @@ const validators: Record<string, (data: FormData) => string | null> = {
   const v = data.email
   if (fgIsEmpty(v) || v === false) return "This field is required"
   if (!fgIsEmpty(v) && ((typeof v !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v)))) return "Must be a valid email address"
+  return null
+  },
+  'website': function (data: FormData) {
+  const v = data.website
+  if (!fgIsEmpty(v) && ((typeof v !== 'string' || !(() => { try { new URL(v); return true } catch { return false } })()))) return "Must be a valid URL"
+  return null
+  },
+  'seats': function (data: FormData) {
+  const v = data.seats
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? -Infinity) < 1)) return "Must be at least 1"
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 50)) return "Must be at most 50"
   return null
   },
   'zip': function (data: FormData) {
@@ -2025,6 +3002,11 @@ const validators: Record<string, (data: FormData) => string | null> = {
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 200)) return "Must be at most 200"
   return null
   },
+  'plan': function (data: FormData) {
+  const v = data.plan
+  if (fgIsEmpty(v) || v === false) return "This field is required"
+  return null
+  },
   'contact_method': function (data: FormData) {
   const v = data.contact_method
   if (fgIsEmpty(v) || v === false) return "This field is required"
@@ -2041,13 +3023,21 @@ function buildPayload(data: FormData): Record<string, unknown> {
   return {
     "full_name": data.full_name,
     "email": data.email,
+    "website": data.website,
+    "seats": data.seats,
+    "satisfaction": data.satisfaction,
     "city": data.city,
     "zip": data.zip,
     "account": {
       "username": data.account.username,
+      "password": data.account.password,
       "bio": data.account.bio,
+      "birthday": data.account.birthday,
     },
+    "plan": data.plan,
+    "interests": data.interests,
     "contact_method": data.contact_method,
+    ...(fgVisible_contact_phone(data) ? { "contact_phone": data.contact_phone } : {}),
     ...(fgVisible_contact_other(data) ? { "contact_other": data.contact_other } : {}),
     "newsletter": data.newsletter,
     "terms": data.terms,
@@ -2115,6 +3105,12 @@ export default function KitchenSinkForm({
     <form className="fg-form" dir="ltr" noValidate onSubmit={handleSubmit}>
       <div className="fg-grid">
         <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+          <h2 className="fg-heading">Kitchen Sink</h2>
+        </div>
+        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+          <p className="fg-paragraph">Every implemented element appears in this form.</p>
+        </div>
+        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
           <div className="fg-field">
             <label className="fg-label" htmlFor="fg_full_name">Full name<span className="fg-required" aria-hidden="true">*</span></label>
             <input id="fg_full_name" type="text" value={form.full_name} className={errors['full_name'] ? "fg-input fg-invalid" : "fg-input"} placeholder="Jane Doe" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('full_name', e.target.value)} onBlur={() => touch('full_name')} />
@@ -2124,9 +3120,34 @@ export default function KitchenSinkForm({
         <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
           <div className="fg-field">
             <label className="fg-label" htmlFor="fg_email">Email<span className="fg-required" aria-hidden="true">*</span></label>
-            <input id="fg_email" type="text" value={form.email} className={errors['email'] ? "fg-input fg-invalid" : "fg-input"} placeholder="jane@example.com" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('email', e.target.value)} onBlur={() => touch('email')} />
+            <input id="fg_email" type="email" value={form.email} className={errors['email'] ? "fg-input fg-invalid" : "fg-input"} placeholder="jane@example.com" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('email', e.target.value)} onBlur={() => touch('email')} />
             {errors['email'] && <p className="fg-error" role="alert">{errors['email']}</p>}
           </div>
+        </div>
+        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+          <div className="fg-field">
+            <label className="fg-label" htmlFor="fg_website">Website</label>
+            <input id="fg_website" type="url" value={form.website} className={errors['website'] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('website', e.target.value)} onBlur={() => touch('website')} />
+            {errors['website'] && <p className="fg-error" role="alert">{errors['website']}</p>}
+          </div>
+        </div>
+        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+          <div className="fg-field">
+            <label className="fg-label" htmlFor="fg_seats">Seats</label>
+            <input id="fg_seats" type="number" value={form.seats ?? ''} className={errors['seats'] ? "fg-input fg-invalid" : "fg-input"} min="1" max="50" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('seats', e.target.value === '' ? null : Number(e.target.value))} onBlur={() => touch('seats')} />
+            {errors['seats'] && <p className="fg-error" role="alert">{errors['seats']}</p>}
+          </div>
+        </div>
+        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+          <div className="fg-field">
+            <label className="fg-label" htmlFor="fg_satisfaction">Satisfaction</label>
+            <input id="fg_satisfaction" type="range" value={form.satisfaction} className="fg-range" min="0" max="10" step="1" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('satisfaction', Number(e.target.value)); touch('satisfaction') }} />
+            <p className="fg-description">{form.satisfaction}</p>
+            {errors['satisfaction'] && <p className="fg-error" role="alert">{errors['satisfaction']}</p>}
+          </div>
+        </div>
+        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+          <hr className="fg-divider" />
         </div>
         <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
           <div className="fg-grid">
@@ -2159,13 +3180,63 @@ export default function KitchenSinkForm({
               </div>
               <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
                 <div className="fg-field">
+                  <label className="fg-label" htmlFor="fg_account_password">Password</label>
+                  <input id="fg_account_password" type="password" value={form.account.password} className={errors['account.password'] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('account.password', e.target.value)} onBlur={() => touch('account.password')} />
+                  {errors['account.password'] && <p className="fg-error" role="alert">{errors['account.password']}</p>}
+                </div>
+              </div>
+              <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+                <div className="fg-field">
                   <label className="fg-label" htmlFor="fg_account_bio">Bio</label>
                   <textarea id="fg_account_bio" rows={4} value={form.account.bio} className={errors['account.bio'] ? "fg-textarea fg-invalid" : "fg-textarea"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('account.bio', e.target.value)} onBlur={() => touch('account.bio')} />
                   {errors['account.bio'] && <p className="fg-error" role="alert">{errors['account.bio']}</p>}
                 </div>
               </div>
+              <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+                <div className="fg-field">
+                  <label className="fg-label" htmlFor="fg_account_birthday">Birthday</label>
+                  <input id="fg_account_birthday" type="date" value={form.account.birthday} className={errors['account.birthday'] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('account.birthday', e.target.value)} onBlur={() => touch('account.birthday')} />
+                  {errors['account.birthday'] && <p className="fg-error" role="alert">{errors['account.birthday']}</p>}
+                </div>
+              </div>
             </div>
           </fieldset>
+        </div>
+        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+          <div className="fg-field">
+            <fieldset className="fg-field">
+              <legend className="fg-label">Plan<span className="fg-required" aria-hidden="true">*</span></legend>
+              <div className="fg-options">
+                <label className="fg-option" htmlFor="fg_plan_free">
+                  <input id="fg_plan_free" type="radio" className="fg-checkbox" checked={form.plan === 'free'} onChange={() => { setField('plan', 'free'); touch('plan') }} />
+                  <span>Free</span>
+                </label>
+                <label className="fg-option" htmlFor="fg_plan_pro">
+                  <input id="fg_plan_pro" type="radio" className="fg-checkbox" checked={form.plan === 'pro'} onChange={() => { setField('plan', 'pro'); touch('plan') }} />
+                  <span>Pro</span>
+                </label>
+              </div>
+            </fieldset>
+            {errors['plan'] && <p className="fg-error" role="alert">{errors['plan']}</p>}
+          </div>
+        </div>
+        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+          <div className="fg-field">
+            <fieldset className="fg-field">
+              <legend className="fg-label">Interests</legend>
+              <div className="fg-options">
+                <label className="fg-option" htmlFor="fg_interests_news">
+                  <input id="fg_interests_news" type="checkbox" className="fg-checkbox" checked={form.interests.includes('news')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('interests', e.target.checked ? [...form.interests, 'news'] : form.interests.filter((v) => v !== 'news')); touch('interests') }} />
+                  <span>News</span>
+                </label>
+                <label className="fg-option" htmlFor="fg_interests_product">
+                  <input id="fg_interests_product" type="checkbox" className="fg-checkbox" checked={form.interests.includes('product')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('interests', e.target.checked ? [...form.interests, 'product'] : form.interests.filter((v) => v !== 'product')); touch('interests') }} />
+                  <span>Product updates</span>
+                </label>
+              </div>
+            </fieldset>
+            {errors['interests'] && <p className="fg-error" role="alert">{errors['interests']}</p>}
+          </div>
         </div>
         <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
           <div className="fg-field">
@@ -2179,6 +3250,15 @@ export default function KitchenSinkForm({
             {errors['contact_method'] && <p className="fg-error" role="alert">{errors['contact_method']}</p>}
           </div>
         </div>
+        {((form.contact_method === "phone")) && (
+          <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+            <div className="fg-field">
+              <label className="fg-label" htmlFor="fg_contact_phone">Phone number</label>
+              <input id="fg_contact_phone" type="tel" value={form.contact_phone} className={errors['contact_phone'] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('contact_phone', e.target.value)} onBlur={() => touch('contact_phone')} />
+              {errors['contact_phone'] && <p className="fg-error" role="alert">{errors['contact_phone']}</p>}
+            </div>
+          </div>
+        )}
         {((form.contact_method === "other")) && (
           <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
             <div className="fg-field">
@@ -2227,13 +3307,21 @@ const emit = defineEmits<{ submit: [data: Record<string, unknown>] }>()
 const form = reactive({
   full_name: "",
   email: "",
+  website: "",
+  seats: null,
+  satisfaction: 5,
   city: "",
   zip: "",
   account: {
     username: "",
-    bio: ""
+    password: "",
+    bio: "",
+    birthday: ""
   },
+  plan: null,
+  interests: [],
   contact_method: null,
+  contact_phone: "",
   contact_other: "",
   newsletter: true,
   terms: false
@@ -2256,6 +3344,9 @@ function fgSize(v) {
   return null
 }
 
+function fgVisible_contact_phone() {
+  return ((form.contact_method === "phone"))
+}
 function fgVisible_contact_other() {
   return ((form.contact_method === "other"))
 }
@@ -2273,6 +3364,17 @@ const validators: Record<string, () => string | null> = {
   if (!fgIsEmpty(v) && ((typeof v !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v)))) return "Must be a valid email address"
   return null
   },
+  'website': function () {
+  const v = form.website
+  if (!fgIsEmpty(v) && ((typeof v !== 'string' || !(() => { try { new URL(v); return true } catch { return false } })()))) return "Must be a valid URL"
+  return null
+  },
+  'seats': function () {
+  const v = form.seats
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? -Infinity) < 1)) return "Must be at least 1"
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 50)) return "Must be at most 50"
+  return null
+  },
   'zip': function () {
   const v = form.zip
   if (!fgIsEmpty(v) && ((typeof v !== 'string' || !new RegExp("^[0-9]{4,6}$").test(v)))) return "Invalid format"
@@ -2287,6 +3389,11 @@ const validators: Record<string, () => string | null> = {
   'account.bio': function () {
   const v = form.account.bio
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 200)) return "Must be at most 200"
+  return null
+  },
+  'plan': function () {
+  const v = form.plan
+  if (fgIsEmpty(v) || v === false) return "This field is required"
   return null
   },
   'contact_method': function () {
@@ -2332,13 +3439,21 @@ function buildPayload(): Record<string, unknown> {
   return {
     "full_name": form.full_name,
     "email": form.email,
+    "website": form.website,
+    "seats": form.seats,
+    "satisfaction": form.satisfaction,
     "city": form.city,
     "zip": form.zip,
     "account": {
       "username": form.account.username,
+      "password": form.account.password,
       "bio": form.account.bio,
+      "birthday": form.account.birthday,
     },
+    "plan": form.plan,
+    "interests": form.interests,
     "contact_method": form.contact_method,
+    ...(fgVisible_contact_phone() ? { "contact_phone": form.contact_phone } : {}),
     ...(fgVisible_contact_other() ? { "contact_other": form.contact_other } : {}),
     "newsletter": form.newsletter,
     "terms": form.terms,
@@ -2362,6 +3477,12 @@ async function onSubmit(): Promise<void> {
   >
     <div class="row g-3">
       <div class="col-12 col-md-12">
+        <h2 class="fw-semibold">Kitchen Sink</h2>
+      </div>
+      <div class="col-12 col-md-12">
+        <p class="text-secondary">Every implemented element appears in this form.</p>
+      </div>
+      <div class="col-12 col-md-12">
         <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold mb-0" for="fg_full_name">Full name<span class="text-danger ms-1" aria-hidden="true">*</span></label>
           <input id="fg_full_name" v-model="form.full_name" type="text" class="form-control" :class="{ 'is-invalid': !!errors['full_name'] }" placeholder="Jane Doe" @blur="touch('full_name')" @input="revalidate('full_name')">
@@ -2371,9 +3492,34 @@ async function onSubmit(): Promise<void> {
       <div class="col-12 col-md-12">
         <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold mb-0" for="fg_email">Email<span class="text-danger ms-1" aria-hidden="true">*</span></label>
-          <input id="fg_email" v-model="form.email" type="text" class="form-control" :class="{ 'is-invalid': !!errors['email'] }" placeholder="jane@example.com" @blur="touch('email')" @input="revalidate('email')">
+          <input id="fg_email" v-model="form.email" type="email" class="form-control" :class="{ 'is-invalid': !!errors['email'] }" placeholder="jane@example.com" @blur="touch('email')" @input="revalidate('email')">
           <p v-if="errors['email']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['email'] }}</p>
         </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="d-flex flex-column gap-1">
+          <label class="form-label fw-semibold mb-0" for="fg_website">Website</label>
+          <input id="fg_website" v-model="form.website" type="url" class="form-control" :class="{ 'is-invalid': !!errors['website'] }" @blur="touch('website')" @input="revalidate('website')">
+          <p v-if="errors['website']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['website'] }}</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="d-flex flex-column gap-1">
+          <label class="form-label fw-semibold mb-0" for="fg_seats">Seats</label>
+          <input id="fg_seats" v-model.number="form.seats" type="number" class="form-control" :class="{ 'is-invalid': !!errors['seats'] }" min="1" max="50" @blur="touch('seats')" @input="revalidate('seats')">
+          <p v-if="errors['seats']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['seats'] }}</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="d-flex flex-column gap-1">
+          <label class="form-label fw-semibold mb-0" for="fg_satisfaction">Satisfaction</label>
+          <input id="fg_satisfaction" v-model.number="form.satisfaction" type="range" class="form-range" min="0" max="10" step="1" @change="touch('satisfaction')">
+          <p class="form-text mt-0">{{ form.satisfaction }}</p>
+          <p v-if="errors['satisfaction']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['satisfaction'] }}</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <hr class="border-top">
       </div>
       <div class="col-12 col-md-12">
         <div class="row g-3">
@@ -2406,12 +3552,58 @@ async function onSubmit(): Promise<void> {
             </div>
             <div class="col-12 col-md-12">
               <div class="d-flex flex-column gap-1">
+                <label class="form-label fw-semibold mb-0" for="fg_account_password">Password</label>
+                <input id="fg_account_password" v-model="form.account.password" type="password" class="form-control" :class="{ 'is-invalid': !!errors['account.password'] }" @blur="touch('account.password')" @input="revalidate('account.password')">
+                <p v-if="errors['account.password']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['account.password'] }}</p>
+              </div>
+            </div>
+            <div class="col-12 col-md-12">
+              <div class="d-flex flex-column gap-1">
                 <label class="form-label fw-semibold mb-0" for="fg_account_bio">Bio</label>
                 <textarea id="fg_account_bio" v-model="form.account.bio" class="form-control" rows="4" :class="{ 'is-invalid': !!errors['account.bio'] }" @blur="touch('account.bio')" @input="revalidate('account.bio')"></textarea>
                 <p v-if="errors['account.bio']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['account.bio'] }}</p>
               </div>
             </div>
+            <div class="col-12 col-md-12">
+              <div class="d-flex flex-column gap-1">
+                <label class="form-label fw-semibold mb-0" for="fg_account_birthday">Birthday</label>
+                <input id="fg_account_birthday" v-model="form.account.birthday" type="date" class="form-control" :class="{ 'is-invalid': !!errors['account.birthday'] }" @blur="touch('account.birthday')" @input="revalidate('account.birthday')">
+                <p v-if="errors['account.birthday']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['account.birthday'] }}</p>
+              </div>
+            </div>
           </div>
+        </fieldset>
+      </div>
+      <div class="col-12 col-md-12">
+        <fieldset class="d-flex flex-column gap-1">
+          <legend class="form-label fw-semibold mb-0">Plan<span class="text-danger ms-1" aria-hidden="true">*</span></legend>
+          <div class="d-flex flex-column gap-1">
+            <label class="form-check" for="fg_plan_free">
+              <input id="fg_plan_free" v-model="form.plan" type="radio" class="form-check-input" value="free" @change="touch('plan')">
+              <span>Free</span>
+            </label>
+            <label class="form-check" for="fg_plan_pro">
+              <input id="fg_plan_pro" v-model="form.plan" type="radio" class="form-check-input" value="pro" @change="touch('plan')">
+              <span>Pro</span>
+            </label>
+          </div>
+          <p v-if="errors['plan']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['plan'] }}</p>
+        </fieldset>
+      </div>
+      <div class="col-12 col-md-12">
+        <fieldset class="d-flex flex-column gap-1">
+          <legend class="form-label fw-semibold mb-0">Interests</legend>
+          <div class="d-flex flex-column gap-1">
+            <label class="form-check" for="fg_interests_news">
+              <input id="fg_interests_news" v-model="form.interests" type="checkbox" class="form-check-input" value="news" @change="touch('interests')">
+              <span>News</span>
+            </label>
+            <label class="form-check" for="fg_interests_product">
+              <input id="fg_interests_product" v-model="form.interests" type="checkbox" class="form-check-input" value="product" @change="touch('interests')">
+              <span>Product updates</span>
+            </label>
+          </div>
+          <p v-if="errors['interests']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['interests'] }}</p>
         </fieldset>
       </div>
       <div class="col-12 col-md-12">
@@ -2424,6 +3616,13 @@ async function onSubmit(): Promise<void> {
             <option value="other">Other</option>
           </select>
           <p v-if="errors['contact_method']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['contact_method'] }}</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12" v-if='(form.contact_method === "phone")'>
+        <div class="d-flex flex-column gap-1">
+          <label class="form-label fw-semibold mb-0" for="fg_contact_phone">Phone number</label>
+          <input id="fg_contact_phone" v-model="form.contact_phone" type="tel" class="form-control" :class="{ 'is-invalid': !!errors['contact_phone'] }" @blur="touch('contact_phone')" @input="revalidate('contact_phone')">
+          <p v-if="errors['contact_phone']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['contact_phone'] }}</p>
         </div>
       </div>
       <div class="col-12 col-md-12" v-if='(form.contact_method === "other")'>
@@ -2471,13 +3670,21 @@ const emit = defineEmits<{ submit: [data: Record<string, unknown>] }>()
 const form = reactive({
   full_name: "",
   email: "",
+  website: "",
+  seats: null,
+  satisfaction: 5,
   city: "",
   zip: "",
   account: {
     username: "",
-    bio: ""
+    password: "",
+    bio: "",
+    birthday: ""
   },
+  plan: null,
+  interests: [],
   contact_method: null,
+  contact_phone: "",
   contact_other: "",
   newsletter: true,
   terms: false
@@ -2500,6 +3707,9 @@ function fgSize(v) {
   return null
 }
 
+function fgVisible_contact_phone() {
+  return ((form.contact_method === "phone"))
+}
 function fgVisible_contact_other() {
   return ((form.contact_method === "other"))
 }
@@ -2517,6 +3727,17 @@ const validators: Record<string, () => string | null> = {
   if (!fgIsEmpty(v) && ((typeof v !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v)))) return "Must be a valid email address"
   return null
   },
+  'website': function () {
+  const v = form.website
+  if (!fgIsEmpty(v) && ((typeof v !== 'string' || !(() => { try { new URL(v); return true } catch { return false } })()))) return "Must be a valid URL"
+  return null
+  },
+  'seats': function () {
+  const v = form.seats
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? -Infinity) < 1)) return "Must be at least 1"
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 50)) return "Must be at most 50"
+  return null
+  },
   'zip': function () {
   const v = form.zip
   if (!fgIsEmpty(v) && ((typeof v !== 'string' || !new RegExp("^[0-9]{4,6}$").test(v)))) return "Invalid format"
@@ -2531,6 +3752,11 @@ const validators: Record<string, () => string | null> = {
   'account.bio': function () {
   const v = form.account.bio
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 200)) return "Must be at most 200"
+  return null
+  },
+  'plan': function () {
+  const v = form.plan
+  if (fgIsEmpty(v) || v === false) return "This field is required"
   return null
   },
   'contact_method': function () {
@@ -2576,13 +3802,21 @@ function buildPayload(): Record<string, unknown> {
   return {
     "full_name": form.full_name,
     "email": form.email,
+    "website": form.website,
+    "seats": form.seats,
+    "satisfaction": form.satisfaction,
     "city": form.city,
     "zip": form.zip,
     "account": {
       "username": form.account.username,
+      "password": form.account.password,
       "bio": form.account.bio,
+      "birthday": form.account.birthday,
     },
+    "plan": form.plan,
+    "interests": form.interests,
     "contact_method": form.contact_method,
+    ...(fgVisible_contact_phone() ? { "contact_phone": form.contact_phone } : {}),
     ...(fgVisible_contact_other() ? { "contact_other": form.contact_other } : {}),
     "newsletter": form.newsletter,
     "terms": form.terms,
@@ -2606,6 +3840,12 @@ async function onSubmit(): Promise<void> {
   >
     <div class="grid grid-cols-12 gap-4">
       <div class="col-span-12 md:col-span-12">
+        <h2 class="font-semibold">Kitchen Sink</h2>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <p class="text-sm text-gray-600 dark:text-gray-300">Every implemented element appears in this form.</p>
+      </div>
+      <div class="col-span-12 md:col-span-12">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_full_name">Full name<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
           <input id="fg_full_name" v-model="form.full_name" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['full_name'] }" placeholder="Jane Doe" @blur="touch('full_name')" @input="revalidate('full_name')">
@@ -2615,9 +3855,34 @@ async function onSubmit(): Promise<void> {
       <div class="col-span-12 md:col-span-12">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_email">Email<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-          <input id="fg_email" v-model="form.email" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['email'] }" placeholder="jane@example.com" @blur="touch('email')" @input="revalidate('email')">
+          <input id="fg_email" v-model="form.email" type="email" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['email'] }" placeholder="jane@example.com" @blur="touch('email')" @input="revalidate('email')">
           <p v-if="errors['email']" class="text-xs text-red-600" role="alert">{{ errors['email'] }}</p>
         </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_website">Website</label>
+          <input id="fg_website" v-model="form.website" type="url" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['website'] }" @blur="touch('website')" @input="revalidate('website')">
+          <p v-if="errors['website']" class="text-xs text-red-600" role="alert">{{ errors['website'] }}</p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_seats">Seats</label>
+          <input id="fg_seats" v-model.number="form.seats" type="number" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['seats'] }" min="1" max="50" @blur="touch('seats')" @input="revalidate('seats')">
+          <p v-if="errors['seats']" class="text-xs text-red-600" role="alert">{{ errors['seats'] }}</p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_satisfaction">Satisfaction</label>
+          <input id="fg_satisfaction" v-model.number="form.satisfaction" type="range" class="w-full accent-indigo-600" min="0" max="10" step="1" @change="touch('satisfaction')">
+          <p class="text-xs text-gray-500 dark:text-gray-400">{{ form.satisfaction }}</p>
+          <p v-if="errors['satisfaction']" class="text-xs text-red-600" role="alert">{{ errors['satisfaction'] }}</p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <hr class="border-t border-gray-200 dark:border-gray-700">
       </div>
       <div class="col-span-12 md:col-span-12">
         <div class="grid grid-cols-12 gap-4">
@@ -2650,12 +3915,58 @@ async function onSubmit(): Promise<void> {
             </div>
             <div class="col-span-12 md:col-span-12">
               <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-semibold" for="fg_account_password">Password</label>
+                <input id="fg_account_password" v-model="form.account.password" type="password" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['account.password'] }" @blur="touch('account.password')" @input="revalidate('account.password')">
+                <p v-if="errors['account.password']" class="text-xs text-red-600" role="alert">{{ errors['account.password'] }}</p>
+              </div>
+            </div>
+            <div class="col-span-12 md:col-span-12">
+              <div class="flex flex-col gap-1.5">
                 <label class="text-sm font-semibold" for="fg_account_bio">Bio</label>
                 <textarea id="fg_account_bio" v-model="form.account.bio" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="4" :class="{ 'border-red-500 focus:ring-red-200': !!errors['account.bio'] }" @blur="touch('account.bio')" @input="revalidate('account.bio')"></textarea>
                 <p v-if="errors['account.bio']" class="text-xs text-red-600" role="alert">{{ errors['account.bio'] }}</p>
               </div>
             </div>
+            <div class="col-span-12 md:col-span-12">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-semibold" for="fg_account_birthday">Birthday</label>
+                <input id="fg_account_birthday" v-model="form.account.birthday" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['account.birthday'] }" @blur="touch('account.birthday')" @input="revalidate('account.birthday')">
+                <p v-if="errors['account.birthday']" class="text-xs text-red-600" role="alert">{{ errors['account.birthday'] }}</p>
+              </div>
+            </div>
           </div>
+        </fieldset>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <fieldset class="flex flex-col gap-1.5">
+          <legend class="text-sm font-semibold">Plan<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></legend>
+          <div class="flex flex-col gap-1.5">
+            <label class="inline-flex items-center gap-2 text-sm" for="fg_plan_free">
+              <input id="fg_plan_free" v-model="form.plan" type="radio" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="free" @change="touch('plan')">
+              <span>Free</span>
+            </label>
+            <label class="inline-flex items-center gap-2 text-sm" for="fg_plan_pro">
+              <input id="fg_plan_pro" v-model="form.plan" type="radio" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="pro" @change="touch('plan')">
+              <span>Pro</span>
+            </label>
+          </div>
+          <p v-if="errors['plan']" class="text-xs text-red-600" role="alert">{{ errors['plan'] }}</p>
+        </fieldset>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <fieldset class="flex flex-col gap-1.5">
+          <legend class="text-sm font-semibold">Interests</legend>
+          <div class="flex flex-col gap-1.5">
+            <label class="inline-flex items-center gap-2 text-sm" for="fg_interests_news">
+              <input id="fg_interests_news" v-model="form.interests" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="news" @change="touch('interests')">
+              <span>News</span>
+            </label>
+            <label class="inline-flex items-center gap-2 text-sm" for="fg_interests_product">
+              <input id="fg_interests_product" v-model="form.interests" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="product" @change="touch('interests')">
+              <span>Product updates</span>
+            </label>
+          </div>
+          <p v-if="errors['interests']" class="text-xs text-red-600" role="alert">{{ errors['interests'] }}</p>
         </fieldset>
       </div>
       <div class="col-span-12 md:col-span-12">
@@ -2668,6 +3979,13 @@ async function onSubmit(): Promise<void> {
             <option value="other">Other</option>
           </select>
           <p v-if="errors['contact_method']" class="text-xs text-red-600" role="alert">{{ errors['contact_method'] }}</p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12" v-if='(form.contact_method === "phone")'>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_contact_phone">Phone number</label>
+          <input id="fg_contact_phone" v-model="form.contact_phone" type="tel" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['contact_phone'] }" @blur="touch('contact_phone')" @input="revalidate('contact_phone')">
+          <p v-if="errors['contact_phone']" class="text-xs text-red-600" role="alert">{{ errors['contact_phone'] }}</p>
         </div>
       </div>
       <div class="col-span-12 md:col-span-12" v-if='(form.contact_method === "other")'>
@@ -2715,13 +4033,21 @@ const emit = defineEmits<{ submit: [data: Record<string, unknown>] }>()
 const form = reactive({
   full_name: "",
   email: "",
+  website: "",
+  seats: null,
+  satisfaction: 5,
   city: "",
   zip: "",
   account: {
     username: "",
-    bio: ""
+    password: "",
+    bio: "",
+    birthday: ""
   },
+  plan: null,
+  interests: [],
   contact_method: null,
+  contact_phone: "",
   contact_other: "",
   newsletter: true,
   terms: false
@@ -2744,6 +4070,9 @@ function fgSize(v) {
   return null
 }
 
+function fgVisible_contact_phone() {
+  return ((form.contact_method === "phone"))
+}
 function fgVisible_contact_other() {
   return ((form.contact_method === "other"))
 }
@@ -2761,6 +4090,17 @@ const validators: Record<string, () => string | null> = {
   if (!fgIsEmpty(v) && ((typeof v !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v)))) return "Must be a valid email address"
   return null
   },
+  'website': function () {
+  const v = form.website
+  if (!fgIsEmpty(v) && ((typeof v !== 'string' || !(() => { try { new URL(v); return true } catch { return false } })()))) return "Must be a valid URL"
+  return null
+  },
+  'seats': function () {
+  const v = form.seats
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? -Infinity) < 1)) return "Must be at least 1"
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 50)) return "Must be at most 50"
+  return null
+  },
   'zip': function () {
   const v = form.zip
   if (!fgIsEmpty(v) && ((typeof v !== 'string' || !new RegExp("^[0-9]{4,6}$").test(v)))) return "Invalid format"
@@ -2775,6 +4115,11 @@ const validators: Record<string, () => string | null> = {
   'account.bio': function () {
   const v = form.account.bio
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 200)) return "Must be at most 200"
+  return null
+  },
+  'plan': function () {
+  const v = form.plan
+  if (fgIsEmpty(v) || v === false) return "This field is required"
   return null
   },
   'contact_method': function () {
@@ -2820,13 +4165,21 @@ function buildPayload(): Record<string, unknown> {
   return {
     "full_name": form.full_name,
     "email": form.email,
+    "website": form.website,
+    "seats": form.seats,
+    "satisfaction": form.satisfaction,
     "city": form.city,
     "zip": form.zip,
     "account": {
       "username": form.account.username,
+      "password": form.account.password,
       "bio": form.account.bio,
+      "birthday": form.account.birthday,
     },
+    "plan": form.plan,
+    "interests": form.interests,
     "contact_method": form.contact_method,
+    ...(fgVisible_contact_phone() ? { "contact_phone": form.contact_phone } : {}),
     ...(fgVisible_contact_other() ? { "contact_other": form.contact_other } : {}),
     "newsletter": form.newsletter,
     "terms": form.terms,
@@ -2850,6 +4203,12 @@ async function onSubmit(): Promise<void> {
   >
     <div class="fg-grid">
       <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <h2 class="fg-heading">Kitchen Sink</h2>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <p class="fg-paragraph">Every implemented element appears in this form.</p>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_full_name">Full name<span class="fg-required" aria-hidden="true">*</span></label>
           <input id="fg_full_name" v-model="form.full_name" type="text" class="fg-input" :class="{ 'fg-invalid': !!errors['full_name'] }" placeholder="Jane Doe" @blur="touch('full_name')" @input="revalidate('full_name')">
@@ -2859,9 +4218,34 @@ async function onSubmit(): Promise<void> {
       <div class="fg-cell" style="grid-column: span 12 / span 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_email">Email<span class="fg-required" aria-hidden="true">*</span></label>
-          <input id="fg_email" v-model="form.email" type="text" class="fg-input" :class="{ 'fg-invalid': !!errors['email'] }" placeholder="jane@example.com" @blur="touch('email')" @input="revalidate('email')">
+          <input id="fg_email" v-model="form.email" type="email" class="fg-input" :class="{ 'fg-invalid': !!errors['email'] }" placeholder="jane@example.com" @blur="touch('email')" @input="revalidate('email')">
           <p v-if="errors['email']" class="fg-error" role="alert">{{ errors['email'] }}</p>
         </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-field">
+          <label class="fg-label" for="fg_website">Website</label>
+          <input id="fg_website" v-model="form.website" type="url" class="fg-input" :class="{ 'fg-invalid': !!errors['website'] }" @blur="touch('website')" @input="revalidate('website')">
+          <p v-if="errors['website']" class="fg-error" role="alert">{{ errors['website'] }}</p>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-field">
+          <label class="fg-label" for="fg_seats">Seats</label>
+          <input id="fg_seats" v-model.number="form.seats" type="number" class="fg-input" :class="{ 'fg-invalid': !!errors['seats'] }" min="1" max="50" @blur="touch('seats')" @input="revalidate('seats')">
+          <p v-if="errors['seats']" class="fg-error" role="alert">{{ errors['seats'] }}</p>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-field">
+          <label class="fg-label" for="fg_satisfaction">Satisfaction</label>
+          <input id="fg_satisfaction" v-model.number="form.satisfaction" type="range" class="fg-range" min="0" max="10" step="1" @change="touch('satisfaction')">
+          <p class="fg-description">{{ form.satisfaction }}</p>
+          <p v-if="errors['satisfaction']" class="fg-error" role="alert">{{ errors['satisfaction'] }}</p>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <hr class="fg-divider">
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
         <div class="fg-grid">
@@ -2894,12 +4278,58 @@ async function onSubmit(): Promise<void> {
             </div>
             <div class="fg-cell" style="grid-column: span 12 / span 12">
               <div class="fg-field">
+                <label class="fg-label" for="fg_account_password">Password</label>
+                <input id="fg_account_password" v-model="form.account.password" type="password" class="fg-input" :class="{ 'fg-invalid': !!errors['account.password'] }" @blur="touch('account.password')" @input="revalidate('account.password')">
+                <p v-if="errors['account.password']" class="fg-error" role="alert">{{ errors['account.password'] }}</p>
+              </div>
+            </div>
+            <div class="fg-cell" style="grid-column: span 12 / span 12">
+              <div class="fg-field">
                 <label class="fg-label" for="fg_account_bio">Bio</label>
                 <textarea id="fg_account_bio" v-model="form.account.bio" class="fg-textarea" rows="4" :class="{ 'fg-invalid': !!errors['account.bio'] }" @blur="touch('account.bio')" @input="revalidate('account.bio')"></textarea>
                 <p v-if="errors['account.bio']" class="fg-error" role="alert">{{ errors['account.bio'] }}</p>
               </div>
             </div>
+            <div class="fg-cell" style="grid-column: span 12 / span 12">
+              <div class="fg-field">
+                <label class="fg-label" for="fg_account_birthday">Birthday</label>
+                <input id="fg_account_birthday" v-model="form.account.birthday" type="date" class="fg-input" :class="{ 'fg-invalid': !!errors['account.birthday'] }" @blur="touch('account.birthday')" @input="revalidate('account.birthday')">
+                <p v-if="errors['account.birthday']" class="fg-error" role="alert">{{ errors['account.birthday'] }}</p>
+              </div>
+            </div>
           </div>
+        </fieldset>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <fieldset class="fg-field">
+          <legend class="fg-label">Plan<span class="fg-required" aria-hidden="true">*</span></legend>
+          <div class="fg-options">
+            <label class="fg-option" for="fg_plan_free">
+              <input id="fg_plan_free" v-model="form.plan" type="radio" class="fg-checkbox" value="free" @change="touch('plan')">
+              <span>Free</span>
+            </label>
+            <label class="fg-option" for="fg_plan_pro">
+              <input id="fg_plan_pro" v-model="form.plan" type="radio" class="fg-checkbox" value="pro" @change="touch('plan')">
+              <span>Pro</span>
+            </label>
+          </div>
+          <p v-if="errors['plan']" class="fg-error" role="alert">{{ errors['plan'] }}</p>
+        </fieldset>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <fieldset class="fg-field">
+          <legend class="fg-label">Interests</legend>
+          <div class="fg-options">
+            <label class="fg-option" for="fg_interests_news">
+              <input id="fg_interests_news" v-model="form.interests" type="checkbox" class="fg-checkbox" value="news" @change="touch('interests')">
+              <span>News</span>
+            </label>
+            <label class="fg-option" for="fg_interests_product">
+              <input id="fg_interests_product" v-model="form.interests" type="checkbox" class="fg-checkbox" value="product" @change="touch('interests')">
+              <span>Product updates</span>
+            </label>
+          </div>
+          <p v-if="errors['interests']" class="fg-error" role="alert">{{ errors['interests'] }}</p>
         </fieldset>
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
@@ -2912,6 +4342,13 @@ async function onSubmit(): Promise<void> {
             <option value="other">Other</option>
           </select>
           <p v-if="errors['contact_method']" class="fg-error" role="alert">{{ errors['contact_method'] }}</p>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12" v-if='(form.contact_method === "phone")'>
+        <div class="fg-field">
+          <label class="fg-label" for="fg_contact_phone">Phone number</label>
+          <input id="fg_contact_phone" v-model="form.contact_phone" type="tel" class="fg-input" :class="{ 'fg-invalid': !!errors['contact_phone'] }" @blur="touch('contact_phone')" @input="revalidate('contact_phone')">
+          <p v-if="errors['contact_phone']" class="fg-error" role="alert">{{ errors['contact_phone'] }}</p>
         </div>
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12" v-if='(form.contact_method === "other")'>
@@ -2984,6 +4421,12 @@ async function onSubmit(): Promise<void> {
 .fg-checkbox { inline-size: 1rem; block-size: 1rem; accent-color: var(--fg-color-primary); }
 .fg-description { margin: 0; font-size: 0.8125rem; color: var(--fg-color-muted); }
 .fg-error { margin: 0; font-size: 0.8125rem; color: var(--fg-color-error); }
+.fg-options { display: flex; flex-direction: column; gap: 0.375rem; }
+.fg-option { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.9375rem; }
+.fg-range { inline-size: 100%; accent-color: var(--fg-color-primary); }
+.fg-heading { margin: 0; }
+.fg-paragraph { margin: 0; color: var(--fg-color-muted); }
+.fg-divider { border: none; border-block-start: 1px solid var(--fg-color-border); margin-block: 0.25rem; }
 .fg-group { margin: 0; padding: var(--fg-space); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
 .fg-group-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); }
 .fg-actions { margin-block-start: var(--fg-space); }

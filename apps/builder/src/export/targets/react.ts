@@ -21,21 +21,43 @@ function indentBlock(text: string, depth: number): string {
     .join('\n')
 }
 
-/** TS type literal for the form data shape, derived from the defaults. */
-function dataType(value: unknown, indent = 0): string {
-  const pad = '  '.repeat(indent)
-  const padIn = '  '.repeat(indent + 1)
-  if (typeof value === 'boolean') return 'boolean'
-  if (typeof value === 'string') return 'string'
-  if (value === null) return 'string | null'
-  if (typeof value === 'object') {
-    const entries = Object.entries(value as Record<string, unknown>)
-    const body = entries
-      .map(([k, v]) => `${padIn}${/^[A-Za-z_$][\w$]*$/.test(k) ? k : JSON.stringify(k)}: ${dataType(v, indent + 1)}`)
+/** TS type for one field's value, by element type. */
+const FIELD_TS_TYPES: Record<string, string> = {
+  number: 'number | null',
+  select: 'string | null',
+  radiogroup: 'string | null',
+  checkbox: 'boolean',
+  checkboxgroup: 'string[]',
+  range: 'number',
+}
+
+/** TS type literal for the form data shape, derived from the SCHEMA. */
+function dataType(schema: Parameters<ExportTarget['generate']>[0]['schema']): string {
+  interface TypeTree {
+    [key: string]: string | TypeTree
+  }
+  const root: TypeTree = {}
+  for (const field of collectExportFields(schema)) {
+    const segments = field.path.split('.')
+    let target = root
+    for (const segment of segments.slice(0, -1)) {
+      target = (target[segment] ??= {}) as TypeTree
+    }
+    target[segments[segments.length - 1] as string] =
+      FIELD_TS_TYPES[field.node.type] ?? 'string'
+  }
+  const render = (tree: TypeTree, indent: number): string => {
+    const pad = '  '.repeat(indent)
+    const padIn = '  '.repeat(indent + 1)
+    const body = Object.entries(tree)
+      .map(
+        ([k, v]) =>
+          `${padIn}${/^[A-Za-z_$][\w$]*$/.test(k) ? k : JSON.stringify(k)}: ${typeof v === 'string' ? v : render(v, indent + 1)}`,
+      )
       .join('\n')
     return `{\n${body}\n${pad}}`
   }
-  return 'unknown'
+  return render(root, 0)
 }
 
 export const reactTarget: ExportTarget = {
@@ -79,7 +101,7 @@ import React, { useRef, useState } from 'react'
 ${cssImport}
 ${RUNTIME_HELPERS}
 
-type FormData = ${dataType(defaults)}
+type FormData = ${dataType(schema)}
 
 const INITIAL: FormData = ${toJsLiteral(defaults)}
 

@@ -7,7 +7,12 @@ export { default as FormsGenForm } from './components/FormsGenForm.vue'
 
 // Field components, exported for design-mode rendering in the builder.
 export { default as FgCheckbox } from './components/fields/FgCheckbox.vue'
+export { default as FgCheckboxGroup } from './components/fields/FgCheckboxGroup.vue'
+export { default as FgNumber } from './components/fields/FgNumber.vue'
+export { default as FgRadioGroup } from './components/fields/FgRadioGroup.vue'
+export { default as FgRange } from './components/fields/FgRange.vue'
 export { default as FgSelect } from './components/fields/FgSelect.vue'
+export { default as FgStatic } from './components/fields/FgStatic.vue'
 export { default as FgText } from './components/fields/FgText.vue'
 export { default as FgTextarea } from './components/fields/FgTextarea.vue'
 
@@ -47,7 +52,12 @@ export {
   type ThemeTokens,
 } from './schema'
 
-export { coreElements, getCoreElement, type CoreElementMeta } from './elements'
+export {
+  TEXT_INPUT_TYPES,
+  coreElements,
+  getCoreElement,
+  type CoreElementMeta,
+} from './elements'
 
 export {
   buildDefaultData,

@@ -53,33 +53,69 @@ function ruleMessage(rule: Rule): string {
   }
 }
 
+/** C# model shapes a field can take. */
+export type CsFieldKind =
+  | 'string' // text-likes, textarea, select, radiogroup, date, time
+  | 'bool' // checkbox
+  | 'number' // number (double?)
+  | 'numberValue' // range (double, always has a value)
+  | 'list' // checkboxgroup (List<string>)
+
+export function csFieldKind(type: string): CsFieldKind {
+  switch (type) {
+    case 'checkbox':
+      return 'bool'
+    case 'number':
+      return 'number'
+    case 'range':
+      return 'numberValue'
+    case 'checkboxgroup':
+      return 'list'
+    default:
+      return 'string'
+  }
+}
+
 /**
  * DataAnnotations attribute lines for an UNCONDITIONAL field. Returns null
  * for rules that need IValidatableObject (then ALL the field's rules go
  * there, keeping evaluation order intact).
  */
-export function csAttributes(field: ExportField, isBool: boolean): string[] | null {
+export function csAttributes(field: ExportField, kind: CsFieldKind): string[] | null {
   const rules = field.node.validation ?? []
   if (rules.length === 0) return []
   if (field.conditionChain.length > 0) return null
+  if (kind === 'bool' || kind === 'list') return null // Validate() handles these
+  const numeric = kind === 'number' || kind === 'numberValue'
   const attrs: string[] = []
   for (const rule of rules) {
     const msg = `ErrorMessage = ${csStr(ruleMessage(rule))}`
     switch (rule.rule) {
       case 'required':
-        if (isBool) return null // required checkbox -> Validate()
         attrs.push(`[Required(${msg})]`)
         break
       case 'min':
-        attrs.push(`[MinLength(${Number(rule.value)}, ${msg})]`)
+        attrs.push(
+          numeric
+            ? `[Range(${Number(rule.value)}, double.MaxValue, ${msg})]`
+            : `[MinLength(${Number(rule.value)}, ${msg})]`,
+        )
         break
       case 'max':
-        attrs.push(`[MaxLength(${Number(rule.value)}, ${msg})]`)
+        attrs.push(
+          numeric
+            ? `[Range(double.MinValue, ${Number(rule.value)}, ${msg})]`
+            : `[MaxLength(${Number(rule.value)}, ${msg})]`,
+        )
         break
       case 'between': {
         const [lo, hi] = Array.isArray(rule.value) ? rule.value : [0, 0]
-        attrs.push(`[MinLength(${Number(lo)}, ${msg})]`)
-        attrs.push(`[MaxLength(${Number(hi)}, ${msg})]`)
+        if (numeric) {
+          attrs.push(`[Range(${Number(lo)}, ${Number(hi)}, ${msg})]`)
+        } else {
+          attrs.push(`[MinLength(${Number(lo)}, ${msg})]`)
+          attrs.push(`[MaxLength(${Number(hi)}, ${msg})]`)
+        }
         break
       }
       case 'email':
@@ -140,10 +176,10 @@ export function csConditions(
 
 /**
  * Validate() statements for fields whose rules can't be attributes
- * (conditional fields, required checkboxes). Runs inside the model class,
- * so the accessor is the bare member name.
+ * (conditional fields, checkboxes, checkbox groups). Runs inside the
+ * model class, so the accessor is the bare member name.
  */
-export function csValidateStatements(field: ExportField, isBool: boolean): string[] {
+export function csValidateStatements(field: ExportField, kind: CsFieldKind): string[] {
   const rules = field.node.validation ?? []
   if (rules.length === 0) return []
   const member = csSelfAccessor(field.key)
@@ -154,43 +190,61 @@ export function csValidateStatements(field: ExportField, isBool: boolean): strin
       : 'true'
   const guardOpen = visible === 'true' ? '' : `if (${visible})\n        {\n    `
   const guardClose = visible === 'true' ? '' : `\n        }`
+
+  // Per-kind "empty" and "size" expressions mirroring the JS semantics.
+  const emptyExpr =
+    kind === 'bool'
+      ? `!${member}`
+      : kind === 'number'
+        ? `!${member}.HasValue`
+        : kind === 'numberValue'
+          ? 'false'
+          : kind === 'list'
+            ? `${member}.Count == 0`
+            : `string.IsNullOrWhiteSpace(${member})`
+  const sizeExpr =
+    kind === 'number'
+      ? `${member}!.Value`
+      : kind === 'numberValue'
+        ? member
+        : kind === 'list'
+          ? `${member}.Count`
+          : `${member}.Length`
+
   const checks: string[] = []
   for (const rule of rules) {
     const result = `yield return new ValidationResult(${csStr(ruleMessage(rule))}, new[] { nameof(${member}) });`
+    const guarded = (test: string): string => `    if (!(${emptyExpr}) && (${test})) ${result}`
     switch (rule.rule) {
       case 'required':
-        checks.push(
-          isBool
-            ? `    if (!${member}) ${result}`
-            : `    if (string.IsNullOrWhiteSpace(${member})) ${result}`,
-        )
+        checks.push(`    if (${emptyExpr}) ${result}`)
         break
       case 'min':
-        checks.push(`    if (!string.IsNullOrEmpty(${member}) && ${member}.Length < ${Number(rule.value)}) ${result}`)
+        checks.push(guarded(`${sizeExpr} < ${Number(rule.value)}`))
         break
       case 'max':
-        checks.push(`    if (!string.IsNullOrEmpty(${member}) && ${member}.Length > ${Number(rule.value)}) ${result}`)
+        checks.push(guarded(`${sizeExpr} > ${Number(rule.value)}`))
         break
       case 'between': {
         const [lo, hi] = Array.isArray(rule.value) ? rule.value : [0, 0]
-        checks.push(
-          `    if (!string.IsNullOrEmpty(${member}) && (${member}.Length < ${Number(lo)} || ${member}.Length > ${Number(hi)})) ${result}`,
-        )
+        checks.push(guarded(`${sizeExpr} < ${Number(lo)} || ${sizeExpr} > ${Number(hi)}`))
         break
       }
       case 'email':
         checks.push(
-          `    if (!string.IsNullOrEmpty(${member}) && !System.Text.RegularExpressions.Regex.IsMatch(${member}, @"^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) ${result}`,
+          guarded(
+            `!System.Text.RegularExpressions.Regex.IsMatch(${member}, @"^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")`,
+          ),
         )
         break
       case 'url':
-        checks.push(
-          `    if (!string.IsNullOrEmpty(${member}) && !Uri.TryCreate(${member}, UriKind.Absolute, out _)) ${result}`,
-        )
+        checks.push(guarded(`!Uri.TryCreate(${member}, UriKind.Absolute, out _)`))
         break
       case 'regex':
         checks.push(
-          `    if (!string.IsNullOrEmpty(${member}) && !System.Text.RegularExpressions.Regex.IsMatch(${member}, ${csVerbatim(String(rule.value))})) ${result}`,
+          guarded(
+            `!System.Text.RegularExpressions.Regex.IsMatch(${member}, ${csVerbatim(String(rule.value))})`,
+          ),
         )
         break
       case 'same-as':

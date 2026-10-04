@@ -6,7 +6,13 @@
 
 import { getCoreElement, joinPath, type ElementNode } from '@formsgen/renderer'
 import { pascalMember } from '@/registry/emitters/shared'
-import { csAttributes, csConditions, csValidateStatements } from '../csharp'
+import {
+  csAttributes,
+  csConditions,
+  csFieldKind,
+  csValidateStatements,
+  type CsFieldKind,
+} from '../csharp'
 import { collectExportFields } from '../logic'
 import { renderTree } from '../markup'
 import { fieldDefault, pathKey } from '../structure'
@@ -43,31 +49,49 @@ export const blazorTarget: ExportTarget = {
     })
 
     // Model properties (flat: one per field, PascalCase of the data path).
+    const csType = (kind: CsFieldKind): string =>
+      kind === 'bool'
+        ? 'bool'
+        : kind === 'number'
+          ? 'double?'
+          : kind === 'numberValue'
+            ? 'double'
+            : kind === 'list'
+              ? 'List<string>'
+              : 'string'
+    const csInit = (kind: CsFieldKind, def: unknown, node: ElementNode): string => {
+      switch (kind) {
+        case 'bool':
+          return def === true ? ' = true;' : ''
+        case 'number':
+          return typeof def === 'number' ? ` = ${def};` : ''
+        case 'numberValue':
+          return ` = ${Number(def ?? node.props['min'] ?? 0)};`
+        case 'list':
+          return ' = new();'
+        default:
+          return ` = ${typeof def === 'string' ? csStr(def) : '""'};`
+      }
+    }
     const properties = fields
       .map((field) => {
-        const isBool = field.node.type === 'checkbox'
+        const kind = csFieldKind(field.node.type)
         const member = pascalMember(field.key)
-        const attrs = csAttributes(field, isBool)
+        const attrs = csAttributes(field, kind)
         const attrLines = (attrs ?? []).map((a) => `        ${a}`).join('\n')
-        const def = fieldDefault(field.node)
-        const init = isBool
-          ? def === true
-            ? ' = true;'
-            : ''
-          : ` = ${typeof def === 'string' ? csStr(def) : '""'};`
-        const type = isBool ? 'bool' : 'string'
-        return `${attrLines ? `${attrLines}\n` : ''}        public ${type} ${member} { get; set; }${init}`
+        const init = csInit(kind, fieldDefault(field.node), field.node)
+        return `${attrLines ? `${attrLines}\n` : ''}        public ${csType(kind)} ${member} { get; set; }${init}`
       })
       .join('\n\n')
 
     // Validate() handles what attributes can't.
     const validateStatements = fields
       .flatMap((field) => {
-        const isBool = field.node.type === 'checkbox'
+        const kind = csFieldKind(field.node.type)
         const needsValidate =
-          field.conditionChain.length > 0 ||
-          (isBool && field.node.validation?.some((r) => r.rule === 'required'))
-        return needsValidate ? csValidateStatements(field, isBool) : []
+          (field.node.validation?.length ?? 0) > 0 &&
+          (field.conditionChain.length > 0 || csAttributes(field, kind) === null)
+        return needsValidate ? csValidateStatements(field, kind) : []
       })
       .join('\n')
 
@@ -104,7 +128,9 @@ export const blazorTarget: ExportTarget = {
           const field = fields.find((f) => f.path === path)
           const member = `Model.${pascalMember(pathKey(path))}`
           const value =
-            node.type === 'select' ? `string.IsNullOrEmpty(${member}) ? null : ${member}` : member
+            node.type === 'select' || node.type === 'radiogroup'
+              ? `string.IsNullOrEmpty(${member}) ? null : ${member}`
+              : member
           const assign = `${dict}[${csStr(node.name)}] = ${value};`
           if (field && field.conditionChain.length > 0) {
             const visible = field.conditionChain
