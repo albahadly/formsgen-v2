@@ -56,6 +56,7 @@ export type CsFieldKind =
   | 'files' // file / image upload (List<FgUpload>, buffered when picked)
   | 'range2' // two-handle range slider (FgRange: From/To doubles)
   | 'daterange' // date range (FgDateRange: From/To ISO strings)
+  | 'map' // matrix (Dictionary<string, string?>: row → chosen column)
 
 export function csFieldKind(type: string): CsFieldKind {
   switch (type) {
@@ -74,6 +75,8 @@ export function csFieldKind(type: string): CsFieldKind {
       return 'range2'
     case 'daterange':
       return 'daterange'
+    case 'matrix':
+      return 'map'
     case 'multiselect':
       return 'array'
     case 'file':
@@ -93,7 +96,7 @@ export function csAttributes(field: ExportField, kind: CsFieldKind): string[] | 
   const rules = field.node.validation ?? []
   if (rules.length === 0) return []
   if (field.conditionChain.length > 0) return null
-  if (kind === 'bool' || kind === 'list' || kind === 'array' || kind === 'files' || kind === 'range2' || kind === 'daterange') {
+  if (['bool', 'list', 'array', 'files', 'range2', 'daterange', 'map'].includes(kind)) {
     return null // Validate() handles these
   }
   const numeric = kind === 'number' || kind === 'numberValue'
@@ -260,6 +263,8 @@ function csEmptyExpr(kind: CsFieldKind, member: string): string {
       return `${member}.Length == 0`
     case 'daterange':
       return `(string.IsNullOrWhiteSpace(${member}.From) || string.IsNullOrWhiteSpace(${member}.To))`
+    case 'map':
+      return `${member}.Values.Any(string.IsNullOrEmpty)`
     default:
       return `string.IsNullOrWhiteSpace(${member})`
   }

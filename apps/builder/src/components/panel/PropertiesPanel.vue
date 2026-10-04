@@ -6,6 +6,7 @@ import type { PanelControl } from '@/registry/types'
 import { useBuilderStore } from '@/stores/builder'
 import ControlAppearance from './controls/ControlAppearance.vue'
 import ControlColspan from './controls/ControlColspan.vue'
+import ControlCountry from './controls/ControlCountry.vue'
 import ControlConditions from './controls/ControlConditions.vue'
 import ControlItems from './controls/ControlItems.vue'
 import ControlName from './controls/ControlName.vue'
@@ -89,6 +90,12 @@ function key(control: PanelControl, index: number): string {
           />
           <ControlItems
             v-else-if="control.kind === 'items'"
+            :node="node"
+            :prop="control.prop"
+            :label="control.label"
+          />
+          <ControlCountry
+            v-else-if="control.kind === 'country'"
             :node="node"
             :prop="control.prop"
             :label="control.label"

@@ -24,6 +24,7 @@ describe('element registry', () => {
       'image',
       'imageupload',
       'link',
+      'matrix',
       'month',
       'multiselect',
       'number',
@@ -70,7 +71,7 @@ describe('element registry', () => {
       'paragraph',
       'quote',
     ])
-    expect(listElements('fields')).toHaveLength(28)
+    expect(listElements('fields')).toHaveLength(29)
   })
 
   it('every definition matches its core semantics in the renderer', () => {

@@ -89,6 +89,7 @@ describe('buildDefaultData', () => {
       budget: { from: 200, to: 600 },
       stay: { from: '', to: '' },
       days: [],
+      rating: { speed: null, quality: null },
       source: 'kitchen-sink',
       references: [{ name: '', may_contact: false, email: '' }],
       attachments: [],

@@ -4,6 +4,7 @@
 // property panels) lives in the builder's registry (see ADR-0001).
 
 import { rangeSliderDefault } from './composite'
+import { matrixDefault } from './matrix'
 import type { ElementNode } from './schema'
 
 export interface CoreElementMeta {
@@ -83,6 +84,7 @@ export const coreElements: Record<string, CoreElementMeta> = {
   rangeslider: meta('rangeslider', true, false, rangeSliderDefault),
   daterange: meta('daterange', true, false, () => ({ from: '', to: '' })),
   dates: meta('dates', true, false, () => []),
+  matrix: meta('matrix', true, false, matrixDefault),
   heading: meta('heading', false, false, () => undefined),
   paragraph: meta('paragraph', false, false, () => undefined),
   divider: meta('divider', false, false, () => undefined),

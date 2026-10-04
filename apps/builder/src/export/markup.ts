@@ -180,6 +180,7 @@ export function renderTree(schema: FormSchema, rootOptions: MarkupOptions): stri
           id: `fg_${key}`,
           required: false,
           messages,
+          locale: schema.meta.locale,
         }) ?? ''
       )
     }
@@ -289,6 +290,7 @@ export function renderTree(schema: FormSchema, rootOptions: MarkupOptions): stri
           id: `fg_${key}`,
           required: isRequired(node),
           messages,
+          locale: schema.meta.locale,
         })
       }
     }

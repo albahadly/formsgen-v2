@@ -12,7 +12,7 @@ export const DATE_RANGE_TYPE = 'daterange'
 export const DATES_TYPE = 'dates'
 
 /** Types whose value is an object of parts; only "required" applies to them. */
-export const OBJECT_VALUE_TYPES: ReadonlySet<string> = new Set([RANGE_SLIDER_TYPE, DATE_RANGE_TYPE])
+export const OBJECT_VALUE_TYPES: ReadonlySet<string> = new Set([RANGE_SLIDER_TYPE, DATE_RANGE_TYPE, 'matrix'])
 
 export interface RangeBounds {
   min: number

@@ -2,10 +2,12 @@
 
 ## Status
 
-- **26a: complete** (2026-10-04). Range slider with two handles, date range, multiple dates. Commit: see `git log` (feat(phase-26a)).
-- **26b: in progress.** Matrix, and phone with a country selector.
+Complete — 2026-10-04.
 
-Still parked: npm publish.
+- **26a:** range slider with two handles, date range, multiple dates. Commit: feat(phase-26a).
+- **26b:** matrix, and phone with a country selector. Commit: feat(phase-26b).
+
+This finishes the vueform-catalog follow-ups the user approved (phases 23–26). Still parked: npm publish.
 
 ## 26a — what was built
 
@@ -85,3 +87,91 @@ The builder Preview passed the same checks.
 - **Blazor range inputs must not re-render their `value` during interaction.** It raced the user: handles visibly crossed, and fast key presses were lost in one run. The inputs now render `Shown*` values and are re-created (`@key` = Version, with focus restored) only when a value is corrected or reset.
 - **Razor `@bind` on `type="date"`** assumes `DateTime`. With a string model, use `value` plus `@onchange`.
 - **Shell:** `pkill -f` / `pgrep -f` match their own command line. Kill test servers by PID.
+
+## 26b — what was built
+
+### Matrix (`matrix`; Arabic: مصفوفة)
+
+**What it is.** A table with one single-choice answer per row.
+
+**Props.** `rows` and `columns`, both `{ value, label }` lists, edited in the panel as "Rows (questions)" / "Columns (answers)".
+
+**Value.** Each row maps to the chosen column, or `null` while unanswered, e.g. `{ "speed": "3", "quality": null }`.
+
+**Required.** Every row must be answered. This is the same "empty while any part is" rule as 26a, so conditions offer only presence.
+
+**Accessibility:**
+- The form-level label is a `fieldset`/`legend`.
+- Column and row headers are `th scope`.
+- Each radio is named "Quality: OK".
+- The table scrolls sideways on narrow screens.
+- Typed exports get one key per row: `{ speed: string | null; … }`.
+
+### Phone with a country selector
+
+New phone props:
+- `countrySelect`: toggles the selector.
+- `defaultCountry`: chosen with a country picker in the panel, named in the builder's language.
+- `countries`: optional ISO list such as `OM, AE, SA`, limiting the choices.
+
+**Layout.** A select ("Oman (+968)") sits beside the national number. The select's accessible name is "Country code" (رمز الدولة).
+
+**Value.** The value stays **one string**: `"+968 9123 4567"`, or `""` while no number is typed. Phone rules (required, regex…) still apply to it.
+
+**The selected country** is kept separately, so it survives an empty number. Changing the country keeps the typed number.
+
+**Country data and names:**
+- Calling codes cover 240 territories (`countries.ts`).
+- Country names come from `Intl.DisplayNames` in the **form's** language and are sorted with that language's collation. Arabic forms list "الإمارات العربية المتحدة (+971)" etc.
+- The exports bake the names in at export time.
+
+**Inside a repeater** the phone stays a plain tel input in every target. Per-item country state is backlog.
+
+### Per target
+
+| Target | How |
+|---|---|
+| Renderer / builder Preview | `FgMatrix`, `FgPhone` → `FgPhoneCountry`. The form context now provides `locale()`. |
+| Vue / React | Matrix binds `form.x[row]`. Phone uses the `fgPhoneCountry` store (React: state), plus `fgPhoneNumber` / `fgComposePhone` and `FG_DIAL` for the countries offered. |
+| HTML | The matrix's radios share `data-fg-path` (kind `matrix`, `data-fg-row`). The phone number input is the field (kind `phone`); its country `<select data-fg-phone-country>` carries `data-dial` per option. |
+| Blazor | Matrix is `Dictionary<string, string?>` (+ `FgSetCell`; `required` = any row empty). Phone uses the `fgPhoneCountry` dictionary and `FgDial`; the number commits on change, like `InputText`. |
+
+### Fixes found along the way
+
+- **Bootstrap `<legend>` size.** Bootstrap's reboot makes every legend about 1.5rem, which also affected the existing radio/checkbox groups. The label class now adds `fs-6`.
+- **Matrix panel labels.** "Rows" already meant the textarea's line count, so the matrix uses "Rows (questions)".
+
+## Verification (26b)
+
+**`pnpm verify`** passes with **355 tests** (122 renderer / 233 builder). The kitchen-sink fixture gained a required `rating` matrix, and its conditional phone now has the country selector (default OM).
+
+**Strict compilers** (kitchen-sink export):
+
+| Check | Result |
+|---|---|
+| React `tsc` | 0 errors |
+| `vue-tsc` | 0 errors |
+| .NET 8 build of the Blazor export, all 3 frameworks | 0 warnings / 0 errors |
+
+**Real runtimes.** I ran one survey scenario in **12 runtimes** against the local server. All 12 results are **identical**.
+
+The scenario:
+1. Radio ids, names and table headers.
+2. Countries listed, sorted by name, with the default selected.
+3. Required errors for both fields.
+4. A partial matrix stays invalid; the full matrix clears the error and shows the note.
+5. Changing an answer.
+6. Typing a number, then switching country: the number is kept.
+7. Clearing the number: required error, country kept.
+8. Submit: the value shown on screen equals what the server received, `"contact": "+971 50 123 4567"`.
+
+**Other checks:**
+- The builder Preview passed the same flow.
+- Arabic RTL check, using HTML Vanilla and Bootstrap: the slider runs right-to-left (dragging left raises the upper value), and countries are named and sorted in Arabic.
+
+## Backlog
+
+- Composite fields and the phone country selector inside repeaters.
+- A matrix with several answers per row (checkboxes).
+- Dropdown cells in the matrix.
+- Reading the default country from the visitor's locale.

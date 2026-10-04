@@ -37,6 +37,8 @@ export interface FormContext {
   reset?(): void
   /** Built-in texts for the form's locale (English when absent). */
   messages?(): MessageCatalog
+  /** The form's locale (meta.locale), e.g. for country names. */
+  locale?(): string
 }
 
 export const FORM_CONTEXT: InjectionKey<FormContext> = Symbol('formsgen-form')

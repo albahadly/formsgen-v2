@@ -6,7 +6,7 @@ import { resolveMessages } from '@formsgen/renderer'
 import { errorsTextFunction, stepAnnouncementsLiteral, submittedText } from '../announce'
 import { FILE_HELPERS_TS, RUNTIME_HELPERS_TS } from '../compile'
 import { uploadFields, vueUploadRuntime } from '../uploadRuntime'
-import { ADD_DATE_TS, DUAL_RANGE_HELPERS_TS, exportStylesheet, hasRangeSlider } from '../composite'
+import { ADD_DATE_TS, DUAL_RANGE_HELPERS_TS, exportStylesheet, hasRangeSlider, phoneCountryFields, phoneDefaults, phoneHelpers } from '../composite'
 import { compileConditions } from '../compile'
 import {
   collectExportFields,
@@ -215,6 +215,7 @@ function fgRemoveTag(path: string, index: number): void {
 
     // Composite fields: slider handles, and the multiple-dates draft store.
     const datesFields = fields.filter((f) => f.node.type === 'dates')
+    const phoneFields = phoneCountryFields(fields)
     const compositeLogic = [
       hasRangeSlider(schema)
         ? `${DUAL_RANGE_HELPERS_TS}
@@ -242,6 +243,25 @@ function fgRemoveDate(path: string, index: number): void {
   const field = fgDateFields[path]!
   field.set(field.get().filter((_, i) => i !== index))
   touch(path)
+}`
+        : '',
+      phoneFields.length > 0
+        ? `${phoneHelpers(fields, schema.meta.locale, true)}
+const FG_PHONE_DEFAULTS: Record<string, string> = ${JSON.stringify(phoneDefaults(fields, schema.meta.locale, (f) => f.path))}
+const fgPhoneCountry = reactive<Record<string, string>>({ ...FG_PHONE_DEFAULTS })
+const fgPhoneFields: Record<string, { get: () => string; set: (v: string) => void }> = {
+${phoneFields.map((f) => `  '${f.path}': { get: () => form.${f.path}, set: (v) => { form.${f.path} = v } },`).join('\n')}
+}
+function fgPhoneSetCountry(path: string, event: Event): void {
+  const field = fgPhoneFields[path]!
+  const typed = fgPhoneNumber(field.get(), fgPhoneCountry[path]!)
+  fgPhoneCountry[path] = (event.target as HTMLSelectElement).value
+  field.set(fgComposePhone(fgPhoneCountry[path]!, typed))
+  revalidate(path)
+}
+function fgPhoneInput(path: string, event: Event): void {
+  fgPhoneFields[path]!.set(fgComposePhone(fgPhoneCountry[path]!, (event.target as HTMLInputElement).value))
+  revalidate(path)
 }`
         : '',
     ]
@@ -367,7 +387,7 @@ async function fgRemoveItem(path: string, index: number): Promise<void> {
   Object.assign(form, ${indentBlock(toJsLiteral(defaultsObject(schema)), 1).trimStart()})
   for (const key of Object.keys(errors)) delete errors[key]
   touched.clear()
-  result.value = null${tagsFields.length > 0 ? `\n  for (const key of Object.keys(tagDrafts)) tagDrafts[key] = ''` : ''}${datesFields.length > 0 ? `\n  for (const key of Object.keys(fgDateDrafts)) fgDateDrafts[key] = ''` : ''}
+  result.value = null${tagsFields.length > 0 ? `\n  for (const key of Object.keys(tagDrafts)) tagDrafts[key] = ''` : ''}${datesFields.length > 0 ? `\n  for (const key of Object.keys(fgDateDrafts)) fgDateDrafts[key] = ''` : ''}${phoneFields.length > 0 ? '\n  Object.assign(fgPhoneCountry, FG_PHONE_DEFAULTS)' : ''}
   fgAnnounce(${JSON.stringify(messages.formReset)})
 }`
       : ''

@@ -7,7 +7,7 @@ import { fileLimits, resolveMessages, type ElementNode } from '@formsgen/rendere
 import { errorsTextFunction, jsTemplate, stepAnnouncements, submittedText } from '../announce'
 import { FILE_HELPERS, RUNTIME_HELPERS, compileConditions } from '../compile'
 import { uploadFields } from '../uploadRuntime'
-import { exportStylesheet, hasDateRange, hasDates, hasRangeSlider } from '../composite'
+import { exportStylesheet, hasDateRange, hasDates, hasMatrix, hasRangeSlider, phoneCountryFields } from '../composite'
 import {
   collectExportFields,
   collectExportRepeaters,
@@ -183,7 +183,9 @@ ${indentBlock(r.itemHtml, 3)}
     const hasSlider = hasRangeSlider(schema)
     const hasRange = hasDateRange(schema)
     const hasDateList = hasDates(schema)
-    const hasComposite = hasSlider || hasRange || hasDateList
+    const hasGrid = hasMatrix(schema)
+    const hasPhone = phoneCountryFields(fields).length > 0
+    const hasComposite = hasSlider || hasRange || hasDateList || hasPhone
     function htmlCompositeRuntime(): string {
       const parts: string[] = []
       if (hasSlider) {
@@ -271,6 +273,15 @@ Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="dates"]')
   wrap.querySelector('[data-fg-dates-add]').addEventListener('click', addDraft)
   input.addEventListener('keydown', function (event) {
     if (event.key === 'Enter') { event.preventDefault(); addDraft() }
+  })
+})`)
+      }
+      if (hasPhone) {
+        parts.push(`// A new country re-validates the number (its value changes too).
+Array.prototype.forEach.call(document.querySelectorAll('[data-fg-phone-country]'), function (select) {
+  select.addEventListener('change', function () {
+    var path = select.getAttribute('data-fg-phone-country')
+    if (touched[path]) validateField(path)
   })
 })`)
       }
@@ -553,7 +564,21 @@ Object.keys(FG_REPEATERS).forEach(function (path) {
         })
         return { from: parts.from, to: parts.to }
       }
-      if (kind === 'dates') return (fgDates[path] || []).slice()
+      if (kind === 'dates') return (fgDates[path] || []).slice()${hasGrid ? `
+      if (kind === 'matrix') {
+        var answers = {}
+        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-path="' + path + '"]'), function (radio) {
+          var row = radio.getAttribute('data-fg-row')
+          if (!(row in answers)) answers[row] = null
+          if (radio.checked) answers[row] = radio.value
+        })
+        return answers
+      }` : ''}${hasPhone ? `
+      if (kind === 'phone') {
+        var country = document.querySelector('[data-fg-phone-country="' + path + '"]')
+        var dial = country && country.selectedOptions[0] ? country.selectedOptions[0].getAttribute('data-dial') : ''
+        return el.value.trim() === '' ? '' : '+' + dial + ' ' + el.value
+      }` : ''}
       if (kind === 'tags') return (fgTags[path] || []).slice()${hasUploads ? `
       if (kind === 'files') return (fgFiles[path] || []).slice()` : ''}
       if (kind === 'checks') {

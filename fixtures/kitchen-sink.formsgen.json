@@ -246,6 +246,17 @@
       "validation": [{ "rule": "max", "value": 3 }]
     },
     {
+      "id": "ks-rating",
+      "type": "matrix",
+      "name": "rating",
+      "props": {
+        "label": "How did we do?",
+        "rows": [{ "value": "speed", "label": "Speed" }, { "value": "quality", "label": "Quality" }],
+        "columns": [{ "value": "1", "label": "Poor" }, { "value": "2", "label": "OK" }, { "value": "3", "label": "Great" }]
+      },
+      "validation": [{ "rule": "required" }]
+    },
+    {
       "id": "ks-source",
       "type": "hidden",
       "name": "source",
@@ -318,7 +329,7 @@
       "id": "ks-contact-phone",
       "type": "phone",
       "name": "contact_phone",
-      "props": { "label": "Phone number" },
+      "props": { "label": "Phone number", "countrySelect": true, "defaultCountry": "OM" },
       "conditions": [
         [{ "field": "contact_method", "operator": "equals", "value": "phone" }]
       ]

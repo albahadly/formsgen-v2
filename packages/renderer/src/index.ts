@@ -106,6 +106,18 @@ export {
 } from './files'
 export { default as FgButton } from './components/fields/FgButton.vue'
 export {
+  COUNTRY_DIAL_CODES,
+  composePhone,
+  countryName,
+  defaultPhoneCountry,
+  hasCountrySelect,
+  initialPhoneCountry,
+  phoneCountries,
+  splitPhone,
+  type CountryOption,
+} from './countries'
+export { MATRIX_TYPE, matrixColumns, matrixDefault, matrixRows, type MatrixOption } from './matrix'
+export {
   DATES_TYPE,
   DATE_RANGE_TYPE,
   OBJECT_VALUE_TYPES,

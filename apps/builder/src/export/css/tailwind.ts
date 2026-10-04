@@ -84,6 +84,15 @@ const CLASSES: Record<Slot, string> = {
   fileRemove: 'px-1.5 text-lg leading-none text-gray-500 hover:text-red-600',
   pair: 'flex items-center gap-2',
   chipList: 'mt-2 flex flex-wrap gap-1.5',
+  matrixWrap: 'overflow-x-auto',
+  matrix: 'w-full border-collapse text-sm',
+  matrixColHead: 'px-2 py-2 text-center font-semibold text-gray-500 dark:text-gray-400',
+  matrixRowHead: 'px-2 py-2 text-start font-medium',
+  matrixRow: 'border-t border-gray-200 dark:border-gray-700',
+  matrixCell: 'px-2 py-2 text-center',
+  matrixRadio: 'h-4 w-4 accent-indigo-600',
+  phoneCountry:
+    'w-auto max-w-[16rem] shrink-0 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800',
   pairButton:
     'shrink-0 whitespace-nowrap rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50',
   colorInput:

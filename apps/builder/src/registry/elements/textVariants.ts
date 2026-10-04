@@ -1,5 +1,6 @@
 // The text-like input variants, built from the shared factory.
 
+import { withCountrySelect } from './phone'
 import { makeTextLikeElement } from './textLike'
 
 const icon = (path: string): string =>
@@ -37,15 +38,17 @@ export const urlElement = makeTextLikeElement({
   defaultValidation: [{ rule: 'url' }],
 })
 
-export const phoneElement = makeTextLikeElement({
-  type: 'phone',
-  inputType: 'tel',
-  label: 'Phone',
-  description: 'Text input expecting a phone number',
-  icon: icon(
-    'M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.2 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .6 3.6 1 1 0 0 1-.3 1z',
-  ),
-})
+export const phoneElement = withCountrySelect(
+  makeTextLikeElement({
+    type: 'phone',
+    inputType: 'tel',
+    label: 'Phone',
+    description: 'Text input expecting a phone number',
+    icon: icon(
+      'M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.2 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .6 3.6 1 1 0 0 1-.3 1z',
+    ),
+  }),
+)
 
 export const dateElement = makeTextLikeElement({
   type: 'date',

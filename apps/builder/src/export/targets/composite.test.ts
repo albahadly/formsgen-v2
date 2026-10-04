@@ -118,3 +118,67 @@ describe('composite fields in every code target', () => {
     }
   })
 })
+
+describe('matrix and phone country in every code target', () => {
+  const rating: ElementNode = {
+    id: 'r',
+    type: 'matrix',
+    name: 'rating',
+    props: {
+      label: 'Rate',
+      rows: [{ value: 'speed', label: 'Speed' }, { value: 'quality', label: 'Quality' }],
+      columns: [{ value: '1', label: 'Poor' }, { value: '2', label: 'Great' }],
+    },
+    validation: [{ rule: 'required' }],
+  }
+  const phone: ElementNode = {
+    id: 'p',
+    type: 'phone',
+    name: 'phone',
+    props: { label: 'Phone', countrySelect: true, defaultCountry: 'AE', countries: 'OM, AE' },
+  }
+  const s = schema([rating, phone])
+
+  it('types each matrix row and keeps the phone a string', () => {
+    const type = formDataType(s)
+    expect(type).toContain('rating: { speed: string | null; quality: string | null }')
+    expect(type).toContain('phone: string')
+  })
+
+  it('names radios "<row>: <column>" and offers the countries in the form language', () => {
+    for (const target of ['html', 'react', 'vue-standalone', 'blazor']) {
+      const code = out(target, s)
+      expect(code, target).toContain('aria-label="Quality: Great"')
+      expect(code, target).toContain('aria-label="Country code"')
+      expect(code, target).toMatch(/<option value="AE"[^>]*>United Arab Emirates \(\+971\)<\/option>/)
+      const ar = out(target, schema([rating, phone], 'ar'))
+      expect(ar, target).toContain('عُمان (+968)')
+      expect(ar, target).toContain(`aria-label="${MESSAGES.ar.countryCode}"`)
+    }
+    // the starting country: selected in HTML, the store default elsewhere
+    expect(out('html', s)).toContain('<option value="AE" data-dial="971" selected>')
+    expect(out('vue-standalone', s)).toContain('const FG_PHONE_DEFAULTS: Record<string, string> = {"phone":"AE"}')
+    expect(out('blazor', s)).toContain('new() { ["Phone"] = "AE" }')
+  })
+
+  it('blazor answers cells through a dictionary and treats an unanswered row as empty', () => {
+    const razor = out('blazor', s)
+    expect(razor).toContain('public Dictionary<string, string?> Rating { get; set; } = new() { ["speed"] = null, ["quality"] = null };')
+    expect(razor).toContain(`@onchange='() => FgSetCell(Model.Rating, "quality", "2", "Rating")'`)
+    expect(razor).toContain('if (Rating.Values.Any(string.IsNullOrEmpty))')
+    expect(razor).toContain('["AE"] = "971",')
+  })
+
+  it('the selector needs countrySelect, and repeater items keep the plain input', () => {
+    const plain = schema([{ ...phone, props: { label: 'Phone' } }])
+    for (const target of ['html', 'react', 'vue-standalone', 'blazor']) {
+      expect(out(target, plain), target).not.toContain('Country code')
+    }
+    const inRepeater = schema([
+      { id: 'rep', type: 'repeater', name: 'people', props: { label: 'People' }, children: [{ ...phone, id: 'p2' }] },
+    ])
+    for (const target of ['html', 'react', 'vue-standalone', 'blazor']) {
+      expect(out(target, inRepeater), target).not.toContain('Country code')
+    }
+  })
+})

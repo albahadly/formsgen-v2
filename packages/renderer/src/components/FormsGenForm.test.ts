@@ -29,6 +29,8 @@ async function fillValidForm(wrapper: ReturnType<typeof mountForm>) {
   await wrapper.get('#fg-ks-ref-name-0').setValue('Dana') // repeater item 1
   await wrapper.get('#fg-ks-stay').setValue('2026-11-01') // date range
   await wrapper.get('#fg-ks-stay-to').setValue('2026-11-04')
+  await wrapper.get('#fg-ks-rating').setValue(true) // matrix: speed = 1
+  await wrapper.get('#fg-ks-rating-1-2').setValue(true) // quality = 3
   const upload = wrapper.get('#fg-ks-attachments').element as HTMLInputElement
   Object.defineProperty(upload, 'files', { value: [attachment], configurable: true })
   upload.dispatchEvent(new Event('change'))
@@ -104,6 +106,7 @@ describe('FormsGenForm', () => {
       budget: { from: 200, to: 600 },
       stay: { from: '2026-11-01', to: '2026-11-04' },
       days: [],
+      rating: { speed: '1', quality: '3' },
       source: 'kitchen-sink',
       references: [{ name: 'Dana', may_contact: false }],
       attachments: [attachment],

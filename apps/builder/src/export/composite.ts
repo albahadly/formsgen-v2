@@ -3,7 +3,19 @@
 // by the targets. The slider rules are framework-neutral, so Tailwind and
 // Bootstrap exports embed them as they are (vanilla already has them).
 
-import { DATES_TYPE, DATE_RANGE_TYPE, RANGE_SLIDER_TYPE, type ElementNode, type FormSchema } from '@formsgen/renderer'
+import {
+  COUNTRY_DIAL_CODES,
+  DATES_TYPE,
+  DATE_RANGE_TYPE,
+  MATRIX_TYPE,
+  RANGE_SLIDER_TYPE,
+  hasCountrySelect,
+  initialPhoneCountry,
+  phoneCountries,
+  type ElementNode,
+  type FormSchema,
+} from '@formsgen/renderer'
+import type { ExportField } from './structure'
 import type { CssFrameworkAdapter } from './css/types'
 
 /** Mirrors the renderer's "Composite fields" block (styles.css). */
@@ -24,6 +36,13 @@ export const COMPOSITE_CSS = `/* Composite fields (two-handle slider, date range
 .fg-pair > .fg-input { flex: 1 1 10rem; inline-size: auto; }
 .fg-pair-button { flex: none; white-space: nowrap; }
 .fg-chips { display: flex; flex-wrap: wrap; gap: 0.375rem; margin-block-start: 0.5rem; }
+.fg-phone-country { flex: 0 1 16rem; inline-size: auto; }
+.fg-matrix-scroll { overflow-x: auto; }
+.fg-matrix { inline-size: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.fg-matrix th, .fg-matrix td { padding: 0.5rem; text-align: center; }
+.fg-matrix thead th { font-weight: 600; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); }
+.fg-matrix tbody th { text-align: start; font-weight: 500; }
+.fg-matrix tbody tr:nth-child(odd) { background: var(--fg-color-surface, var(--bs-tertiary-bg, #f9fafb)); }
 `
 
 /** The two-handle slider rules alone (the rest maps to framework classes). */
@@ -47,6 +66,40 @@ export function treeHasType(nodes: ElementNode[], type: string): boolean {
 export const hasRangeSlider = (schema: FormSchema): boolean => treeHasType(schema.tree, RANGE_SLIDER_TYPE)
 export const hasDateRange = (schema: FormSchema): boolean => treeHasType(schema.tree, DATE_RANGE_TYPE)
 export const hasDates = (schema: FormSchema): boolean => treeHasType(schema.tree, DATES_TYPE)
+export const hasMatrix = (schema: FormSchema): boolean => treeHasType(schema.tree, MATRIX_TYPE)
+
+/** Phone fields showing the country selector (repeater items never do). */
+export function phoneCountryFields(fields: ExportField[]): ExportField[] {
+  return fields.filter((f) => hasCountrySelect(f.node))
+}
+
+/** ISO → calling code for every country the form's phone selectors offer. */
+export function dialCodes(fields: ExportField[], locale: string): Record<string, string> {
+  const codes: Record<string, string> = {}
+  for (const f of phoneCountryFields(fields)) {
+    for (const c of phoneCountries(f.node, locale)) codes[c.code] = COUNTRY_DIAL_CODES[c.code]!
+  }
+  return Object.fromEntries(Object.entries(codes).sort(([a], [b]) => a.localeCompare(b)))
+}
+
+/** Starting country per phone field, keyed by `key(field)`. */
+export function phoneDefaults(fields: ExportField[], locale: string, key: (f: ExportField) => string): Record<string, string> {
+  return Object.fromEntries(phoneCountryFields(fields).map((f) => [key(f), initialPhoneCountry(f.node, locale)]))
+}
+
+/** Phone helpers for the JS targets (`ts` adds type annotations). */
+export function phoneHelpers(fields: ExportField[], locale: string, ts: boolean): string {
+  const t = (annotation: string): string => (ts ? annotation : '')
+  return `${ts ? 'const' : 'var'} FG_DIAL${t(': Record<string, string>')} = ${JSON.stringify(dialCodes(fields, locale))}
+// The number part of "+<code> <number>" for the selected country.
+function fgPhoneNumber(value${t(': string')}, country${t(': string')})${t(': string')} {
+  var prefix = '+' + FG_DIAL[country] + ' '
+  return value.indexOf(prefix) === 0 ? value.slice(prefix.length) : value
+}
+function fgComposePhone(country${t(': string')}, number${t(': string')})${t(': string')} {
+  return number.trim() === '' ? '' : '+' + FG_DIAL[country] + ' ' + number
+}`
+}
 
 /** The target's stylesheet, plus the slider rules where the framework lacks them. */
 export function exportStylesheet(css: CssFrameworkAdapter, schema: FormSchema): string | undefined {

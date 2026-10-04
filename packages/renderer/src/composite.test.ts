@@ -2,6 +2,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import FormsGenForm from './components/FormsGenForm.vue'
 import { addDate, dateOrderProblem, rangeBounds, rangePercent, rangeSliderDefault } from './composite'
+import { composePhone, countryName, defaultPhoneCountry, phoneCountries, splitPhone } from './countries'
 import { MESSAGES } from './messages'
 import { isEmptyValue } from './rules'
 import type { ElementNode, FormSchema } from './schema'
@@ -91,6 +92,68 @@ describe('<FormsGenForm> with composite fields', () => {
       daterange: { from: '2026-10-05', to: '2026-10-07' },
       dates: ['2026-12-01', '2026-12-24'],
     })
+    wrapper.unmount()
+  })
+})
+
+describe('matrix and phone country', () => {
+  const matrix: ElementNode = {
+    id: 'm',
+    type: 'matrix',
+    name: 'rating',
+    props: {
+      label: 'Rate us',
+      rows: [{ value: 'speed', label: 'Speed' }, { value: 'quality', label: 'Quality' }],
+      columns: [{ value: '1', label: 'Poor' }, { value: '2', label: 'OK' }, { value: '3', label: 'Great' }],
+    },
+    validation: [{ rule: 'required' }],
+  }
+  const phone: ElementNode = {
+    id: 'p',
+    type: 'phone',
+    name: 'phone',
+    props: { label: 'Phone', countrySelect: true, defaultCountry: 'OM', countries: 'OM, AE, US' },
+  }
+  const schema = (locale = 'en') =>
+    ({ $schema: 'formsgen/v2', meta: { name: 'm', locale, dir: 'ltr' }, tree: [matrix, phone] }) as FormSchema
+
+  it('splits and composes "+code number" values', () => {
+    const countries = phoneCountries(phone, 'en')
+    expect(countries.map((c) => c.code)).toEqual(['OM', 'AE', 'US'].sort((a, b) => countryName(a, 'en').localeCompare(countryName(b, 'en'))))
+    expect(splitPhone('+971 50 123', countries, 'OM')).toEqual({ country: 'AE', number: '50 123' })
+    expect(splitPhone('+1 555', countries, 'US')).toEqual({ country: 'US', number: '555' })
+    expect(composePhone('968', '  ')).toBe('')
+    expect(defaultPhoneCountry({ ...phone, props: { defaultCountry: 'ZZ' } }, countries)).toBe(countries[0]!.code)
+  })
+
+  it('answers every matrix row and posts "+code number"', async () => {
+    const wrapper = mount(FormsGenForm, { props: { schema: schema() }, attachTo: document.body })
+    const radios = wrapper.findAll('table.fg-matrix input[type=radio]')
+    expect(radios).toHaveLength(6)
+    expect(radios[4]!.attributes('aria-label')).toBe('Quality: OK')
+    await radios[2]!.setValue(true) // Speed: Great
+    await wrapper.get('form').trigger('submit')
+    expect(wrapper.text()).toContain('This field is required') // Quality unanswered
+    await radios[4]!.setValue(true)
+
+    const select = wrapper.get('select.fg-phone-country')
+    expect(select.attributes('aria-label')).toBe('Country code')
+    expect((select.element as HTMLSelectElement).value).toBe('OM')
+    await select.setValue('AE') // before a number: still remembered
+    await wrapper.get('input[type=tel]').setValue('50 123 4567')
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+    expect(wrapper.emitted('submit')?.[0]?.[0]).toEqual({
+      rating: { speed: '3', quality: '2' },
+      phone: '+971 50 123 4567',
+    })
+    wrapper.unmount()
+  })
+
+  it('names countries in the form language', () => {
+    const wrapper = mount(FormsGenForm, { props: { schema: schema('ar') } })
+    expect(wrapper.get('select.fg-phone-country').text()).toContain('عُمان (+968)')
+    expect(wrapper.get('select.fg-phone-country').attributes('aria-label')).toBe('رمز الدولة')
     wrapper.unmount()
   })
 })

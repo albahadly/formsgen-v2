@@ -6,7 +6,16 @@ import { resolveMessages } from '@formsgen/renderer'
 import { errorsTextFunction, stepAnnouncementsLiteral, submittedText } from '../announce'
 import { FILE_HELPERS_TS, RUNTIME_HELPERS_TS } from '../compile'
 import { reactUploadHandlers, reactUploadModule, uploadFields } from '../uploadRuntime'
-import { ADD_DATE_TS, DUAL_RANGE_HELPERS_TS, exportStylesheet, hasDates, hasRangeSlider } from '../composite'
+import {
+  ADD_DATE_TS,
+  DUAL_RANGE_HELPERS_TS,
+  exportStylesheet,
+  hasDates,
+  hasRangeSlider,
+  phoneCountryFields,
+  phoneDefaults,
+  phoneHelpers,
+} from '../composite'
 import {
   collectExportRepeaters,
   itemValidatorsLiteral,
@@ -230,8 +239,22 @@ ${indentBlock(reactItemMarkup(r.itemHtml, r.path), 4)}
     // validates the NEW value (touch() would read the previous render's).
     const hasSlider = hasRangeSlider(schema)
     const hasDateList = hasDates(schema)
-    const compositeModule = [hasSlider ? DUAL_RANGE_HELPERS_TS : '', hasDateList ? ADD_DATE_TS : ''].filter(Boolean).join('\n')
-    const compositeState = hasDateList ? `  const [dateDrafts, setDateDrafts] = useState<Record<string, string>>({})` : ''
+    const hasPhone = phoneCountryFields(fields).length > 0
+    const compositeModule = [
+      hasSlider ? DUAL_RANGE_HELPERS_TS : '',
+      hasDateList ? ADD_DATE_TS : '',
+      hasPhone
+        ? `${phoneHelpers(fields, schema.meta.locale, true)}\nconst FG_PHONE_DEFAULTS: Record<string, string> = ${JSON.stringify(phoneDefaults(fields, schema.meta.locale, (f) => f.path))}`
+        : '',
+    ]
+      .filter(Boolean)
+      .join('\n')
+    const compositeState = [
+      hasDateList ? `  const [dateDrafts, setDateDrafts] = useState<Record<string, string>>({})` : '',
+      hasPhone ? `  const [phoneCountry, setPhoneCountry] = useState<Record<string, string>>(FG_PHONE_DEFAULTS)` : '',
+    ]
+      .filter(Boolean)
+      .join('\n')
     const compositeHandlers = [
       hasSlider
         ? `  function fgDualChange(path: string, current: FgRangeValue, side: 'from' | 'to', n: number): void {
@@ -249,6 +272,17 @@ ${indentBlock(reactItemMarkup(r.itemHtml, r.path), 4)}
   function fgRemoveDate(path: string, current: string[], index: number): void {
     touched.current.add(path)
     setField(path, current.filter((_, i) => i !== index))
+  }`
+        : '',
+      hasPhone
+        ? `  function fgPhoneSetCountry(path: string, current: string, next: string): void {
+    const typed = fgPhoneNumber(current, phoneCountry[path]!)
+    setPhoneCountry((c) => ({ ...c, [path]: next }))
+    setField(path, fgComposePhone(next, typed))
+  }
+
+  function fgPhoneInput(path: string, number: string): void {
+    setField(path, fgComposePhone(phoneCountry[path]!, number))
   }`
         : '',
     ]
@@ -403,7 +437,7 @@ function fgShiftKey(key: string, path: string, removed: number): string | null {
     setForm(INITIAL)
     setErrors({})
     touched.current.clear()${hasRepeaters ? '\n    fgKeys.current = {}' : ''}
-    setResult(null)${hasTags ? '\n    setTagDrafts({})' : ''}${hasDateList ? '\n    setDateDrafts({})' : ''}
+    setResult(null)${hasTags ? '\n    setTagDrafts({})' : ''}${hasDateList ? '\n    setDateDrafts({})' : ''}${hasPhone ? '\n    setPhoneCountry(FG_PHONE_DEFAULTS)' : ''}
     fgAnnounce(${JSON.stringify(messages.formReset)})
   }`
       : ''

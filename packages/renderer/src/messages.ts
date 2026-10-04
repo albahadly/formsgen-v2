@@ -84,6 +84,8 @@ export interface MessageCatalog {
   addDate: string
   /** {date} — accessible name of a chosen date's remove button */
   removeDate: string
+  /** Accessible name of a phone field's country-code select. */
+  countryCode: string
 }
 
 const en: MessageCatalog = {
@@ -129,6 +131,7 @@ const en: MessageCatalog = {
   dateOrder: 'The end date can’t be before the start date',
   addDate: 'Add date',
   removeDate: 'Remove {date}',
+  countryCode: 'Country code',
 }
 
 const ar: MessageCatalog = {
@@ -177,6 +180,7 @@ const ar: MessageCatalog = {
   dateOrder: 'لا يمكن أن يكون تاريخ النهاية قبل تاريخ البداية',
   addDate: 'إضافة تاريخ',
   removeDate: 'إزالة {date}',
+  countryCode: 'رمز الدولة',
 }
 
 export const MESSAGES: Readonly<Record<'en' | 'ar', MessageCatalog>> = { en, ar }

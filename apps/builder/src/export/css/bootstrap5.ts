@@ -6,7 +6,7 @@ const CLASSES: Record<Slot, string> = {
   form: 'container py-4',
   grid: 'row g-3',
   field: 'd-flex flex-column gap-1',
-  label: 'form-label fw-semibold mb-0',
+  label: 'form-label fw-semibold fs-6 mb-0',
   required: 'text-danger ms-1',
   input: 'form-control',
   textarea: 'form-control',
@@ -71,6 +71,14 @@ const CLASSES: Record<Slot, string> = {
   pair: 'd-flex align-items-center gap-2',
   chipList: 'd-flex flex-wrap gap-1 mt-2',
   pairButton: 'btn btn-outline-secondary flex-shrink-0 text-nowrap',
+  matrixWrap: 'table-responsive',
+  matrix: 'table table-sm table-striped align-middle mb-0',
+  matrixColHead: 'text-center fw-semibold text-body-secondary',
+  matrixRowHead: 'text-start fw-medium',
+  matrixRow: '',
+  matrixCell: 'text-center',
+  matrixRadio: 'form-check-input',
+  phoneCountry: 'form-select w-auto flex-shrink-0',
 }
 
 // Bootstrap's own size modifiers are designed to be appended.

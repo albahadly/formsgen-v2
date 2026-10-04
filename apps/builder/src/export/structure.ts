@@ -3,7 +3,9 @@
 // AND every ancestor's), default values, and payload structure.
 
 import {
+  MATRIX_TYPE,
   SECTION_CONTAINERS,
+  matrixRows,
   isRepeater,
   repeaterItemDefaults,
   repeaterLimits,
@@ -388,6 +390,15 @@ const FIELD_TS_TYPES: Record<string, string> = {
   dates: 'string[]',
 }
 
+/** TS type of one field's value (a matrix lists its rows). */
+function fieldTsType(node: ElementNode): string {
+  if (node.type === MATRIX_TYPE) {
+    const rows = matrixRows(node).map((r) => `${/^[A-Za-z_$][\w$]*$/.test(r.value) ? r.value : JSON.stringify(r.value)}: string | null`)
+    return rows.length ? `{ ${rows.join('; ')} }` : 'Record<string, string | null>'
+  }
+  return FIELD_TS_TYPES[node.type] ?? 'string'
+}
+
 /** TS type literal for the form data shape, derived from the SCHEMA (Vue, React). */
 export function formDataType(schema: FormSchema): string {
   interface TypeTree {
@@ -401,7 +412,7 @@ export function formDataType(schema: FormSchema): string {
       target = (target[segment] ??= {}) as TypeTree
     }
     target[segments[segments.length - 1] as string] =
-      FIELD_TS_TYPES[field.node.type] ?? 'string'
+      fieldTsType(field.node)
   }
   const repeaterTypes = new Map<string, TypeTree>()
   for (const repeater of collectExportRepeaters(schema)) {
@@ -411,7 +422,7 @@ export function formDataType(schema: FormSchema): string {
       target = (target[segment] ??= {}) as TypeTree
     }
     const item: TypeTree = {}
-    for (const field of repeater.fields) item[field.name] = FIELD_TS_TYPES[field.node.type] ?? 'string'
+    for (const field of repeater.fields) item[field.name] = fieldTsType(field.node)
     const marker = `__repeater_${repeater.key}`
     target[segments[segments.length - 1] as string] = marker
     repeaterTypes.set(marker, item)

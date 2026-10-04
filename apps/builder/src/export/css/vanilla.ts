@@ -71,6 +71,14 @@ const CLASSES: Record<Slot, string> = {
   pair: 'fg-pair',
   chipList: 'fg-chips',
   pairButton: 'fg-button fg-button--secondary fg-pair-button',
+  matrixWrap: 'fg-matrix-scroll',
+  matrix: 'fg-matrix',
+  matrixColHead: '',
+  matrixRowHead: '',
+  matrixRow: '',
+  matrixCell: '',
+  matrixRadio: '',
+  phoneCountry: 'fg-select fg-phone-country',
 }
 
 /** Mirrors packages/renderer/src/styles.css for self-contained artifacts. */

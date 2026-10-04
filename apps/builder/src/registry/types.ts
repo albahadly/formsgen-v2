@@ -20,6 +20,8 @@ export interface EmitCtx {
   required: boolean
   /** Built-in texts for the form's locale. */
   messages: MessageCatalog
+  /** The form's locale (meta.locale), e.g. for country names. */
+  locale: string
 }
 
 /** Emits the element's field markup for one target language. */
@@ -36,6 +38,8 @@ export type PanelControl =
   | { kind: 'select'; prop: string; label: string; options: { value: string; label: string }[] }
   /** Key/value option-list editor (e.g. select items). */
   | { kind: 'items'; prop: string; label: string }
+  /** Country picker (names in the builder's UI language). */
+  | { kind: 'country'; prop: string; label: string }
   /** Data-key editor with slug + sibling-uniqueness validation. */
   | { kind: 'name' }
   /** Validation rule builder over the closed rule catalog. */

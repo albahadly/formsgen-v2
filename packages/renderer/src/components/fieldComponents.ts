@@ -9,7 +9,9 @@ import FgCheckboxGroup from './fields/FgCheckboxGroup.vue'
 import FgDateRange from './fields/FgDateRange.vue'
 import FgDates from './fields/FgDates.vue'
 import FgMultiSelect from './fields/FgMultiSelect.vue'
+import FgMatrix from './fields/FgMatrix.vue'
 import FgNumber from './fields/FgNumber.vue'
+import FgPhone from './fields/FgPhone.vue'
 import FgRadioGroup from './fields/FgRadioGroup.vue'
 import FgRange from './fields/FgRange.vue'
 import FgRangeSlider from './fields/FgRangeSlider.vue'
@@ -33,6 +35,8 @@ export const FIELD_COMPONENTS: Readonly<Record<string, Component>> = {
   rangeslider: FgRangeSlider,
   daterange: FgDateRange,
   dates: FgDates,
+  matrix: FgMatrix,
+  phone: FgPhone,
   file: FgFile,
   imageupload: FgFile,
 }

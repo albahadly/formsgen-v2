@@ -7,6 +7,7 @@
 import {
   FILE_TYPES,
   getCoreElement,
+  matrixRows,
   rangeSliderDefault,
   isRepeater,
   joinPath,
@@ -39,7 +40,7 @@ import {
   resolveSubmitButton,
 } from '../structure'
 import { scopeForBlazor } from '../css/blazorScope'
-import { exportStylesheet, hasDateRange, hasRangeSlider } from '../composite'
+import { dialCodes, exportStylesheet, hasDateRange, hasMatrix, hasRangeSlider, phoneCountryFields, phoneDefaults } from '../composite'
 import { formRootClass, pinnedSchemeAttr } from '../css/themeBridge'
 import { componentName, type ExportTarget } from './types'
 
@@ -193,6 +194,8 @@ ${indentBlock(item, 3)}
                   ? 'FgRange'
                   : kind === 'daterange'
                     ? 'FgDateRange'
+                    : kind === 'map'
+                      ? 'Dictionary<string, string?>'
                 : kind === 'array'
                 ? 'string[]'
                 : 'string'
@@ -208,6 +211,8 @@ ${indentBlock(item, 3)}
         case 'files':
         case 'daterange':
           return ' = new();'
+        case 'map':
+          return ` = new() { ${matrixRows(node).map((r) => `[${csStr(r.value)}] = null`).join(', ')} };`
         case 'range2': {
           const initial = rangeSliderDefault(node)
           return ` = new(${initial.from}, ${initial.to});`
@@ -627,7 +632,7 @@ ${fields.map((f) => `        ${csStr(pascalMember(f.key))},`).join('\n')}
         Model = new();
         FgInitEdit();${hasRepeaters ? '\n        fgItemRefs.Clear();' : ''}
         fgDeferredFields.Clear();
-        ResultJson = null;${tagsKeys.length ? '\n        foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";' : ''}${fields.some((f) => f.node.type === 'dates') ? '\n        foreach (var key in fgDateDrafts.Keys.ToList()) fgDateDrafts[key] = "";' : ''}
+        ResultJson = null;${tagsKeys.length ? '\n        foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";' : ''}${fields.some((f) => f.node.type === 'dates') ? '\n        foreach (var key in fgDateDrafts.Keys.ToList()) fgDateDrafts[key] = "";' : ''}${phoneCountryFields(fields).length ? '\n        fgPhoneCountry = FgPhoneDefaults();' : ''}
         await FgAnnounce(${csStr(messages.formReset)});
     }
 `
@@ -887,6 +892,8 @@ ${schema.meta.submit?.url ? `
     const hasSlider = hasRangeSlider(schema)
     const hasRange = hasDateRange(schema)
     const dateMembers = fields.filter((f) => f.node.type === 'dates').map((f) => pascalMember(f.key))
+    const hasGrid = hasMatrix(schema)
+    const phoneFields = phoneCountryFields(fields)
     const compositeBlock = [
       hasSlider
         ? `
@@ -974,9 +981,50 @@ ${schema.meta.submit?.url ? `
     }
 `
         : '',
-      hasRange || dateMembers.length
+      hasRange || dateMembers.length || hasGrid || phoneFields.length
         ? `
     private void FgChanged(string member) => fgEdit.NotifyFieldChanged(new FieldIdentifier(Model, member));
+`
+        : '',
+      hasGrid
+        ? `
+    private void FgSetCell(Dictionary<string, string?> answers, string row, string column, string member)
+    {
+        answers[row] = column;
+        FgChanged(member);
+    }
+`
+        : '',
+      phoneFields.length
+        ? `
+    private static readonly Dictionary<string, string> FgDial = new()
+    {
+${Object.entries(dialCodes(fields, schema.meta.locale)).map(([code, dial]) => `        [${csStr(code)}] = ${csStr(dial)},`).join('\n')}
+    };
+
+    private static Dictionary<string, string> FgPhoneDefaults() => new() { ${Object.entries(phoneDefaults(fields, schema.meta.locale, (f) => pascalMember(f.key))).map(([m, c]) => `[${csStr(m)}] = ${csStr(c)}`).join(', ')} };
+
+    private Dictionary<string, string> fgPhoneCountry = FgPhoneDefaults();
+
+    // The number part of "+<code> <number>" for the selected country.
+    private static string FgPhoneNumber(string value, string country)
+    {
+        var prefix = "+" + FgDial[country] + " ";
+        return value.StartsWith(prefix) ? value[prefix.Length..] : value;
+    }
+
+    private static string FgComposePhone(string country, string number) =>
+        string.IsNullOrWhiteSpace(number) ? "" : "+" + FgDial[country] + " " + number;
+
+    private string FgPhoneSetCountry(string member, string value, ChangeEventArgs e)
+    {
+        var typed = FgPhoneNumber(value, fgPhoneCountry[member]);
+        fgPhoneCountry[member] = Convert.ToString(e.Value) ?? fgPhoneCountry[member];
+        return FgComposePhone(fgPhoneCountry[member], typed);
+    }
+
+    private string FgPhoneInput(string member, ChangeEventArgs e) =>
+        FgComposePhone(fgPhoneCountry[member], Convert.ToString(e.Value) ?? "");
 `
         : '',
       dateMembers.length
@@ -1102,7 +1150,8 @@ ${itemClasses}}
     {
         null => true,
         string text => string.IsNullOrWhiteSpace(text),
-        bool on => !on,${hasDateRange(schema) ? `
+        bool on => !on,${hasMatrix(schema) ? `
+        IDictionary<string, string?> answers => answers.Values.Any(string.IsNullOrEmpty),` : ''}${hasDateRange(schema) ? `
         FgDateRange range => string.IsNullOrWhiteSpace(range.From) || string.IsNullOrWhiteSpace(range.To),` : ''}
         System.Collections.ICollection list => list.Count == 0,
         _ => false,

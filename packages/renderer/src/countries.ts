@@ -65,6 +65,14 @@ export function defaultPhoneCountry(node: ElementNode, countries: CountryOption[
   return countries.some((c) => c.code === wanted) ? wanted : (countries[0]?.code ?? 'US')
 }
 
+/** The country a phone field starts on: its default value's, else props.defaultCountry. */
+export function initialPhoneCountry(node: ElementNode, locale: string): string {
+  const countries = phoneCountries(node, locale)
+  const fallback = defaultPhoneCountry(node, countries)
+  const value = node.props['default']
+  return typeof value === 'string' ? splitPhone(value, countries, fallback).country : fallback
+}
+
 /** Field value: "+<dial> <number>", or "" while no number is typed. */
 export function composePhone(dial: string, number: string): string {
   return number.trim() === '' ? '' : `+${dial} ${number}`

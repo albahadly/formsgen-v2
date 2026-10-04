@@ -7,6 +7,7 @@ import { groupElement } from './elements/group'
 import { hiddenElement } from './elements/hidden'
 import { fileElement, imageUploadElement } from './elements/upload'
 import { dateRangeElement, datesElement, rangeSliderElement } from './elements/composite'
+import { matrixElement } from './elements/matrix'
 import { repeaterElement } from './elements/repeater'
 import { numberElement, rangeElement } from './elements/number'
 import { multiSelectElement, selectElement } from './elements/select'
@@ -94,6 +95,7 @@ for (const def of [
   rangeSliderElement,
   dateRangeElement,
   datesElement,
+  matrixElement,
   fileElement,
   imageUploadElement,
   hiddenElement,

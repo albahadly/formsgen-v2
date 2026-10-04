@@ -151,6 +151,7 @@ const context: FormContext = {
   },
   submitEmbedHostId: () => embeddedHostId.value,
   messages: () => messages.value,
+  locale: () => props.schema.meta.locale,
   submitButtonSpec: () => ({
     text: submitText.value,
     secondary: submitCfg.value?.variant === 'secondary',

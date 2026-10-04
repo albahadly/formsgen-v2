@@ -78,6 +78,16 @@ export type Slot =
   | 'chipList'
   /** A secondary button inside a pair row that never shrinks (Add date). */
   | 'pairButton'
+  /** Matrix: scroll wrapper, table, column/row headers, row, cell, radio. */
+  | 'matrixWrap'
+  | 'matrix'
+  | 'matrixColHead'
+  | 'matrixRowHead'
+  | 'matrixRow'
+  | 'matrixCell'
+  | 'matrixRadio'
+  /** Phone field's country-code select (beside the number input). */
+  | 'phoneCountry'
 
 export interface CellAttrs {
   class: string

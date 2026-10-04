@@ -18,6 +18,7 @@ export const REPEATER_EXCLUDED_TYPES: ReadonlySet<string> = new Set([
   'rangeslider',
   'daterange',
   'dates',
+  'matrix',
 ])
 
 export function isRepeater(node: ElementNode | undefined | null): boolean {
