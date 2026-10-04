@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
 import kitchenSink from '../../../../fixtures/kitchen-sink.formsgen.json'
@@ -16,6 +16,8 @@ function fixtureSchema(): FormSchema {
 
 const mountForm = () => mount(FormsGenForm, { props: { schema: fixtureSchema() } })
 
+const attachment = new File(['%PDF-1.7'], 'cv.pdf', { type: 'application/pdf' })
+
 async function fillValidForm(wrapper: ReturnType<typeof mountForm>) {
   await wrapper.get('input[name="full_name"]').setValue('Jane Doe')
   await wrapper.get('input[name="email"]').setValue('jane@example.com')
@@ -25,6 +27,10 @@ async function fillValidForm(wrapper: ReturnType<typeof mountForm>) {
   await wrapper.get('input[name="shipping_city"]').setValue('Muscat') // step 1
   await wrapper.get('input[name="terms"]').setValue(true)
   await wrapper.get('#fg-ks-ref-name-0').setValue('Dana') // repeater item 1
+  const upload = wrapper.get('#fg-ks-attachments').element as HTMLInputElement
+  Object.defineProperty(upload, 'files', { value: [attachment], configurable: true })
+  upload.dispatchEvent(new Event('change'))
+  await flushPromises()
 }
 
 describe('FormsGenForm', () => {
@@ -82,7 +88,7 @@ describe('FormsGenForm', () => {
       satisfaction: 5,
       city: '',
       zip: '',
-      account: { username: 'jane', password: '', bio: '', birthday: '' },
+      account: { username: 'jane', password: '', bio: '', birthday: '', avatar: [] },
       plan: 'pro',
       interests: [],
       channels: [],
@@ -95,6 +101,8 @@ describe('FormsGenForm', () => {
       volume: 0,
       source: 'kitchen-sink',
       references: [{ name: 'Dana', may_contact: false }],
+      attachments: [attachment],
+      attachments_note: '', // shown once a file is chosen
       contact_method: 'email',
       twitter: '',
       github: '',

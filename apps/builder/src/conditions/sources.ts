@@ -6,6 +6,7 @@
 
 import {
   BOOLEAN_TYPES,
+  FILE_TYPES,
   findParent,
   getCoreElement,
   isRepeater,
@@ -41,6 +42,7 @@ const NUMBER_OPS: ConditionOperator[] = [
 ]
 const OPTION_OPS: ConditionOperator[] = ['equals', 'not-equals', 'empty', 'not-empty']
 const LIST_OPS: ConditionOperator[] = ['contains', 'empty', 'not-empty']
+const PRESENCE_OPS: ConditionOperator[] = ['not-empty', 'empty']
 
 const NUMBER_TYPES = new Set(['number', 'range'])
 const OPTION_TYPES = new Set(['select', 'radiogroup'])
@@ -100,6 +102,8 @@ export function operatorsFor(type: string): ConditionOperator[] {
   if (NUMBER_TYPES.has(type)) return NUMBER_OPS
   if (OPTION_TYPES.has(type)) return OPTION_OPS
   if (LIST_TYPES.has(type)) return LIST_OPS
+  // Uploads: only "a file was chosen" / "no file" make sense.
+  if (FILE_TYPES.has(type)) return PRESENCE_OPS
   return TEXT_OPS
 }
 

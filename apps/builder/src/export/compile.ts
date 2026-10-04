@@ -32,6 +32,64 @@ function fgSize(${v})${ret('number | null')} {
 }`
 }
 
+/**
+ * Upload helpers, embedded only into forms with upload fields: the same
+ * size/type/count check as the renderer, multipart building (a JSON "data"
+ * part + one part per file named by data path), and a JSON replacer that
+ * shows files as { name, size, type }. fgMultipart has no return
+ * annotation: typed targets name their own data interface FormData.
+ */
+function fileHelpers(ts: boolean): string {
+  const t = (annotation: string): string => (ts ? annotation : '')
+  return `function fgAccepts(file${t(': File')}, accept${t(': string')})${t(': boolean')} {
+  if (accept.trim() === '') return true
+  const name = file.name.toLowerCase()
+  const type = (file.type || '').toLowerCase()
+  return accept.split(',').map((token) => token.trim().toLowerCase()).filter(Boolean).some((token) =>
+    token.startsWith('.') ? name.endsWith(token) : token.endsWith('/*') ? type.startsWith(token.slice(0, -1)) : type === token,
+  )
+}
+function fgFileProblem(v${t(': unknown')}, accept${t(': string')}, maxMb${t(': number')}, maxFiles${t(': number')}, m${t(': { tooMany: string; type: string; size: string }')})${t(': string | null')} {
+  const files = Array.isArray(v) ? v.filter((f) => f instanceof File)${t(' as File[]')} : []
+  if (maxFiles > 0 && files.length > maxFiles) return m.tooMany
+  for (const file of files) {
+    if (!fgAccepts(file, accept)) return m.type.split('{name}').join(file.name)
+    if (maxMb > 0 && file.size > maxMb * 1024 * 1024) return m.size.split('{name}').join(file.name)
+  }
+  return null
+}
+function fgFileJson(_key${t(': string')}, value${t(': unknown')})${t(': unknown')} {
+  return value instanceof File ? { name: value.name, size: value.size, type: value.type } : value
+}
+function fgMultipart(payload${t(': Record<string, unknown>')}) {
+  const files${t(': { path: string; file: File }[]')} = []
+  const walk = (value${t(': unknown')}, path${t(': string')})${t(': unknown')} => {
+    if (value instanceof File) {
+      files.push({ path, file: value })
+      return fgFileJson('', value)
+    }
+    if (Array.isArray(value)) {
+      const fileList = value.length > 0 && value.every((v) => v instanceof File)
+      return value.map((v, i) => walk(v, fileList ? path : path + '.' + i))
+    }
+    if (value && typeof value === 'object') {
+      const out${t(': Record<string, unknown>')} = {}
+      for (const [key, v] of Object.entries(value)) out[key] = walk(v, path ? path + '.' + key : key)
+      return out
+    }
+    return value
+  }
+  const data = walk(payload, '')
+  const body = new FormData()
+  body.append('data', JSON.stringify(data))
+  for (const part of files) body.append(part.path, part.file, part.file.name)
+  return body
+}`
+}
+
+export const FILE_HELPERS = fileHelpers(false)
+export const FILE_HELPERS_TS = fileHelpers(true)
+
 /** Static helper functions embedded once into every generated artifact (JS). */
 export const RUNTIME_HELPERS = runtimeHelpers(false)
 
@@ -77,13 +135,19 @@ export function compileValidator(
   rules: Rule[],
   valueExpr: string,
   accessor: ValueAccessor,
+  /** Expression yielding a message or null, checked right after "required". */
+  extraCheck?: string,
 ): string {
   const lines = [`const v = ${valueExpr}`]
-  for (const rule of rules) {
+  const extra = extraCheck ? `{ const problem = ${extraCheck}; if (problem) return problem }` : ''
+  const required = rules.filter((r) => r.rule === 'required')
+  for (const rule of [...required, ...rules.filter((r) => r.rule !== 'required')]) {
     const test = ruleTest(rule, accessor)
     const guarded = rule.rule === 'required' ? test : `!fgIsEmpty(v) && (${test})`
     lines.push(`if (${guarded}) return ${js(ruleMessage(rule))}`)
+    if (rule.rule === 'required' && extra) lines.push(extra)
   }
+  if (extra && required.length === 0) lines.splice(1, 0, extra)
   lines.push('return null')
   return lines.join('\n  ')
 }

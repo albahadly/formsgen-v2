@@ -75,7 +75,7 @@ describe('buildDefaultData', () => {
       city: '',
       zip: '',
       // named group nests an object:
-      account: { username: '', password: '', bio: '', birthday: '' },
+      account: { username: '', password: '', bio: '', birthday: '', avatar: [] },
       plan: null,
       interests: [],
       channels: [],
@@ -88,6 +88,8 @@ describe('buildDefaultData', () => {
       volume: 0,
       source: 'kitchen-sink',
       references: [{ name: '', may_contact: false, email: '' }],
+      attachments: [],
+      attachments_note: '',
       contact_method: null,
       contact_phone: '',
       contact_other: '',

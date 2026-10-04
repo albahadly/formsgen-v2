@@ -89,6 +89,21 @@ export {
   type ItemScope,
 } from './repeater'
 export { default as FgRepeater } from './components/FgRepeater.vue'
+export { default as FgFile } from './components/fields/FgFile.vue'
+export {
+  FILE_TYPES,
+  acceptsFile,
+  cloneData,
+  describeFiles,
+  fileLimits,
+  fileProblem,
+  firstFieldError,
+  hasFiles,
+  hasUploadFields,
+  isFile,
+  toSubmission,
+  type FileLimits,
+} from './files'
 export { default as FgButton } from './components/fields/FgButton.vue'
 
 export {

@@ -104,6 +104,30 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
                   <ValidationMessage For="@(() => Model.AccountBirthday)" class="invalid-feedback d-block mt-0" />
                 </div>
               </div>
+              <div class="col-12 col-md-12">
+                <div class="d-flex flex-column gap-1">
+                  <label class="form-label fw-semibold mb-0" for="fg_account_avatar">Profile picture</label>
+                  <InputFile @key='fgFileKeys["AccountAvatar"]' @ref='fgFileInputs["AccountAvatar"]' id="fg_account_avatar" class="form-control" accept="image/*" OnChange='@(e => FgPickFiles(Model.AccountAvatar, e, false, 2097152L, true, "AccountAvatar"))' />
+                  @if (Model.AccountAvatar.Count > 0)
+                  {
+                      <ul class="list-group mt-2">
+                          @foreach (var file in Model.AccountAvatar.ToList())
+                          {
+                              <li @key="file" class="list-group-item d-flex align-items-center gap-2">
+                                  @if (file.Thumb != null)
+                                  {
+                                      <img class="rounded object-fit-cover" src="@file.Thumb" alt="" width="40" height="40" />
+                                  }
+                                  <span class="flex-grow-1 text-truncate">@file.Name</span>
+                                  <span class="text-body-secondary small">@FgFileSize(file.Size)</span>
+                                  <button type="button" class="btn btn-sm btn-link link-danger p-0 text-decoration-none fs-5 lh-1" aria-label='@FgRemoveFileLabel(file.Name)' @onclick='() => FgRemoveFile(Model.AccountAvatar, file, "AccountAvatar")'>×</button>
+                              </li>
+                          }
+                      </ul>
+                  }
+                  <ValidationMessage For="@(() => Model.AccountAvatar)" class="invalid-feedback d-block mt-0" />
+                </div>
+              </div>
             </div>
           </fieldset>
         </div>
@@ -271,6 +295,37 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
             }
           </fieldset>
         </div>
+        <div class="col-12 col-md-12">
+          <div class="d-flex flex-column gap-1">
+            <label class="form-label fw-semibold mb-0" for="fg_attachments">Attachments<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+            <InputFile @key='fgFileKeys["Attachments"]' @ref='fgFileInputs["Attachments"]' id="fg_attachments" class="form-control" accept=".pdf,.doc,.docx" multiple OnChange='@(e => FgPickFiles(Model.Attachments, e, true, 5242880L, false, "Attachments"))' />
+            @if (Model.Attachments.Count > 0)
+            {
+                <ul class="list-group mt-2">
+                    @foreach (var file in Model.Attachments.ToList())
+                    {
+                        <li @key="file" class="list-group-item d-flex align-items-center gap-2">
+                            <span class="flex-grow-1 text-truncate">@file.Name</span>
+                            <span class="text-body-secondary small">@FgFileSize(file.Size)</span>
+                            <button type="button" class="btn btn-sm btn-link link-danger p-0 text-decoration-none fs-5 lh-1" aria-label='@FgRemoveFileLabel(file.Name)' @onclick='() => FgRemoveFile(Model.Attachments, file, "Attachments")'>×</button>
+                        </li>
+                    }
+                </ul>
+            }
+            <p class="form-text mt-0">Up to 3 PDF or Word files, 5 MB each</p>
+            <ValidationMessage For="@(() => Model.Attachments)" class="invalid-feedback d-block mt-0" />
+          </div>
+        </div>
+        @if ((!FgIsBlank(Model.Attachments)))
+        {
+            <div class="col-12 col-md-12">
+              <div class="d-flex flex-column gap-1">
+                <label class="form-label fw-semibold mb-0" for="fg_attachments_note">Notes about the attachments</label>
+                <InputTextArea id="fg_attachments_note" @bind-Value="Model.AttachmentsNote" class="form-control" rows="3" />
+                <ValidationMessage For="@(() => Model.AttachmentsNote)" class="invalid-feedback d-block mt-0" />
+              </div>
+            </div>
+        }
         <div class="col-12 col-md-12">
           <figure class="mb-0">
             <blockquote class="blockquote">
@@ -501,6 +556,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
             "AccountPassword" => Model.AccountPassword,
             "AccountBio" => Model.AccountBio,
             "AccountBirthday" => Model.AccountBirthday,
+            "AccountAvatar" => Model.AccountAvatar,
             "Plan" => Model.Plan,
             "Interests" => Model.Interests,
             "Channels" => Model.Channels,
@@ -512,6 +568,8 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
             "BrandColor" => Model.BrandColor,
             "Volume" => Model.Volume,
             "Source" => Model.Source,
+            "Attachments" => Model.Attachments,
+            "AttachmentsNote" => Model.AttachmentsNote,
             "ContactMethod" => Model.ContactMethod,
             "ContactPhone" => Model.ContactPhone,
             "ContactOther" => Model.ContactOther,
@@ -537,15 +595,17 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
             var results = new List<ValidationResult>();
             var context = new ValidationContext(Model) { MemberName = name };
             if (!Validator.TryValidateProperty(FgValue(name), context, results)) ok = false;
-            foreach (var result in results) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
+            if (results.Count > 0) fgMessages.Add(field, results[0].ErrorMessage ?? "Invalid");
         }
         foreach (var result in ((IValidatableObject)Model).Validate(new ValidationContext(Model)))
         {
             foreach (var name in result.MemberNames)
             {
                 if (Array.IndexOf(members, name) < 0) continue;
-                fgMessages.Add(new FieldIdentifier(Model, name), result.ErrorMessage ?? "Invalid");
                 ok = false;
+                var field = new FieldIdentifier(Model, name);
+                // One message per field (the first), as in the other targets.
+                if (!fgMessages[field].Any()) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
             }
         }
         fgEdit.NotifyValidationStateChanged();
@@ -595,6 +655,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         "AccountPassword",
         "AccountBio",
         "AccountBirthday",
+        "AccountAvatar",
         "Plan",
         "Interests",
         "Channels",
@@ -606,6 +667,8 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         "BrandColor",
         "Volume",
         "Source",
+        "Attachments",
+        "AttachmentsNote",
         "ContactMethod",
         "ContactPhone",
         "ContactOther",
@@ -812,7 +875,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         await FgAnnounce("{label} removed".Replace("{label}", label));
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task FgFocusRepeaters()
     {
         if (fgFocusItem != null && fgItemRefs.TryGetValue(fgFocusItem, out var itemRef))
         {
@@ -832,6 +895,78 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         }
     }
 
+    public sealed record FgUpload(string Name, long Size, string ContentType, byte[]? Data, string? Thumb);
+
+    private readonly Dictionary<string, int> fgFileKeys = new() { ["AccountAvatar"] = 0, ["Attachments"] = 0 };
+    private readonly Dictionary<string, InputFile> fgFileInputs = new();
+    private string? fgFocusFile;
+
+    private async Task FgPickFiles(List<FgUpload> list, InputFileChangeEventArgs e, bool multiple, long maxBytes, bool thumbs, string member)
+    {
+        var picked = new List<FgUpload>();
+        foreach (var file in e.GetMultipleFiles(multiple ? int.MaxValue : 1))
+        {
+            byte[]? data = null;
+            if (maxBytes <= 0 || file.Size <= maxBytes)
+            {
+                using var buffer = new System.IO.MemoryStream();
+                await file.OpenReadStream(maxBytes > 0 ? maxBytes : long.MaxValue).CopyToAsync(buffer);
+                data = buffer.ToArray();
+            }
+            string? thumb = null;
+            if (thumbs && file.ContentType.StartsWith("image/"))
+            {
+                try
+                {
+                    var small = await file.RequestImageFileAsync("image/png", 80, 80);
+                    using var buffer = new System.IO.MemoryStream();
+                    await small.OpenReadStream(long.MaxValue).CopyToAsync(buffer);
+                    thumb = "data:image/png;base64," + Convert.ToBase64String(buffer.ToArray());
+                }
+                catch (Exception) { }
+            }
+            picked.Add(new FgUpload(file.Name, file.Size, file.ContentType, data, thumb));
+        }
+        if (picked.Count == 0) return;
+        if (!multiple) list.Clear();
+        list.AddRange(picked);
+        fgFileKeys[member]++;
+        fgFocusFile = member;
+        fgEdit.NotifyFieldChanged(new FieldIdentifier(Model, member));
+    }
+
+    private void FgRemoveFile(List<FgUpload> list, FgUpload file, string member)
+    {
+        list.RemoveAll(f => ReferenceEquals(f, file));
+        fgEdit.NotifyFieldChanged(new FieldIdentifier(Model, member));
+    }
+
+    private static string FgFileSize(long bytes) =>
+        bytes >= 1024 * 1024 ? $"{bytes / 1024d / 1024d:0.0} MB" : $"{Math.Max(1, (int)Math.Round(bytes / 1024d))} KB";
+
+    private static string FgRemoveFileLabel(string name) => "Remove {name}".Replace("{name}", name);
+
+    /** Payload entry for an upload: { name, size, type } per file; the files become parts named by data path. */
+    private static List<Dictionary<string, object?>> FgFilesPart(List<(string Path, FgUpload File)> parts, string path, List<FgUpload> files)
+    {
+        foreach (var file in files) parts.Add((path, file));
+        return files.Select(f => new Dictionary<string, object?> { ["name"] = f.Name, ["size"] = f.Size, ["type"] = f.ContentType }).ToList();
+    }
+
+    private async Task FgFocusUploads()
+    {
+        if (fgFocusFile == null) return;
+        var member = fgFocusFile;
+        fgFocusFile = null;
+        if (fgFileInputs.TryGetValue(member, out var input) && input.Element is ElementReference element) await element.FocusAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await FgFocusRepeaters();
+        await FgFocusUploads();
+    }
+
     private async Task FgReset()
     {
         Model = new();
@@ -843,14 +978,32 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         await FgAnnounce("The form was reset.");
     }
 
+    private static bool FgIsBlank(object? value) => value switch
+    {
+        null => true,
+        string text => string.IsNullOrWhiteSpace(text),
+        bool on => !on,
+        System.Collections.ICollection list => list.Count == 0,
+        _ => false,
+    };
+
+    private static bool FgAccepts(FgUpload file, string accept)
+    {
+        var name = file.Name.ToLowerInvariant();
+        var type = (file.ContentType ?? "").ToLowerInvariant();
+        return accept.Split(',').Select(t => t.Trim().ToLowerInvariant()).Where(t => t.Length > 0).Any(t =>
+            t.StartsWith('.') ? name.EndsWith(t) : t.EndsWith("/*") ? type.StartsWith(t[..^1]) : type == t);
+    }
+
     private async Task HandleValidSubmit()
     {
-        var payload = BuildPayload();
+        var parts = new List<(string Path, FgUpload File)>();
+        var payload = BuildPayload(parts);
         ResultJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
         await FgAnnounce("Form submitted.");
     }
 
-    private Dictionary<string, object?> BuildPayload()
+    private Dictionary<string, object?> BuildPayload(List<(string Path, FgUpload File)> parts)
     {
         var payload = new Dictionary<string, object?>();
         payload["full_name"] = Model.FullName;
@@ -865,6 +1018,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         dict0["password"] = Model.AccountPassword;
         dict0["bio"] = Model.AccountBio;
         dict0["birthday"] = Model.AccountBirthday;
+        dict0["avatar"] = FgFilesPart(parts, "account.avatar", Model.AccountAvatar);
         payload["account"] = dict0;
         payload["plan"] = string.IsNullOrEmpty(Model.Plan) ? null : Model.Plan;
         payload["interests"] = Model.Interests;
@@ -887,6 +1041,8 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
             list1.Add(item1);
         }
         payload["references"] = list1;
+        payload["attachments"] = FgFilesPart(parts, "attachments", Model.Attachments);
+        if (((!FgIsBlank(Model.Attachments)))) payload["attachments_note"] = Model.AttachmentsNote;
         payload["contact_method"] = string.IsNullOrEmpty(Model.ContactMethod) ? null : Model.ContactMethod;
         if (((Equals(Model.ContactMethod, "phone")))) payload["contact_phone"] = Model.ContactPhone;
         if (((Equals(Model.ContactMethod, "other")))) payload["contact_other"] = Model.ContactOther;
@@ -932,6 +1088,8 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
 
         public string AccountBirthday { get; set; } = "";
 
+        public List<FgUpload> AccountAvatar { get; set; } = new();
+
         [Required(ErrorMessage = "This field is required")]
         public string Plan { get; set; } = "";
 
@@ -954,6 +1112,10 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         public double Volume { get; set; } = 0;
 
         public string Source { get; set; } = "kitchen-sink";
+
+        public List<FgUpload> Attachments { get; set; } = new();
+
+        public string AttachmentsNote { get; set; } = "";
 
         [Required(ErrorMessage = "This field is required")]
         public string ContactMethod { get; set; } = "";
@@ -983,6 +1145,13 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         if (!(!Seats.HasValue) && (Seats!.Value < 1)) yield return new ValidationResult("Must be at least 1", new[] { nameof(Seats) });
         if (!(!Seats.HasValue) && (Seats!.Value > 50)) yield return new ValidationResult("Must be at most 50", new[] { nameof(Seats) });
         if (!(Topics.Count == 0) && (Topics.Count > 5)) yield return new ValidationResult("At most 5 topics", new[] { nameof(Topics) });
+        if (Attachments.Count == 0) yield return new ValidationResult("This field is required", new[] { nameof(Attachments) });
+        if (Attachments.Count > 3) yield return new ValidationResult("Choose at most 3 files", new[] { nameof(Attachments) });
+        foreach (var file in Attachments)
+        {
+            if (!FgAccepts(file, ".pdf,.doc,.docx")) { yield return new ValidationResult("{name} is not an accepted file type".Replace("{name}", file.Name), new[] { nameof(Attachments) }); break; }
+            if (file.Size > 5242880L) { yield return new ValidationResult("{name} is larger than 5 MB".Replace("{name}", file.Name), new[] { nameof(Attachments) }); break; }
+        }
         if (!Terms) yield return new ValidationResult("This field is required", new[] { nameof(Terms) });
         }
     }
@@ -1099,6 +1268,30 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
                   <label class="text-sm font-semibold" for="fg_account_birthday">Birthday</label>
                   <InputText id="fg_account_birthday" type="date" @bind-Value="Model.AccountBirthday" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
                   <ValidationMessage For="@(() => Model.AccountBirthday)" class="text-xs text-red-600" />
+                </div>
+              </div>
+              <div class="col-span-12 md:col-span-12">
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-sm font-semibold" for="fg_account_avatar">Profile picture</label>
+                  <InputFile @key='fgFileKeys["AccountAvatar"]' @ref='fgFileInputs["AccountAvatar"]' id="fg_account_avatar" class="block w-full text-sm file:me-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-indigo-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" accept="image/*" OnChange='@(e => FgPickFiles(Model.AccountAvatar, e, false, 2097152L, true, "AccountAvatar"))' />
+                  @if (Model.AccountAvatar.Count > 0)
+                  {
+                      <ul class="flex flex-col gap-1.5">
+                          @foreach (var file in Model.AccountAvatar.ToList())
+                          {
+                              <li @key="file" class="flex items-center gap-2 rounded-md border border-gray-300 bg-gray-50 px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800/50">
+                                  @if (file.Thumb != null)
+                                  {
+                                      <img class="h-10 w-10 rounded object-cover" src="@file.Thumb" alt="" width="40" height="40" />
+                                  }
+                                  <span class="min-w-0 flex-1 truncate">@file.Name</span>
+                                  <span class="text-xs text-gray-500 dark:text-gray-400">@FgFileSize(file.Size)</span>
+                                  <button type="button" class="px-1.5 text-lg leading-none text-gray-500 hover:text-red-600" aria-label='@FgRemoveFileLabel(file.Name)' @onclick='() => FgRemoveFile(Model.AccountAvatar, file, "AccountAvatar")'>×</button>
+                              </li>
+                          }
+                      </ul>
+                  }
+                  <ValidationMessage For="@(() => Model.AccountAvatar)" class="text-xs text-red-600" />
                 </div>
               </div>
             </div>
@@ -1276,6 +1469,37 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
             }
           </fieldset>
         </div>
+        <div class="col-span-12 md:col-span-12">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-semibold" for="fg_attachments">Attachments<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+            <InputFile @key='fgFileKeys["Attachments"]' @ref='fgFileInputs["Attachments"]' id="fg_attachments" class="block w-full text-sm file:me-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-indigo-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" accept=".pdf,.doc,.docx" multiple OnChange='@(e => FgPickFiles(Model.Attachments, e, true, 5242880L, false, "Attachments"))' />
+            @if (Model.Attachments.Count > 0)
+            {
+                <ul class="flex flex-col gap-1.5">
+                    @foreach (var file in Model.Attachments.ToList())
+                    {
+                        <li @key="file" class="flex items-center gap-2 rounded-md border border-gray-300 bg-gray-50 px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800/50">
+                            <span class="min-w-0 flex-1 truncate">@file.Name</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">@FgFileSize(file.Size)</span>
+                            <button type="button" class="px-1.5 text-lg leading-none text-gray-500 hover:text-red-600" aria-label='@FgRemoveFileLabel(file.Name)' @onclick='() => FgRemoveFile(Model.Attachments, file, "Attachments")'>×</button>
+                        </li>
+                    }
+                </ul>
+            }
+            <p class="text-xs text-gray-500 dark:text-gray-400">Up to 3 PDF or Word files, 5 MB each</p>
+            <ValidationMessage For="@(() => Model.Attachments)" class="text-xs text-red-600" />
+          </div>
+        </div>
+        @if ((!FgIsBlank(Model.Attachments)))
+        {
+            <div class="col-span-12 md:col-span-12">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-semibold" for="fg_attachments_note">Notes about the attachments</label>
+                <InputTextArea id="fg_attachments_note" @bind-Value="Model.AttachmentsNote" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="3" />
+                <ValidationMessage For="@(() => Model.AttachmentsNote)" class="text-xs text-red-600" />
+              </div>
+            </div>
+        }
         <div class="col-span-12 md:col-span-12">
           <figure class="border-s-4 border-gray-300 ps-4 dark:border-gray-600">
             <blockquote class="text-base italic">
@@ -1506,6 +1730,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
             "AccountPassword" => Model.AccountPassword,
             "AccountBio" => Model.AccountBio,
             "AccountBirthday" => Model.AccountBirthday,
+            "AccountAvatar" => Model.AccountAvatar,
             "Plan" => Model.Plan,
             "Interests" => Model.Interests,
             "Channels" => Model.Channels,
@@ -1517,6 +1742,8 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
             "BrandColor" => Model.BrandColor,
             "Volume" => Model.Volume,
             "Source" => Model.Source,
+            "Attachments" => Model.Attachments,
+            "AttachmentsNote" => Model.AttachmentsNote,
             "ContactMethod" => Model.ContactMethod,
             "ContactPhone" => Model.ContactPhone,
             "ContactOther" => Model.ContactOther,
@@ -1542,15 +1769,17 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
             var results = new List<ValidationResult>();
             var context = new ValidationContext(Model) { MemberName = name };
             if (!Validator.TryValidateProperty(FgValue(name), context, results)) ok = false;
-            foreach (var result in results) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
+            if (results.Count > 0) fgMessages.Add(field, results[0].ErrorMessage ?? "Invalid");
         }
         foreach (var result in ((IValidatableObject)Model).Validate(new ValidationContext(Model)))
         {
             foreach (var name in result.MemberNames)
             {
                 if (Array.IndexOf(members, name) < 0) continue;
-                fgMessages.Add(new FieldIdentifier(Model, name), result.ErrorMessage ?? "Invalid");
                 ok = false;
+                var field = new FieldIdentifier(Model, name);
+                // One message per field (the first), as in the other targets.
+                if (!fgMessages[field].Any()) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
             }
         }
         fgEdit.NotifyValidationStateChanged();
@@ -1600,6 +1829,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         "AccountPassword",
         "AccountBio",
         "AccountBirthday",
+        "AccountAvatar",
         "Plan",
         "Interests",
         "Channels",
@@ -1611,6 +1841,8 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         "BrandColor",
         "Volume",
         "Source",
+        "Attachments",
+        "AttachmentsNote",
         "ContactMethod",
         "ContactPhone",
         "ContactOther",
@@ -1817,7 +2049,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         await FgAnnounce("{label} removed".Replace("{label}", label));
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task FgFocusRepeaters()
     {
         if (fgFocusItem != null && fgItemRefs.TryGetValue(fgFocusItem, out var itemRef))
         {
@@ -1837,6 +2069,78 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         }
     }
 
+    public sealed record FgUpload(string Name, long Size, string ContentType, byte[]? Data, string? Thumb);
+
+    private readonly Dictionary<string, int> fgFileKeys = new() { ["AccountAvatar"] = 0, ["Attachments"] = 0 };
+    private readonly Dictionary<string, InputFile> fgFileInputs = new();
+    private string? fgFocusFile;
+
+    private async Task FgPickFiles(List<FgUpload> list, InputFileChangeEventArgs e, bool multiple, long maxBytes, bool thumbs, string member)
+    {
+        var picked = new List<FgUpload>();
+        foreach (var file in e.GetMultipleFiles(multiple ? int.MaxValue : 1))
+        {
+            byte[]? data = null;
+            if (maxBytes <= 0 || file.Size <= maxBytes)
+            {
+                using var buffer = new System.IO.MemoryStream();
+                await file.OpenReadStream(maxBytes > 0 ? maxBytes : long.MaxValue).CopyToAsync(buffer);
+                data = buffer.ToArray();
+            }
+            string? thumb = null;
+            if (thumbs && file.ContentType.StartsWith("image/"))
+            {
+                try
+                {
+                    var small = await file.RequestImageFileAsync("image/png", 80, 80);
+                    using var buffer = new System.IO.MemoryStream();
+                    await small.OpenReadStream(long.MaxValue).CopyToAsync(buffer);
+                    thumb = "data:image/png;base64," + Convert.ToBase64String(buffer.ToArray());
+                }
+                catch (Exception) { }
+            }
+            picked.Add(new FgUpload(file.Name, file.Size, file.ContentType, data, thumb));
+        }
+        if (picked.Count == 0) return;
+        if (!multiple) list.Clear();
+        list.AddRange(picked);
+        fgFileKeys[member]++;
+        fgFocusFile = member;
+        fgEdit.NotifyFieldChanged(new FieldIdentifier(Model, member));
+    }
+
+    private void FgRemoveFile(List<FgUpload> list, FgUpload file, string member)
+    {
+        list.RemoveAll(f => ReferenceEquals(f, file));
+        fgEdit.NotifyFieldChanged(new FieldIdentifier(Model, member));
+    }
+
+    private static string FgFileSize(long bytes) =>
+        bytes >= 1024 * 1024 ? $"{bytes / 1024d / 1024d:0.0} MB" : $"{Math.Max(1, (int)Math.Round(bytes / 1024d))} KB";
+
+    private static string FgRemoveFileLabel(string name) => "Remove {name}".Replace("{name}", name);
+
+    /** Payload entry for an upload: { name, size, type } per file; the files become parts named by data path. */
+    private static List<Dictionary<string, object?>> FgFilesPart(List<(string Path, FgUpload File)> parts, string path, List<FgUpload> files)
+    {
+        foreach (var file in files) parts.Add((path, file));
+        return files.Select(f => new Dictionary<string, object?> { ["name"] = f.Name, ["size"] = f.Size, ["type"] = f.ContentType }).ToList();
+    }
+
+    private async Task FgFocusUploads()
+    {
+        if (fgFocusFile == null) return;
+        var member = fgFocusFile;
+        fgFocusFile = null;
+        if (fgFileInputs.TryGetValue(member, out var input) && input.Element is ElementReference element) await element.FocusAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await FgFocusRepeaters();
+        await FgFocusUploads();
+    }
+
     private async Task FgReset()
     {
         Model = new();
@@ -1848,14 +2152,32 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         await FgAnnounce("The form was reset.");
     }
 
+    private static bool FgIsBlank(object? value) => value switch
+    {
+        null => true,
+        string text => string.IsNullOrWhiteSpace(text),
+        bool on => !on,
+        System.Collections.ICollection list => list.Count == 0,
+        _ => false,
+    };
+
+    private static bool FgAccepts(FgUpload file, string accept)
+    {
+        var name = file.Name.ToLowerInvariant();
+        var type = (file.ContentType ?? "").ToLowerInvariant();
+        return accept.Split(',').Select(t => t.Trim().ToLowerInvariant()).Where(t => t.Length > 0).Any(t =>
+            t.StartsWith('.') ? name.EndsWith(t) : t.EndsWith("/*") ? type.StartsWith(t[..^1]) : type == t);
+    }
+
     private async Task HandleValidSubmit()
     {
-        var payload = BuildPayload();
+        var parts = new List<(string Path, FgUpload File)>();
+        var payload = BuildPayload(parts);
         ResultJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
         await FgAnnounce("Form submitted.");
     }
 
-    private Dictionary<string, object?> BuildPayload()
+    private Dictionary<string, object?> BuildPayload(List<(string Path, FgUpload File)> parts)
     {
         var payload = new Dictionary<string, object?>();
         payload["full_name"] = Model.FullName;
@@ -1870,6 +2192,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         dict0["password"] = Model.AccountPassword;
         dict0["bio"] = Model.AccountBio;
         dict0["birthday"] = Model.AccountBirthday;
+        dict0["avatar"] = FgFilesPart(parts, "account.avatar", Model.AccountAvatar);
         payload["account"] = dict0;
         payload["plan"] = string.IsNullOrEmpty(Model.Plan) ? null : Model.Plan;
         payload["interests"] = Model.Interests;
@@ -1892,6 +2215,8 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
             list1.Add(item1);
         }
         payload["references"] = list1;
+        payload["attachments"] = FgFilesPart(parts, "attachments", Model.Attachments);
+        if (((!FgIsBlank(Model.Attachments)))) payload["attachments_note"] = Model.AttachmentsNote;
         payload["contact_method"] = string.IsNullOrEmpty(Model.ContactMethod) ? null : Model.ContactMethod;
         if (((Equals(Model.ContactMethod, "phone")))) payload["contact_phone"] = Model.ContactPhone;
         if (((Equals(Model.ContactMethod, "other")))) payload["contact_other"] = Model.ContactOther;
@@ -1937,6 +2262,8 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
 
         public string AccountBirthday { get; set; } = "";
 
+        public List<FgUpload> AccountAvatar { get; set; } = new();
+
         [Required(ErrorMessage = "This field is required")]
         public string Plan { get; set; } = "";
 
@@ -1959,6 +2286,10 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         public double Volume { get; set; } = 0;
 
         public string Source { get; set; } = "kitchen-sink";
+
+        public List<FgUpload> Attachments { get; set; } = new();
+
+        public string AttachmentsNote { get; set; } = "";
 
         [Required(ErrorMessage = "This field is required")]
         public string ContactMethod { get; set; } = "";
@@ -1988,6 +2319,13 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         if (!(!Seats.HasValue) && (Seats!.Value < 1)) yield return new ValidationResult("Must be at least 1", new[] { nameof(Seats) });
         if (!(!Seats.HasValue) && (Seats!.Value > 50)) yield return new ValidationResult("Must be at most 50", new[] { nameof(Seats) });
         if (!(Topics.Count == 0) && (Topics.Count > 5)) yield return new ValidationResult("At most 5 topics", new[] { nameof(Topics) });
+        if (Attachments.Count == 0) yield return new ValidationResult("This field is required", new[] { nameof(Attachments) });
+        if (Attachments.Count > 3) yield return new ValidationResult("Choose at most 3 files", new[] { nameof(Attachments) });
+        foreach (var file in Attachments)
+        {
+            if (!FgAccepts(file, ".pdf,.doc,.docx")) { yield return new ValidationResult("{name} is not an accepted file type".Replace("{name}", file.Name), new[] { nameof(Attachments) }); break; }
+            if (file.Size > 5242880L) { yield return new ValidationResult("{name} is larger than 5 MB".Replace("{name}", file.Name), new[] { nameof(Attachments) }); break; }
+        }
         if (!Terms) yield return new ValidationResult("This field is required", new[] { nameof(Terms) });
         }
     }
@@ -2104,6 +2442,30 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
                   <label class="fg-label" for="fg_account_birthday">Birthday</label>
                   <InputText id="fg_account_birthday" type="date" @bind-Value="Model.AccountBirthday" class="fg-input" />
                   <ValidationMessage For="@(() => Model.AccountBirthday)" class="fg-error" />
+                </div>
+              </div>
+              <div class="fg-cell" style="grid-column: span 12 / span 12">
+                <div class="fg-field">
+                  <label class="fg-label" for="fg_account_avatar">Profile picture</label>
+                  <InputFile @key='fgFileKeys["AccountAvatar"]' @ref='fgFileInputs["AccountAvatar"]' id="fg_account_avatar" class="fg-file-input" accept="image/*" OnChange='@(e => FgPickFiles(Model.AccountAvatar, e, false, 2097152L, true, "AccountAvatar"))' />
+                  @if (Model.AccountAvatar.Count > 0)
+                  {
+                      <ul class="fg-file-list">
+                          @foreach (var file in Model.AccountAvatar.ToList())
+                          {
+                              <li @key="file" class="fg-file-item">
+                                  @if (file.Thumb != null)
+                                  {
+                                      <img class="fg-file-thumb" src="@file.Thumb" alt="" width="40" height="40" />
+                                  }
+                                  <span class="fg-file-name">@file.Name</span>
+                                  <span class="fg-file-size">@FgFileSize(file.Size)</span>
+                                  <button type="button" class="fg-file-remove" aria-label='@FgRemoveFileLabel(file.Name)' @onclick='() => FgRemoveFile(Model.AccountAvatar, file, "AccountAvatar")'>×</button>
+                              </li>
+                          }
+                      </ul>
+                  }
+                  <ValidationMessage For="@(() => Model.AccountAvatar)" class="fg-error" />
                 </div>
               </div>
             </div>
@@ -2281,6 +2643,37 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             }
           </fieldset>
         </div>
+        <div class="fg-cell" style="grid-column: span 12 / span 12">
+          <div class="fg-field">
+            <label class="fg-label" for="fg_attachments">Attachments<span class="fg-required" aria-hidden="true">*</span></label>
+            <InputFile @key='fgFileKeys["Attachments"]' @ref='fgFileInputs["Attachments"]' id="fg_attachments" class="fg-file-input" accept=".pdf,.doc,.docx" multiple OnChange='@(e => FgPickFiles(Model.Attachments, e, true, 5242880L, false, "Attachments"))' />
+            @if (Model.Attachments.Count > 0)
+            {
+                <ul class="fg-file-list">
+                    @foreach (var file in Model.Attachments.ToList())
+                    {
+                        <li @key="file" class="fg-file-item">
+                            <span class="fg-file-name">@file.Name</span>
+                            <span class="fg-file-size">@FgFileSize(file.Size)</span>
+                            <button type="button" class="fg-file-remove" aria-label='@FgRemoveFileLabel(file.Name)' @onclick='() => FgRemoveFile(Model.Attachments, file, "Attachments")'>×</button>
+                        </li>
+                    }
+                </ul>
+            }
+            <p class="fg-description">Up to 3 PDF or Word files, 5 MB each</p>
+            <ValidationMessage For="@(() => Model.Attachments)" class="fg-error" />
+          </div>
+        </div>
+        @if ((!FgIsBlank(Model.Attachments)))
+        {
+            <div class="fg-cell" style="grid-column: span 12 / span 12">
+              <div class="fg-field">
+                <label class="fg-label" for="fg_attachments_note">Notes about the attachments</label>
+                <InputTextArea id="fg_attachments_note" @bind-Value="Model.AttachmentsNote" class="fg-textarea" rows="3" />
+                <ValidationMessage For="@(() => Model.AttachmentsNote)" class="fg-error" />
+              </div>
+            </div>
+        }
         <div class="fg-cell" style="grid-column: span 12 / span 12">
           <figure class="fg-quote">
             <blockquote class="fg-quote-text">
@@ -2511,6 +2904,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             "AccountPassword" => Model.AccountPassword,
             "AccountBio" => Model.AccountBio,
             "AccountBirthday" => Model.AccountBirthday,
+            "AccountAvatar" => Model.AccountAvatar,
             "Plan" => Model.Plan,
             "Interests" => Model.Interests,
             "Channels" => Model.Channels,
@@ -2522,6 +2916,8 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             "BrandColor" => Model.BrandColor,
             "Volume" => Model.Volume,
             "Source" => Model.Source,
+            "Attachments" => Model.Attachments,
+            "AttachmentsNote" => Model.AttachmentsNote,
             "ContactMethod" => Model.ContactMethod,
             "ContactPhone" => Model.ContactPhone,
             "ContactOther" => Model.ContactOther,
@@ -2547,15 +2943,17 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             var results = new List<ValidationResult>();
             var context = new ValidationContext(Model) { MemberName = name };
             if (!Validator.TryValidateProperty(FgValue(name), context, results)) ok = false;
-            foreach (var result in results) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
+            if (results.Count > 0) fgMessages.Add(field, results[0].ErrorMessage ?? "Invalid");
         }
         foreach (var result in ((IValidatableObject)Model).Validate(new ValidationContext(Model)))
         {
             foreach (var name in result.MemberNames)
             {
                 if (Array.IndexOf(members, name) < 0) continue;
-                fgMessages.Add(new FieldIdentifier(Model, name), result.ErrorMessage ?? "Invalid");
                 ok = false;
+                var field = new FieldIdentifier(Model, name);
+                // One message per field (the first), as in the other targets.
+                if (!fgMessages[field].Any()) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
             }
         }
         fgEdit.NotifyValidationStateChanged();
@@ -2605,6 +3003,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         "AccountPassword",
         "AccountBio",
         "AccountBirthday",
+        "AccountAvatar",
         "Plan",
         "Interests",
         "Channels",
@@ -2616,6 +3015,8 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         "BrandColor",
         "Volume",
         "Source",
+        "Attachments",
+        "AttachmentsNote",
         "ContactMethod",
         "ContactPhone",
         "ContactOther",
@@ -2822,7 +3223,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         await FgAnnounce("{label} removed".Replace("{label}", label));
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task FgFocusRepeaters()
     {
         if (fgFocusItem != null && fgItemRefs.TryGetValue(fgFocusItem, out var itemRef))
         {
@@ -2842,6 +3243,78 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         }
     }
 
+    public sealed record FgUpload(string Name, long Size, string ContentType, byte[]? Data, string? Thumb);
+
+    private readonly Dictionary<string, int> fgFileKeys = new() { ["AccountAvatar"] = 0, ["Attachments"] = 0 };
+    private readonly Dictionary<string, InputFile> fgFileInputs = new();
+    private string? fgFocusFile;
+
+    private async Task FgPickFiles(List<FgUpload> list, InputFileChangeEventArgs e, bool multiple, long maxBytes, bool thumbs, string member)
+    {
+        var picked = new List<FgUpload>();
+        foreach (var file in e.GetMultipleFiles(multiple ? int.MaxValue : 1))
+        {
+            byte[]? data = null;
+            if (maxBytes <= 0 || file.Size <= maxBytes)
+            {
+                using var buffer = new System.IO.MemoryStream();
+                await file.OpenReadStream(maxBytes > 0 ? maxBytes : long.MaxValue).CopyToAsync(buffer);
+                data = buffer.ToArray();
+            }
+            string? thumb = null;
+            if (thumbs && file.ContentType.StartsWith("image/"))
+            {
+                try
+                {
+                    var small = await file.RequestImageFileAsync("image/png", 80, 80);
+                    using var buffer = new System.IO.MemoryStream();
+                    await small.OpenReadStream(long.MaxValue).CopyToAsync(buffer);
+                    thumb = "data:image/png;base64," + Convert.ToBase64String(buffer.ToArray());
+                }
+                catch (Exception) { }
+            }
+            picked.Add(new FgUpload(file.Name, file.Size, file.ContentType, data, thumb));
+        }
+        if (picked.Count == 0) return;
+        if (!multiple) list.Clear();
+        list.AddRange(picked);
+        fgFileKeys[member]++;
+        fgFocusFile = member;
+        fgEdit.NotifyFieldChanged(new FieldIdentifier(Model, member));
+    }
+
+    private void FgRemoveFile(List<FgUpload> list, FgUpload file, string member)
+    {
+        list.RemoveAll(f => ReferenceEquals(f, file));
+        fgEdit.NotifyFieldChanged(new FieldIdentifier(Model, member));
+    }
+
+    private static string FgFileSize(long bytes) =>
+        bytes >= 1024 * 1024 ? $"{bytes / 1024d / 1024d:0.0} MB" : $"{Math.Max(1, (int)Math.Round(bytes / 1024d))} KB";
+
+    private static string FgRemoveFileLabel(string name) => "Remove {name}".Replace("{name}", name);
+
+    /** Payload entry for an upload: { name, size, type } per file; the files become parts named by data path. */
+    private static List<Dictionary<string, object?>> FgFilesPart(List<(string Path, FgUpload File)> parts, string path, List<FgUpload> files)
+    {
+        foreach (var file in files) parts.Add((path, file));
+        return files.Select(f => new Dictionary<string, object?> { ["name"] = f.Name, ["size"] = f.Size, ["type"] = f.ContentType }).ToList();
+    }
+
+    private async Task FgFocusUploads()
+    {
+        if (fgFocusFile == null) return;
+        var member = fgFocusFile;
+        fgFocusFile = null;
+        if (fgFileInputs.TryGetValue(member, out var input) && input.Element is ElementReference element) await element.FocusAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await FgFocusRepeaters();
+        await FgFocusUploads();
+    }
+
     private async Task FgReset()
     {
         Model = new();
@@ -2853,14 +3326,32 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         await FgAnnounce("The form was reset.");
     }
 
+    private static bool FgIsBlank(object? value) => value switch
+    {
+        null => true,
+        string text => string.IsNullOrWhiteSpace(text),
+        bool on => !on,
+        System.Collections.ICollection list => list.Count == 0,
+        _ => false,
+    };
+
+    private static bool FgAccepts(FgUpload file, string accept)
+    {
+        var name = file.Name.ToLowerInvariant();
+        var type = (file.ContentType ?? "").ToLowerInvariant();
+        return accept.Split(',').Select(t => t.Trim().ToLowerInvariant()).Where(t => t.Length > 0).Any(t =>
+            t.StartsWith('.') ? name.EndsWith(t) : t.EndsWith("/*") ? type.StartsWith(t[..^1]) : type == t);
+    }
+
     private async Task HandleValidSubmit()
     {
-        var payload = BuildPayload();
+        var parts = new List<(string Path, FgUpload File)>();
+        var payload = BuildPayload(parts);
         ResultJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
         await FgAnnounce("Form submitted.");
     }
 
-    private Dictionary<string, object?> BuildPayload()
+    private Dictionary<string, object?> BuildPayload(List<(string Path, FgUpload File)> parts)
     {
         var payload = new Dictionary<string, object?>();
         payload["full_name"] = Model.FullName;
@@ -2875,6 +3366,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         dict0["password"] = Model.AccountPassword;
         dict0["bio"] = Model.AccountBio;
         dict0["birthday"] = Model.AccountBirthday;
+        dict0["avatar"] = FgFilesPart(parts, "account.avatar", Model.AccountAvatar);
         payload["account"] = dict0;
         payload["plan"] = string.IsNullOrEmpty(Model.Plan) ? null : Model.Plan;
         payload["interests"] = Model.Interests;
@@ -2897,6 +3389,8 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             list1.Add(item1);
         }
         payload["references"] = list1;
+        payload["attachments"] = FgFilesPart(parts, "attachments", Model.Attachments);
+        if (((!FgIsBlank(Model.Attachments)))) payload["attachments_note"] = Model.AttachmentsNote;
         payload["contact_method"] = string.IsNullOrEmpty(Model.ContactMethod) ? null : Model.ContactMethod;
         if (((Equals(Model.ContactMethod, "phone")))) payload["contact_phone"] = Model.ContactPhone;
         if (((Equals(Model.ContactMethod, "other")))) payload["contact_other"] = Model.ContactOther;
@@ -2942,6 +3436,8 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
 
         public string AccountBirthday { get; set; } = "";
 
+        public List<FgUpload> AccountAvatar { get; set; } = new();
+
         [Required(ErrorMessage = "This field is required")]
         public string Plan { get; set; } = "";
 
@@ -2964,6 +3460,10 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         public double Volume { get; set; } = 0;
 
         public string Source { get; set; } = "kitchen-sink";
+
+        public List<FgUpload> Attachments { get; set; } = new();
+
+        public string AttachmentsNote { get; set; } = "";
 
         [Required(ErrorMessage = "This field is required")]
         public string ContactMethod { get; set; } = "";
@@ -2993,6 +3493,13 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         if (!(!Seats.HasValue) && (Seats!.Value < 1)) yield return new ValidationResult("Must be at least 1", new[] { nameof(Seats) });
         if (!(!Seats.HasValue) && (Seats!.Value > 50)) yield return new ValidationResult("Must be at most 50", new[] { nameof(Seats) });
         if (!(Topics.Count == 0) && (Topics.Count > 5)) yield return new ValidationResult("At most 5 topics", new[] { nameof(Topics) });
+        if (Attachments.Count == 0) yield return new ValidationResult("This field is required", new[] { nameof(Attachments) });
+        if (Attachments.Count > 3) yield return new ValidationResult("Choose at most 3 files", new[] { nameof(Attachments) });
+        foreach (var file in Attachments)
+        {
+            if (!FgAccepts(file, ".pdf,.doc,.docx")) { yield return new ValidationResult("{name} is not an accepted file type".Replace("{name}", file.Name), new[] { nameof(Attachments) }); break; }
+            if (file.Size > 5242880L) { yield return new ValidationResult("{name} is larger than 5 MB".Replace("{name}", file.Name), new[] { nameof(Attachments) }); break; }
+        }
         if (!Terms) yield return new ValidationResult("This field is required", new[] { nameof(Terms) });
         }
     }
@@ -3111,6 +3618,14 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
                 <label class="form-label fw-semibold mb-0" for="fg_account_birthday">Birthday</label>
                 <input id="fg_account_birthday" type="date" class="form-control" data-fg-path="account.birthday" data-fg-kind="text">
                 <p id="fg_err_account_birthday" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+              </div>
+            </div>
+            <div class="col-12 col-md-12">
+              <div class="d-flex flex-column gap-1">
+                <label class="form-label fw-semibold mb-0" for="fg_account_avatar">Profile picture</label>
+                <input id="fg_account_avatar" type="file" class="form-control" accept="image/*" data-fg-path="account.avatar" data-fg-kind="files" data-fg-thumbs>
+                <ul class="list-group mt-2" data-fg-file-list="account.avatar" hidden></ul>
+                <p id="fg_err_account_avatar" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
               </div>
             </div>
           </div>
@@ -3266,6 +3781,22 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         </fieldset>
       </div>
       <div class="col-12 col-md-12">
+        <div class="d-flex flex-column gap-1">
+          <label class="form-label fw-semibold mb-0" for="fg_attachments">Attachments<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+          <input id="fg_attachments" type="file" class="form-control" accept=".pdf,.doc,.docx" multiple data-fg-path="attachments" data-fg-kind="files">
+          <ul class="list-group mt-2" data-fg-file-list="attachments" hidden></ul>
+          <p class="form-text mt-0">Up to 3 PDF or Word files, 5 MB each</p>
+          <p id="fg_err_attachments" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12" data-fg-cond="0">
+        <div class="d-flex flex-column gap-1">
+          <label class="form-label fw-semibold mb-0" for="fg_attachments_note">Notes about the attachments</label>
+          <textarea id="fg_attachments_note" class="form-control" rows="3" data-fg-path="attachments_note" data-fg-kind="text"></textarea>
+          <p id="fg_err_attachments_note" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
         <figure class="mb-0">
           <blockquote class="blockquote">
             <p>Forms are conversations.</p>
@@ -3288,14 +3819,14 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
           <p id="fg_err_contact_method" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
         </div>
       </div>
-      <div class="col-12 col-md-12" data-fg-cond="0">
+      <div class="col-12 col-md-12" data-fg-cond="1">
         <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold mb-0" for="fg_contact_phone">Phone number</label>
           <input id="fg_contact_phone" type="tel" class="form-control" data-fg-path="contact_phone" data-fg-kind="text">
           <p id="fg_err_contact_phone" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
         </div>
       </div>
-      <div class="col-12 col-md-12" data-fg-cond="1">
+      <div class="col-12 col-md-12" data-fg-cond="2">
         <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold mb-0" for="fg_contact_other">Describe your preferred method</label>
           <textarea id="fg_contact_other" class="form-control" rows="3" data-fg-path="contact_other" data-fg-kind="text"></textarea>
@@ -3412,6 +3943,50 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       if (Array.isArray(v)) return v.length
       return null
     }
+    function fgAccepts(file, accept) {
+      if (accept.trim() === '') return true
+      const name = file.name.toLowerCase()
+      const type = (file.type || '').toLowerCase()
+      return accept.split(',').map((token) => token.trim().toLowerCase()).filter(Boolean).some((token) =>
+        token.startsWith('.') ? name.endsWith(token) : token.endsWith('/*') ? type.startsWith(token.slice(0, -1)) : type === token,
+      )
+    }
+    function fgFileProblem(v, accept, maxMb, maxFiles, m) {
+      const files = Array.isArray(v) ? v.filter((f) => f instanceof File) : []
+      if (maxFiles > 0 && files.length > maxFiles) return m.tooMany
+      for (const file of files) {
+        if (!fgAccepts(file, accept)) return m.type.split('{name}').join(file.name)
+        if (maxMb > 0 && file.size > maxMb * 1024 * 1024) return m.size.split('{name}').join(file.name)
+      }
+      return null
+    }
+    function fgFileJson(_key, value) {
+      return value instanceof File ? { name: value.name, size: value.size, type: value.type } : value
+    }
+    function fgMultipart(payload) {
+      const files = []
+      const walk = (value, path) => {
+        if (value instanceof File) {
+          files.push({ path, file: value })
+          return fgFileJson('', value)
+        }
+        if (Array.isArray(value)) {
+          const fileList = value.length > 0 && value.every((v) => v instanceof File)
+          return value.map((v, i) => walk(v, fileList ? path : path + '.' + i))
+        }
+        if (value && typeof value === 'object') {
+          const out = {}
+          for (const [key, v] of Object.entries(value)) out[key] = walk(v, path ? path + '.' + key : key)
+          return out
+        }
+        return value
+      }
+      const data = walk(payload, '')
+      const body = new FormData()
+      body.append('data', JSON.stringify(data))
+      for (const part of files) body.append(part.path, part.file, part.file.name)
+      return body
+    }
 
     var fgTags = {}
     var fgTagsPaint = {}
@@ -3433,6 +4008,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }
       if (kind === 'tags') return (fgTags[path] || []).slice()
+      if (kind === 'files') return (fgFiles[path] || []).slice()
       if (kind === 'checks') {
         return Array.prototype.map.call(
           document.querySelectorAll('[data-fg-path="' + path + '"]:checked'),
@@ -3442,6 +4018,9 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       return el.value
     }
 
+    function fgVisible_attachments_note() {
+      return ((!fgIsBlank(fgGet("attachments"))))
+    }
     function fgVisible_contact_phone() {
       return ((fgGet("contact_method") === "phone"))
     }
@@ -3450,8 +4029,9 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
     }
 
     var FG_CONDITIONS = [
-      { index: 0, test: function () { return (fgGet("contact_method") === "phone") } },
-      { index: 1, test: function () { return (fgGet("contact_method") === "other") } },
+      { index: 0, test: function () { return (!fgIsBlank(fgGet("attachments"))) } },
+      { index: 1, test: function () { return (fgGet("contact_method") === "phone") } },
+      { index: 2, test: function () { return (fgGet("contact_method") === "other") } },
     ]
 
     var FG_VALIDATORS = {
@@ -3494,6 +4074,11 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 200)) return "Must be at most 200"
       return null
       },
+      'account.avatar': function () {
+      const v = fgGet("account.avatar")
+      { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
+      return null
+      },
       'plan': function () {
       const v = fgGet("plan")
       if (fgIsBlank(v)) return "This field is required"
@@ -3502,6 +4087,12 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       'topics': function () {
       const v = fgGet("topics")
       if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
+      return null
+      },
+      'attachments': function () {
+      const v = fgGet("attachments")
+      if (fgIsBlank(v)) return "This field is required"
+      { const problem = fgFileProblem(v, ".pdf,.doc,.docx", 5, 3, {"tooMany":"Choose at most 3 files","type":"{name} is not an accepted file type","size":"{name} is larger than 5 MB"}); if (problem) return problem }
       return null
       },
       'contact_method': function () {
@@ -3756,6 +4347,68 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       })
     })
 
+    var fgFiles = {}
+    var FG_FILE_MULTIPLE = {"account.avatar":false,"attachments":true}
+    function fgFileSize(bytes) {
+      return bytes >= 1024 * 1024 ? (bytes / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB'
+    }
+    function fgPaintFiles(path) {
+      var list = document.querySelector('[data-fg-file-list="' + path + '"]')
+      var input = fgControl(path)
+      if (!list || !input) return
+      Array.prototype.forEach.call(list.querySelectorAll('img'), function (img) { URL.revokeObjectURL(img.src) })
+      list.textContent = ''
+      list.hidden = fgFiles[path].length === 0
+      fgFiles[path].forEach(function (file, index) {
+        var item = document.createElement('li')
+        item.className = "list-group-item d-flex align-items-center gap-2"
+        if (input.hasAttribute('data-fg-thumbs') && file.type.indexOf('image/') === 0) {
+          var img = document.createElement('img')
+          img.className = "rounded object-fit-cover"
+          img.src = URL.createObjectURL(file)
+          img.alt = ''
+          img.width = 40
+          img.height = 40
+          item.appendChild(img)
+        }
+        var name = document.createElement('span')
+        name.className = "flex-grow-1 text-truncate"
+        name.textContent = file.name
+        var size = document.createElement('span')
+        size.className = "text-body-secondary small"
+        size.textContent = fgFileSize(file.size)
+        var remove = document.createElement('button')
+        remove.type = 'button'
+        remove.className = "btn btn-sm btn-link link-danger p-0 text-decoration-none fs-5 lh-1"
+        remove.textContent = '\\u00d7'
+        remove.setAttribute('aria-label', "Remove {name}".split('{name}').join(file.name))
+        remove.addEventListener('click', function () {
+          fgFiles[path].splice(index, 1)
+          fgPaintFiles(path)
+          touched[path] = true
+          validateField(path)
+          updateConditions()
+        })
+        item.appendChild(name)
+        item.appendChild(size)
+        item.appendChild(remove)
+        list.appendChild(item)
+      })
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="files"]'), function (input) {
+      var path = input.getAttribute('data-fg-path')
+      fgFiles[path] = []
+      input.addEventListener('change', function () {
+        var picked = Array.prototype.slice.call(input.files || [])
+        input.value = ''
+        if (picked.length === 0) return
+        fgFiles[path] = FG_FILE_MULTIPLE[path] ? fgFiles[path].concat(picked) : picked.slice(0, 1)
+        fgPaintFiles(path)
+        touched[path] = true
+        validateField(path)
+      })
+    })
+
     // Polite aria-live region; cleared first so repeated text re-announces.
     function fgAnnounce(message) {
       var live = document.getElementById('fg-live')
@@ -3851,6 +4504,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
           "password": fgGet("account.password"),
           "bio": fgGet("account.bio"),
           "birthday": fgGet("account.birthday"),
+          "avatar": fgGet("account.avatar"),
         },
         "plan": fgGet("plan"),
         "interests": fgGet("interests"),
@@ -3864,6 +4518,8 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         "volume": fgGet("volume"),
         "source": fgGet("source"),
         "references": fgItemIndexes("references").map(function (i) { return ({ "name": fgGet("references." + i + ".name"), "may_contact": fgGet("references." + i + ".may_contact"), ...((fgGet("references." + i + ".may_contact") === true) ? { "email": fgGet("references." + i + ".email") } : {}) }) }),
+        "attachments": fgGet("attachments"),
+        ...(fgVisible_attachments_note() ? { "attachments_note": fgGet("attachments_note") } : {}),
         "contact_method": fgGet("contact_method"),
         ...(fgVisible_contact_phone() ? { "contact_phone": fgGet("contact_phone") } : {}),
         ...(fgVisible_contact_other() ? { "contact_other": fgGet("contact_other") } : {}),
@@ -3925,6 +4581,10 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
           fgTags[path] = []
           if (fgTagsPaint[path]) fgTagsPaint[path]()
         })
+        Object.keys(fgFiles).forEach(function (path) {
+          fgFiles[path] = []
+          fgPaintFiles(path)
+        })
         Object.keys(touched).forEach(function (path) { delete touched[path] })
         Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })
         Object.keys(FG_REPEATERS).forEach(function (path) {
@@ -3959,7 +4619,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       }
       var data = buildPayload()
       var out = document.getElementById('fg-result')
-      out.textContent = JSON.stringify(data, null, 2)
+      out.textContent = JSON.stringify(data, fgFileJson, 2)
       out.hidden = false
       fgAnnounce("Form submitted.")
       console.log('Form submitted', data)
@@ -4077,6 +4737,14 @@ exports[`html target > snapshot (tailwind) 1`] = `
                 <label class="text-sm font-semibold" for="fg_account_birthday">Birthday</label>
                 <input id="fg_account_birthday" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="account.birthday" data-fg-kind="text">
                 <p id="fg_err_account_birthday" class="text-xs text-red-600" role="alert" hidden></p>
+              </div>
+            </div>
+            <div class="col-span-12 md:col-span-12">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-semibold" for="fg_account_avatar">Profile picture</label>
+                <input id="fg_account_avatar" type="file" class="block w-full text-sm file:me-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-indigo-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" accept="image/*" data-fg-path="account.avatar" data-fg-kind="files" data-fg-thumbs>
+                <ul class="flex flex-col gap-1.5" data-fg-file-list="account.avatar" hidden></ul>
+                <p id="fg_err_account_avatar" class="text-xs text-red-600" role="alert" hidden></p>
               </div>
             </div>
           </div>
@@ -4240,6 +4908,22 @@ exports[`html target > snapshot (tailwind) 1`] = `
         </fieldset>
       </div>
       <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_attachments">Attachments<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+          <input id="fg_attachments" type="file" class="block w-full text-sm file:me-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-indigo-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" accept=".pdf,.doc,.docx" multiple data-fg-path="attachments" data-fg-kind="files">
+          <ul class="flex flex-col gap-1.5" data-fg-file-list="attachments" hidden></ul>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Up to 3 PDF or Word files, 5 MB each</p>
+          <p id="fg_err_attachments" class="text-xs text-red-600" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12" data-fg-cond="0">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_attachments_note">Notes about the attachments</label>
+          <textarea id="fg_attachments_note" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="3" data-fg-path="attachments_note" data-fg-kind="text"></textarea>
+          <p id="fg_err_attachments_note" class="text-xs text-red-600" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
         <figure class="border-s-4 border-gray-300 ps-4 dark:border-gray-600">
           <blockquote class="text-base italic">
             <p>Forms are conversations.</p>
@@ -4262,14 +4946,14 @@ exports[`html target > snapshot (tailwind) 1`] = `
           <p id="fg_err_contact_method" class="text-xs text-red-600" role="alert" hidden></p>
         </div>
       </div>
-      <div class="col-span-12 md:col-span-12" data-fg-cond="0">
+      <div class="col-span-12 md:col-span-12" data-fg-cond="1">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_contact_phone">Phone number</label>
           <input id="fg_contact_phone" type="tel" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="contact_phone" data-fg-kind="text">
           <p id="fg_err_contact_phone" class="text-xs text-red-600" role="alert" hidden></p>
         </div>
       </div>
-      <div class="col-span-12 md:col-span-12" data-fg-cond="1">
+      <div class="col-span-12 md:col-span-12" data-fg-cond="2">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_contact_other">Describe your preferred method</label>
           <textarea id="fg_contact_other" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="3" data-fg-path="contact_other" data-fg-kind="text"></textarea>
@@ -4386,6 +5070,50 @@ exports[`html target > snapshot (tailwind) 1`] = `
       if (Array.isArray(v)) return v.length
       return null
     }
+    function fgAccepts(file, accept) {
+      if (accept.trim() === '') return true
+      const name = file.name.toLowerCase()
+      const type = (file.type || '').toLowerCase()
+      return accept.split(',').map((token) => token.trim().toLowerCase()).filter(Boolean).some((token) =>
+        token.startsWith('.') ? name.endsWith(token) : token.endsWith('/*') ? type.startsWith(token.slice(0, -1)) : type === token,
+      )
+    }
+    function fgFileProblem(v, accept, maxMb, maxFiles, m) {
+      const files = Array.isArray(v) ? v.filter((f) => f instanceof File) : []
+      if (maxFiles > 0 && files.length > maxFiles) return m.tooMany
+      for (const file of files) {
+        if (!fgAccepts(file, accept)) return m.type.split('{name}').join(file.name)
+        if (maxMb > 0 && file.size > maxMb * 1024 * 1024) return m.size.split('{name}').join(file.name)
+      }
+      return null
+    }
+    function fgFileJson(_key, value) {
+      return value instanceof File ? { name: value.name, size: value.size, type: value.type } : value
+    }
+    function fgMultipart(payload) {
+      const files = []
+      const walk = (value, path) => {
+        if (value instanceof File) {
+          files.push({ path, file: value })
+          return fgFileJson('', value)
+        }
+        if (Array.isArray(value)) {
+          const fileList = value.length > 0 && value.every((v) => v instanceof File)
+          return value.map((v, i) => walk(v, fileList ? path : path + '.' + i))
+        }
+        if (value && typeof value === 'object') {
+          const out = {}
+          for (const [key, v] of Object.entries(value)) out[key] = walk(v, path ? path + '.' + key : key)
+          return out
+        }
+        return value
+      }
+      const data = walk(payload, '')
+      const body = new FormData()
+      body.append('data', JSON.stringify(data))
+      for (const part of files) body.append(part.path, part.file, part.file.name)
+      return body
+    }
 
     var fgTags = {}
     var fgTagsPaint = {}
@@ -4407,6 +5135,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
         return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }
       if (kind === 'tags') return (fgTags[path] || []).slice()
+      if (kind === 'files') return (fgFiles[path] || []).slice()
       if (kind === 'checks') {
         return Array.prototype.map.call(
           document.querySelectorAll('[data-fg-path="' + path + '"]:checked'),
@@ -4416,6 +5145,9 @@ exports[`html target > snapshot (tailwind) 1`] = `
       return el.value
     }
 
+    function fgVisible_attachments_note() {
+      return ((!fgIsBlank(fgGet("attachments"))))
+    }
     function fgVisible_contact_phone() {
       return ((fgGet("contact_method") === "phone"))
     }
@@ -4424,8 +5156,9 @@ exports[`html target > snapshot (tailwind) 1`] = `
     }
 
     var FG_CONDITIONS = [
-      { index: 0, test: function () { return (fgGet("contact_method") === "phone") } },
-      { index: 1, test: function () { return (fgGet("contact_method") === "other") } },
+      { index: 0, test: function () { return (!fgIsBlank(fgGet("attachments"))) } },
+      { index: 1, test: function () { return (fgGet("contact_method") === "phone") } },
+      { index: 2, test: function () { return (fgGet("contact_method") === "other") } },
     ]
 
     var FG_VALIDATORS = {
@@ -4468,6 +5201,11 @@ exports[`html target > snapshot (tailwind) 1`] = `
       if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 200)) return "Must be at most 200"
       return null
       },
+      'account.avatar': function () {
+      const v = fgGet("account.avatar")
+      { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
+      return null
+      },
       'plan': function () {
       const v = fgGet("plan")
       if (fgIsBlank(v)) return "This field is required"
@@ -4476,6 +5214,12 @@ exports[`html target > snapshot (tailwind) 1`] = `
       'topics': function () {
       const v = fgGet("topics")
       if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
+      return null
+      },
+      'attachments': function () {
+      const v = fgGet("attachments")
+      if (fgIsBlank(v)) return "This field is required"
+      { const problem = fgFileProblem(v, ".pdf,.doc,.docx", 5, 3, {"tooMany":"Choose at most 3 files","type":"{name} is not an accepted file type","size":"{name} is larger than 5 MB"}); if (problem) return problem }
       return null
       },
       'contact_method': function () {
@@ -4730,6 +5474,68 @@ exports[`html target > snapshot (tailwind) 1`] = `
       })
     })
 
+    var fgFiles = {}
+    var FG_FILE_MULTIPLE = {"account.avatar":false,"attachments":true}
+    function fgFileSize(bytes) {
+      return bytes >= 1024 * 1024 ? (bytes / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB'
+    }
+    function fgPaintFiles(path) {
+      var list = document.querySelector('[data-fg-file-list="' + path + '"]')
+      var input = fgControl(path)
+      if (!list || !input) return
+      Array.prototype.forEach.call(list.querySelectorAll('img'), function (img) { URL.revokeObjectURL(img.src) })
+      list.textContent = ''
+      list.hidden = fgFiles[path].length === 0
+      fgFiles[path].forEach(function (file, index) {
+        var item = document.createElement('li')
+        item.className = "flex items-center gap-2 rounded-md border border-gray-300 bg-gray-50 px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800/50"
+        if (input.hasAttribute('data-fg-thumbs') && file.type.indexOf('image/') === 0) {
+          var img = document.createElement('img')
+          img.className = "h-10 w-10 rounded object-cover"
+          img.src = URL.createObjectURL(file)
+          img.alt = ''
+          img.width = 40
+          img.height = 40
+          item.appendChild(img)
+        }
+        var name = document.createElement('span')
+        name.className = "min-w-0 flex-1 truncate"
+        name.textContent = file.name
+        var size = document.createElement('span')
+        size.className = "text-xs text-gray-500 dark:text-gray-400"
+        size.textContent = fgFileSize(file.size)
+        var remove = document.createElement('button')
+        remove.type = 'button'
+        remove.className = "px-1.5 text-lg leading-none text-gray-500 hover:text-red-600"
+        remove.textContent = '\\u00d7'
+        remove.setAttribute('aria-label', "Remove {name}".split('{name}').join(file.name))
+        remove.addEventListener('click', function () {
+          fgFiles[path].splice(index, 1)
+          fgPaintFiles(path)
+          touched[path] = true
+          validateField(path)
+          updateConditions()
+        })
+        item.appendChild(name)
+        item.appendChild(size)
+        item.appendChild(remove)
+        list.appendChild(item)
+      })
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="files"]'), function (input) {
+      var path = input.getAttribute('data-fg-path')
+      fgFiles[path] = []
+      input.addEventListener('change', function () {
+        var picked = Array.prototype.slice.call(input.files || [])
+        input.value = ''
+        if (picked.length === 0) return
+        fgFiles[path] = FG_FILE_MULTIPLE[path] ? fgFiles[path].concat(picked) : picked.slice(0, 1)
+        fgPaintFiles(path)
+        touched[path] = true
+        validateField(path)
+      })
+    })
+
     // Polite aria-live region; cleared first so repeated text re-announces.
     function fgAnnounce(message) {
       var live = document.getElementById('fg-live')
@@ -4825,6 +5631,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
           "password": fgGet("account.password"),
           "bio": fgGet("account.bio"),
           "birthday": fgGet("account.birthday"),
+          "avatar": fgGet("account.avatar"),
         },
         "plan": fgGet("plan"),
         "interests": fgGet("interests"),
@@ -4838,6 +5645,8 @@ exports[`html target > snapshot (tailwind) 1`] = `
         "volume": fgGet("volume"),
         "source": fgGet("source"),
         "references": fgItemIndexes("references").map(function (i) { return ({ "name": fgGet("references." + i + ".name"), "may_contact": fgGet("references." + i + ".may_contact"), ...((fgGet("references." + i + ".may_contact") === true) ? { "email": fgGet("references." + i + ".email") } : {}) }) }),
+        "attachments": fgGet("attachments"),
+        ...(fgVisible_attachments_note() ? { "attachments_note": fgGet("attachments_note") } : {}),
         "contact_method": fgGet("contact_method"),
         ...(fgVisible_contact_phone() ? { "contact_phone": fgGet("contact_phone") } : {}),
         ...(fgVisible_contact_other() ? { "contact_other": fgGet("contact_other") } : {}),
@@ -4899,6 +5708,10 @@ exports[`html target > snapshot (tailwind) 1`] = `
           fgTags[path] = []
           if (fgTagsPaint[path]) fgTagsPaint[path]()
         })
+        Object.keys(fgFiles).forEach(function (path) {
+          fgFiles[path] = []
+          fgPaintFiles(path)
+        })
         Object.keys(touched).forEach(function (path) { delete touched[path] })
         Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })
         Object.keys(FG_REPEATERS).forEach(function (path) {
@@ -4933,7 +5746,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
       }
       var data = buildPayload()
       var out = document.getElementById('fg-result')
-      out.textContent = JSON.stringify(data, null, 2)
+      out.textContent = JSON.stringify(data, fgFileJson, 2)
       out.hidden = false
       fgAnnounce("Form submitted.")
       console.log('Form submitted', data)
@@ -5065,6 +5878,17 @@ exports[`html target > snapshot (vanilla) 1`] = `
   .fg-repeater-item-actions { display: flex; justify-content: flex-end; margin-block-start: 0.75rem; }
   .fg-repeater-remove { padding: 0; font: inherit; font-size: 0.875rem; color: var(--fg-color-error); background: none; border: none; text-decoration: underline; cursor: pointer; }
   .fg-repeater-add { margin-block-start: var(--fg-space); }
+  /* File uploads */
+  .fg-file-input { font: inherit; font-size: 0.875rem; }
+  .fg-file-input::file-selector-button { margin-inline-end: 0.75rem; padding: 0.375rem 0.75rem; font: inherit; font-weight: 600; color: var(--fg-color-primary-contrast); background: var(--fg-color-primary); border: none; border-radius: var(--fg-radius); cursor: pointer; }
+  .fg-file-input::file-selector-button:hover { opacity: 0.9; }
+  .fg-file-list { display: flex; flex-direction: column; gap: 0.375rem; margin: 0; padding: 0; list-style: none; }
+  .fg-file-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.5rem; font-size: 0.875rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
+  .fg-file-thumb { inline-size: 2.5rem; block-size: 2.5rem; object-fit: cover; border-radius: calc(var(--fg-radius) / 2); }
+  .fg-file-name { flex: 1; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fg-file-size { color: var(--fg-color-muted); font-size: 0.8125rem; }
+  .fg-file-remove { padding: 0 0.375rem; font-size: 1.125rem; line-height: 1; color: var(--fg-color-muted); background: none; border: none; cursor: pointer; }
+  .fg-file-remove:hover { color: var(--fg-color-error); }
   @media (prefers-color-scheme: dark) {
     .fg-form:not([data-fg-theme='light']) {
       --fg-color-bg: #0f172a; --fg-color-surface: #1e293b; --fg-color-text: #e2e8f0;
@@ -5170,6 +5994,14 @@ exports[`html target > snapshot (vanilla) 1`] = `
                 <label class="fg-label" for="fg_account_birthday">Birthday</label>
                 <input id="fg_account_birthday" type="date" class="fg-input" data-fg-path="account.birthday" data-fg-kind="text">
                 <p id="fg_err_account_birthday" class="fg-error" role="alert" hidden></p>
+              </div>
+            </div>
+            <div class="fg-cell" style="grid-column: span 12 / span 12">
+              <div class="fg-field">
+                <label class="fg-label" for="fg_account_avatar">Profile picture</label>
+                <input id="fg_account_avatar" type="file" class="fg-file-input" accept="image/*" data-fg-path="account.avatar" data-fg-kind="files" data-fg-thumbs>
+                <ul class="fg-file-list" data-fg-file-list="account.avatar" hidden></ul>
+                <p id="fg_err_account_avatar" class="fg-error" role="alert" hidden></p>
               </div>
             </div>
           </div>
@@ -5333,6 +6165,22 @@ exports[`html target > snapshot (vanilla) 1`] = `
         </fieldset>
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-field">
+          <label class="fg-label" for="fg_attachments">Attachments<span class="fg-required" aria-hidden="true">*</span></label>
+          <input id="fg_attachments" type="file" class="fg-file-input" accept=".pdf,.doc,.docx" multiple data-fg-path="attachments" data-fg-kind="files">
+          <ul class="fg-file-list" data-fg-file-list="attachments" hidden></ul>
+          <p class="fg-description">Up to 3 PDF or Word files, 5 MB each</p>
+          <p id="fg_err_attachments" class="fg-error" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12" data-fg-cond="0">
+        <div class="fg-field">
+          <label class="fg-label" for="fg_attachments_note">Notes about the attachments</label>
+          <textarea id="fg_attachments_note" class="fg-textarea" rows="3" data-fg-path="attachments_note" data-fg-kind="text"></textarea>
+          <p id="fg_err_attachments_note" class="fg-error" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
         <figure class="fg-quote">
           <blockquote class="fg-quote-text">
             <p>Forms are conversations.</p>
@@ -5355,14 +6203,14 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <p id="fg_err_contact_method" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12" data-fg-cond="0">
+      <div class="fg-cell" style="grid-column: span 12 / span 12" data-fg-cond="1">
         <div class="fg-field">
           <label class="fg-label" for="fg_contact_phone">Phone number</label>
           <input id="fg_contact_phone" type="tel" class="fg-input" data-fg-path="contact_phone" data-fg-kind="text">
           <p id="fg_err_contact_phone" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12" data-fg-cond="1">
+      <div class="fg-cell" style="grid-column: span 12 / span 12" data-fg-cond="2">
         <div class="fg-field">
           <label class="fg-label" for="fg_contact_other">Describe your preferred method</label>
           <textarea id="fg_contact_other" class="fg-textarea" rows="3" data-fg-path="contact_other" data-fg-kind="text"></textarea>
@@ -5479,6 +6327,50 @@ exports[`html target > snapshot (vanilla) 1`] = `
       if (Array.isArray(v)) return v.length
       return null
     }
+    function fgAccepts(file, accept) {
+      if (accept.trim() === '') return true
+      const name = file.name.toLowerCase()
+      const type = (file.type || '').toLowerCase()
+      return accept.split(',').map((token) => token.trim().toLowerCase()).filter(Boolean).some((token) =>
+        token.startsWith('.') ? name.endsWith(token) : token.endsWith('/*') ? type.startsWith(token.slice(0, -1)) : type === token,
+      )
+    }
+    function fgFileProblem(v, accept, maxMb, maxFiles, m) {
+      const files = Array.isArray(v) ? v.filter((f) => f instanceof File) : []
+      if (maxFiles > 0 && files.length > maxFiles) return m.tooMany
+      for (const file of files) {
+        if (!fgAccepts(file, accept)) return m.type.split('{name}').join(file.name)
+        if (maxMb > 0 && file.size > maxMb * 1024 * 1024) return m.size.split('{name}').join(file.name)
+      }
+      return null
+    }
+    function fgFileJson(_key, value) {
+      return value instanceof File ? { name: value.name, size: value.size, type: value.type } : value
+    }
+    function fgMultipart(payload) {
+      const files = []
+      const walk = (value, path) => {
+        if (value instanceof File) {
+          files.push({ path, file: value })
+          return fgFileJson('', value)
+        }
+        if (Array.isArray(value)) {
+          const fileList = value.length > 0 && value.every((v) => v instanceof File)
+          return value.map((v, i) => walk(v, fileList ? path : path + '.' + i))
+        }
+        if (value && typeof value === 'object') {
+          const out = {}
+          for (const [key, v] of Object.entries(value)) out[key] = walk(v, path ? path + '.' + key : key)
+          return out
+        }
+        return value
+      }
+      const data = walk(payload, '')
+      const body = new FormData()
+      body.append('data', JSON.stringify(data))
+      for (const part of files) body.append(part.path, part.file, part.file.name)
+      return body
+    }
 
     var fgTags = {}
     var fgTagsPaint = {}
@@ -5500,6 +6392,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
         return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }
       if (kind === 'tags') return (fgTags[path] || []).slice()
+      if (kind === 'files') return (fgFiles[path] || []).slice()
       if (kind === 'checks') {
         return Array.prototype.map.call(
           document.querySelectorAll('[data-fg-path="' + path + '"]:checked'),
@@ -5509,6 +6402,9 @@ exports[`html target > snapshot (vanilla) 1`] = `
       return el.value
     }
 
+    function fgVisible_attachments_note() {
+      return ((!fgIsBlank(fgGet("attachments"))))
+    }
     function fgVisible_contact_phone() {
       return ((fgGet("contact_method") === "phone"))
     }
@@ -5517,8 +6413,9 @@ exports[`html target > snapshot (vanilla) 1`] = `
     }
 
     var FG_CONDITIONS = [
-      { index: 0, test: function () { return (fgGet("contact_method") === "phone") } },
-      { index: 1, test: function () { return (fgGet("contact_method") === "other") } },
+      { index: 0, test: function () { return (!fgIsBlank(fgGet("attachments"))) } },
+      { index: 1, test: function () { return (fgGet("contact_method") === "phone") } },
+      { index: 2, test: function () { return (fgGet("contact_method") === "other") } },
     ]
 
     var FG_VALIDATORS = {
@@ -5561,6 +6458,11 @@ exports[`html target > snapshot (vanilla) 1`] = `
       if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 200)) return "Must be at most 200"
       return null
       },
+      'account.avatar': function () {
+      const v = fgGet("account.avatar")
+      { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
+      return null
+      },
       'plan': function () {
       const v = fgGet("plan")
       if (fgIsBlank(v)) return "This field is required"
@@ -5569,6 +6471,12 @@ exports[`html target > snapshot (vanilla) 1`] = `
       'topics': function () {
       const v = fgGet("topics")
       if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
+      return null
+      },
+      'attachments': function () {
+      const v = fgGet("attachments")
+      if (fgIsBlank(v)) return "This field is required"
+      { const problem = fgFileProblem(v, ".pdf,.doc,.docx", 5, 3, {"tooMany":"Choose at most 3 files","type":"{name} is not an accepted file type","size":"{name} is larger than 5 MB"}); if (problem) return problem }
       return null
       },
       'contact_method': function () {
@@ -5823,6 +6731,68 @@ exports[`html target > snapshot (vanilla) 1`] = `
       })
     })
 
+    var fgFiles = {}
+    var FG_FILE_MULTIPLE = {"account.avatar":false,"attachments":true}
+    function fgFileSize(bytes) {
+      return bytes >= 1024 * 1024 ? (bytes / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB'
+    }
+    function fgPaintFiles(path) {
+      var list = document.querySelector('[data-fg-file-list="' + path + '"]')
+      var input = fgControl(path)
+      if (!list || !input) return
+      Array.prototype.forEach.call(list.querySelectorAll('img'), function (img) { URL.revokeObjectURL(img.src) })
+      list.textContent = ''
+      list.hidden = fgFiles[path].length === 0
+      fgFiles[path].forEach(function (file, index) {
+        var item = document.createElement('li')
+        item.className = "fg-file-item"
+        if (input.hasAttribute('data-fg-thumbs') && file.type.indexOf('image/') === 0) {
+          var img = document.createElement('img')
+          img.className = "fg-file-thumb"
+          img.src = URL.createObjectURL(file)
+          img.alt = ''
+          img.width = 40
+          img.height = 40
+          item.appendChild(img)
+        }
+        var name = document.createElement('span')
+        name.className = "fg-file-name"
+        name.textContent = file.name
+        var size = document.createElement('span')
+        size.className = "fg-file-size"
+        size.textContent = fgFileSize(file.size)
+        var remove = document.createElement('button')
+        remove.type = 'button'
+        remove.className = "fg-file-remove"
+        remove.textContent = '\\u00d7'
+        remove.setAttribute('aria-label', "Remove {name}".split('{name}').join(file.name))
+        remove.addEventListener('click', function () {
+          fgFiles[path].splice(index, 1)
+          fgPaintFiles(path)
+          touched[path] = true
+          validateField(path)
+          updateConditions()
+        })
+        item.appendChild(name)
+        item.appendChild(size)
+        item.appendChild(remove)
+        list.appendChild(item)
+      })
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="files"]'), function (input) {
+      var path = input.getAttribute('data-fg-path')
+      fgFiles[path] = []
+      input.addEventListener('change', function () {
+        var picked = Array.prototype.slice.call(input.files || [])
+        input.value = ''
+        if (picked.length === 0) return
+        fgFiles[path] = FG_FILE_MULTIPLE[path] ? fgFiles[path].concat(picked) : picked.slice(0, 1)
+        fgPaintFiles(path)
+        touched[path] = true
+        validateField(path)
+      })
+    })
+
     // Polite aria-live region; cleared first so repeated text re-announces.
     function fgAnnounce(message) {
       var live = document.getElementById('fg-live')
@@ -5918,6 +6888,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           "password": fgGet("account.password"),
           "bio": fgGet("account.bio"),
           "birthday": fgGet("account.birthday"),
+          "avatar": fgGet("account.avatar"),
         },
         "plan": fgGet("plan"),
         "interests": fgGet("interests"),
@@ -5931,6 +6902,8 @@ exports[`html target > snapshot (vanilla) 1`] = `
         "volume": fgGet("volume"),
         "source": fgGet("source"),
         "references": fgItemIndexes("references").map(function (i) { return ({ "name": fgGet("references." + i + ".name"), "may_contact": fgGet("references." + i + ".may_contact"), ...((fgGet("references." + i + ".may_contact") === true) ? { "email": fgGet("references." + i + ".email") } : {}) }) }),
+        "attachments": fgGet("attachments"),
+        ...(fgVisible_attachments_note() ? { "attachments_note": fgGet("attachments_note") } : {}),
         "contact_method": fgGet("contact_method"),
         ...(fgVisible_contact_phone() ? { "contact_phone": fgGet("contact_phone") } : {}),
         ...(fgVisible_contact_other() ? { "contact_other": fgGet("contact_other") } : {}),
@@ -5992,6 +6965,10 @@ exports[`html target > snapshot (vanilla) 1`] = `
           fgTags[path] = []
           if (fgTagsPaint[path]) fgTagsPaint[path]()
         })
+        Object.keys(fgFiles).forEach(function (path) {
+          fgFiles[path] = []
+          fgPaintFiles(path)
+        })
         Object.keys(touched).forEach(function (path) { delete touched[path] })
         Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })
         Object.keys(FG_REPEATERS).forEach(function (path) {
@@ -6026,7 +7003,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
       }
       var data = buildPayload()
       var out = document.getElementById('fg-result')
-      out.textContent = JSON.stringify(data, null, 2)
+      out.textContent = JSON.stringify(data, fgFileJson, 2)
       out.hidden = false
       fgAnnounce("Form submitted.")
       console.log('Form submitted', data)
@@ -6061,6 +7038,50 @@ function fgSize(v: unknown): number | null {
   if (Array.isArray(v)) return v.length
   return null
 }
+function fgAccepts(file: File, accept: string): boolean {
+  if (accept.trim() === '') return true
+  const name = file.name.toLowerCase()
+  const type = (file.type || '').toLowerCase()
+  return accept.split(',').map((token) => token.trim().toLowerCase()).filter(Boolean).some((token) =>
+    token.startsWith('.') ? name.endsWith(token) : token.endsWith('/*') ? type.startsWith(token.slice(0, -1)) : type === token,
+  )
+}
+function fgFileProblem(v: unknown, accept: string, maxMb: number, maxFiles: number, m: { tooMany: string; type: string; size: string }): string | null {
+  const files = Array.isArray(v) ? v.filter((f) => f instanceof File) as File[] : []
+  if (maxFiles > 0 && files.length > maxFiles) return m.tooMany
+  for (const file of files) {
+    if (!fgAccepts(file, accept)) return m.type.split('{name}').join(file.name)
+    if (maxMb > 0 && file.size > maxMb * 1024 * 1024) return m.size.split('{name}').join(file.name)
+  }
+  return null
+}
+function fgFileJson(_key: string, value: unknown): unknown {
+  return value instanceof File ? { name: value.name, size: value.size, type: value.type } : value
+}
+function fgMultipart(payload: Record<string, unknown>) {
+  const files: { path: string; file: File }[] = []
+  const walk = (value: unknown, path: string): unknown => {
+    if (value instanceof File) {
+      files.push({ path, file: value })
+      return fgFileJson('', value)
+    }
+    if (Array.isArray(value)) {
+      const fileList = value.length > 0 && value.every((v) => v instanceof File)
+      return value.map((v, i) => walk(v, fileList ? path : path + '.' + i))
+    }
+    if (value && typeof value === 'object') {
+      const out: Record<string, unknown> = {}
+      for (const [key, v] of Object.entries(value)) out[key] = walk(v, path ? path + '.' + key : key)
+      return out
+    }
+    return value
+  }
+  const data = walk(payload, '')
+  const body = new FormData()
+  body.append('data', JSON.stringify(data))
+  for (const part of files) body.append(part.path, part.file, part.file.name)
+  return body
+}
 
 type FormData = {
   full_name: string
@@ -6075,6 +7096,7 @@ type FormData = {
     password: string
     bio: string
     birthday: string
+    avatar: File[]
   }
   plan: string | null
   interests: string[]
@@ -6087,6 +7109,8 @@ type FormData = {
   brand_color: string
   volume: number
   source: string
+  attachments: File[]
+  attachments_note: string
   contact_method: string | null
   contact_phone: string
   contact_other: string
@@ -6115,7 +7139,8 @@ const INITIAL: FormData = {
     username: "",
     password: "",
     bio: "",
-    birthday: ""
+    birthday: "",
+    avatar: []
   },
   plan: null,
   interests: [],
@@ -6128,6 +7153,8 @@ const INITIAL: FormData = {
   brand_color: "#000000",
   volume: 0,
   source: "kitchen-sink",
+  attachments: [],
+  attachments_note: "",
   contact_method: null,
   contact_phone: "",
   contact_other: "",
@@ -6144,6 +7171,9 @@ const INITIAL: FormData = {
   }]
 }
 
+function fgVisible_attachments_note(data: FormData) {
+  return ((!fgIsBlank(data.attachments)))
+}
 function fgVisible_contact_phone(data: FormData) {
   return ((data.contact_method === "phone"))
 }
@@ -6191,6 +7221,11 @@ const validators: Record<string, (data: FormData) => string | null> = {
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 200)) return "Must be at most 200"
   return null
   },
+  'account.avatar': function (data: FormData) {
+  const v = data.account.avatar
+  { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
+  return null
+  },
   'plan': function (data: FormData) {
   const v = data.plan
   if (fgIsBlank(v)) return "This field is required"
@@ -6199,6 +7234,12 @@ const validators: Record<string, (data: FormData) => string | null> = {
   'topics': function (data: FormData) {
   const v = data.topics
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
+  return null
+  },
+  'attachments': function (data: FormData) {
+  const v = data.attachments
+  if (fgIsBlank(v)) return "This field is required"
+  { const problem = fgFileProblem(v, ".pdf,.doc,.docx", 5, 3, {"tooMany":"Choose at most 3 files","type":"{name} is not an accepted file type","size":"{name} is larger than 5 MB"}); if (problem) return problem }
   return null
   },
   'contact_method': function (data: FormData) {
@@ -6232,6 +7273,7 @@ function buildPayload(data: FormData): Record<string, unknown> {
       "password": data.account.password,
       "bio": data.account.bio,
       "birthday": data.account.birthday,
+      "avatar": data.account.avatar,
     },
     "plan": data.plan,
     "interests": data.interests,
@@ -6245,6 +7287,8 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "volume": data.volume,
     "source": data.source,
     "references": data.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}) })),
+    "attachments": data.attachments,
+    ...(fgVisible_attachments_note(data) ? { "attachments_note": data.attachments_note } : {}),
     "contact_method": data.contact_method,
     ...(fgVisible_contact_phone(data) ? { "contact_phone": data.contact_phone } : {}),
     ...(fgVisible_contact_other(data) ? { "contact_other": data.contact_other } : {}),
@@ -6340,6 +7384,33 @@ function fgShiftKey(key: string, path: string, removed: number): string | null {
   if (!Number.isInteger(index)) return key
   if (index === removed) return null
   return index > removed ? \`\${path}.\${index - 1}\${dot === -1 ? '' : rest.slice(dot)}\` : key
+}
+
+const fgThumbs = new WeakMap<File, string>()
+function fgThumb(file: File): string {
+  let url = fgThumbs.get(file)
+  if (!url) {
+    url = URL.createObjectURL(file)
+    fgThumbs.set(file, url)
+  }
+  return url
+}
+function fgReleaseThumb(file: File): void {
+  const url = fgThumbs.get(file)
+  if (url) URL.revokeObjectURL(url)
+  fgThumbs.delete(file)
+}
+function fgFileSize(bytes: number): string {
+  return bytes >= 1024 * 1024 ? (bytes / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB'
+}
+function fgRemoveFileLabel(name: string): string {
+  return "Remove {name}".split('{name}').join(name)
+}
+
+const FG_FILE_MULTIPLE: Record<string, boolean> = { 'account.avatar': false, 'attachments': true }
+
+function fgFileList(data: FormData, path: string): File[] {
+  return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], data) as File[]
 }
 
 const fgSecPaths_ks_social_tabs = [["twitter"], ["github"]]
@@ -6470,6 +7541,22 @@ export default function KitchenSinkForm({
 
   function fgRemoveTag(path: string, current: string[], index: number): void {
     setField(path, current.filter((_, i) => i !== index))
+  }
+
+  function fgPickFiles(path: string, input: HTMLInputElement): void {
+    const picked = Array.from(input.files ?? [])
+    input.value = ''
+    if (picked.length === 0) return
+    touched.current.add(path)
+    setField(path, FG_FILE_MULTIPLE[path] ? [...fgFileList(form, path), ...picked] : picked.slice(0, 1))
+  }
+
+  function fgRemoveFile(path: string, index: number): void {
+    const list = fgFileList(form, path)
+    const file = list[index]
+    if (file) fgReleaseThumb(file)
+    touched.current.add(path)
+    setField(path, list.filter((_, i) => i !== index))
   }
 
   function fgKeyAt(path: string, index: number): number {
@@ -6661,6 +7748,25 @@ export default function KitchenSinkForm({
                   {errors['account.birthday'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['account.birthday']}</p>}
                 </div>
               </div>
+              <div className="col-12 col-md-12">
+                <div className="d-flex flex-column gap-1">
+                  <label className="form-label fw-semibold mb-0" htmlFor="fg_account_avatar">Profile picture</label>
+                  <input id="fg_account_avatar" type="file" className="form-control" accept="image/*" aria-invalid={errors['account.avatar'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('account.avatar', e.target)} />
+                  {form.account.avatar.length > 0 && (
+                    <ul className="list-group mt-2">
+                      {form.account.avatar.map((file, fi) => (
+                        <li key={fi} className="list-group-item d-flex align-items-center gap-2">
+                        {file.type.startsWith('image/') && <img className="rounded object-fit-cover" src={fgThumb(file)} alt="" width={40} height={40} />}
+                          <span className="flex-grow-1 text-truncate">{file.name}</span>
+                          <span className="text-body-secondary small">{fgFileSize(file.size)}</span>
+                          <button type="button" className="btn btn-sm btn-link link-danger p-0 text-decoration-none fs-5 lh-1" aria-label={fgRemoveFileLabel(file.name)} onClick={() => fgRemoveFile('account.avatar', fi)}>×</button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {errors['account.avatar'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['account.avatar']}</p>}
+                </div>
+              </div>
             </div>
           </fieldset>
         </div>
@@ -6827,6 +7933,34 @@ export default function KitchenSinkForm({
           </fieldset>
         </div>
         <div className="col-12 col-md-12">
+          <div className="d-flex flex-column gap-1">
+            <label className="form-label fw-semibold mb-0" htmlFor="fg_attachments">Attachments<span className="text-danger ms-1" aria-hidden="true">*</span></label>
+            <input id="fg_attachments" type="file" className="form-control" accept=".pdf,.doc,.docx" multiple aria-invalid={errors['attachments'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('attachments', e.target)} />
+            {form.attachments.length > 0 && (
+              <ul className="list-group mt-2">
+                {form.attachments.map((file, fi) => (
+                  <li key={fi} className="list-group-item d-flex align-items-center gap-2">
+                    <span className="flex-grow-1 text-truncate">{file.name}</span>
+                    <span className="text-body-secondary small">{fgFileSize(file.size)}</span>
+                    <button type="button" className="btn btn-sm btn-link link-danger p-0 text-decoration-none fs-5 lh-1" aria-label={fgRemoveFileLabel(file.name)} onClick={() => fgRemoveFile('attachments', fi)}>×</button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="form-text mt-0">Up to 3 PDF or Word files, 5 MB each</p>
+            {errors['attachments'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['attachments']}</p>}
+          </div>
+        </div>
+        {((!fgIsBlank(form.attachments))) && (
+          <div className="col-12 col-md-12">
+            <div className="d-flex flex-column gap-1">
+              <label className="form-label fw-semibold mb-0" htmlFor="fg_attachments_note">Notes about the attachments</label>
+              <textarea id="fg_attachments_note" rows={3} value={form.attachments_note} className={errors['attachments_note'] ? "form-control is-invalid" : "form-control"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('attachments_note', e.target.value)} onBlur={() => touch('attachments_note')} />
+              {errors['attachments_note'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['attachments_note']}</p>}
+            </div>
+          </div>
+        )}
+        <div className="col-12 col-md-12">
           <figure className="mb-0">
             <blockquote className="blockquote">
               <p>Forms are conversations.</p>
@@ -6955,7 +8089,7 @@ export default function KitchenSinkForm({
         </div>
       </div>
       <div className="visually-hidden" role="status" aria-live="polite" aria-atomic="true">{fgAnnouncement}</div>
-      {result && <pre className="mt-3 p-3 bg-dark text-success rounded small overflow-auto">{JSON.stringify(result, null, 2)}</pre>}
+      {result && <pre className="mt-3 p-3 bg-dark text-success rounded small overflow-auto">{JSON.stringify(result, fgFileJson, 2)}</pre>}
     </form>
   )
 }
@@ -6983,6 +8117,50 @@ function fgSize(v: unknown): number | null {
   if (Array.isArray(v)) return v.length
   return null
 }
+function fgAccepts(file: File, accept: string): boolean {
+  if (accept.trim() === '') return true
+  const name = file.name.toLowerCase()
+  const type = (file.type || '').toLowerCase()
+  return accept.split(',').map((token) => token.trim().toLowerCase()).filter(Boolean).some((token) =>
+    token.startsWith('.') ? name.endsWith(token) : token.endsWith('/*') ? type.startsWith(token.slice(0, -1)) : type === token,
+  )
+}
+function fgFileProblem(v: unknown, accept: string, maxMb: number, maxFiles: number, m: { tooMany: string; type: string; size: string }): string | null {
+  const files = Array.isArray(v) ? v.filter((f) => f instanceof File) as File[] : []
+  if (maxFiles > 0 && files.length > maxFiles) return m.tooMany
+  for (const file of files) {
+    if (!fgAccepts(file, accept)) return m.type.split('{name}').join(file.name)
+    if (maxMb > 0 && file.size > maxMb * 1024 * 1024) return m.size.split('{name}').join(file.name)
+  }
+  return null
+}
+function fgFileJson(_key: string, value: unknown): unknown {
+  return value instanceof File ? { name: value.name, size: value.size, type: value.type } : value
+}
+function fgMultipart(payload: Record<string, unknown>) {
+  const files: { path: string; file: File }[] = []
+  const walk = (value: unknown, path: string): unknown => {
+    if (value instanceof File) {
+      files.push({ path, file: value })
+      return fgFileJson('', value)
+    }
+    if (Array.isArray(value)) {
+      const fileList = value.length > 0 && value.every((v) => v instanceof File)
+      return value.map((v, i) => walk(v, fileList ? path : path + '.' + i))
+    }
+    if (value && typeof value === 'object') {
+      const out: Record<string, unknown> = {}
+      for (const [key, v] of Object.entries(value)) out[key] = walk(v, path ? path + '.' + key : key)
+      return out
+    }
+    return value
+  }
+  const data = walk(payload, '')
+  const body = new FormData()
+  body.append('data', JSON.stringify(data))
+  for (const part of files) body.append(part.path, part.file, part.file.name)
+  return body
+}
 
 type FormData = {
   full_name: string
@@ -6997,6 +8175,7 @@ type FormData = {
     password: string
     bio: string
     birthday: string
+    avatar: File[]
   }
   plan: string | null
   interests: string[]
@@ -7009,6 +8188,8 @@ type FormData = {
   brand_color: string
   volume: number
   source: string
+  attachments: File[]
+  attachments_note: string
   contact_method: string | null
   contact_phone: string
   contact_other: string
@@ -7037,7 +8218,8 @@ const INITIAL: FormData = {
     username: "",
     password: "",
     bio: "",
-    birthday: ""
+    birthday: "",
+    avatar: []
   },
   plan: null,
   interests: [],
@@ -7050,6 +8232,8 @@ const INITIAL: FormData = {
   brand_color: "#000000",
   volume: 0,
   source: "kitchen-sink",
+  attachments: [],
+  attachments_note: "",
   contact_method: null,
   contact_phone: "",
   contact_other: "",
@@ -7066,6 +8250,9 @@ const INITIAL: FormData = {
   }]
 }
 
+function fgVisible_attachments_note(data: FormData) {
+  return ((!fgIsBlank(data.attachments)))
+}
 function fgVisible_contact_phone(data: FormData) {
   return ((data.contact_method === "phone"))
 }
@@ -7113,6 +8300,11 @@ const validators: Record<string, (data: FormData) => string | null> = {
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 200)) return "Must be at most 200"
   return null
   },
+  'account.avatar': function (data: FormData) {
+  const v = data.account.avatar
+  { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
+  return null
+  },
   'plan': function (data: FormData) {
   const v = data.plan
   if (fgIsBlank(v)) return "This field is required"
@@ -7121,6 +8313,12 @@ const validators: Record<string, (data: FormData) => string | null> = {
   'topics': function (data: FormData) {
   const v = data.topics
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
+  return null
+  },
+  'attachments': function (data: FormData) {
+  const v = data.attachments
+  if (fgIsBlank(v)) return "This field is required"
+  { const problem = fgFileProblem(v, ".pdf,.doc,.docx", 5, 3, {"tooMany":"Choose at most 3 files","type":"{name} is not an accepted file type","size":"{name} is larger than 5 MB"}); if (problem) return problem }
   return null
   },
   'contact_method': function (data: FormData) {
@@ -7154,6 +8352,7 @@ function buildPayload(data: FormData): Record<string, unknown> {
       "password": data.account.password,
       "bio": data.account.bio,
       "birthday": data.account.birthday,
+      "avatar": data.account.avatar,
     },
     "plan": data.plan,
     "interests": data.interests,
@@ -7167,6 +8366,8 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "volume": data.volume,
     "source": data.source,
     "references": data.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}) })),
+    "attachments": data.attachments,
+    ...(fgVisible_attachments_note(data) ? { "attachments_note": data.attachments_note } : {}),
     "contact_method": data.contact_method,
     ...(fgVisible_contact_phone(data) ? { "contact_phone": data.contact_phone } : {}),
     ...(fgVisible_contact_other(data) ? { "contact_other": data.contact_other } : {}),
@@ -7262,6 +8463,33 @@ function fgShiftKey(key: string, path: string, removed: number): string | null {
   if (!Number.isInteger(index)) return key
   if (index === removed) return null
   return index > removed ? \`\${path}.\${index - 1}\${dot === -1 ? '' : rest.slice(dot)}\` : key
+}
+
+const fgThumbs = new WeakMap<File, string>()
+function fgThumb(file: File): string {
+  let url = fgThumbs.get(file)
+  if (!url) {
+    url = URL.createObjectURL(file)
+    fgThumbs.set(file, url)
+  }
+  return url
+}
+function fgReleaseThumb(file: File): void {
+  const url = fgThumbs.get(file)
+  if (url) URL.revokeObjectURL(url)
+  fgThumbs.delete(file)
+}
+function fgFileSize(bytes: number): string {
+  return bytes >= 1024 * 1024 ? (bytes / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB'
+}
+function fgRemoveFileLabel(name: string): string {
+  return "Remove {name}".split('{name}').join(name)
+}
+
+const FG_FILE_MULTIPLE: Record<string, boolean> = { 'account.avatar': false, 'attachments': true }
+
+function fgFileList(data: FormData, path: string): File[] {
+  return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], data) as File[]
 }
 
 const fgSecPaths_ks_social_tabs = [["twitter"], ["github"]]
@@ -7392,6 +8620,22 @@ export default function KitchenSinkForm({
 
   function fgRemoveTag(path: string, current: string[], index: number): void {
     setField(path, current.filter((_, i) => i !== index))
+  }
+
+  function fgPickFiles(path: string, input: HTMLInputElement): void {
+    const picked = Array.from(input.files ?? [])
+    input.value = ''
+    if (picked.length === 0) return
+    touched.current.add(path)
+    setField(path, FG_FILE_MULTIPLE[path] ? [...fgFileList(form, path), ...picked] : picked.slice(0, 1))
+  }
+
+  function fgRemoveFile(path: string, index: number): void {
+    const list = fgFileList(form, path)
+    const file = list[index]
+    if (file) fgReleaseThumb(file)
+    touched.current.add(path)
+    setField(path, list.filter((_, i) => i !== index))
   }
 
   function fgKeyAt(path: string, index: number): number {
@@ -7583,6 +8827,25 @@ export default function KitchenSinkForm({
                   {errors['account.birthday'] && <p className="text-xs text-red-600" role="alert">{errors['account.birthday']}</p>}
                 </div>
               </div>
+              <div className="col-span-12 md:col-span-12">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-semibold" htmlFor="fg_account_avatar">Profile picture</label>
+                  <input id="fg_account_avatar" type="file" className="block w-full text-sm file:me-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-indigo-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" accept="image/*" aria-invalid={errors['account.avatar'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('account.avatar', e.target)} />
+                  {form.account.avatar.length > 0 && (
+                    <ul className="flex flex-col gap-1.5">
+                      {form.account.avatar.map((file, fi) => (
+                        <li key={fi} className="flex items-center gap-2 rounded-md border border-gray-300 bg-gray-50 px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800/50">
+                        {file.type.startsWith('image/') && <img className="h-10 w-10 rounded object-cover" src={fgThumb(file)} alt="" width={40} height={40} />}
+                          <span className="min-w-0 flex-1 truncate">{file.name}</span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">{fgFileSize(file.size)}</span>
+                          <button type="button" className="px-1.5 text-lg leading-none text-gray-500 hover:text-red-600" aria-label={fgRemoveFileLabel(file.name)} onClick={() => fgRemoveFile('account.avatar', fi)}>×</button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {errors['account.avatar'] && <p className="text-xs text-red-600" role="alert">{errors['account.avatar']}</p>}
+                </div>
+              </div>
             </div>
           </fieldset>
         </div>
@@ -7757,6 +9020,34 @@ export default function KitchenSinkForm({
           </fieldset>
         </div>
         <div className="col-span-12 md:col-span-12">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold" htmlFor="fg_attachments">Attachments<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+            <input id="fg_attachments" type="file" className="block w-full text-sm file:me-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-indigo-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" accept=".pdf,.doc,.docx" multiple aria-invalid={errors['attachments'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('attachments', e.target)} />
+            {form.attachments.length > 0 && (
+              <ul className="flex flex-col gap-1.5">
+                {form.attachments.map((file, fi) => (
+                  <li key={fi} className="flex items-center gap-2 rounded-md border border-gray-300 bg-gray-50 px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800/50">
+                    <span className="min-w-0 flex-1 truncate">{file.name}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{fgFileSize(file.size)}</span>
+                    <button type="button" className="px-1.5 text-lg leading-none text-gray-500 hover:text-red-600" aria-label={fgRemoveFileLabel(file.name)} onClick={() => fgRemoveFile('attachments', fi)}>×</button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="text-xs text-gray-500 dark:text-gray-400">Up to 3 PDF or Word files, 5 MB each</p>
+            {errors['attachments'] && <p className="text-xs text-red-600" role="alert">{errors['attachments']}</p>}
+          </div>
+        </div>
+        {((!fgIsBlank(form.attachments))) && (
+          <div className="col-span-12 md:col-span-12">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold" htmlFor="fg_attachments_note">Notes about the attachments</label>
+              <textarea id="fg_attachments_note" rows={3} value={form.attachments_note} className={errors['attachments_note'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('attachments_note', e.target.value)} onBlur={() => touch('attachments_note')} />
+              {errors['attachments_note'] && <p className="text-xs text-red-600" role="alert">{errors['attachments_note']}</p>}
+            </div>
+          </div>
+        )}
+        <div className="col-span-12 md:col-span-12">
           <figure className="border-s-4 border-gray-300 ps-4 dark:border-gray-600">
             <blockquote className="text-base italic">
               <p>Forms are conversations.</p>
@@ -7885,7 +9176,7 @@ export default function KitchenSinkForm({
         </div>
       </div>
       <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">{fgAnnouncement}</div>
-      {result && <pre className="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300">{JSON.stringify(result, null, 2)}</pre>}
+      {result && <pre className="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300">{JSON.stringify(result, fgFileJson, 2)}</pre>}
     </form>
   )
 }
@@ -7914,6 +9205,50 @@ function fgSize(v: unknown): number | null {
   if (Array.isArray(v)) return v.length
   return null
 }
+function fgAccepts(file: File, accept: string): boolean {
+  if (accept.trim() === '') return true
+  const name = file.name.toLowerCase()
+  const type = (file.type || '').toLowerCase()
+  return accept.split(',').map((token) => token.trim().toLowerCase()).filter(Boolean).some((token) =>
+    token.startsWith('.') ? name.endsWith(token) : token.endsWith('/*') ? type.startsWith(token.slice(0, -1)) : type === token,
+  )
+}
+function fgFileProblem(v: unknown, accept: string, maxMb: number, maxFiles: number, m: { tooMany: string; type: string; size: string }): string | null {
+  const files = Array.isArray(v) ? v.filter((f) => f instanceof File) as File[] : []
+  if (maxFiles > 0 && files.length > maxFiles) return m.tooMany
+  for (const file of files) {
+    if (!fgAccepts(file, accept)) return m.type.split('{name}').join(file.name)
+    if (maxMb > 0 && file.size > maxMb * 1024 * 1024) return m.size.split('{name}').join(file.name)
+  }
+  return null
+}
+function fgFileJson(_key: string, value: unknown): unknown {
+  return value instanceof File ? { name: value.name, size: value.size, type: value.type } : value
+}
+function fgMultipart(payload: Record<string, unknown>) {
+  const files: { path: string; file: File }[] = []
+  const walk = (value: unknown, path: string): unknown => {
+    if (value instanceof File) {
+      files.push({ path, file: value })
+      return fgFileJson('', value)
+    }
+    if (Array.isArray(value)) {
+      const fileList = value.length > 0 && value.every((v) => v instanceof File)
+      return value.map((v, i) => walk(v, fileList ? path : path + '.' + i))
+    }
+    if (value && typeof value === 'object') {
+      const out: Record<string, unknown> = {}
+      for (const [key, v] of Object.entries(value)) out[key] = walk(v, path ? path + '.' + key : key)
+      return out
+    }
+    return value
+  }
+  const data = walk(payload, '')
+  const body = new FormData()
+  body.append('data', JSON.stringify(data))
+  for (const part of files) body.append(part.path, part.file, part.file.name)
+  return body
+}
 
 type FormData = {
   full_name: string
@@ -7928,6 +9263,7 @@ type FormData = {
     password: string
     bio: string
     birthday: string
+    avatar: File[]
   }
   plan: string | null
   interests: string[]
@@ -7940,6 +9276,8 @@ type FormData = {
   brand_color: string
   volume: number
   source: string
+  attachments: File[]
+  attachments_note: string
   contact_method: string | null
   contact_phone: string
   contact_other: string
@@ -7968,7 +9306,8 @@ const INITIAL: FormData = {
     username: "",
     password: "",
     bio: "",
-    birthday: ""
+    birthday: "",
+    avatar: []
   },
   plan: null,
   interests: [],
@@ -7981,6 +9320,8 @@ const INITIAL: FormData = {
   brand_color: "#000000",
   volume: 0,
   source: "kitchen-sink",
+  attachments: [],
+  attachments_note: "",
   contact_method: null,
   contact_phone: "",
   contact_other: "",
@@ -7997,6 +9338,9 @@ const INITIAL: FormData = {
   }]
 }
 
+function fgVisible_attachments_note(data: FormData) {
+  return ((!fgIsBlank(data.attachments)))
+}
 function fgVisible_contact_phone(data: FormData) {
   return ((data.contact_method === "phone"))
 }
@@ -8044,6 +9388,11 @@ const validators: Record<string, (data: FormData) => string | null> = {
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 200)) return "Must be at most 200"
   return null
   },
+  'account.avatar': function (data: FormData) {
+  const v = data.account.avatar
+  { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
+  return null
+  },
   'plan': function (data: FormData) {
   const v = data.plan
   if (fgIsBlank(v)) return "This field is required"
@@ -8052,6 +9401,12 @@ const validators: Record<string, (data: FormData) => string | null> = {
   'topics': function (data: FormData) {
   const v = data.topics
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
+  return null
+  },
+  'attachments': function (data: FormData) {
+  const v = data.attachments
+  if (fgIsBlank(v)) return "This field is required"
+  { const problem = fgFileProblem(v, ".pdf,.doc,.docx", 5, 3, {"tooMany":"Choose at most 3 files","type":"{name} is not an accepted file type","size":"{name} is larger than 5 MB"}); if (problem) return problem }
   return null
   },
   'contact_method': function (data: FormData) {
@@ -8085,6 +9440,7 @@ function buildPayload(data: FormData): Record<string, unknown> {
       "password": data.account.password,
       "bio": data.account.bio,
       "birthday": data.account.birthday,
+      "avatar": data.account.avatar,
     },
     "plan": data.plan,
     "interests": data.interests,
@@ -8098,6 +9454,8 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "volume": data.volume,
     "source": data.source,
     "references": data.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}) })),
+    "attachments": data.attachments,
+    ...(fgVisible_attachments_note(data) ? { "attachments_note": data.attachments_note } : {}),
     "contact_method": data.contact_method,
     ...(fgVisible_contact_phone(data) ? { "contact_phone": data.contact_phone } : {}),
     ...(fgVisible_contact_other(data) ? { "contact_other": data.contact_other } : {}),
@@ -8193,6 +9551,33 @@ function fgShiftKey(key: string, path: string, removed: number): string | null {
   if (!Number.isInteger(index)) return key
   if (index === removed) return null
   return index > removed ? \`\${path}.\${index - 1}\${dot === -1 ? '' : rest.slice(dot)}\` : key
+}
+
+const fgThumbs = new WeakMap<File, string>()
+function fgThumb(file: File): string {
+  let url = fgThumbs.get(file)
+  if (!url) {
+    url = URL.createObjectURL(file)
+    fgThumbs.set(file, url)
+  }
+  return url
+}
+function fgReleaseThumb(file: File): void {
+  const url = fgThumbs.get(file)
+  if (url) URL.revokeObjectURL(url)
+  fgThumbs.delete(file)
+}
+function fgFileSize(bytes: number): string {
+  return bytes >= 1024 * 1024 ? (bytes / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB'
+}
+function fgRemoveFileLabel(name: string): string {
+  return "Remove {name}".split('{name}').join(name)
+}
+
+const FG_FILE_MULTIPLE: Record<string, boolean> = { 'account.avatar': false, 'attachments': true }
+
+function fgFileList(data: FormData, path: string): File[] {
+  return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], data) as File[]
 }
 
 const fgSecPaths_ks_social_tabs = [["twitter"], ["github"]]
@@ -8323,6 +9708,22 @@ export default function KitchenSinkForm({
 
   function fgRemoveTag(path: string, current: string[], index: number): void {
     setField(path, current.filter((_, i) => i !== index))
+  }
+
+  function fgPickFiles(path: string, input: HTMLInputElement): void {
+    const picked = Array.from(input.files ?? [])
+    input.value = ''
+    if (picked.length === 0) return
+    touched.current.add(path)
+    setField(path, FG_FILE_MULTIPLE[path] ? [...fgFileList(form, path), ...picked] : picked.slice(0, 1))
+  }
+
+  function fgRemoveFile(path: string, index: number): void {
+    const list = fgFileList(form, path)
+    const file = list[index]
+    if (file) fgReleaseThumb(file)
+    touched.current.add(path)
+    setField(path, list.filter((_, i) => i !== index))
   }
 
   function fgKeyAt(path: string, index: number): number {
@@ -8514,6 +9915,25 @@ export default function KitchenSinkForm({
                   {errors['account.birthday'] && <p className="fg-error" role="alert">{errors['account.birthday']}</p>}
                 </div>
               </div>
+              <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+                <div className="fg-field">
+                  <label className="fg-label" htmlFor="fg_account_avatar">Profile picture</label>
+                  <input id="fg_account_avatar" type="file" className="fg-file-input" accept="image/*" aria-invalid={errors['account.avatar'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('account.avatar', e.target)} />
+                  {form.account.avatar.length > 0 && (
+                    <ul className="fg-file-list">
+                      {form.account.avatar.map((file, fi) => (
+                        <li key={fi} className="fg-file-item">
+                        {file.type.startsWith('image/') && <img className="fg-file-thumb" src={fgThumb(file)} alt="" width={40} height={40} />}
+                          <span className="fg-file-name">{file.name}</span>
+                          <span className="fg-file-size">{fgFileSize(file.size)}</span>
+                          <button type="button" className="fg-file-remove" aria-label={fgRemoveFileLabel(file.name)} onClick={() => fgRemoveFile('account.avatar', fi)}>×</button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {errors['account.avatar'] && <p className="fg-error" role="alert">{errors['account.avatar']}</p>}
+                </div>
+              </div>
             </div>
           </fieldset>
         </div>
@@ -8688,6 +10108,34 @@ export default function KitchenSinkForm({
           </fieldset>
         </div>
         <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+          <div className="fg-field">
+            <label className="fg-label" htmlFor="fg_attachments">Attachments<span className="fg-required" aria-hidden="true">*</span></label>
+            <input id="fg_attachments" type="file" className="fg-file-input" accept=".pdf,.doc,.docx" multiple aria-invalid={errors['attachments'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('attachments', e.target)} />
+            {form.attachments.length > 0 && (
+              <ul className="fg-file-list">
+                {form.attachments.map((file, fi) => (
+                  <li key={fi} className="fg-file-item">
+                    <span className="fg-file-name">{file.name}</span>
+                    <span className="fg-file-size">{fgFileSize(file.size)}</span>
+                    <button type="button" className="fg-file-remove" aria-label={fgRemoveFileLabel(file.name)} onClick={() => fgRemoveFile('attachments', fi)}>×</button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="fg-description">Up to 3 PDF or Word files, 5 MB each</p>
+            {errors['attachments'] && <p className="fg-error" role="alert">{errors['attachments']}</p>}
+          </div>
+        </div>
+        {((!fgIsBlank(form.attachments))) && (
+          <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+            <div className="fg-field">
+              <label className="fg-label" htmlFor="fg_attachments_note">Notes about the attachments</label>
+              <textarea id="fg_attachments_note" rows={3} value={form.attachments_note} className={errors['attachments_note'] ? "fg-textarea fg-invalid" : "fg-textarea"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('attachments_note', e.target.value)} onBlur={() => touch('attachments_note')} />
+              {errors['attachments_note'] && <p className="fg-error" role="alert">{errors['attachments_note']}</p>}
+            </div>
+          </div>
+        )}
+        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
           <figure className="fg-quote">
             <blockquote className="fg-quote-text">
               <p>Forms are conversations.</p>
@@ -8816,7 +10264,7 @@ export default function KitchenSinkForm({
         </div>
       </div>
       <div className="fg-sr-only" role="status" aria-live="polite" aria-atomic="true">{fgAnnouncement}</div>
-      {result && <pre className="fg-payload">{JSON.stringify(result, null, 2)}</pre>}
+      {result && <pre className="fg-payload">{JSON.stringify(result, fgFileJson, 2)}</pre>}
     </form>
   )
 }
@@ -8843,6 +10291,7 @@ type FormData = {
     password: string
     bio: string
     birthday: string
+    avatar: File[]
   }
   plan: string | null
   interests: string[]
@@ -8855,6 +10304,8 @@ type FormData = {
   brand_color: string
   volume: number
   source: string
+  attachments: File[]
+  attachments_note: string
   contact_method: string | null
   contact_phone: string
   contact_other: string
@@ -8883,7 +10334,8 @@ const form = reactive<FormData>({
     username: "",
     password: "",
     bio: "",
-    birthday: ""
+    birthday: "",
+    avatar: []
   },
   plan: null,
   interests: [],
@@ -8896,6 +10348,8 @@ const form = reactive<FormData>({
   brand_color: "#000000",
   volume: 0,
   source: "kitchen-sink",
+  attachments: [],
+  attachments_note: "",
   contact_method: null,
   contact_phone: "",
   contact_other: "",
@@ -8947,7 +10401,99 @@ function fgSize(v: unknown): number | null {
   if (Array.isArray(v)) return v.length
   return null
 }
+function fgAccepts(file: File, accept: string): boolean {
+  if (accept.trim() === '') return true
+  const name = file.name.toLowerCase()
+  const type = (file.type || '').toLowerCase()
+  return accept.split(',').map((token) => token.trim().toLowerCase()).filter(Boolean).some((token) =>
+    token.startsWith('.') ? name.endsWith(token) : token.endsWith('/*') ? type.startsWith(token.slice(0, -1)) : type === token,
+  )
+}
+function fgFileProblem(v: unknown, accept: string, maxMb: number, maxFiles: number, m: { tooMany: string; type: string; size: string }): string | null {
+  const files = Array.isArray(v) ? v.filter((f) => f instanceof File) as File[] : []
+  if (maxFiles > 0 && files.length > maxFiles) return m.tooMany
+  for (const file of files) {
+    if (!fgAccepts(file, accept)) return m.type.split('{name}').join(file.name)
+    if (maxMb > 0 && file.size > maxMb * 1024 * 1024) return m.size.split('{name}').join(file.name)
+  }
+  return null
+}
+function fgFileJson(_key: string, value: unknown): unknown {
+  return value instanceof File ? { name: value.name, size: value.size, type: value.type } : value
+}
+function fgMultipart(payload: Record<string, unknown>) {
+  const files: { path: string; file: File }[] = []
+  const walk = (value: unknown, path: string): unknown => {
+    if (value instanceof File) {
+      files.push({ path, file: value })
+      return fgFileJson('', value)
+    }
+    if (Array.isArray(value)) {
+      const fileList = value.length > 0 && value.every((v) => v instanceof File)
+      return value.map((v, i) => walk(v, fileList ? path : path + '.' + i))
+    }
+    if (value && typeof value === 'object') {
+      const out: Record<string, unknown> = {}
+      for (const [key, v] of Object.entries(value)) out[key] = walk(v, path ? path + '.' + key : key)
+      return out
+    }
+    return value
+  }
+  const data = walk(payload, '')
+  const body = new FormData()
+  body.append('data', JSON.stringify(data))
+  for (const part of files) body.append(part.path, part.file, part.file.name)
+  return body
+}
+const fgThumbs = new WeakMap<File, string>()
+function fgThumb(file: File): string {
+  let url = fgThumbs.get(file)
+  if (!url) {
+    url = URL.createObjectURL(file)
+    fgThumbs.set(file, url)
+  }
+  return url
+}
+function fgReleaseThumb(file: File): void {
+  const url = fgThumbs.get(file)
+  if (url) URL.revokeObjectURL(url)
+  fgThumbs.delete(file)
+}
+function fgFileSize(bytes: number): string {
+  return bytes >= 1024 * 1024 ? (bytes / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB'
+}
+function fgRemoveFileLabel(name: string): string {
+  return "Remove {name}".split('{name}').join(name)
+}
+const fgFileMultiple: Record<string, boolean> = { 'account.avatar': false, 'attachments': true }
+function fgFileList(path: string): File[] {
+  return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form) as File[]
+}
+function fgSetFiles(path: string, files: File[]): void {
+  const keys = path.split('.')
+  const last = keys.pop()!
+  const target = keys.reduce<Record<string, unknown>>((o, k) => o[k] as Record<string, unknown>, form as unknown as Record<string, unknown>)
+  target[last] = files
+}
+function fgPickFiles(path: string, event: Event): void {
+  const input = event.target as HTMLInputElement
+  const picked = Array.from(input.files ?? [])
+  input.value = ''
+  if (picked.length === 0) return
+  fgSetFiles(path, fgFileMultiple[path] ? [...fgFileList(path), ...picked] : picked.slice(0, 1))
+  touch(path)
+}
+function fgRemoveFile(path: string, index: number): void {
+  const list = fgFileList(path)
+  const file = list[index]
+  if (file) fgReleaseThumb(file)
+  fgSetFiles(path, list.filter((_, i) => i !== index))
+  touch(path)
+}
 
+function fgVisible_attachments_note() {
+  return ((!fgIsBlank(form.attachments)))
+}
 function fgVisible_contact_phone() {
   return ((form.contact_method === "phone"))
 }
@@ -8995,6 +10541,11 @@ const validators: Record<string, () => string | null> = {
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 200)) return "Must be at most 200"
   return null
   },
+  'account.avatar': function () {
+  const v = form.account.avatar
+  { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
+  return null
+  },
   'plan': function () {
   const v = form.plan
   if (fgIsBlank(v)) return "This field is required"
@@ -9003,6 +10554,12 @@ const validators: Record<string, () => string | null> = {
   'topics': function () {
   const v = form.topics
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
+  return null
+  },
+  'attachments': function () {
+  const v = form.attachments
+  if (fgIsBlank(v)) return "This field is required"
+  { const problem = fgFileProblem(v, ".pdf,.doc,.docx", 5, 3, {"tooMany":"Choose at most 3 files","type":"{name} is not an accepted file type","size":"{name} is larger than 5 MB"}); if (problem) return problem }
   return null
   },
   'contact_method': function () {
@@ -9256,7 +10813,8 @@ function fgReset(): void {
       username: "",
       password: "",
       bio: "",
-      birthday: ""
+      birthday: "",
+      avatar: []
     },
     plan: null,
     interests: [],
@@ -9269,6 +10827,8 @@ function fgReset(): void {
     brand_color: "#000000",
     volume: 0,
     source: "kitchen-sink",
+    attachments: [],
+    attachments_note: "",
     contact_method: null,
     contact_phone: "",
     contact_other: "",
@@ -9305,6 +10865,7 @@ function buildPayload(): Record<string, unknown> {
       "password": form.account.password,
       "bio": form.account.bio,
       "birthday": form.account.birthday,
+      "avatar": form.account.avatar,
     },
     "plan": form.plan,
     "interests": form.interests,
@@ -9318,6 +10879,8 @@ function buildPayload(): Record<string, unknown> {
     "volume": form.volume,
     "source": form.source,
     "references": form.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}) })),
+    "attachments": form.attachments,
+    ...(fgVisible_attachments_note() ? { "attachments_note": form.attachments_note } : {}),
     "contact_method": form.contact_method,
     ...(fgVisible_contact_phone() ? { "contact_phone": form.contact_phone } : {}),
     ...(fgVisible_contact_other() ? { "contact_other": form.contact_other } : {}),
@@ -9446,6 +11009,21 @@ async function onSubmit(): Promise<void> {
                 <label class="form-label fw-semibold mb-0" for="fg_account_birthday">Birthday</label>
                 <input id="fg_account_birthday" v-model="form.account.birthday" type="date" class="form-control" :class="{ 'is-invalid': !!errors['account.birthday'] }" @blur="touch('account.birthday')" @input="revalidate('account.birthday')">
                 <p v-if="errors['account.birthday']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['account.birthday'] }}</p>
+              </div>
+            </div>
+            <div class="col-12 col-md-12">
+              <div class="d-flex flex-column gap-1">
+                <label class="form-label fw-semibold mb-0" for="fg_account_avatar">Profile picture</label>
+                <input id="fg_account_avatar" type="file" class="form-control" accept="image/*" :aria-invalid="errors['account.avatar'] ? 'true' : undefined" @change="fgPickFiles('account.avatar', $event)">
+                <ul v-if="form.account.avatar.length" class="list-group mt-2">
+                  <li v-for="(file, fi) in form.account.avatar" :key="fi" class="list-group-item d-flex align-items-center gap-2">
+                    <img v-if="file.type.startsWith('image/')" class="rounded object-fit-cover" :src="fgThumb(file)" alt="" width="40" height="40">
+                    <span class="flex-grow-1 text-truncate">{{ file.name }}</span>
+                    <span class="text-body-secondary small">{{ fgFileSize(file.size) }}</span>
+                    <button type="button" class="btn btn-sm btn-link link-danger p-0 text-decoration-none fs-5 lh-1" :aria-label="fgRemoveFileLabel(file.name)" @click="fgRemoveFile('account.avatar', fi)">×</button>
+                  </li>
+                </ul>
+                <p v-if="errors['account.avatar']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['account.avatar'] }}</p>
               </div>
             </div>
           </div>
@@ -9600,6 +11178,28 @@ async function onSubmit(): Promise<void> {
         </fieldset>
       </div>
       <div class="col-12 col-md-12">
+        <div class="d-flex flex-column gap-1">
+          <label class="form-label fw-semibold mb-0" for="fg_attachments">Attachments<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+          <input id="fg_attachments" type="file" class="form-control" accept=".pdf,.doc,.docx" multiple :aria-invalid="errors['attachments'] ? 'true' : undefined" @change="fgPickFiles('attachments', $event)">
+          <ul v-if="form.attachments.length" class="list-group mt-2">
+            <li v-for="(file, fi) in form.attachments" :key="fi" class="list-group-item d-flex align-items-center gap-2">
+              <span class="flex-grow-1 text-truncate">{{ file.name }}</span>
+              <span class="text-body-secondary small">{{ fgFileSize(file.size) }}</span>
+              <button type="button" class="btn btn-sm btn-link link-danger p-0 text-decoration-none fs-5 lh-1" :aria-label="fgRemoveFileLabel(file.name)" @click="fgRemoveFile('attachments', fi)">×</button>
+            </li>
+          </ul>
+          <p class="form-text mt-0">Up to 3 PDF or Word files, 5 MB each</p>
+          <p v-if="errors['attachments']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['attachments'] }}</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12" v-if='(!fgIsBlank(form.attachments))'>
+        <div class="d-flex flex-column gap-1">
+          <label class="form-label fw-semibold mb-0" for="fg_attachments_note">Notes about the attachments</label>
+          <textarea id="fg_attachments_note" v-model="form.attachments_note" class="form-control" rows="3" :class="{ 'is-invalid': !!errors['attachments_note'] }" @blur="touch('attachments_note')" @input="revalidate('attachments_note')"></textarea>
+          <p v-if="errors['attachments_note']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['attachments_note'] }}</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
         <figure class="mb-0">
           <blockquote class="blockquote">
             <p>Forms are conversations.</p>
@@ -9724,7 +11324,7 @@ async function onSubmit(): Promise<void> {
       </div>
     </div>
     <div class="visually-hidden" role="status" aria-live="polite" aria-atomic="true">{{ fgAnnouncement }}</div>
-    <pre v-if="result" class="mt-3 p-3 bg-dark text-success rounded small overflow-auto">{{ JSON.stringify(result, null, 2) }}</pre>
+    <pre v-if="result" class="mt-3 p-3 bg-dark text-success rounded small overflow-auto">{{ JSON.stringify(result, fgFileJson, 2) }}</pre>
   </form>
 </template>
 "
@@ -9750,6 +11350,7 @@ type FormData = {
     password: string
     bio: string
     birthday: string
+    avatar: File[]
   }
   plan: string | null
   interests: string[]
@@ -9762,6 +11363,8 @@ type FormData = {
   brand_color: string
   volume: number
   source: string
+  attachments: File[]
+  attachments_note: string
   contact_method: string | null
   contact_phone: string
   contact_other: string
@@ -9790,7 +11393,8 @@ const form = reactive<FormData>({
     username: "",
     password: "",
     bio: "",
-    birthday: ""
+    birthday: "",
+    avatar: []
   },
   plan: null,
   interests: [],
@@ -9803,6 +11407,8 @@ const form = reactive<FormData>({
   brand_color: "#000000",
   volume: 0,
   source: "kitchen-sink",
+  attachments: [],
+  attachments_note: "",
   contact_method: null,
   contact_phone: "",
   contact_other: "",
@@ -9854,7 +11460,99 @@ function fgSize(v: unknown): number | null {
   if (Array.isArray(v)) return v.length
   return null
 }
+function fgAccepts(file: File, accept: string): boolean {
+  if (accept.trim() === '') return true
+  const name = file.name.toLowerCase()
+  const type = (file.type || '').toLowerCase()
+  return accept.split(',').map((token) => token.trim().toLowerCase()).filter(Boolean).some((token) =>
+    token.startsWith('.') ? name.endsWith(token) : token.endsWith('/*') ? type.startsWith(token.slice(0, -1)) : type === token,
+  )
+}
+function fgFileProblem(v: unknown, accept: string, maxMb: number, maxFiles: number, m: { tooMany: string; type: string; size: string }): string | null {
+  const files = Array.isArray(v) ? v.filter((f) => f instanceof File) as File[] : []
+  if (maxFiles > 0 && files.length > maxFiles) return m.tooMany
+  for (const file of files) {
+    if (!fgAccepts(file, accept)) return m.type.split('{name}').join(file.name)
+    if (maxMb > 0 && file.size > maxMb * 1024 * 1024) return m.size.split('{name}').join(file.name)
+  }
+  return null
+}
+function fgFileJson(_key: string, value: unknown): unknown {
+  return value instanceof File ? { name: value.name, size: value.size, type: value.type } : value
+}
+function fgMultipart(payload: Record<string, unknown>) {
+  const files: { path: string; file: File }[] = []
+  const walk = (value: unknown, path: string): unknown => {
+    if (value instanceof File) {
+      files.push({ path, file: value })
+      return fgFileJson('', value)
+    }
+    if (Array.isArray(value)) {
+      const fileList = value.length > 0 && value.every((v) => v instanceof File)
+      return value.map((v, i) => walk(v, fileList ? path : path + '.' + i))
+    }
+    if (value && typeof value === 'object') {
+      const out: Record<string, unknown> = {}
+      for (const [key, v] of Object.entries(value)) out[key] = walk(v, path ? path + '.' + key : key)
+      return out
+    }
+    return value
+  }
+  const data = walk(payload, '')
+  const body = new FormData()
+  body.append('data', JSON.stringify(data))
+  for (const part of files) body.append(part.path, part.file, part.file.name)
+  return body
+}
+const fgThumbs = new WeakMap<File, string>()
+function fgThumb(file: File): string {
+  let url = fgThumbs.get(file)
+  if (!url) {
+    url = URL.createObjectURL(file)
+    fgThumbs.set(file, url)
+  }
+  return url
+}
+function fgReleaseThumb(file: File): void {
+  const url = fgThumbs.get(file)
+  if (url) URL.revokeObjectURL(url)
+  fgThumbs.delete(file)
+}
+function fgFileSize(bytes: number): string {
+  return bytes >= 1024 * 1024 ? (bytes / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB'
+}
+function fgRemoveFileLabel(name: string): string {
+  return "Remove {name}".split('{name}').join(name)
+}
+const fgFileMultiple: Record<string, boolean> = { 'account.avatar': false, 'attachments': true }
+function fgFileList(path: string): File[] {
+  return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form) as File[]
+}
+function fgSetFiles(path: string, files: File[]): void {
+  const keys = path.split('.')
+  const last = keys.pop()!
+  const target = keys.reduce<Record<string, unknown>>((o, k) => o[k] as Record<string, unknown>, form as unknown as Record<string, unknown>)
+  target[last] = files
+}
+function fgPickFiles(path: string, event: Event): void {
+  const input = event.target as HTMLInputElement
+  const picked = Array.from(input.files ?? [])
+  input.value = ''
+  if (picked.length === 0) return
+  fgSetFiles(path, fgFileMultiple[path] ? [...fgFileList(path), ...picked] : picked.slice(0, 1))
+  touch(path)
+}
+function fgRemoveFile(path: string, index: number): void {
+  const list = fgFileList(path)
+  const file = list[index]
+  if (file) fgReleaseThumb(file)
+  fgSetFiles(path, list.filter((_, i) => i !== index))
+  touch(path)
+}
 
+function fgVisible_attachments_note() {
+  return ((!fgIsBlank(form.attachments)))
+}
 function fgVisible_contact_phone() {
   return ((form.contact_method === "phone"))
 }
@@ -9902,6 +11600,11 @@ const validators: Record<string, () => string | null> = {
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 200)) return "Must be at most 200"
   return null
   },
+  'account.avatar': function () {
+  const v = form.account.avatar
+  { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
+  return null
+  },
   'plan': function () {
   const v = form.plan
   if (fgIsBlank(v)) return "This field is required"
@@ -9910,6 +11613,12 @@ const validators: Record<string, () => string | null> = {
   'topics': function () {
   const v = form.topics
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
+  return null
+  },
+  'attachments': function () {
+  const v = form.attachments
+  if (fgIsBlank(v)) return "This field is required"
+  { const problem = fgFileProblem(v, ".pdf,.doc,.docx", 5, 3, {"tooMany":"Choose at most 3 files","type":"{name} is not an accepted file type","size":"{name} is larger than 5 MB"}); if (problem) return problem }
   return null
   },
   'contact_method': function () {
@@ -10163,7 +11872,8 @@ function fgReset(): void {
       username: "",
       password: "",
       bio: "",
-      birthday: ""
+      birthday: "",
+      avatar: []
     },
     plan: null,
     interests: [],
@@ -10176,6 +11886,8 @@ function fgReset(): void {
     brand_color: "#000000",
     volume: 0,
     source: "kitchen-sink",
+    attachments: [],
+    attachments_note: "",
     contact_method: null,
     contact_phone: "",
     contact_other: "",
@@ -10212,6 +11924,7 @@ function buildPayload(): Record<string, unknown> {
       "password": form.account.password,
       "bio": form.account.bio,
       "birthday": form.account.birthday,
+      "avatar": form.account.avatar,
     },
     "plan": form.plan,
     "interests": form.interests,
@@ -10225,6 +11938,8 @@ function buildPayload(): Record<string, unknown> {
     "volume": form.volume,
     "source": form.source,
     "references": form.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}) })),
+    "attachments": form.attachments,
+    ...(fgVisible_attachments_note() ? { "attachments_note": form.attachments_note } : {}),
     "contact_method": form.contact_method,
     ...(fgVisible_contact_phone() ? { "contact_phone": form.contact_phone } : {}),
     ...(fgVisible_contact_other() ? { "contact_other": form.contact_other } : {}),
@@ -10353,6 +12068,21 @@ async function onSubmit(): Promise<void> {
                 <label class="text-sm font-semibold" for="fg_account_birthday">Birthday</label>
                 <input id="fg_account_birthday" v-model="form.account.birthday" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['account.birthday'] }" @blur="touch('account.birthday')" @input="revalidate('account.birthday')">
                 <p v-if="errors['account.birthday']" class="text-xs text-red-600" role="alert">{{ errors['account.birthday'] }}</p>
+              </div>
+            </div>
+            <div class="col-span-12 md:col-span-12">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-semibold" for="fg_account_avatar">Profile picture</label>
+                <input id="fg_account_avatar" type="file" class="block w-full text-sm file:me-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-indigo-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" accept="image/*" :aria-invalid="errors['account.avatar'] ? 'true' : undefined" @change="fgPickFiles('account.avatar', $event)">
+                <ul v-if="form.account.avatar.length" class="flex flex-col gap-1.5">
+                  <li v-for="(file, fi) in form.account.avatar" :key="fi" class="flex items-center gap-2 rounded-md border border-gray-300 bg-gray-50 px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800/50">
+                    <img v-if="file.type.startsWith('image/')" class="h-10 w-10 rounded object-cover" :src="fgThumb(file)" alt="" width="40" height="40">
+                    <span class="min-w-0 flex-1 truncate">{{ file.name }}</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">{{ fgFileSize(file.size) }}</span>
+                    <button type="button" class="px-1.5 text-lg leading-none text-gray-500 hover:text-red-600" :aria-label="fgRemoveFileLabel(file.name)" @click="fgRemoveFile('account.avatar', fi)">×</button>
+                  </li>
+                </ul>
+                <p v-if="errors['account.avatar']" class="text-xs text-red-600" role="alert">{{ errors['account.avatar'] }}</p>
               </div>
             </div>
           </div>
@@ -10515,6 +12245,28 @@ async function onSubmit(): Promise<void> {
         </fieldset>
       </div>
       <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_attachments">Attachments<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+          <input id="fg_attachments" type="file" class="block w-full text-sm file:me-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-indigo-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" accept=".pdf,.doc,.docx" multiple :aria-invalid="errors['attachments'] ? 'true' : undefined" @change="fgPickFiles('attachments', $event)">
+          <ul v-if="form.attachments.length" class="flex flex-col gap-1.5">
+            <li v-for="(file, fi) in form.attachments" :key="fi" class="flex items-center gap-2 rounded-md border border-gray-300 bg-gray-50 px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800/50">
+              <span class="min-w-0 flex-1 truncate">{{ file.name }}</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">{{ fgFileSize(file.size) }}</span>
+              <button type="button" class="px-1.5 text-lg leading-none text-gray-500 hover:text-red-600" :aria-label="fgRemoveFileLabel(file.name)" @click="fgRemoveFile('attachments', fi)">×</button>
+            </li>
+          </ul>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Up to 3 PDF or Word files, 5 MB each</p>
+          <p v-if="errors['attachments']" class="text-xs text-red-600" role="alert">{{ errors['attachments'] }}</p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12" v-if='(!fgIsBlank(form.attachments))'>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_attachments_note">Notes about the attachments</label>
+          <textarea id="fg_attachments_note" v-model="form.attachments_note" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="3" :class="{ 'border-red-500 focus:ring-red-200': !!errors['attachments_note'] }" @blur="touch('attachments_note')" @input="revalidate('attachments_note')"></textarea>
+          <p v-if="errors['attachments_note']" class="text-xs text-red-600" role="alert">{{ errors['attachments_note'] }}</p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
         <figure class="border-s-4 border-gray-300 ps-4 dark:border-gray-600">
           <blockquote class="text-base italic">
             <p>Forms are conversations.</p>
@@ -10639,7 +12391,7 @@ async function onSubmit(): Promise<void> {
       </div>
     </div>
     <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">{{ fgAnnouncement }}</div>
-    <pre v-if="result" class="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300">{{ JSON.stringify(result, null, 2) }}</pre>
+    <pre v-if="result" class="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300">{{ JSON.stringify(result, fgFileJson, 2) }}</pre>
   </form>
 </template>
 "
@@ -10665,6 +12417,7 @@ type FormData = {
     password: string
     bio: string
     birthday: string
+    avatar: File[]
   }
   plan: string | null
   interests: string[]
@@ -10677,6 +12430,8 @@ type FormData = {
   brand_color: string
   volume: number
   source: string
+  attachments: File[]
+  attachments_note: string
   contact_method: string | null
   contact_phone: string
   contact_other: string
@@ -10705,7 +12460,8 @@ const form = reactive<FormData>({
     username: "",
     password: "",
     bio: "",
-    birthday: ""
+    birthday: "",
+    avatar: []
   },
   plan: null,
   interests: [],
@@ -10718,6 +12474,8 @@ const form = reactive<FormData>({
   brand_color: "#000000",
   volume: 0,
   source: "kitchen-sink",
+  attachments: [],
+  attachments_note: "",
   contact_method: null,
   contact_phone: "",
   contact_other: "",
@@ -10769,7 +12527,99 @@ function fgSize(v: unknown): number | null {
   if (Array.isArray(v)) return v.length
   return null
 }
+function fgAccepts(file: File, accept: string): boolean {
+  if (accept.trim() === '') return true
+  const name = file.name.toLowerCase()
+  const type = (file.type || '').toLowerCase()
+  return accept.split(',').map((token) => token.trim().toLowerCase()).filter(Boolean).some((token) =>
+    token.startsWith('.') ? name.endsWith(token) : token.endsWith('/*') ? type.startsWith(token.slice(0, -1)) : type === token,
+  )
+}
+function fgFileProblem(v: unknown, accept: string, maxMb: number, maxFiles: number, m: { tooMany: string; type: string; size: string }): string | null {
+  const files = Array.isArray(v) ? v.filter((f) => f instanceof File) as File[] : []
+  if (maxFiles > 0 && files.length > maxFiles) return m.tooMany
+  for (const file of files) {
+    if (!fgAccepts(file, accept)) return m.type.split('{name}').join(file.name)
+    if (maxMb > 0 && file.size > maxMb * 1024 * 1024) return m.size.split('{name}').join(file.name)
+  }
+  return null
+}
+function fgFileJson(_key: string, value: unknown): unknown {
+  return value instanceof File ? { name: value.name, size: value.size, type: value.type } : value
+}
+function fgMultipart(payload: Record<string, unknown>) {
+  const files: { path: string; file: File }[] = []
+  const walk = (value: unknown, path: string): unknown => {
+    if (value instanceof File) {
+      files.push({ path, file: value })
+      return fgFileJson('', value)
+    }
+    if (Array.isArray(value)) {
+      const fileList = value.length > 0 && value.every((v) => v instanceof File)
+      return value.map((v, i) => walk(v, fileList ? path : path + '.' + i))
+    }
+    if (value && typeof value === 'object') {
+      const out: Record<string, unknown> = {}
+      for (const [key, v] of Object.entries(value)) out[key] = walk(v, path ? path + '.' + key : key)
+      return out
+    }
+    return value
+  }
+  const data = walk(payload, '')
+  const body = new FormData()
+  body.append('data', JSON.stringify(data))
+  for (const part of files) body.append(part.path, part.file, part.file.name)
+  return body
+}
+const fgThumbs = new WeakMap<File, string>()
+function fgThumb(file: File): string {
+  let url = fgThumbs.get(file)
+  if (!url) {
+    url = URL.createObjectURL(file)
+    fgThumbs.set(file, url)
+  }
+  return url
+}
+function fgReleaseThumb(file: File): void {
+  const url = fgThumbs.get(file)
+  if (url) URL.revokeObjectURL(url)
+  fgThumbs.delete(file)
+}
+function fgFileSize(bytes: number): string {
+  return bytes >= 1024 * 1024 ? (bytes / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB'
+}
+function fgRemoveFileLabel(name: string): string {
+  return "Remove {name}".split('{name}').join(name)
+}
+const fgFileMultiple: Record<string, boolean> = { 'account.avatar': false, 'attachments': true }
+function fgFileList(path: string): File[] {
+  return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form) as File[]
+}
+function fgSetFiles(path: string, files: File[]): void {
+  const keys = path.split('.')
+  const last = keys.pop()!
+  const target = keys.reduce<Record<string, unknown>>((o, k) => o[k] as Record<string, unknown>, form as unknown as Record<string, unknown>)
+  target[last] = files
+}
+function fgPickFiles(path: string, event: Event): void {
+  const input = event.target as HTMLInputElement
+  const picked = Array.from(input.files ?? [])
+  input.value = ''
+  if (picked.length === 0) return
+  fgSetFiles(path, fgFileMultiple[path] ? [...fgFileList(path), ...picked] : picked.slice(0, 1))
+  touch(path)
+}
+function fgRemoveFile(path: string, index: number): void {
+  const list = fgFileList(path)
+  const file = list[index]
+  if (file) fgReleaseThumb(file)
+  fgSetFiles(path, list.filter((_, i) => i !== index))
+  touch(path)
+}
 
+function fgVisible_attachments_note() {
+  return ((!fgIsBlank(form.attachments)))
+}
 function fgVisible_contact_phone() {
   return ((form.contact_method === "phone"))
 }
@@ -10817,6 +12667,11 @@ const validators: Record<string, () => string | null> = {
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 200)) return "Must be at most 200"
   return null
   },
+  'account.avatar': function () {
+  const v = form.account.avatar
+  { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
+  return null
+  },
   'plan': function () {
   const v = form.plan
   if (fgIsBlank(v)) return "This field is required"
@@ -10825,6 +12680,12 @@ const validators: Record<string, () => string | null> = {
   'topics': function () {
   const v = form.topics
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
+  return null
+  },
+  'attachments': function () {
+  const v = form.attachments
+  if (fgIsBlank(v)) return "This field is required"
+  { const problem = fgFileProblem(v, ".pdf,.doc,.docx", 5, 3, {"tooMany":"Choose at most 3 files","type":"{name} is not an accepted file type","size":"{name} is larger than 5 MB"}); if (problem) return problem }
   return null
   },
   'contact_method': function () {
@@ -11078,7 +12939,8 @@ function fgReset(): void {
       username: "",
       password: "",
       bio: "",
-      birthday: ""
+      birthday: "",
+      avatar: []
     },
     plan: null,
     interests: [],
@@ -11091,6 +12953,8 @@ function fgReset(): void {
     brand_color: "#000000",
     volume: 0,
     source: "kitchen-sink",
+    attachments: [],
+    attachments_note: "",
     contact_method: null,
     contact_phone: "",
     contact_other: "",
@@ -11127,6 +12991,7 @@ function buildPayload(): Record<string, unknown> {
       "password": form.account.password,
       "bio": form.account.bio,
       "birthday": form.account.birthday,
+      "avatar": form.account.avatar,
     },
     "plan": form.plan,
     "interests": form.interests,
@@ -11140,6 +13005,8 @@ function buildPayload(): Record<string, unknown> {
     "volume": form.volume,
     "source": form.source,
     "references": form.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}) })),
+    "attachments": form.attachments,
+    ...(fgVisible_attachments_note() ? { "attachments_note": form.attachments_note } : {}),
     "contact_method": form.contact_method,
     ...(fgVisible_contact_phone() ? { "contact_phone": form.contact_phone } : {}),
     ...(fgVisible_contact_other() ? { "contact_other": form.contact_other } : {}),
@@ -11268,6 +13135,21 @@ async function onSubmit(): Promise<void> {
                 <label class="fg-label" for="fg_account_birthday">Birthday</label>
                 <input id="fg_account_birthday" v-model="form.account.birthday" type="date" class="fg-input" :class="{ 'fg-invalid': !!errors['account.birthday'] }" @blur="touch('account.birthday')" @input="revalidate('account.birthday')">
                 <p v-if="errors['account.birthday']" class="fg-error" role="alert">{{ errors['account.birthday'] }}</p>
+              </div>
+            </div>
+            <div class="fg-cell" style="grid-column: span 12 / span 12">
+              <div class="fg-field">
+                <label class="fg-label" for="fg_account_avatar">Profile picture</label>
+                <input id="fg_account_avatar" type="file" class="fg-file-input" accept="image/*" :aria-invalid="errors['account.avatar'] ? 'true' : undefined" @change="fgPickFiles('account.avatar', $event)">
+                <ul v-if="form.account.avatar.length" class="fg-file-list">
+                  <li v-for="(file, fi) in form.account.avatar" :key="fi" class="fg-file-item">
+                    <img v-if="file.type.startsWith('image/')" class="fg-file-thumb" :src="fgThumb(file)" alt="" width="40" height="40">
+                    <span class="fg-file-name">{{ file.name }}</span>
+                    <span class="fg-file-size">{{ fgFileSize(file.size) }}</span>
+                    <button type="button" class="fg-file-remove" :aria-label="fgRemoveFileLabel(file.name)" @click="fgRemoveFile('account.avatar', fi)">×</button>
+                  </li>
+                </ul>
+                <p v-if="errors['account.avatar']" class="fg-error" role="alert">{{ errors['account.avatar'] }}</p>
               </div>
             </div>
           </div>
@@ -11430,6 +13312,28 @@ async function onSubmit(): Promise<void> {
         </fieldset>
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-field">
+          <label class="fg-label" for="fg_attachments">Attachments<span class="fg-required" aria-hidden="true">*</span></label>
+          <input id="fg_attachments" type="file" class="fg-file-input" accept=".pdf,.doc,.docx" multiple :aria-invalid="errors['attachments'] ? 'true' : undefined" @change="fgPickFiles('attachments', $event)">
+          <ul v-if="form.attachments.length" class="fg-file-list">
+            <li v-for="(file, fi) in form.attachments" :key="fi" class="fg-file-item">
+              <span class="fg-file-name">{{ file.name }}</span>
+              <span class="fg-file-size">{{ fgFileSize(file.size) }}</span>
+              <button type="button" class="fg-file-remove" :aria-label="fgRemoveFileLabel(file.name)" @click="fgRemoveFile('attachments', fi)">×</button>
+            </li>
+          </ul>
+          <p class="fg-description">Up to 3 PDF or Word files, 5 MB each</p>
+          <p v-if="errors['attachments']" class="fg-error" role="alert">{{ errors['attachments'] }}</p>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12" v-if='(!fgIsBlank(form.attachments))'>
+        <div class="fg-field">
+          <label class="fg-label" for="fg_attachments_note">Notes about the attachments</label>
+          <textarea id="fg_attachments_note" v-model="form.attachments_note" class="fg-textarea" rows="3" :class="{ 'fg-invalid': !!errors['attachments_note'] }" @blur="touch('attachments_note')" @input="revalidate('attachments_note')"></textarea>
+          <p v-if="errors['attachments_note']" class="fg-error" role="alert">{{ errors['attachments_note'] }}</p>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
         <figure class="fg-quote">
           <blockquote class="fg-quote-text">
             <p>Forms are conversations.</p>
@@ -11554,7 +13458,7 @@ async function onSubmit(): Promise<void> {
       </div>
     </div>
     <div class="fg-sr-only" role="status" aria-live="polite" aria-atomic="true">{{ fgAnnouncement }}</div>
-    <pre v-if="result" class="fg-payload">{{ JSON.stringify(result, null, 2) }}</pre>
+    <pre v-if="result" class="fg-payload">{{ JSON.stringify(result, fgFileJson, 2) }}</pre>
   </form>
 </template>
 
@@ -11669,6 +13573,17 @@ fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
 .fg-repeater-item-actions { display: flex; justify-content: flex-end; margin-block-start: 0.75rem; }
 .fg-repeater-remove { padding: 0; font: inherit; font-size: 0.875rem; color: var(--fg-color-error); background: none; border: none; text-decoration: underline; cursor: pointer; }
 .fg-repeater-add { margin-block-start: var(--fg-space); }
+/* File uploads */
+.fg-file-input { font: inherit; font-size: 0.875rem; }
+.fg-file-input::file-selector-button { margin-inline-end: 0.75rem; padding: 0.375rem 0.75rem; font: inherit; font-weight: 600; color: var(--fg-color-primary-contrast); background: var(--fg-color-primary); border: none; border-radius: var(--fg-radius); cursor: pointer; }
+.fg-file-input::file-selector-button:hover { opacity: 0.9; }
+.fg-file-list { display: flex; flex-direction: column; gap: 0.375rem; margin: 0; padding: 0; list-style: none; }
+.fg-file-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.5rem; font-size: 0.875rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
+.fg-file-thumb { inline-size: 2.5rem; block-size: 2.5rem; object-fit: cover; border-radius: calc(var(--fg-radius) / 2); }
+.fg-file-name { flex: 1; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fg-file-size { color: var(--fg-color-muted); font-size: 0.8125rem; }
+.fg-file-remove { padding: 0 0.375rem; font-size: 1.125rem; line-height: 1; color: var(--fg-color-muted); background: none; border: none; cursor: pointer; }
+.fg-file-remove:hover { color: var(--fg-color-error); }
 @media (prefers-color-scheme: dark) {
   .fg-form:not([data-fg-theme='light']) {
     --fg-color-bg: #0f172a; --fg-color-surface: #1e293b; --fg-color-text: #e2e8f0;

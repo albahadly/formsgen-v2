@@ -117,6 +117,12 @@
           "type": "date",
           "name": "birthday",
           "props": { "label": "Birthday" }
+        },
+        {
+          "id": "ks-avatar",
+          "type": "imageupload",
+          "name": "avatar",
+          "props": { "label": "Profile picture", "multiple": false, "accept": "image/*", "maxSizeMb": 2 }
         }
       ]
     },
@@ -242,6 +248,27 @@
           "conditions": [[{ "field": "references.may_contact", "operator": "equals", "value": true }]]
         }
       ]
+    },
+    {
+      "id": "ks-attachments",
+      "type": "file",
+      "name": "attachments",
+      "props": {
+        "label": "Attachments",
+        "description": "Up to 3 PDF or Word files, 5 MB each",
+        "multiple": true,
+        "accept": ".pdf,.doc,.docx",
+        "maxSizeMb": 5,
+        "maxFiles": 3
+      },
+      "validation": [{ "rule": "required" }]
+    },
+    {
+      "id": "ks-attachments-note",
+      "type": "textarea",
+      "name": "attachments_note",
+      "props": { "label": "Notes about the attachments" },
+      "conditions": [[{ "field": "attachments", "operator": "not-empty" }]]
     },
     {
       "id": "ks-quote",

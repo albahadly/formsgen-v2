@@ -73,6 +73,15 @@ const CLASSES: Record<Slot, string> = {
   repeaterRemove: 'text-sm text-red-600 underline hover:text-red-700 dark:text-red-400',
   repeaterAdd:
     'mt-4 rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50',
+  fileInput:
+    'block w-full text-sm file:me-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-indigo-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white',
+  fileList: 'flex flex-col gap-1.5',
+  fileItem:
+    'flex items-center gap-2 rounded-md border border-gray-300 bg-gray-50 px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800/50',
+  fileThumb: 'h-10 w-10 rounded object-cover',
+  fileName: 'min-w-0 flex-1 truncate',
+  fileSize: 'text-xs text-gray-500 dark:text-gray-400',
+  fileRemove: 'px-1.5 text-lg leading-none text-gray-500 hover:text-red-600',
   colorInput:
     'h-10 w-16 cursor-pointer rounded-md border border-gray-300 bg-white p-1 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800',
 }

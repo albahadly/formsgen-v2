@@ -65,6 +65,13 @@ export type Slot =
   | 'repeaterItemActions'
   | 'repeaterRemove'
   | 'repeaterAdd'
+  | 'fileInput'
+  | 'fileList'
+  | 'fileItem'
+  | 'fileThumb'
+  | 'fileName'
+  | 'fileSize'
+  | 'fileRemove'
 
 export interface CellAttrs {
   class: string

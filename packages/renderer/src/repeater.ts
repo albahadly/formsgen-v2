@@ -11,7 +11,7 @@ import type { ElementNode } from './schema'
 export const REPEATER_TYPE = 'repeater'
 
 /** Element types a repeater may not contain (besides containers). */
-export const REPEATER_EXCLUDED_TYPES: ReadonlySet<string> = new Set(['tags'])
+export const REPEATER_EXCLUDED_TYPES: ReadonlySet<string> = new Set(['tags', 'file', 'imageupload'])
 
 export function isRepeater(node: ElementNode | undefined | null): boolean {
   return node?.type === REPEATER_TYPE

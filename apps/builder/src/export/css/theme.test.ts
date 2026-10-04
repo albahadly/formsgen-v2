@@ -82,7 +82,7 @@ describe('theme bridges', () => {
   it('Tailwind: concrete values on the emitted classes, scoped to .fg-themed', () => {
     const css = tailwindThemeCss(THEME)!
     expect(css).toContain(
-      '.fg-themed .bg-indigo-600,\n.fg-themed .checked\\:bg-indigo-600:checked,\n.fg-themed .has-\\[\\:checked\\]\\:bg-indigo-600:has(:checked) {\n  background-color: #0f766e;\n}',
+      '.fg-themed .bg-indigo-600,\n.fg-themed .checked\\:bg-indigo-600:checked,\n.fg-themed .has-\\[\\:checked\\]\\:bg-indigo-600:has(:checked),\n.fg-themed .file\\:bg-indigo-600::file-selector-button {\n  background-color: #0f766e;\n}',
     )
     expect(css).toContain('.fg-themed .focus\\:border-indigo-500:focus')
     expect(css).toContain('.fg-themed .hover\\:bg-indigo-500:hover {\n  background-color: #0d6861;\n}')

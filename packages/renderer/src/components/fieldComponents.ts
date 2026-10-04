@@ -4,6 +4,7 @@
 import type { Component } from 'vue'
 import { TEXT_INPUT_TYPES } from '../elements'
 import FgCheckbox from './fields/FgCheckbox.vue'
+import FgFile from './fields/FgFile.vue'
 import FgCheckboxGroup from './fields/FgCheckboxGroup.vue'
 import FgMultiSelect from './fields/FgMultiSelect.vue'
 import FgNumber from './fields/FgNumber.vue'
@@ -26,6 +27,8 @@ export const FIELD_COMPONENTS: Readonly<Record<string, Component>> = {
   toggle: FgCheckbox,
   checkboxgroup: FgCheckboxGroup,
   range: FgRange,
+  file: FgFile,
+  imageupload: FgFile,
 }
 
 export function fieldComponentFor(type: string): Component | undefined {

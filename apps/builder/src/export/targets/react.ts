@@ -4,7 +4,8 @@
 
 import { resolveMessages } from '@formsgen/renderer'
 import { errorsTextFunction, stepAnnouncementsLiteral, submittedText } from '../announce'
-import { RUNTIME_HELPERS_TS } from '../compile'
+import { FILE_HELPERS_TS, RUNTIME_HELPERS_TS } from '../compile'
+import { reactUploadHandlers, reactUploadModule, uploadFields } from '../uploadRuntime'
 import {
   collectExportRepeaters,
   itemValidatorsLiteral,
@@ -377,12 +378,12 @@ function fgShiftKey(key: string, path: string, removed: number): string | null {
   }`
       : ''
 
+    const hasUploads = uploadFields(fields).length > 0
     const submitUrl = schema.meta.submit?.url
     const submitBlock = submitUrl
       ? `    fetch(${JSON.stringify(submitUrl)}, {
       method: ${JSON.stringify(schema.meta.submit?.method ?? 'POST')},
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      ${hasUploads ? '// multipart: a JSON "data" part + one part per file\n      body: fgMultipart(data),' : "headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify(data),"}
     }).catch((error) => console.error('Submit failed', error))\n`
       : ''
 
@@ -405,7 +406,7 @@ function fgShiftKey(key: string, path: string, removed: number): string | null {
 import React, { useEffect, useRef, useState } from 'react'
 ${cssImport}
 ${RUNTIME_HELPERS_TS}
-
+${hasUploads ? `${FILE_HELPERS_TS}\n` : ''}
 type FormData = ${formDataType(schema)}
 
 const INITIAL: FormData = ${toJsLiteral(defaults)}
@@ -417,12 +418,13 @@ const validators: Record<string, (data: FormData) => string | null> = ${validato
       dataAccessor,
       'data: FormData',
       (key) => `fgVisible_${key}(data)`,
+      messages,
     )}
 
 function buildPayload(data: FormData): Record<string, unknown> {
   return ${indentBlock(payloadExpr(schema, dataAccessor, (key) => `fgVisible_${key}(data)`, dataItems), 1).trimStart()}
 }
-${repeaterModule ? `\n${repeaterModule}\n` : ''}${sectionPathsConsts ? `\n${sectionPathsConsts}\n` : ''}${stepAnnounceConsts ? `${stepAnnounceConsts}\n` : ''}
+${repeaterModule ? `\n${repeaterModule}\n` : ''}${hasUploads ? `\n${reactUploadModule(fields, messages)}\n` : ''}${sectionPathsConsts ? `\n${sectionPathsConsts}\n` : ''}${stepAnnounceConsts ? `${stepAnnounceConsts}\n` : ''}
 ${errorsTextFunction(messages, true)}
 
 export default function ${name}({
@@ -508,7 +510,7 @@ ${stepHandlers ? `\n${stepHandlers}\n` : ''}
     touched.current.add(path)
     validateField(path, form)
   }
-${tagsHandlers ? `\n${tagsHandlers}\n` : ''}${repeaterHandlers ? `\n${repeaterHandlers}\n` : ''}${resetHandler ? `\n${resetHandler}\n` : ''}
+${tagsHandlers ? `\n${tagsHandlers}\n` : ''}${hasUploads ? `\n${reactUploadHandlers(fields)}\n` : ''}${repeaterHandlers ? `\n${repeaterHandlers}\n` : ''}${resetHandler ? `\n${resetHandler}\n` : ''}
   function handleSubmit(event: React.FormEvent): void {
     event.preventDefault()
     const nextErrors: Record<string, string> = {}
@@ -534,7 +536,7 @@ ${submitBlock}  }
 ${indentBlock(markup, 4)}
       </div>
       <div className="${css.classes('srOnly')}" role="status" aria-live="polite" aria-atomic="true">{fgAnnouncement}</div>${actionsBlock}
-      {result && <pre className="${css.classes('payload')}">{JSON.stringify(result, null, 2)}</pre>}
+      {result && <pre className="${css.classes('payload')}">{JSON.stringify(result, ${hasUploads ? 'fgFileJson' : 'null'}, 2)}</pre>}
     </form>
   )
 }

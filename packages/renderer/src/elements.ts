@@ -66,6 +66,9 @@ export const coreElements: Record<string, CoreElementMeta> = {
   search: meta('search', true, false, () => ''),
   hidden: meta('hidden', true, false, (node) => String(node.props['value'] ?? '')),
   toggle: meta('toggle', true, false, () => false),
+  // Uploads hold the chosen File objects (an empty list when none).
+  file: meta('file', true, false, () => []),
+  imageupload: meta('imageupload', true, false, () => []),
   textarea: meta('textarea', true, false, () => ''),
   number: meta('number', true, false, () => null),
   select: meta('select', true, false, () => null),

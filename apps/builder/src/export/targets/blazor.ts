@@ -4,7 +4,14 @@
 // visibility properties, and a payload builder that reconstructs the
 // nested data shape (REBUILD_PROMPT §7 target 6).
 
-import { getCoreElement, isRepeater, joinPath, resolveMessages, type ElementNode } from '@formsgen/renderer'
+import {
+  FILE_TYPES,
+  getCoreElement,
+  isRepeater,
+  joinPath,
+  resolveMessages,
+  type ElementNode,
+} from '@formsgen/renderer'
 import { errorsTextFunctionCs, stepAnnouncements } from '../announce'
 import { pascalMember } from '@/registry/emitters/shared'
 import {
@@ -178,7 +185,9 @@ ${indentBlock(item, 3)}
             ? 'double'
             : kind === 'list'
               ? 'List<string>'
-              : kind === 'array'
+              : kind === 'files'
+                ? 'List<FgUpload>'
+                : kind === 'array'
                 ? 'string[]'
                 : 'string'
     const csInit = (kind: CsFieldKind, def: unknown, node: ElementNode): string => {
@@ -190,6 +199,7 @@ ${indentBlock(item, 3)}
         case 'numberValue':
           return ` = ${Number(def ?? node.props['min'] ?? 0)};`
         case 'list':
+        case 'files':
           return ' = new();'
         case 'array':
           return ' = Array.Empty<string>();'
@@ -235,9 +245,9 @@ ${r.fields
       .flatMap((field) => {
         const kind = csFieldKind(field.node.type)
         const needsValidate =
-          (field.node.validation?.length ?? 0) > 0 &&
+          ((field.node.validation?.length ?? 0) > 0 || kind === 'files') &&
           (field.conditionChain.length > 0 || csAttributes(field, kind) === null)
-        return needsValidate ? csValidateStatements(field, kind) : []
+        return needsValidate ? csValidateStatements(field, kind, messages) : []
       })
       .join('\n')
 
@@ -301,7 +311,9 @@ ${r.fields
           const value =
             node.type === 'select' || node.type === 'radiogroup'
               ? `string.IsNullOrEmpty(${member}) ? null : ${member}`
-              : member
+              : FILE_TYPES.has(node.type)
+                ? `FgFilesPart(parts, ${csStr(path)}, ${member})`
+                : member
           const assign = `${dict}[${csStr(node.name)}] = ${value};`
           if (field && field.conditionChain.length > 0) {
             const visible = field.conditionChain
@@ -409,15 +421,17 @@ ${valueArms}
             var results = new List<ValidationResult>();
             var context = new ValidationContext(Model) { MemberName = name };
             if (!Validator.TryValidateProperty(FgValue(name), context, results)) ok = false;
-            foreach (var result in results) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
+            if (results.Count > 0) fgMessages.Add(field, results[0].ErrorMessage ?? "Invalid");
         }
         foreach (var result in ((IValidatableObject)Model).Validate(new ValidationContext(Model)))
         {
             foreach (var name in result.MemberNames)
             {
                 if (Array.IndexOf(members, name) < 0) continue;
-                fgMessages.Add(new FieldIdentifier(Model, name), result.ErrorMessage ?? "Invalid");
                 ok = false;
+                var field = new FieldIdentifier(Model, name);
+                // One message per field (the first), as in the other targets.
+                if (!fgMessages[field].Any()) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
             }
         }
         fgEdit.NotifyValidationStateChanged();
@@ -737,7 +751,7 @@ ${repeaters.map((r) => `        ${csStr(r.path)} => ${csStr(r.itemLabel)},`).joi
         await FgAnnounce(${csStr(messages.itemRemoved)}.Replace("{label}", label));
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task FgFocusRepeaters()
     {
         if (fgFocusItem != null && fgItemRefs.TryGetValue(fgFocusItem, out var itemRef))
         {
@@ -759,16 +773,127 @@ ${repeaters.map((r) => `                ${csStr(r.path)} => fgAddRef_${r.key},`)
 `
       : ''
 
-    const helperBlocks = `${editContextBlock}${announceBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}${repeaterBlock}${resetBlock}`
+    // Uploads: files are read into memory when picked (Blazor can't read a
+    // file input's earlier selection once another is made), so the input is
+    // re-created empty after each pick, like the JS targets clear theirs.
+    const uploads = fields.filter((f) => FILE_TYPES.has(f.node.type))
+    const hasUploads = uploads.length > 0
+    const uploadBlock = hasUploads
+      ? `
+    public sealed record FgUpload(string Name, long Size, string ContentType, byte[]? Data, string? Thumb);
+
+    private readonly Dictionary<string, int> fgFileKeys = new() { ${uploads.map((f) => `[${csStr(pascalMember(f.key))}] = 0`).join(', ')} };
+    private readonly Dictionary<string, InputFile> fgFileInputs = new();
+    private string? fgFocusFile;
+
+    private async Task FgPickFiles(List<FgUpload> list, InputFileChangeEventArgs e, bool multiple, long maxBytes, bool thumbs, string member)
+    {
+        var picked = new List<FgUpload>();
+        foreach (var file in e.GetMultipleFiles(multiple ? int.MaxValue : 1))
+        {
+            byte[]? data = null;
+            if (maxBytes <= 0 || file.Size <= maxBytes)
+            {
+                using var buffer = new System.IO.MemoryStream();
+                await file.OpenReadStream(maxBytes > 0 ? maxBytes : long.MaxValue).CopyToAsync(buffer);
+                data = buffer.ToArray();
+            }
+            string? thumb = null;
+            if (thumbs && file.ContentType.StartsWith("image/"))
+            {
+                try
+                {
+                    var small = await file.RequestImageFileAsync("image/png", 80, 80);
+                    using var buffer = new System.IO.MemoryStream();
+                    await small.OpenReadStream(long.MaxValue).CopyToAsync(buffer);
+                    thumb = "data:image/png;base64," + Convert.ToBase64String(buffer.ToArray());
+                }
+                catch (Exception) { }
+            }
+            picked.Add(new FgUpload(file.Name, file.Size, file.ContentType, data, thumb));
+        }
+        if (picked.Count == 0) return;
+        if (!multiple) list.Clear();
+        list.AddRange(picked);
+        fgFileKeys[member]++;
+        fgFocusFile = member;
+        fgEdit.NotifyFieldChanged(new FieldIdentifier(Model, member));
+    }
+
+    private void FgRemoveFile(List<FgUpload> list, FgUpload file, string member)
+    {
+        list.RemoveAll(f => ReferenceEquals(f, file));
+        fgEdit.NotifyFieldChanged(new FieldIdentifier(Model, member));
+    }
+
+    private static string FgFileSize(long bytes) =>
+        bytes >= 1024 * 1024 ? $"{bytes / 1024d / 1024d:0.0} MB" : $"{Math.Max(1, (int)Math.Round(bytes / 1024d))} KB";
+
+    private static string FgRemoveFileLabel(string name) => ${csStr(messages.removeFile)}.Replace("{name}", name);
+
+    /** Payload entry for an upload: { name, size, type } per file; the files become parts named by data path. */
+    private static List<Dictionary<string, object?>> FgFilesPart(List<(string Path, FgUpload File)> parts, string path, List<FgUpload> files)
+    {
+        foreach (var file in files) parts.Add((path, file));
+        return files.Select(f => new Dictionary<string, object?> { ["name"] = f.Name, ["size"] = f.Size, ["type"] = f.ContentType }).ToList();
+    }
+
+    private async Task FgFocusUploads()
+    {
+        if (fgFocusFile == null) return;
+        var member = fgFocusFile;
+        fgFocusFile = null;
+        if (fgFileInputs.TryGetValue(member, out var input) && input.Element is ElementReference element) await element.FocusAsync();
+    }
+${schema.meta.submit?.url ? `
+    private static System.Net.Http.HttpContent FgFilePart(FgUpload file, string path)
+    {
+        var content = new System.Net.Http.ByteArrayContent(file.Data ?? Array.Empty<byte>());
+        content.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.TryParse(file.ContentType, out var type)
+            ? type
+            : new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+        return FgPart(content, path, file.Name);
+    }
+
+    // Quoted name/filename as browsers send them: some parsers reject the bare tokens .NET writes by default.
+    private static System.Net.Http.HttpContent FgPart(System.Net.Http.HttpContent content, string name, string? fileName = null)
+    {
+        static string Quote(string value) => "\\"" + value.Replace("\\"", "%22").Replace("\\r", "%0D").Replace("\\n", "%0A") + "\\"";
+        content.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("form-data")
+        {
+            Name = Quote(name),
+            FileName = fileName == null ? null : Quote(fileName),
+        };
+        return content;
+    }
+` : ''}`
+      : ''
+
+    const afterRenderBlock =
+      hasRepeaters || hasUploads
+        ? `
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {${hasRepeaters ? '\n        await FgFocusRepeaters();' : ''}${hasUploads ? '\n        await FgFocusUploads();' : ''}
+    }
+`
+        : ''
+
+    const helperBlocks = `${editContextBlock}${announceBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}${repeaterBlock}${uploadBlock}${afterRenderBlock}${resetBlock}`
 
     const formBinding = 'EditContext="fgEdit" OnSubmit="FgSubmit"'
     const extraUsings = '@using System.Linq\n@using Microsoft.AspNetCore.Components.Forms\n'
 
     const submitUrl = schema.meta.submit?.url
     const httpInject = submitUrl ? '@inject HttpClient Http\n' : ''
-    const submitCall = submitUrl
-      ? `        await Http.${schema.meta.submit?.method === 'PUT' ? 'PutAsJsonAsync' : 'PostAsJsonAsync'}(${csStr(submitUrl)}, payload);\n`
-      : ''
+    const submitCall = !submitUrl
+      ? ''
+      : hasUploads
+        ? `        // multipart: a JSON "data" part + one part per file
+        using var body = new System.Net.Http.MultipartFormDataContent();
+        body.Add(FgPart(new System.Net.Http.StringContent(JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json"), "data"));
+        foreach (var (path, file) in parts) body.Add(FgFilePart(file, path));
+        await Http.${schema.meta.submit?.method === 'PUT' ? 'PutAsync' : 'PostAsync'}(${csStr(submitUrl)}, body);\n`
+        : `        await Http.${schema.meta.submit?.method === 'PUT' ? 'PutAsJsonAsync' : 'PostAsJsonAsync'}(${csStr(submitUrl)}, payload);\n`
 
     // Bottom actions row: omitted when the wizard embeds the submit.
     const actionsBlock = embeddedHost
@@ -784,7 +909,8 @@ ${repeaters.map((r) => `                ${csStr(r.path)} => fgAddRef_${r.key},`)
         }
     </div>`
 
-    const razor = `@* Generated by FormsGen (.NET 8). *@
+    const STATIC_HELPERS = '    // @fg-static-helpers\n'
+    const draft = `@* Generated by FormsGen (.NET 8). *@
 @using System.ComponentModel.DataAnnotations
 @using System.Text.Json
 ${extraUsings}${submitUrl ? '@using System.Net.Http.Json\n' : ''}${httpInject}
@@ -804,15 +930,15 @@ ${indentBlock(markup, 2)}
 @code {
     private ${name}Model Model { get; set; } = new();
     private string? ResultJson { get; set; }
-${sectionFields ? `\n${sectionFields}\n` : ''}${helperBlocks}
+${sectionFields ? `\n${sectionFields}\n` : ''}${helperBlocks}${STATIC_HELPERS}
     private async Task HandleValidSubmit()
     {
-        var payload = BuildPayload();
+${hasUploads ? '        var parts = new List<(string Path, FgUpload File)>();\n        var payload = BuildPayload(parts);' : '        var payload = BuildPayload();'}
         ResultJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
 ${submitCall}        await FgAnnounce(${csStr(messages.submitted)});
     }
 
-    private Dictionary<string, object?> BuildPayload()
+    private Dictionary<string, object?> BuildPayload(${hasUploads ? 'List<(string Path, FgUpload File)> parts' : ''})
     {
         var payload = new Dictionary<string, object?>();
 ${payloadStatements.join('\n')}
@@ -830,6 +956,36 @@ ${validateStatements || '            yield break;'}
     }
 ${itemClasses}}
 `
+
+    // Value helpers shared by markup conditions and the model's Validate()
+    // (a nested class sees the component's static members): only those used.
+    const staticHelpers = [
+      draft.includes('FgIsBlank(') &&
+        `    private static bool FgIsBlank(object? value) => value switch
+    {
+        null => true,
+        string text => string.IsNullOrWhiteSpace(text),
+        bool on => !on,
+        System.Collections.ICollection list => list.Count == 0,
+        _ => false,
+    };`,
+      draft.includes('FgContains(') &&
+        `    private static bool FgContains(object? value, string part) => value switch
+    {
+        string text => text.Contains(part),
+        IEnumerable<string> list => list.Contains(part),
+        _ => false,
+    };`,
+      draft.includes('FgAccepts(') &&
+        `    private static bool FgAccepts(FgUpload file, string accept)
+    {
+        var name = file.Name.ToLowerInvariant();
+        var type = (file.ContentType ?? "").ToLowerInvariant();
+        return accept.Split(',').Select(t => t.Trim().ToLowerInvariant()).Where(t => t.Length > 0).Any(t =>
+            t.StartsWith('.') ? name.EndsWith(t) : t.EndsWith("/*") ? type.StartsWith(t[..^1]) : type == t);
+    }`,
+    ].filter(Boolean)
+    const razor = draft.replace(STATIC_HELPERS, staticHelpers.length ? `\n${staticHelpers.join('\n\n')}\n` : '')
 
     const stylesheet = css.stylesheet?.(schema.meta.theme)
     const files: { path: string; language: 'xml' | 'css'; content: string }[] = [

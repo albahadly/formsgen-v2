@@ -15,10 +15,12 @@ describe('element registry', () => {
       'datetime',
       'divider',
       'email',
+      'file',
       'group',
       'heading',
       'hidden',
       'image',
+      'imageupload',
       'link',
       'month',
       'multiselect',
@@ -65,7 +67,7 @@ describe('element registry', () => {
       'paragraph',
       'quote',
     ])
-    expect(listElements('fields')).toHaveLength(23)
+    expect(listElements('fields')).toHaveLength(25)
   })
 
   it('every definition matches its core semantics in the renderer', () => {

@@ -4,7 +4,8 @@
 
 import { resolveMessages } from '@formsgen/renderer'
 import { errorsTextFunction, stepAnnouncementsLiteral, submittedText } from '../announce'
-import { RUNTIME_HELPERS_TS } from '../compile'
+import { FILE_HELPERS_TS, RUNTIME_HELPERS_TS } from '../compile'
+import { uploadFields, vueUploadRuntime } from '../uploadRuntime'
 import { compileConditions } from '../compile'
 import {
   collectExportFields,
@@ -335,13 +336,13 @@ async function fgRemoveItem(path: string, index: number): Promise<void> {
 }`
       : ''
 
+    const hasUploads = uploadFields(fields).length > 0
     const submitUrl = schema.meta.submit?.url
     const submitBlock = submitUrl
       ? `    try {
       await fetch(${JSON.stringify(submitUrl)}, {
         method: ${JSON.stringify(schema.meta.submit?.method ?? 'POST')},
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        ${hasUploads ? '// multipart: a JSON "data" part + one part per file\n        body: fgMultipart(data),' : "headers: { 'Content-Type': 'application/json' },\n        body: JSON.stringify(data),"}
       })
     } catch (error) {
       console.error('Submit failed', error)
@@ -373,10 +374,10 @@ function fgAnnounce(message: string): void {
 ${errorsTextFunction(messages, true)}
 
 ${RUNTIME_HELPERS_TS}
-
+${hasUploads ? `${FILE_HELPERS_TS}\n${vueUploadRuntime(fields, messages)}\n` : ''}
 ${visibilityFunctions(fields, accessor)}
 
-const validators: Record<string, () => string | null> = ${validatorsLiteral(fields, accessor)}
+const validators: Record<string, () => string | null> = ${validatorsLiteral(fields, accessor, '', undefined, messages)}
 
 function runValidator(path: string): void {
   const validate = validators[path]${repeaters.length ? ' ?? fgItemValidator(path)' : ''}
@@ -478,7 +479,7 @@ ${submitBlock}}
 ${indentBlock(markup, 3)}
     </div>
     <div class="${css.classes('srOnly')}" role="status" aria-live="polite" aria-atomic="true">{{ fgAnnouncement }}</div>${actionsBlock}
-    <pre v-if="result" class="${css.classes('payload')}">{{ JSON.stringify(result, null, 2) }}</pre>
+    <pre v-if="result" class="${css.classes('payload')}">{{ JSON.stringify(result, ${hasUploads ? 'fgFileJson' : 'null'}, 2) }}</pre>
   </form>
 </template>`
 

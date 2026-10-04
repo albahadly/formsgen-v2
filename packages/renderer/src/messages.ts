@@ -64,6 +64,14 @@ export interface MessageCatalog {
   itemAdded: string
   /** {label} — announced after an item is removed */
   itemRemoved: string
+  /** {name} {size} — a chosen file over the size limit (MB) */
+  fileTooLarge: string
+  /** {name} — a chosen file of a type the field doesn't accept */
+  fileType: string
+  /** {n} — more files than the field allows */
+  tooManyFiles: string
+  /** {name} — accessible name of a chosen file's remove button */
+  removeFile: string
 }
 
 const en: MessageCatalog = {
@@ -98,6 +106,10 @@ const en: MessageCatalog = {
   removeItemLabel: 'Remove {label}',
   itemAdded: '{label} added',
   itemRemoved: '{label} removed',
+  fileTooLarge: '{name} is larger than {size} MB',
+  fileType: '{name} is not an accepted file type',
+  tooManyFiles: 'Choose at most {n} files',
+  removeFile: 'Remove {name}',
 }
 
 const ar: MessageCatalog = {
@@ -135,6 +147,10 @@ const ar: MessageCatalog = {
   removeItemLabel: 'إزالة {label}',
   itemAdded: 'تمت إضافة {label}',
   itemRemoved: 'تمت إزالة {label}',
+  fileTooLarge: 'حجم {name} أكبر من {size} ميغابايت',
+  fileType: '{name} ليس من أنواع الملفات المقبولة',
+  tooManyFiles: 'اختر {n} ملفات على الأكثر',
+  removeFile: 'إزالة {name}',
 }
 
 export const MESSAGES: Readonly<Record<'en' | 'ar', MessageCatalog>> = { en, ar }

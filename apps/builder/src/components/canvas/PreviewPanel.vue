@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FormsGenForm, pinsLightScheme } from '@formsgen/renderer'
+import { FormsGenForm, describeFiles, pinsLightScheme } from '@formsgen/renderer'
 import { computed, ref } from 'vue'
 import { t } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'
@@ -17,6 +17,11 @@ const formKey = computed(() => JSON.stringify(builder.schema.tree).length + ui.p
 function onSubmit(data: Record<string, unknown>): void {
   submitted.value = data
 }
+
+// Files show as { name, size, type } (JSON.stringify would print {}).
+const submittedJson = computed(() =>
+  submitted.value ? JSON.stringify(describeFiles(submitted.value).data, null, 2) : '',
+)
 </script>
 
 <template>
@@ -47,7 +52,7 @@ function onSubmit(data: Record<string, unknown>): void {
         <pre
           dir="ltr"
           class="overflow-x-auto text-left"
-        >{{ JSON.stringify(submitted, null, 2) }}</pre>
+        >{{ submittedJson }}</pre>
       </div>
     </div>
   </div>

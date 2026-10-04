@@ -3,7 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref,
 import { getValueByPath } from '../conditions'
 import { FORM_CONTEXT, type FormContext } from '../context'
 import { pluralText, resolveMessages } from '../messages'
-import { evaluateRules } from '../rules'
+import { cloneData, firstFieldError } from '../files'
 import { pinsLightScheme, themeInlineStyle } from '../theme'
 import { collectVisibleFields, pickVisibleData, scopedLookup, setValueByPath } from '../runtime'
 import type { FormSchema } from '../schema'
@@ -70,13 +70,7 @@ function validateField(path: string): void {
     errors[path] = null
     return
   }
-  const violations = evaluateRules(
-    field.node.validation,
-    lookup(path),
-    scopedLookup(data, field.scope),
-    messages.value,
-  )
-  errors[path] = violations[0]?.message ?? null
+  errors[path] = firstFieldError(field.node, lookup(path), scopedLookup(data, field.scope), messages.value)
 }
 
 /** Validates every visible field; clears stale errors; true when clean. */
@@ -84,14 +78,9 @@ function validateAll(): boolean {
   for (const key of Object.keys(errors)) errors[key] = null
   let ok = true
   for (const field of collectVisibleFields(props.schema.tree, data)) {
-    const violations = evaluateRules(
-      field.node.validation,
-      lookup(field.path),
-      scopedLookup(data, field.scope),
-      messages.value,
-    )
-    errors[field.path] = violations[0]?.message ?? null
-    if (violations.length > 0) ok = false
+    const error = firstFieldError(field.node, lookup(field.path), scopedLookup(data, field.scope), messages.value)
+    errors[field.path] = error
+    if (error) ok = false
   }
   return ok
 }
@@ -99,7 +88,7 @@ function validateAll(): boolean {
 watch(
   data,
   () => {
-    emit('update:modelValue', JSON.parse(JSON.stringify(data)) as Record<string, unknown>)
+    emit('update:modelValue', cloneData(data))
     // Live re-validation for fields the user already interacted with.
     for (const path of touched) validateField(path)
     if (submitted.value) validateAll()

@@ -3,9 +3,10 @@
 // stylesheet; Tailwind/Bootstrap reference their CDN assets in <head>
 // (swappable for local builds, see the generated README).
 
-import { resolveMessages, type ElementNode } from '@formsgen/renderer'
+import { fileLimits, resolveMessages, type ElementNode } from '@formsgen/renderer'
 import { errorsTextFunction, jsTemplate, stepAnnouncements, submittedText } from '../announce'
-import { RUNTIME_HELPERS, compileConditions } from '../compile'
+import { FILE_HELPERS, RUNTIME_HELPERS, compileConditions } from '../compile'
+import { uploadFields } from '../uploadRuntime'
 import {
   collectExportFields,
   collectExportRepeaters,
@@ -164,12 +165,12 @@ ${indentBlock(r.itemHtml, 3)}
       <button class="${submitClass}"${sb.buttonStyle ? ` style="${sb.buttonStyle}"` : ''} data-fg-submit type="submit"${sb.gatingHosts.length ? ' hidden' : ''}>${sb.text}</button>
     </div>`
 
+    const hasUploads = uploadFields(fields).length > 0
     const submitUrl = schema.meta.submit?.url
     const submitBlock = submitUrl
       ? `      fetch(${JSON.stringify(submitUrl)}, {
         method: ${JSON.stringify(schema.meta.submit?.method ?? 'POST')},
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        ${hasUploads ? '// multipart: a JSON "data" part + one part per file\n        body: fgMultipart(data),' : "headers: { 'Content-Type': 'application/json' },\n        body: JSON.stringify(data),"}
       }).catch(function (error) { console.error('Submit failed', error) })\n`
       : ''
 
@@ -182,7 +183,11 @@ ${indentBlock(r.itemHtml, 3)}
         Object.keys(fgTags).forEach(function (path) {
           fgTags[path] = []
           if (fgTagsPaint[path]) fgTagsPaint[path]()
-        })
+        })${hasUploads ? `
+        Object.keys(fgFiles).forEach(function (path) {
+          fgFiles[path] = []
+          fgPaintFiles(path)
+        })` : ''}
         Object.keys(touched).forEach(function (path) { delete touched[path] })
         Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })${hasRepeaters ? `
         Object.keys(FG_REPEATERS).forEach(function (path) {
@@ -197,6 +202,72 @@ ${indentBlock(r.itemHtml, 3)}
 
 `
       : ''
+
+    // Upload fields: chosen files live in fgFiles (the input is cleared
+    // after each pick so the same file can be chosen again).
+    function htmlUploadRuntime(): string {
+      return `var fgFiles = {}
+var FG_FILE_MULTIPLE = ${JSON.stringify(Object.fromEntries(uploadFields(fields).map((f) => [f.path, fileLimits(f.node).multiple])))}
+function fgFileSize(bytes) {
+  return bytes >= 1024 * 1024 ? (bytes / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB'
+}
+function fgPaintFiles(path) {
+  var list = document.querySelector('[data-fg-file-list="' + path + '"]')
+  var input = fgControl(path)
+  if (!list || !input) return
+  Array.prototype.forEach.call(list.querySelectorAll('img'), function (img) { URL.revokeObjectURL(img.src) })
+  list.textContent = ''
+  list.hidden = fgFiles[path].length === 0
+  fgFiles[path].forEach(function (file, index) {
+    var item = document.createElement('li')
+    item.className = ${JSON.stringify(css.classes('fileItem'))}
+    if (input.hasAttribute('data-fg-thumbs') && file.type.indexOf('image/') === 0) {
+      var img = document.createElement('img')
+      img.className = ${JSON.stringify(css.classes('fileThumb'))}
+      img.src = URL.createObjectURL(file)
+      img.alt = ''
+      img.width = 40
+      img.height = 40
+      item.appendChild(img)
+    }
+    var name = document.createElement('span')
+    name.className = ${JSON.stringify(css.classes('fileName'))}
+    name.textContent = file.name
+    var size = document.createElement('span')
+    size.className = ${JSON.stringify(css.classes('fileSize'))}
+    size.textContent = fgFileSize(file.size)
+    var remove = document.createElement('button')
+    remove.type = 'button'
+    remove.className = ${JSON.stringify(css.classes('fileRemove'))}
+    remove.textContent = '\\u00d7'
+    remove.setAttribute('aria-label', ${JSON.stringify(messages.removeFile)}.split('{name}').join(file.name))
+    remove.addEventListener('click', function () {
+      fgFiles[path].splice(index, 1)
+      fgPaintFiles(path)
+      touched[path] = true
+      validateField(path)
+      updateConditions()
+    })
+    item.appendChild(name)
+    item.appendChild(size)
+    item.appendChild(remove)
+    list.appendChild(item)
+  })
+}
+Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="files"]'), function (input) {
+  var path = input.getAttribute('data-fg-path')
+  fgFiles[path] = []
+  input.addEventListener('change', function () {
+    var picked = Array.prototype.slice.call(input.files || [])
+    input.value = ''
+    if (picked.length === 0) return
+    fgFiles[path] = FG_FILE_MULTIPLE[path] ? fgFiles[path].concat(picked) : picked.slice(0, 1)
+    fgPaintFiles(path)
+    touched[path] = true
+    validateField(path)
+  })
+})`
+    }
 
     function repeaterRuntime(): string {
       const repeaterMeta = Object.fromEntries(
@@ -347,7 +418,7 @@ Object.keys(FG_REPEATERS).forEach(function (path) {
     const script = `  <script>
   (function () {
     'use strict'
-    ${RUNTIME_HELPERS.split('\n').join('\n    ')}
+    ${RUNTIME_HELPERS.split('\n').join('\n    ')}${hasUploads ? `\n    ${FILE_HELPERS.split('\n').join('\n    ')}` : ''}
 
     var fgTags = {}
     var fgTagsPaint = {}
@@ -368,7 +439,8 @@ Object.keys(FG_REPEATERS).forEach(function (path) {
       if (kind === 'multiselect') {
         return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }
-      if (kind === 'tags') return (fgTags[path] || []).slice()
+      if (kind === 'tags') return (fgTags[path] || []).slice()${hasUploads ? `
+      if (kind === 'files') return (fgFiles[path] || []).slice()` : ''}
       if (kind === 'checks') {
         return Array.prototype.map.call(
           document.querySelectorAll('[data-fg-path="' + path + '"]:checked'),
@@ -384,7 +456,7 @@ Object.keys(FG_REPEATERS).forEach(function (path) {
 ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { return ${expr} } },`).join('\n')}
     ]
 
-    var FG_VALIDATORS = ${validatorsLiteral(fields, accessor).split('\n').join('\n    ')}
+    var FG_VALIDATORS = ${validatorsLiteral(fields, accessor, '', undefined, messages).split('\n').join('\n    ')}
 
     var touched = {}
 
@@ -482,7 +554,7 @@ ${indentBlock(repeaterRuntime(), 2)}
       })
     })
 
-    // Polite aria-live region; cleared first so repeated text re-announces.
+${hasUploads ? indentBlock(htmlUploadRuntime(), 2) + '\n\n' : ''}    // Polite aria-live region; cleared first so repeated text re-announces.
     function fgAnnounce(message) {
       var live = document.getElementById('fg-live')
       if (!live) return
@@ -627,7 +699,7 @@ ${resetScript}    form.addEventListener('submit', function (event) {
       }
       var data = buildPayload()
       var out = document.getElementById('fg-result')
-      out.textContent = JSON.stringify(data, null, 2)
+      out.textContent = JSON.stringify(data, ${hasUploads ? 'fgFileJson' : 'null'}, 2)
       out.hidden = false
       fgAnnounce(${submittedText(messages)})
       console.log('Form submitted', data)

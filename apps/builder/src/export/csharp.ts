@@ -3,7 +3,17 @@
 // rest (conditional fields, required checkboxes), and condition
 // expressions as C# bools. Semantics mirror @formsgen/renderer.
 
-import { defaultRuleMessage, type Condition, type ConditionGroups, type Rule } from '@formsgen/renderer'
+import {
+  MESSAGES,
+  defaultRuleMessage,
+  fileLimits,
+  fill,
+  type Condition,
+  type ConditionGroups,
+  type ElementNode,
+  type MessageCatalog,
+  type Rule,
+} from '@formsgen/renderer'
 import { pascalMember } from '@/registry/emitters/shared'
 import type { ExportField } from './structure'
 
@@ -43,6 +53,7 @@ export type CsFieldKind =
   | 'numberValue' // range (double, always has a value)
   | 'list' // checkboxgroup / tags (List<string>)
   | 'array' // multiselect (string[], as InputSelect multiple binds arrays)
+  | 'files' // file / image upload (List<FgUpload>, buffered when picked)
 
 export function csFieldKind(type: string): CsFieldKind {
   switch (type) {
@@ -58,6 +69,9 @@ export function csFieldKind(type: string): CsFieldKind {
       return 'list'
     case 'multiselect':
       return 'array'
+    case 'file':
+    case 'imageupload':
+      return 'files'
     default:
       return 'string'
   }
@@ -72,7 +86,7 @@ export function csAttributes(field: ExportField, kind: CsFieldKind): string[] | 
   const rules = field.node.validation ?? []
   if (rules.length === 0) return []
   if (field.conditionChain.length > 0) return null
-  if (kind === 'bool' || kind === 'list' || kind === 'array') return null // Validate() handles these
+  if (kind === 'bool' || kind === 'list' || kind === 'array' || kind === 'files') return null // Validate() handles these
   const numeric = kind === 'number' || kind === 'numberValue'
   // [Range] is not AllowMultiple: a numeric field with more than one of
   // min/max/between must validate in Validate() to keep both messages.
@@ -150,12 +164,14 @@ function csCondition(condition: Condition, accessor: (key: string) => string): s
       return `Equals(${value}, ${csLiteral(condition.value ?? null)})`
     case 'not-equals':
       return `!Equals(${value}, ${csLiteral(condition.value ?? null)})`
+    // FgContains/FgIsBlank are emitted into the component when used: lists
+    // (checkbox groups, multiselects, uploads) need element semantics.
     case 'contains':
-      return `(Convert.ToString(${value}) ?? "").Contains(${csStr(String(condition.value ?? ''))})`
+      return `FgContains(${value}, ${csStr(String(condition.value ?? ''))})`
     case 'empty':
-      return `(string.IsNullOrWhiteSpace(Convert.ToString(${value})) || Equals(${value}, false))`
+      return `FgIsBlank(${value})`
     case 'not-empty':
-      return `!(string.IsNullOrWhiteSpace(Convert.ToString(${value})) || Equals(${value}, false))`
+      return `!FgIsBlank(${value})`
     case 'greater-than': {
       const v = `_fg${varCounter++}`
       return `(double.TryParse(Convert.ToString(${value}), out var ${v}) && ${v} > ${Number(condition.value)})`
@@ -184,9 +200,14 @@ export function csConditions(
  * (conditional fields, checkboxes, checkbox groups). Runs inside the
  * model class, so the accessor is the bare member name.
  */
-export function csValidateStatements(field: ExportField, kind: CsFieldKind): string[] {
+export function csValidateStatements(
+  field: ExportField,
+  kind: CsFieldKind,
+  messages: MessageCatalog = MESSAGES.en,
+): string[] {
   const rules = field.node.validation ?? []
-  if (rules.length === 0) return []
+  const fileChecks = kind === 'files' ? csFileChecks(field.node, csSelfAccessor(field.key), messages) : []
+  if (rules.length === 0 && fileChecks.length === 0) return []
   const member = csSelfAccessor(field.key)
   const lines: string[] = []
   const visible =
@@ -196,10 +217,14 @@ export function csValidateStatements(field: ExportField, kind: CsFieldKind): str
   const guardOpen = visible === 'true' ? '' : `if (${visible})\n        {\n    `
   const guardClose = visible === 'true' ? '' : `\n        }`
 
-  const checks = csRuleChecks(rules, kind, member, csSelfAccessor).map(
-    ({ test, message }) =>
-      `    if (${test}) yield return new ValidationResult(${csStr(message)}, new[] { nameof(${member}) });`,
-  )
+  const ruleLine = ({ test, message }: { test: string; message: string }): string =>
+    `    if (${test}) yield return new ValidationResult(${csStr(message)}, new[] { nameof(${member}) });`
+  const required = rules.filter((r) => r.rule === 'required')
+  const checks = [
+    ...csRuleChecks(required, kind, member, csSelfAccessor).map(ruleLine),
+    ...fileChecks,
+    ...csRuleChecks(rules.filter((r) => r.rule !== 'required'), kind, member, csSelfAccessor).map(ruleLine),
+  ]
   lines.push(`    ${guardOpen}${checks.join('\n    ')}${guardClose}`)
   return lines
 }
@@ -222,7 +247,7 @@ export function csRuleChecks(
         ? `!${member}.HasValue`
         : kind === 'numberValue'
           ? 'false'
-          : kind === 'list'
+          : kind === 'list' || kind === 'files'
             ? `${member}.Count == 0`
             : kind === 'array'
               ? `${member}.Length == 0`
@@ -232,7 +257,7 @@ export function csRuleChecks(
       ? `${member}!.Value`
       : kind === 'numberValue'
         ? member
-        : kind === 'list'
+        : kind === 'list' || kind === 'files'
           ? `${member}.Count`
           : `${member}.Length`
   const guarded = (test: string): string => `!(${emptyExpr}) && (${test})`
@@ -275,4 +300,29 @@ export function csRuleChecks(
     }
   }
   return checks
+}
+
+/** Validate() lines checking an upload's count, then each file's type and size. */
+export function csFileChecks(node: ElementNode, member: string, messages: MessageCatalog): string[] {
+  const limits = fileLimits(node)
+  const result = (message: string): string => `yield return new ValidationResult(${message}, new[] { nameof(${member}) });`
+  const lines: string[] = []
+  if (limits.maxFiles > 0) {
+    lines.push(`    if (${member}.Count > ${limits.maxFiles}) ${result(csStr(fill(messages.tooManyFiles, { n: limits.maxFiles })))}`)
+  }
+  const perFile: string[] = []
+  if (limits.accept) {
+    perFile.push(
+      `if (!FgAccepts(file, ${csStr(limits.accept)})) { ${result(`${csStr(messages.fileType)}.Replace("{name}", file.Name)`)} break; }`,
+    )
+  }
+  if (limits.maxSizeMb > 0) {
+    perFile.push(
+      `if (file.Size > ${Math.round(limits.maxSizeMb * 1024 * 1024)}L) { ${result(`${csStr(fill(messages.fileTooLarge, { size: limits.maxSizeMb }))}.Replace("{name}", file.Name)`)} break; }`,
+    )
+  }
+  if (perFile.length > 0) {
+    lines.push(`    foreach (var file in ${member})`, '    {', ...perFile.map((l) => `        ${l}`), '    }')
+  }
+  return lines
 }

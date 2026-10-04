@@ -60,6 +60,13 @@ const CLASSES: Record<Slot, string> = {
   repeaterItemActions: 'fg-repeater-item-actions',
   repeaterRemove: 'fg-repeater-remove',
   repeaterAdd: 'fg-button fg-button--secondary fg-repeater-add',
+  fileInput: 'fg-file-input',
+  fileList: 'fg-file-list',
+  fileItem: 'fg-file-item',
+  fileThumb: 'fg-file-thumb',
+  fileName: 'fg-file-name',
+  fileSize: 'fg-file-size',
+  fileRemove: 'fg-file-remove',
 }
 
 /** Mirrors packages/renderer/src/styles.css for self-contained artifacts. */
@@ -182,6 +189,17 @@ fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
 .fg-repeater-item-actions { display: flex; justify-content: flex-end; margin-block-start: 0.75rem; }
 .fg-repeater-remove { padding: 0; font: inherit; font-size: 0.875rem; color: var(--fg-color-error); background: none; border: none; text-decoration: underline; cursor: pointer; }
 .fg-repeater-add { margin-block-start: var(--fg-space); }
+/* File uploads */
+.fg-file-input { font: inherit; font-size: 0.875rem; }
+.fg-file-input::file-selector-button { margin-inline-end: 0.75rem; padding: 0.375rem 0.75rem; font: inherit; font-weight: 600; color: var(--fg-color-primary-contrast); background: var(--fg-color-primary); border: none; border-radius: var(--fg-radius); cursor: pointer; }
+.fg-file-input::file-selector-button:hover { opacity: 0.9; }
+.fg-file-list { display: flex; flex-direction: column; gap: 0.375rem; margin: 0; padding: 0; list-style: none; }
+.fg-file-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.5rem; font-size: 0.875rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
+.fg-file-thumb { inline-size: 2.5rem; block-size: 2.5rem; object-fit: cover; border-radius: calc(var(--fg-radius) / 2); }
+.fg-file-name { flex: 1; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fg-file-size { color: var(--fg-color-muted); font-size: 0.8125rem; }
+.fg-file-remove { padding: 0 0.375rem; font-size: 1.125rem; line-height: 1; color: var(--fg-color-muted); background: none; border: none; cursor: pointer; }
+.fg-file-remove:hover { color: var(--fg-color-error); }
 @media (prefers-color-scheme: dark) {
   .fg-form:not([data-fg-theme='light']) {
     --fg-color-bg: #0f172a; --fg-color-surface: #1e293b; --fg-color-text: #e2e8f0;

@@ -61,6 +61,13 @@ const CLASSES: Record<Slot, string> = {
   repeaterItemActions: 'mt-2 d-flex justify-content-end',
   repeaterRemove: 'btn btn-link link-danger p-0',
   repeaterAdd: 'btn btn-outline-secondary mt-3',
+  fileInput: 'form-control',
+  fileList: 'list-group mt-2',
+  fileItem: 'list-group-item d-flex align-items-center gap-2',
+  fileThumb: 'rounded object-fit-cover',
+  fileName: 'flex-grow-1 text-truncate',
+  fileSize: 'text-body-secondary small',
+  fileRemove: 'btn btn-sm btn-link link-danger p-0 text-decoration-none fs-5 lh-1',
 }
 
 // Bootstrap's own size modifiers are designed to be appended.

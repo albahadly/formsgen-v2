@@ -189,6 +189,7 @@ const VARIANT_PSEUDO: Record<string, string> = {
   checked: ':checked',
   'has-[:checked]': ':has(:checked)',
   'has-[:focus-visible]': ':has(:focus-visible)',
+  file: '::file-selector-button',
 }
 
 /** The variant prefix of a class (`has-[:checked]:bg-x` → `has-[:checked]`). */
@@ -220,7 +221,12 @@ export const TAILWIND_THEMED: Record<string, Record<string, string[]>> = {
   },
   'color-primary': {
     color: ['text-indigo-600', 'dark:text-indigo-400'],
-    'background-color': ['bg-indigo-600', 'checked:bg-indigo-600', 'has-[:checked]:bg-indigo-600'],
+    'background-color': [
+      'bg-indigo-600',
+      'checked:bg-indigo-600',
+      'has-[:checked]:bg-indigo-600',
+      'file:bg-indigo-600',
+    ],
     'border-color': [
       'border-indigo-500',
       'border-indigo-600',
@@ -229,7 +235,7 @@ export const TAILWIND_THEMED: Record<string, Record<string, string[]>> = {
     ],
     'accent-color': ['accent-indigo-600'],
   },
-  'color-primary-contrast': { color: ['has-[:checked]:text-white'] },
+  'color-primary-contrast': { color: ['has-[:checked]:text-white', 'file:text-white'] },
   'color-bg': { 'background-color': ['bg-white', 'dark:bg-gray-800'] },
   'color-border': {
     'border-color': ['border-gray-200', 'border-gray-300', 'dark:border-gray-600', 'dark:border-gray-700'],

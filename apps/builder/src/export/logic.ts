@@ -4,9 +4,14 @@
 // validation and payload).
 
 import {
+  FILE_TYPES,
+  MESSAGES,
+  fileLimits,
+  fill,
   getCoreElement,
   isRepeater,
   joinPath,
+  type MessageCatalog,
   type ElementNode,
   type FormSchema,
 } from '@formsgen/renderer'
@@ -86,19 +91,42 @@ export function visibilityFunctions(
     .join('\n')
 }
 
+/** `fgFileProblem(v, …)` for an upload field (null for other fields). */
+export function fileCheckExpr(node: ElementNode, messages: MessageCatalog): string | undefined {
+  if (!FILE_TYPES.has(node.type)) return undefined
+  const limits = fileLimits(node)
+  const m = {
+    tooMany: fill(messages.tooManyFiles, { n: limits.maxFiles }),
+    type: messages.fileType,
+    size: fill(messages.fileTooLarge, { size: limits.maxSizeMb }),
+  }
+  return `fgFileProblem(v, ${JSON.stringify(limits.accept)}, ${limits.maxSizeMb}, ${limits.maxFiles}, ${JSON.stringify(m)})`
+}
+
+/** Fields that need a validator: rules, or upload limits to check. */
+export function needsValidator(node: ElementNode): boolean {
+  return (node.validation?.length ?? 0) > 0 || FILE_TYPES.has(node.type)
+}
+
 /** Object literal mapping data paths to validator functions. */
 export function validatorsLiteral(
   fields: ExportField[],
   accessor: ValueAccessor,
   args = '',
   visibleCall = (key: string) => `fgVisible_${key}()`,
+  messages: MessageCatalog = MESSAGES.en,
 ): string {
   const entries = fields
-    .filter((f) => (f.node.validation?.length ?? 0) > 0)
+    .filter((f) => needsValidator(f.node))
     .map((f) => {
       const guard =
         f.conditionChain.length > 0 ? `if (!${visibleCall(f.key)}) return null\n  ` : ''
-      const body = compileValidator(f.node.validation ?? [], accessor(f.path), accessor)
+      const body = compileValidator(
+        f.node.validation ?? [],
+        accessor(f.path),
+        accessor,
+        fileCheckExpr(f.node, messages),
+      )
       return `  '${f.path}': function (${args}) {\n  ${guard}${body}\n  },`
     })
   return `{\n${entries.join('\n')}\n}`

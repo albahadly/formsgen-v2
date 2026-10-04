@@ -76,6 +76,8 @@ describe('operators and value kinds follow the field type', () => {
     expect(operatorsFor('text')).not.toContain('greater-than')
     expect(operatorsFor('select')).not.toContain('contains')
     expect(operatorsFor('multiselect')).toEqual(['contains', 'empty', 'not-empty'])
+    expect(operatorsFor('file')).toEqual(['not-empty', 'empty'])
+    expect(operatorsFor('imageupload')).toEqual(['not-empty', 'empty'])
   })
 
   it('stores values with the runtime type the renderer compares with ===', () => {
