@@ -267,6 +267,22 @@ export const useBuilderStore = defineStore('builder', {
       return true
     },
 
+    /**
+     * Replaces the theme's colors with a palette (null: default colors);
+     * font, radius and spacing are kept.
+     */
+    applyThemeColors(colors: Readonly<Record<string, string>> | null): void {
+      const theme: Record<string, string> = {}
+      for (const [token, value] of Object.entries(this.schema.meta.theme ?? {})) {
+        if (!token.startsWith('color-')) theme[token] = value
+      }
+      for (const [token, value] of Object.entries(colors ?? {})) {
+        if (THEME_TOKEN_PATTERN.test(token) && isSafeThemeValue(value)) theme[token] = value
+      }
+      if (Object.keys(theme).length === 0) delete this.schema.meta.theme
+      else this.schema.meta.theme = theme
+    },
+
     /** Removes every theme token (back to the built-in look). */
     resetTheme(): void {
       delete this.schema.meta.theme

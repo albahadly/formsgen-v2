@@ -46,6 +46,101 @@ export const SPACE_PRESETS: readonly ThemePreset[] = [
   { id: 'relaxed', value: '1.5rem' },
 ]
 
+/** The color tokens a palette sets (the contrast color is derived). */
+export const THEME_COLOR_TOKENS = [
+  'color-primary',
+  'color-text',
+  'color-bg',
+  'color-surface',
+  'color-muted',
+  'color-border',
+  'color-error',
+] as const
+
+export interface ThemePalette {
+  id: string
+  colors: Record<(typeof THEME_COLOR_TOKENS)[number], string>
+}
+
+/**
+ * One-click color palettes. Each keeps text, muted text, primary and error
+ * readable (≥ 4.5:1) on both its background and its surface color.
+ */
+export const THEME_PALETTES: readonly ThemePalette[] = [
+  {
+    id: 'ocean',
+    colors: {
+      'color-primary': '#0369a1',
+      'color-text': '#0c1f2e',
+      'color-bg': '#f0f9ff',
+      'color-surface': '#e0f2fe',
+      'color-muted': '#3b5a70',
+      'color-border': '#93c5e4',
+      'color-error': '#b91c1c',
+    },
+  },
+  {
+    id: 'forest',
+    colors: {
+      'color-primary': '#166534',
+      'color-text': '#14231a',
+      'color-bg': '#f6fbf4',
+      'color-surface': '#e8f3e4',
+      'color-muted': '#4a5d50',
+      'color-border': '#a9c9a4',
+      'color-error': '#b91c1c',
+    },
+  },
+  {
+    id: 'sunset',
+    colors: {
+      'color-primary': '#c2410c',
+      'color-text': '#2a1a12',
+      'color-bg': '#fff8f1',
+      'color-surface': '#ffedd5',
+      'color-muted': '#6b4f3f',
+      'color-border': '#f0bf94',
+      'color-error': '#be123c',
+    },
+  },
+  {
+    id: 'rose',
+    colors: {
+      'color-primary': '#be185d',
+      'color-text': '#2b1220',
+      'color-bg': '#fff5f8',
+      'color-surface': '#fce7f0',
+      'color-muted': '#6e4a5a',
+      'color-border': '#f0b3cb',
+      'color-error': '#b91c1c',
+    },
+  },
+  {
+    id: 'graphite',
+    colors: {
+      'color-primary': '#334155',
+      'color-text': '#0f172a',
+      'color-bg': '#ffffff',
+      'color-surface': '#f1f5f9',
+      'color-muted': '#475569',
+      'color-border': '#94a3b8',
+      'color-error': '#b91c1c',
+    },
+  },
+  {
+    id: 'midnight',
+    colors: {
+      'color-primary': '#818cf8',
+      'color-text': '#e2e8f0',
+      'color-bg': '#0f172a',
+      'color-surface': '#1e293b',
+      'color-muted': '#94a3b8',
+      'color-border': '#475569',
+      'color-error': '#f87171',
+    },
+  },
+]
+
 export const THEME_TOKEN_PATTERN = /^[a-z][a-z0-9-]*$/
 
 /**
@@ -80,17 +175,22 @@ export function shadeColor(value: string, amount: number): string {
   return rgb ? toHex(rgb.map((c) => c * (1 - amount)) as [number, number, number]) : value
 }
 
-/** Black or white text, whichever reads better on `background` (WCAG). */
-export function readableTextOn(background: string): '#ffffff' | '#111827' {
-  const rgb = parseHexColor(background)
-  if (!rgb) return '#ffffff'
+function luminance(color: string): number | null {
+  const rgb = parseHexColor(color)
+  if (!rgb) return null
   const [r, g, b] = rgb.map((c) => {
     const s = c / 255
     return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
   }) as [number, number, number]
-  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+
+/** Black or white text, whichever reads better on `background` (WCAG). */
+export function readableTextOn(background: string): '#ffffff' | '#111827' {
+  const l = luminance(background)
+  if (l === null) return '#ffffff'
   // contrast vs white: 1.05/(L+0.05); vs near-black (#111827, L≈0.009): (L+0.05)/0.059
-  return 1.05 / (luminance + 0.05) >= (luminance + 0.05) / 0.059 ? '#ffffff' : '#111827'
+  return 1.05 / (l + 0.05) >= (l + 0.05) / 0.059 ? '#ffffff' : '#111827'
 }
 
 /**
@@ -109,11 +209,35 @@ export function resolveTheme(theme: ThemeTokens | undefined): ThemeTokens {
   return resolved
 }
 
+/** WCAG contrast ratio between two hex colors (1–21), or null. */
+export function contrastRatio(a: string, b: string): number | null {
+  const la = luminance(a)
+  const lb = luminance(b)
+  if (la === null || lb === null) return null
+  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05)
+}
+
+/**
+ * The color scheme a custom background implies — native controls (select
+ * arrows, date pickers, scrollbars) follow it. Undefined without a hex bg.
+ */
+export function themeColorScheme(theme: ThemeTokens | undefined): 'light' | 'dark' | undefined {
+  const bg = resolveTheme(theme)['color-bg']
+  if (!bg || !parseHexColor(bg)) return undefined
+  return readableTextOn(bg) === '#ffffff' ? 'dark' : 'light'
+}
+
 /** The resolved theme as `--fg-*` custom properties (for a style binding). */
 export function themeCssVariables(theme: ThemeTokens | undefined): Record<string, string> {
   const vars: Record<string, string> = {}
   for (const [token, value] of Object.entries(resolveTheme(theme))) vars[`--fg-${token}`] = value
   return vars
+}
+
+/** Inline style for a themed form root: the variables plus its color scheme. */
+export function themeInlineStyle(theme: ThemeTokens | undefined): Record<string, string> {
+  const scheme = themeColorScheme(theme)
+  return scheme ? { ...themeCssVariables(theme), 'color-scheme': scheme } : themeCssVariables(theme)
 }
 
 /**

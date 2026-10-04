@@ -100,5 +100,4 @@ Blazor CSS isolation stamps only the component's own plain elements, so the `.ra
 ## Backlog
 
 - **`@formsgen/renderer` npm publish — parked by user.**
-- Muted text and surface colors (`color-muted`, `color-surface`) are tokens the renderer and vanilla understand, but they aren't in the Settings UI. Tailwind/Bootstrap leave greys alone (listed in the guard test).
-- Theme presets ("Ocean", "Forest", …) could be offered as one-click combinations of the tokens.
+- Muted/surface colors and one-click palettes: done in phase 22.

@@ -7,8 +7,10 @@
 import {
   parseHexColor,
   pinsLightScheme,
+  readableTextOn,
   resolveTheme,
   shadeColor,
+  themeColorScheme,
   type ThemeTokens,
 } from '@formsgen/renderer'
 
@@ -18,6 +20,18 @@ export const THEMED_CLASS = 'fg-themed'
 function alpha(color: string, opacity: number): string {
   const rgb = parseHexColor(color)
   return rgb ? `rgba(${rgb.join(', ')}, ${opacity})` : color
+}
+
+/** `--x: v;` plus `--x-rgb: r, g, b;` when the value is a hex color. */
+function withRgb(variable: string, value: string): string[] {
+  const rgb = parseHexColor(value)
+  return rgb ? [`${variable}: ${value};`, `${variable}-rgb: ${rgb.join(', ')};`] : [`${variable}: ${value};`]
+}
+
+/** Bootstrap's select chevron, drawn in the theme's text color. */
+function selectChevron(color: string): string {
+  const stroke = color.replace('#', '%23')
+  return `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='${stroke}' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e")`
 }
 
 function rule(selector: string, declarations: string[]): string {
@@ -72,11 +86,41 @@ export function bootstrapThemeCss(theme: ThemeTokens | undefined): string | unde
     css += rule(`.${THEMED_CLASS} .form-range::-moz-range-thumb`, [`background-color: ${primary};`])
     css += rule(`.${THEMED_CLASS} .nav-tabs .nav-link.active`, [`color: ${primary};`])
   }
-  if (t['color-text']) root.push(`--bs-body-color: ${t['color-text']};`, `color: ${t['color-text']};`)
-  if (t['color-bg']) {
-    root.push(`--bs-body-bg: ${t['color-bg']};`, `background-color: ${t['color-bg']};`)
+  const text = t['color-text']
+  if (text) {
+    root.push(...withRgb('--bs-body-color', text), ...withRgb('--bs-emphasis-color', text), `color: ${text};`)
+    if (parseHexColor(text)) {
+      css += rule(`.${THEMED_CLASS} .form-select`, [`--bs-form-select-bg-img: ${selectChevron(text)};`])
+    }
   }
-  if (t['color-border']) root.push(`--bs-border-color: ${t['color-border']};`)
+  if (t['color-bg']) {
+    root.push(...withRgb('--bs-body-bg', t['color-bg']), `background-color: ${t['color-bg']};`)
+  }
+  if (t['color-border']) {
+    root.push(`--bs-border-color: ${t['color-border']};`, `--bs-border-color-translucent: ${t['color-border']};`)
+  }
+  const surface = t['color-surface']
+  if (surface) root.push(...withRgb('--bs-tertiary-bg', surface), ...withRgb('--bs-secondary-bg', surface))
+  const muted = t['color-muted']
+  if (muted) {
+    root.push(`--bs-secondary-color: ${muted};`)
+    if (parseHexColor(muted)) root.push(`--bs-secondary-rgb: ${parseHexColor(muted)!.join(', ')};`)
+    const onMuted = readableTextOn(muted)
+    // Tag chips: Bootstrap forces white text on the secondary color.
+    css += rule(`.${THEMED_CLASS} .text-bg-secondary, .${THEMED_CLASS} .text-bg-secondary .text-white`, [
+      `color: ${onMuted} !important;`,
+    ])
+    css += rule(`.${THEMED_CLASS} .btn-outline-secondary`, [
+      `--bs-btn-color: ${muted};`,
+      `--bs-btn-border-color: ${muted};`,
+      `--bs-btn-hover-color: ${onMuted};`,
+      `--bs-btn-hover-bg: ${muted};`,
+      `--bs-btn-hover-border-color: ${muted};`,
+      `--bs-btn-active-color: ${onMuted};`,
+      `--bs-btn-active-bg: ${muted};`,
+      `--bs-btn-active-border-color: ${muted};`,
+    ])
+  }
   const error = t['color-error']
   if (error) {
     const rgb = parseHexColor(error)
@@ -95,6 +139,8 @@ export function bootstrapThemeCss(theme: ThemeTokens | undefined): string | unde
     )
   }
   if (t['font']) root.push(`--bs-body-font-family: ${t['font']};`, `font-family: ${t['font']};`)
+  const scheme = themeColorScheme(t)
+  if (scheme) root.push(`color-scheme: ${scheme};`)
   if (t['space']) {
     css += rule(`.${THEMED_CLASS} .row.g-3`, [`--bs-gutter-x: ${t['space']};`, `--bs-gutter-y: ${t['space']};`])
   }
@@ -126,7 +172,11 @@ function twSelector(className: string): string {
  * token that replaces it. Kept in sync with tailwind.ts by a test.
  */
 export const TAILWIND_THEMED: Record<string, Record<string, string[]>> = {
-  'color-text': { color: ['text-gray-900', 'dark:text-gray-100'] },
+  'color-text': { color: ['text-gray-900', 'dark:text-gray-100', 'text-gray-700', 'hover:text-gray-700'] },
+  'color-muted': { color: ['text-gray-500', 'text-gray-600', 'dark:text-gray-400', 'dark:text-gray-300'] },
+  'color-surface': {
+    'background-color': ['bg-gray-50', 'bg-gray-100', 'dark:bg-gray-800/50', 'dark:bg-gray-700', 'hover:bg-gray-50'],
+  },
   'color-primary': {
     color: ['text-indigo-600', 'dark:text-indigo-400'],
     'background-color': ['bg-indigo-600'],
@@ -175,6 +225,8 @@ export function tailwindThemeCss(theme: ThemeTokens | undefined): string | undef
   if (t['color-text']) root.push(`color: ${t['color-text']};`)
   if (t['color-bg']) root.push(`background-color: ${t['color-bg']};`)
   if (t['font']) root.push(`font-family: ${t['font']};`)
+  const scheme = themeColorScheme(t)
+  if (scheme) root.push(`color-scheme: ${scheme};`)
   let css = rule(`.${THEMED_CLASS}.${THEMED_CLASS}`, root)
   // Resets first: a token rule of equal specificity that follows wins.
   if (pinsLightScheme(t)) {

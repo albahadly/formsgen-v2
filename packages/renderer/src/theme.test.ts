@@ -5,12 +5,16 @@ import FormsGenForm from './components/FormsGenForm.vue'
 import { parseFormSchema } from './parse'
 import type { FormSchema } from './schema'
 import {
+  THEME_PALETTES,
+  contrastRatio,
   isSafeThemeValue,
   pinsLightScheme,
   readableTextOn,
   resolveTheme,
   shadeColor,
+  themeColorScheme,
   themeCssVariables,
+  themeInlineStyle,
 } from './theme'
 
 function withTheme(theme: unknown): Record<string, unknown> {
@@ -58,6 +62,32 @@ describe('theme values', () => {
     expect(pinsLightScheme({ 'color-bg': '#fafafa' })).toBe(true)
     expect(pinsLightScheme({ 'color-text': '#111111' })).toBe(true)
     expect(themeCssVariables({ radius: '0px' })).toEqual({ '--fg-radius': '0px' })
+  })
+})
+
+describe('palettes', () => {
+  it.each(THEME_PALETTES.map((p) => [p.id, p.colors] as const))(
+    '%s keeps text readable on its background and surface (WCAG AA)',
+    (_id, colors) => {
+      const resolved = resolveTheme(colors)
+      for (const background of ['color-bg', 'color-surface'] as const) {
+        for (const fg of ['color-text', 'color-muted', 'color-primary', 'color-error'] as const) {
+          const ratio = contrastRatio(colors[fg], colors[background])!
+          expect(ratio, `${fg} on ${background}`).toBeGreaterThanOrEqual(4.5)
+        }
+      }
+      expect(contrastRatio(resolved['color-primary-contrast']!, colors['color-primary'])).toBeGreaterThanOrEqual(4.5)
+      expect(Object.values(colors).every(isSafeThemeValue)).toBe(true)
+    },
+  )
+
+  it('a dark background implies the dark color scheme for native controls', () => {
+    expect(contrastRatio('#000000', '#ffffff')).toBeCloseTo(21)
+    expect(themeColorScheme({ 'color-bg': '#0f172a' })).toBe('dark')
+    expect(themeColorScheme({ 'color-bg': '#fffbeb' })).toBe('light')
+    expect(themeColorScheme({ 'color-bg': 'white' })).toBeUndefined()
+    expect(themeColorScheme({ 'color-primary': '#000000' })).toBeUndefined()
+    expect(themeInlineStyle({ 'color-bg': '#0f172a' })).toEqual({ '--fg-color-bg': '#0f172a', 'color-scheme': 'dark' })
   })
 })
 

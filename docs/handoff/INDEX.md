@@ -26,5 +26,6 @@ Read the latest handoff before starting any phase (Phase Standard, REBUILD_PROMP
 | 19 | Complete Arabic builder UI | ✅ Complete | [phase-19-arabic-builder-ui.md](./phase-19-arabic-builder-ui.md) |
 | 20 | Element appearance (style options) | ✅ Complete | [phase-20-element-appearance.md](./phase-20-element-appearance.md) |
 | 21 | Theme options in Settings (all exports) | ✅ Complete | [phase-21-theme-settings.md](./phase-21-theme-settings.md) |
+| 22 | Theme palettes, muted & surface colors, color-scheme | ✅ Complete | [phase-22-theme-palettes.md](./phase-22-theme-palettes.md) |
 
-**All 11 planned phases are complete**, plus 10b and 12–21 from the backlog. Remaining backlog: npm publish of `@formsgen/renderer` (parked by user); see the "Not done" list in [phase-16-arabic-messages.md](./phase-16-arabic-messages.md).
+**All 11 planned phases are complete**, plus 10b and 12–22 from the backlog. Remaining backlog: npm publish of `@formsgen/renderer` (parked by user); see the "Not done" list in [phase-16-arabic-messages.md](./phase-16-arabic-messages.md).

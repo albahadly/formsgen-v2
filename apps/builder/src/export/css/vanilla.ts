@@ -1,4 +1,4 @@
-import { resolveTheme, type ThemeTokens } from '@formsgen/renderer'
+import { resolveTheme, themeColorScheme, type ThemeTokens } from '@formsgen/renderer'
 import { SIZED_SLOTS, TONED_SLOTS, type CssFrameworkAdapter, type Slot, type SlotMods } from './types'
 
 const CLASSES: Record<Slot, string> = {
@@ -45,9 +45,11 @@ const CLASSES: Record<Slot, string> = {
 function baseStylesheet(theme: ThemeTokens | undefined): string {
   // The theme goes last, at higher specificity, so the automatic dark scheme
   // never overrides a color the author chose.
-  const overrides = Object.entries(resolveTheme(theme))
-    .map(([token, value]) => `  --fg-${token}: ${value};`)
-    .join('\n')
+  const scheme = themeColorScheme(theme)
+  const overrides = [
+    ...Object.entries(resolveTheme(theme)).map(([token, value]) => `  --fg-${token}: ${value};`),
+    ...(scheme ? [`  color-scheme: ${scheme};`] : []),
+  ].join('\n')
   const themeRule = overrides ? `.fg-form.fg-form {\n${overrides}\n}\n` : ''
   return `.fg-form {
   --fg-color-bg: #ffffff;

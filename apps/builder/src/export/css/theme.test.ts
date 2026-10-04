@@ -34,18 +34,11 @@ const THEME: ThemeTokens = {
   font: 'Georgia, "Times New Roman", serif',
 }
 
-/** Palette classes the bridge deliberately leaves alone (muted greys, the debug payload). */
+/** Palette classes the bridge deliberately leaves alone (the debug payload) or themes specially. */
 const UNTHEMED_TAILWIND = new Set([
-  'bg-gray-50',
-  'bg-gray-100',
   'bg-gray-900',
-  'hover:bg-gray-50',
-  'hover:bg-indigo-500', // themed by a dedicated shaded-primary rule
-  'hover:text-gray-700',
-  'text-gray-500',
-  'text-gray-600',
-  'text-gray-700',
   'text-green-300',
+  'hover:bg-indigo-500', // themed by a dedicated shaded-primary rule
   'text-white', // themed on the primary button via the contrast rule
 ])
 
@@ -91,7 +84,7 @@ describe('theme bridges', () => {
     expect(css).toContain('--tw-ring-color: rgba(15, 118, 110, 0.35);')
     expect(css).toContain('.fg-themed .rounded-md,\n.fg-themed .rounded-lg {\n  border-radius: 0px;\n}')
     expect(css).toContain('.fg-themed .gap-4 {\n  gap: 1.5rem;\n}')
-    expect(css).toContain('.fg-themed.fg-themed {\n  color: #1c1917;\n  background-color: #fffbeb;\n  font-family: Georgia, "Times New Roman", serif;\n}')
+    expect(css).toContain('.fg-themed.fg-themed {\n  color: #1c1917;\n  background-color: #fffbeb;\n  font-family: Georgia, "Times New Roman", serif;\n  color-scheme: light;\n}')
     // pinned light scheme: dark variants reset before token rules override them
     const reset = css.indexOf('.fg-themed .dark\\:bg-gray-800 {\n  background-color: #ffffff;')
     const token = css.indexOf('.fg-themed .bg-white,\n.fg-themed .dark\\:bg-gray-800 {\n  background-color: #fffbeb;')
@@ -118,6 +111,34 @@ describe('theme bridges', () => {
     expect(css).toContain('--bs-gutter-x: 1.5rem;')
   })
 
+  it('Bootstrap: muted, surface, text utilities and the select chevron follow the theme', () => {
+    const css = bootstrapThemeCss({
+      'color-text': '#e2e8f0',
+      'color-bg': '#0f172a',
+      'color-muted': '#94a3b8',
+      'color-surface': '#1e293b',
+    })!
+    expect(css).toContain('--bs-body-color-rgb: 226, 232, 240;') // .text-body (active step)
+    expect(css).toContain('--bs-emphasis-color: #e2e8f0;')
+    expect(css).toContain('--bs-secondary-color: #94a3b8;')
+    expect(css).toContain('--bs-secondary-rgb: 148, 163, 184;')
+    expect(css).toContain('--bs-tertiary-bg-rgb: 30, 41, 59;') // group .bg-body-tertiary
+    expect(css).toContain('color-scheme: dark;')
+    // tag chips on a light muted color get dark text
+    expect(css).toContain('.fg-themed .text-bg-secondary, .fg-themed .text-bg-secondary .text-white {\n  color: #111827 !important;')
+    expect(css).toContain("stroke='%23e2e8f0'")
+    expect(css).not.toMatch(/[<>]/)
+  })
+
+  it('Tailwind: muted and surface colors, and the color scheme', () => {
+    const css = tailwindThemeCss({ 'color-muted': '#475569', 'color-surface': '#f1f5f9', 'color-bg': '#ffffff' })!
+    expect(css).toContain('.fg-themed .text-gray-500,')
+    expect(css).toContain('  color: #475569;')
+    expect(css).toContain('.fg-themed .bg-gray-50,')
+    expect(css).toContain('  background-color: #f1f5f9;')
+    expect(css).toContain('color-scheme: light;')
+  })
+
   it('a light primary color gets dark button text', () => {
     expect(bootstrapThemeCss({ 'color-primary': '#fde047' })).toContain('--bs-btn-color: #111827;')
     expect(tailwindThemeCss({ 'color-primary': '#fde047' })).toContain('.bg-indigo-600.text-white {\n  color: #111827;')
@@ -132,6 +153,9 @@ describe('vanilla theme', () => {
     expect(dark).toBeGreaterThan(0)
     expect(override).toBeGreaterThan(dark)
     expect(getCssAdapter('vanilla').stylesheet!(undefined)).not.toContain('.fg-form.fg-form')
+    expect(getCssAdapter('vanilla').stylesheet!({ 'color-bg': '#0f172a' })).toContain(
+      '.fg-form.fg-form {\n  --fg-color-bg: #0f172a;\n  color-scheme: dark;\n}',
+    )
   })
 })
 

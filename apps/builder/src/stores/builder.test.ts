@@ -131,6 +131,14 @@ describe('builder store', () => {
     expect(store.setThemeToken('radius', '4px')).toBe(true)
     store.resetTheme()
     expect(store.schema.meta.theme).toBeUndefined()
+
+    // palettes replace only the colors
+    store.setThemeToken('radius', '0px')
+    store.setThemeToken('color-error', '#ff0000')
+    store.applyThemeColors({ 'color-primary': '#0369a1', 'color-bg': '#f0f9ff' })
+    expect(store.schema.meta.theme).toEqual({ radius: '0px', 'color-primary': '#0369a1', 'color-bg': '#f0f9ff' })
+    store.applyThemeColors(null)
+    expect(store.schema.meta.theme).toEqual({ radius: '0px' })
   })
 
   it('duplicateElement deep-clones with fresh ids and unique names', () => {

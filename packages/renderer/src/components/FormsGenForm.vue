@@ -4,7 +4,7 @@ import { getValueByPath } from '../conditions'
 import { FORM_CONTEXT, type FormContext } from '../context'
 import { pluralText, resolveMessages } from '../messages'
 import { evaluateRules } from '../rules'
-import { pinsLightScheme, themeCssVariables } from '../theme'
+import { pinsLightScheme, themeInlineStyle } from '../theme'
 import { collectVisibleFields, pickVisibleData, setValueByPath } from '../runtime'
 import type { FormSchema } from '../schema'
 import { buildDefaultData } from '../tree'
@@ -21,7 +21,7 @@ const emit = defineEmits<{
 }>()
 
 /** meta.theme tokens (validated, with derived values) become --fg-* variables. */
-const themeStyle = computed(() => themeCssVariables(props.schema.meta.theme))
+const themeStyle = computed(() => themeInlineStyle(props.schema.meta.theme))
 /** Custom background/text colors pin the light scheme (no auto dark mode). */
 const pinnedScheme = computed(() => (pinsLightScheme(props.schema.meta.theme) ? 'light' : undefined))
 

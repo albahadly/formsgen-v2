@@ -214,6 +214,20 @@ describe('palette → canvas → properties workflow', () => {
     // a custom value that is not a preset keeps the custom choice selected
     expect((wrapper.get('[data-testid="settings-theme-space"]').element as HTMLSelectElement).value).toBe('custom')
 
+    // one-click palette: replaces the colors, keeps font/radius/spacing
+    expect(wrapper.get('[data-testid="settings-palette-default"]').attributes('aria-pressed')).toBe('false')
+    await wrapper.get('[data-testid="settings-palette-midnight"]').trigger('click')
+    expect(store.schema.meta.theme?.['color-bg']).toBe('#0f172a')
+    expect(store.schema.meta.theme?.['color-muted']).toBe('#94a3b8')
+    expect(store.schema.meta.theme?.['space']).toBe('2rem')
+    expect(wrapper.get('[data-testid="settings-palette-midnight"]').attributes('aria-pressed')).toBe('true')
+    expect(canvas().attributes('style')).toContain('color-scheme: dark')
+    await wrapper.get('[data-testid="settings-theme-color-muted"]').setValue('#cbd5e1')
+    expect(wrapper.get('[data-testid="settings-palette-midnight"]').attributes('aria-pressed')).toBe('false')
+    await wrapper.get('[data-testid="settings-palette-default"]').trigger('click')
+    expect(Object.keys(store.schema.meta.theme ?? {}).some((k) => k.startsWith('color-'))).toBe(false)
+    expect(wrapper.get('[data-testid="settings-palette-default"]').attributes('aria-pressed')).toBe('true')
+
     await wrapper.get('[data-testid="settings-theme-reset"]').trigger('click')
     expect(store.schema.meta.theme).toBeUndefined()
     expect(canvas().attributes('style') ?? '').not.toContain('--fg-')

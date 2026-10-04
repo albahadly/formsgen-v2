@@ -7,6 +7,7 @@ import {
   KNOWN_RULE_NAMES,
   RADIUS_PRESETS,
   SPACE_PRESETS,
+  THEME_PALETTES,
   findNodeById,
 } from '@formsgen/renderer'
 import { mount } from '@vue/test-utils'
@@ -59,6 +60,7 @@ describe('Arabic builder UI completeness', () => {
       ...FONT_PRESETS.map((p) => `settings.font.${p.id}`),
       ...RADIUS_PRESETS.map((p) => `settings.radius.${p.id}`),
       ...SPACE_PRESETS.map((p) => `settings.space.${p.id}`),
+      ...['default', ...THEME_PALETTES.map((p) => p.id)].map((id) => `settings.palette.${id}`),
     ]
     for (const lang of ['en', 'ar'] as const) {
       setLocale(lang)

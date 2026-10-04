@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { pinsLightScheme, themeCssVariables } from '@formsgen/renderer'
+import { pinsLightScheme, themeInlineStyle } from '@formsgen/renderer'
 import { computed } from 'vue'
 import draggable from 'vuedraggable'
 import { t } from '@/i18n'
@@ -15,7 +15,7 @@ provideDesignContext()
 
 const { list, onMove, onAdd } = useDropList(() => null)
 const isEmpty = computed(() => store.schema.tree.length === 0)
-const themeVars = computed(() => themeCssVariables(store.schema.meta.theme))
+const themeVars = computed(() => themeInlineStyle(store.schema.meta.theme))
 
 function onBackgroundClick(): void {
   store.select(null)

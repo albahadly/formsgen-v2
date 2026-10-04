@@ -6,7 +6,9 @@ import {
   RADIUS_PRESETS,
   SPACE_PRESETS,
   THEME_DEFAULTS,
+  THEME_PALETTES,
   parseHexColor,
+  type ThemePalette,
 } from '@formsgen/renderer'
 import { computed } from 'vue'
 import { t } from '@/i18n'
@@ -19,9 +21,40 @@ const COLORS = [
   { token: 'color-primary', key: 'settings.primaryColor' },
   { token: 'color-text', key: 'settings.colorText' },
   { token: 'color-bg', key: 'settings.colorBg' },
+  { token: 'color-surface', key: 'settings.colorSurface' },
+  { token: 'color-muted', key: 'settings.colorMuted' },
   { token: 'color-border', key: 'settings.colorBorder' },
   { token: 'color-error', key: 'settings.colorError' },
 ] as const
+
+const DEFAULT_PALETTE: ThemePalette = {
+  id: 'default',
+  colors: {
+    'color-primary': THEME_DEFAULTS['color-primary']!,
+    'color-text': THEME_DEFAULTS['color-text']!,
+    'color-bg': THEME_DEFAULTS['color-bg']!,
+    'color-surface': THEME_DEFAULTS['color-surface']!,
+    'color-muted': THEME_DEFAULTS['color-muted']!,
+    'color-border': THEME_DEFAULTS['color-border']!,
+    'color-error': THEME_DEFAULTS['color-error']!,
+  },
+}
+const PALETTES = [DEFAULT_PALETTE, ...THEME_PALETTES]
+
+/** The palette the theme's colors match exactly (default: no colors set). */
+const activePalette = computed(() => {
+  const colors = Object.entries(builder.schema.meta.theme ?? {}).filter(([token]) => token.startsWith('color-'))
+  if (colors.length === 0) return 'default'
+  return THEME_PALETTES.find(
+    (palette) =>
+      colors.length === Object.keys(palette.colors).length &&
+      colors.every(([token, value]) => palette.colors[token as keyof ThemePalette['colors']] === value),
+  )?.id
+})
+
+function applyPalette(palette: ThemePalette): void {
+  builder.applyThemeColors(palette.id === 'default' ? null : palette.colors)
+}
 
 const hasTheme = computed(() => Object.keys(builder.schema.meta.theme ?? {}).length > 0)
 
@@ -61,7 +94,41 @@ function onColorInput(token: string, event: Event): void {
       {{ t('settings.themeHint') }}
     </p>
 
-    <div class="grid grid-cols-5 gap-2">
+    <div
+      class="grid grid-cols-7 gap-2"
+      role="group"
+      :aria-label="t('settings.palettes')"
+    >
+      <button
+        v-for="palette in PALETTES"
+        :key="palette.id"
+        type="button"
+        class="flex flex-col items-center gap-1 rounded border p-1 text-[11px] text-gray-600 hover:border-indigo-300"
+        :class="activePalette === palette.id ? 'border-indigo-500 ring-1 ring-indigo-300' : 'border-gray-200'"
+        :aria-pressed="activePalette === palette.id"
+        :data-testid="`settings-palette-${palette.id}`"
+        @click="applyPalette(palette)"
+      >
+        <span
+          class="flex h-8 w-full items-center justify-center gap-1 rounded-sm border text-xs font-semibold"
+          :style="{
+            background: palette.colors['color-bg'],
+            color: palette.colors['color-text'],
+            borderColor: palette.colors['color-border'],
+          }"
+          aria-hidden="true"
+        >
+          Aa
+          <span
+            class="h-3 w-3 rounded-full"
+            :style="{ background: palette.colors['color-primary'] }"
+          />
+        </span>
+        {{ t(`settings.palette.${palette.id}`) }}
+      </button>
+    </div>
+
+    <div class="grid grid-cols-4 gap-2">
       <div
         v-for="color in COLORS"
         :key="color.token"
