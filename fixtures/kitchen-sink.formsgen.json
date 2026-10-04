@@ -1,0 +1,106 @@
+{
+  "$schema": "formsgen/v2",
+  "meta": {
+    "name": "kitchen_sink",
+    "title": "Kitchen Sink",
+    "description": "Grows with every phase: every implemented element, rule, condition and container pattern appears here at least once.",
+    "locale": "en",
+    "dir": "ltr"
+  },
+  "tree": [
+    {
+      "id": "ks-full-name",
+      "type": "text",
+      "name": "full_name",
+      "props": { "label": "Full name", "placeholder": "Jane Doe" },
+      "validation": [{ "rule": "required" }, { "rule": "min", "value": 2 }]
+    },
+    {
+      "id": "ks-email",
+      "type": "text",
+      "name": "email",
+      "props": { "label": "Email", "placeholder": "jane@example.com" },
+      "validation": [{ "rule": "required" }, { "rule": "email" }]
+    },
+    {
+      "id": "ks-columns",
+      "type": "columns",
+      "props": { "count": 2 },
+      "children": [
+        {
+          "id": "ks-city",
+          "type": "text",
+          "name": "city",
+          "props": { "label": "City" },
+          "layout": { "colSpan": 6 }
+        },
+        {
+          "id": "ks-zip",
+          "type": "text",
+          "name": "zip",
+          "props": { "label": "ZIP" },
+          "layout": { "colSpan": 6 },
+          "validation": [{ "rule": "regex", "value": "^[0-9]{4,6}$" }]
+        }
+      ]
+    },
+    {
+      "id": "ks-account",
+      "type": "group",
+      "name": "account",
+      "props": { "label": "Account" },
+      "children": [
+        {
+          "id": "ks-username",
+          "type": "text",
+          "name": "username",
+          "props": { "label": "Username" },
+          "validation": [{ "rule": "required" }, { "rule": "between", "value": [3, 20] }]
+        },
+        {
+          "id": "ks-bio",
+          "type": "textarea",
+          "name": "bio",
+          "props": { "label": "Bio", "rows": 4 },
+          "validation": [{ "rule": "max", "value": 200 }]
+        }
+      ]
+    },
+    {
+      "id": "ks-contact-method",
+      "type": "select",
+      "name": "contact_method",
+      "props": {
+        "label": "Preferred contact method",
+        "items": [
+          { "value": "email", "label": "Email" },
+          { "value": "phone", "label": "Phone" },
+          { "value": "other", "label": "Other" }
+        ]
+      },
+      "validation": [{ "rule": "required" }]
+    },
+    {
+      "id": "ks-contact-other",
+      "type": "textarea",
+      "name": "contact_other",
+      "props": { "label": "Describe your preferred method" },
+      "conditions": [
+        [{ "field": "contact_method", "operator": "equals", "value": "other" }]
+      ]
+    },
+    {
+      "id": "ks-newsletter",
+      "type": "checkbox",
+      "name": "newsletter",
+      "props": { "label": "Subscribe to the newsletter", "default": true }
+    },
+    {
+      "id": "ks-terms",
+      "type": "checkbox",
+      "name": "terms",
+      "props": { "label": "I accept the terms" },
+      "validation": [{ "rule": "required" }]
+    }
+  ]
+}

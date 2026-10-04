@@ -1,0 +1,90 @@
+import { describe, expect, it } from 'vitest'
+import kitchenSink from '../../../fixtures/kitchen-sink.formsgen.json'
+import { parseFormSchema } from './parse'
+import type { ElementNode, FormSchema } from './schema'
+import {
+  buildDefaultData,
+  collectNames,
+  findNodeById,
+  findParent,
+  uniqueName,
+  walkTree,
+} from './tree'
+
+function loadFixture(): FormSchema {
+  const result = parseFormSchema(kitchenSink)
+  if (!result.ok) throw new Error(result.errors.join('\n'))
+  return result.schema
+}
+
+describe('walkTree / find helpers', () => {
+  const { tree } = loadFixture()
+
+  it('visits nested nodes depth-first', () => {
+    const ids: string[] = []
+    walkTree(tree, (node) => {
+      ids.push(node.id)
+    })
+    expect(ids).toContain('ks-username')
+    expect(ids.indexOf('ks-columns')).toBeLessThan(ids.indexOf('ks-city'))
+  })
+
+  it('stops when the visitor returns false', () => {
+    const ids: string[] = []
+    walkTree(tree, (node) => {
+      ids.push(node.id)
+      return node.id !== 'ks-city'
+    })
+    expect(ids[ids.length - 1]).toBe('ks-city')
+    expect(ids).not.toContain('ks-zip')
+  })
+
+  it('finds nested nodes and their parents', () => {
+    expect(findNodeById(tree, 'ks-bio')?.name).toBe('bio')
+    expect(findParent(tree, 'ks-bio')?.id).toBe('ks-account')
+    expect(findParent(tree, 'ks-full-name')).toBeNull()
+    expect(findNodeById(tree, 'missing')).toBeNull()
+  })
+
+  it('collects every name in the tree', () => {
+    const names = collectNames(tree)
+    expect(names).toEqual(
+      expect.arrayContaining(['full_name', 'account', 'username', 'city', 'terms']),
+    )
+  })
+})
+
+describe('uniqueName', () => {
+  it('returns the base when free and suffixes when taken', () => {
+    expect(uniqueName('text', [])).toBe('text')
+    expect(uniqueName('text', ['text'])).toBe('text_2')
+    expect(uniqueName('text', ['text', 'text_2'])).toBe('text_3')
+  })
+})
+
+describe('buildDefaultData', () => {
+  it('builds nested defaults from the kitchen-sink fixture', () => {
+    const data = buildDefaultData(loadFixture().tree)
+    expect(data).toEqual({
+      full_name: '',
+      email: '',
+      // unnamed columns container is transparent:
+      city: '',
+      zip: '',
+      // named group nests an object:
+      account: { username: '', bio: '' },
+      contact_method: null,
+      contact_other: '',
+      newsletter: true, // props.default wins over the type default
+      terms: false,
+    })
+  })
+
+  it('ignores unknown types and unnamed value elements', () => {
+    const tree: ElementNode[] = [
+      { id: 'a', type: 'mystery', props: {} },
+      { id: 'b', type: 'text', props: {} },
+    ]
+    expect(buildDefaultData(tree)).toEqual({})
+  })
+})

@@ -5,7 +5,7 @@ Read the latest handoff before starting any phase (Phase Standard, REBUILD_PROMP
 | Phase | Name | Status | Handoff |
 |---|---|---|---|
 | 01 | Workspace scaffold & tooling | ✅ Complete | [phase-01-scaffold.md](./phase-01-scaffold.md) |
-| 02 | Schema types + registry + pilot elements | ⬜ Not started | — |
+| 02 | Schema types + registry + pilot elements | ✅ Complete | [phase-02-schema-registry.md](./phase-02-schema-registry.md) |
 | 03 | Renderer: pilot types + validation + conditions | ⬜ Not started | — |
 | 04 | Builder shell: palette, canvas, properties | ⬜ Not started | — |
 | 05 | Nested DnD + tree sidebar + duplicate + keyboard | ⬜ Not started | — |
