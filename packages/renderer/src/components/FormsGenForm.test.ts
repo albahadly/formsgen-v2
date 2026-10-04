@@ -108,6 +108,15 @@ describe('FormsGenForm', () => {
     expect(wrapper.emitted('submit')).toBeUndefined()
   })
 
+  it('applies meta.theme tokens as CSS variables on the form root', () => {
+    const schema = fixtureSchema()
+    schema.meta.theme = { 'color-primary': '#ff0000', radius: '12px' }
+    const wrapper = mount(FormsGenForm, { props: { schema } })
+    const style = wrapper.get('form').attributes('style') ?? ''
+    expect(style).toContain('--fg-color-primary: #ff0000')
+    expect(style).toContain('--fg-radius: 12px')
+  })
+
   it('merges a provided modelValue over defaults', () => {
     const wrapper = mount(FormsGenForm, {
       props: {

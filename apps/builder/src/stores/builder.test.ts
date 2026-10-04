@@ -107,6 +107,23 @@ describe('builder store', () => {
     expect(group.children?.[0]?.id).toBe(field.id)
   })
 
+  it('updateMeta merges patches; setMetaName validates; theme tokens set/clear', () => {
+    const store = useBuilderStore()
+    store.updateMeta({ title: 'Contact us', dir: 'rtl' })
+    expect(store.schema.meta.title).toBe('Contact us')
+    expect(store.schema.meta.dir).toBe('rtl')
+
+    expect(store.setMetaName('2bad')).toBe('invalid')
+    expect(store.schema.meta.name).toBe('untitled_form')
+    expect(store.setMetaName('contact_form')).toBeNull()
+    expect(store.schema.meta.name).toBe('contact_form')
+
+    store.setThemeToken('color-primary', '#123456')
+    expect(store.schema.meta.theme).toEqual({ 'color-primary': '#123456' })
+    store.setThemeToken('color-primary', null)
+    expect(store.schema.meta.theme).toBeUndefined()
+  })
+
   it('duplicateElement deep-clones with fresh ids and unique names', () => {
     const store = useBuilderStore()
     const group = store.addElement('group')

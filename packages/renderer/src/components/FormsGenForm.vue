@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { provide, reactive, ref, watch } from 'vue'
+import { computed, provide, reactive, ref, watch } from 'vue'
 import { getValueByPath } from '../conditions'
 import { FORM_CONTEXT, type FormContext } from '../context'
 import { evaluateRules } from '../rules'
@@ -17,6 +17,15 @@ const emit = defineEmits<{
   'update:modelValue': [data: Record<string, unknown>]
   submit: [data: Record<string, unknown>]
 }>()
+
+/** meta.theme tokens become --fg-* CSS variables on the form root. */
+const themeStyle = computed<Record<string, string>>(() => {
+  const style: Record<string, string> = {}
+  for (const [token, value] of Object.entries(props.schema.meta.theme ?? {})) {
+    style[`--fg-${token}`] = value
+  }
+  return style
+})
 
 function deepMerge(
   base: Record<string, unknown>,
@@ -108,6 +117,7 @@ function onSubmit(): void {
   <form
     class="fg-form"
     :dir="schema.meta.dir"
+    :style="themeStyle"
     novalidate
     @submit.prevent="onSubmit"
   >

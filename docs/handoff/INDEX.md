@@ -10,7 +10,7 @@ Read the latest handoff before starting any phase (Phase Standard, REBUILD_PROMP
 | 04 | Builder shell: palette, canvas, properties | ✅ Complete | [phase-04-builder-shell.md](./phase-04-builder-shell.md) |
 | 05 | Nested DnD + tree sidebar + duplicate + keyboard | ✅ Complete | [phase-05-dnd-tree.md](./phase-05-dnd-tree.md) |
 | 06 | History (undo/redo) + autosave + save/open | ✅ Complete | [phase-06-history-persistence.md](./phase-06-history-persistence.md) |
-| 07 | Preview/code/device/theme toolbar + settings | ⬜ Not started | — |
+| 07 | Preview/code/device/theme toolbar + settings | ✅ Complete | [phase-07-views-settings.md](./phase-07-views-settings.md) |
 | 08 | CSS adapters + ExportTarget interface + core targets | ⬜ Not started | — |
 | 09 | React + Blazor export targets | ⬜ Not started | — |
 | 10 | Full element catalog | ⬜ Not started | — |

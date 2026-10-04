@@ -116,6 +116,56 @@ describe('palette → canvas → properties workflow', () => {
     expect(store.selectedId).toBe(id)
   })
 
+  it('switches to live preview and shows the submitted payload', async () => {
+    const { wrapper, store } = mountApp()
+    await wrapper.get('[data-testid="palette-item-text"]').trigger('click')
+    store.updateProps(store.schema.tree[0]!.id, { label: 'Nickname' })
+    await wrapper.get('[data-testid="view-preview"]').trigger('click')
+    expect(wrapper.find('[data-testid="panel-preview"]').exists()).toBe(true)
+    await wrapper.get('[data-testid="panel-preview"] .fg-input').setValue('Zed')
+    await wrapper.get('[data-testid="panel-preview"] form').trigger('submit')
+    expect(wrapper.get('[data-testid="preview-submitted"]').text()).toContain('Zed')
+  })
+
+  it('code view shows the schema JSON', async () => {
+    const { wrapper, store } = mountApp()
+    await wrapper.get('[data-testid="palette-item-checkbox"]').trigger('click')
+    store.setName(store.schema.tree[0]!.id, 'accept_terms')
+    await wrapper.get('[data-testid="view-code"]').trigger('click')
+    expect(wrapper.get('[data-testid="code-json"]').text()).toContain('accept_terms')
+  })
+
+  it('device buttons constrain the canvas width', async () => {
+    const { wrapper } = mountApp()
+    await wrapper.get('[data-testid="device-mobile"]').trigger('click')
+    const canvasCard = wrapper.get('[data-testid="panel-canvas"] .fg-form')
+    expect(canvasCard.attributes('style')).toContain('max-width: 375px')
+  })
+
+  it('theme toggle flips the design-canvas form theme', async () => {
+    const { wrapper } = mountApp()
+    await wrapper.get('[data-testid="preview-theme-toggle"]').trigger('click')
+    const canvasCard = wrapper.get('[data-testid="panel-canvas"] .fg-form')
+    expect(canvasCard.attributes('data-fg-theme')).toBe('dark')
+  })
+
+  it('settings dialog edits form meta with name validation', async () => {
+    const { wrapper, store } = mountApp()
+    await wrapper.get('[data-testid="open-settings"]').trigger('click')
+    expect(wrapper.find('[data-testid="settings-dialog"]').exists()).toBe(true)
+    await wrapper.get('[data-testid="settings-title"]').setValue('Contact form')
+    expect(store.schema.meta.title).toBe('Contact form')
+    await wrapper.get('[data-testid="settings-name"]').setValue('bad name!')
+    expect(wrapper.find('[data-testid="settings-name-error"]').exists()).toBe(true)
+    expect(store.schema.meta.name).toBe('untitled_form')
+    await wrapper.get('[data-testid="settings-name"]').setValue('contact_form')
+    expect(store.schema.meta.name).toBe('contact_form')
+    await wrapper.get('[data-testid="settings-dir"]').setValue('rtl')
+    expect(store.schema.meta.dir).toBe('rtl')
+    await wrapper.get('[data-testid="settings-close"]').trigger('click')
+    expect(wrapper.find('[data-testid="settings-dialog"]').exists()).toBe(false)
+  })
+
   it('adds into a selected container and renders nested chrome', async () => {
     const { wrapper, store } = mountApp()
     const structureTab = wrapper

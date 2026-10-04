@@ -12,6 +12,7 @@ import {
   uniqueName,
   type ColSpan,
   type ElementNode,
+  type FormMeta,
   type FormSchema,
   type Rule,
 } from '@formsgen/renderer'
@@ -155,6 +156,33 @@ export const useBuilderStore = defineStore('builder', {
       siblings.splice(siblings.findIndex((n) => n.id === id) + 1, 0, copy)
       this.selectedId = copy.id
       return copy
+    },
+
+    /** Merges a patch into the form's meta (settings dialog). */
+    updateMeta(patch: Partial<FormMeta>): void {
+      Object.assign(this.schema.meta, patch)
+    },
+
+    /** Renames the form (slug-validated); returns the reason when rejected. */
+    setMetaName(name: string): NameError {
+      if (!NAME_PATTERN.test(name)) return 'invalid'
+      this.schema.meta.name = name
+      return null
+    },
+
+    /** Sets or removes one theme token on meta.theme. */
+    setThemeToken(token: string, value: string | null): void {
+      const theme = { ...(this.schema.meta.theme ?? {}) }
+      if (value === null || value === '') {
+        delete theme[token]
+      } else {
+        theme[token] = value
+      }
+      if (Object.keys(theme).length === 0) {
+        delete this.schema.meta.theme
+      } else {
+        this.schema.meta.theme = theme
+      }
     },
 
     /** Replaces the whole schema (project open / draft restore). */

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { RENDERER_VERSION } from '@formsgen/renderer'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import CanvasPanel from '@/components/canvas/CanvasPanel.vue'
+import WorkArea from '@/components/canvas/WorkArea.vue'
 import PalettePanel from '@/components/palette/PalettePanel.vue'
 import PropertiesPanel from '@/components/panel/PropertiesPanel.vue'
+import SettingsDialog from '@/components/settings/SettingsDialog.vue'
 import AppToolbar from '@/components/toolbar/AppToolbar.vue'
 import TreePanel from '@/components/tree/TreePanel.vue'
 import { clearDraft, readDraft, startAutosave } from '@/composables/persistence'
@@ -91,7 +92,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
         <TreePanel />
       </aside>
       <section class="flex-1 overflow-hidden">
-        <CanvasPanel />
+        <WorkArea />
       </section>
       <aside class="w-80 shrink-0 overflow-y-auto border-s border-gray-200 bg-white p-3">
         <PropertiesPanel />
@@ -122,6 +123,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
         {{ t('draft.dismiss') }}
       </button>
     </div>
+
+    <SettingsDialog />
 
     <div
       v-if="notice"

@@ -3,11 +3,13 @@ import { computed } from 'vue'
 import draggable from 'vuedraggable'
 import { t } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'
+import { useUiStore } from '@/stores/ui'
 import BuilderNode from './BuilderNode.vue'
 import { provideDesignContext } from './designContext'
 import { useDropList } from './useDropList'
 
 const store = useBuilderStore()
+const ui = useUiStore()
 provideDesignContext()
 
 const { list, onMove, onAdd } = useDropList(() => null)
@@ -67,7 +69,11 @@ function onKeydown(event: KeyboardEvent): void {
     @click="onBackgroundClick"
     @keydown="onKeydown"
   >
-    <div class="fg-form mx-auto max-w-2xl rounded-lg bg-white p-6 shadow-sm">
+    <div
+      class="fg-form mx-auto rounded-lg p-6 shadow-sm transition-all"
+      :style="{ maxWidth: ui.deviceWidth === '100%' ? '42rem' : ui.deviceWidth }"
+      :data-fg-theme="ui.previewTheme"
+    >
       <draggable
         v-model="list"
         item-key="id"
