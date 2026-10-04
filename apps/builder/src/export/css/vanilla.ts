@@ -38,6 +38,7 @@ const CLASSES: Record<Slot, string> = {
   tag: 'fg-tag',
   tagRemove: 'fg-tag-remove',
   tagsInput: 'fg-tags-input',
+  srOnly: 'fg-sr-only',
 }
 
 /** Mirrors packages/renderer/src/styles.css for self-contained artifacts. */
@@ -101,6 +102,7 @@ ${overrides ? `${overrides}\n` : ''}  font-family: var(--fg-font);
 .fg-tag-remove { border: none; background: none; padding: 0; cursor: pointer; color: var(--fg-color-muted); font-size: 0.875rem; line-height: 1; }
 .fg-tags-input { flex: 1; min-inline-size: 6rem; border: none; background: none; font: inherit; color: inherit; padding: 0.125rem; }
 .fg-tags-input:focus { outline: none; }
+.fg-sr-only { position: absolute; inline-size: 1px; block-size: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .fg-group { margin: 0; padding: var(--fg-space); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
 .fg-group-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); }
 .fg-actions { margin-block-start: var(--fg-space); }

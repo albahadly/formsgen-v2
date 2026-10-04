@@ -43,6 +43,7 @@ export type Slot =
   | 'tag'
   | 'tagRemove'
   | 'tagsInput'
+  | 'srOnly'
 
 export interface CellAttrs {
   class: string

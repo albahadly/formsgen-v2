@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, provide, reactive, ref, watch } from 'vue'
+import { computed, nextTick, provide, reactive, ref, watch } from 'vue'
+import { SUBMITTED_ANNOUNCEMENT, errorsAnnouncement } from '../announcements'
 import { getValueByPath } from '../conditions'
 import { FORM_CONTEXT, type FormContext } from '../context'
 import { evaluateRules } from '../rules'
@@ -156,12 +157,26 @@ const submitVisible = computed(() => {
   return true
 })
 
+// Polite live region. Cleared first so repeating the same text (two failed
+// submits in a row) is still re-announced.
+const announcement = ref('')
+function announce(message: string): void {
+  announcement.value = ''
+  void nextTick(() => {
+    announcement.value = message
+  })
+}
+context.announce = announce
+
 function onSubmit(): void {
   submitted.value = true
   const ok = validateAll()
   submitAttempts.value++
   if (ok) {
+    announce(SUBMITTED_ANNOUNCEMENT)
     emit('submit', pickVisibleData(props.schema.tree, data))
+  } else {
+    announce(errorsAnnouncement(Object.values(errors).filter(Boolean).length))
   }
 }
 </script>
@@ -182,6 +197,15 @@ function onSubmit(): void {
         parent-path=""
         :default-span="12"
       />
+    </div>
+    <div
+      class="fg-sr-only"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      data-fg-live
+    >
+      {{ announcement }}
     </div>
     <div
       class="fg-actions"

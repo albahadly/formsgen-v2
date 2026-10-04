@@ -3,7 +3,8 @@
 // stylesheet; Tailwind/Bootstrap reference their CDN assets in <head>
 // (swappable for local builds, see the generated README).
 
-import type { ElementNode } from '@formsgen/renderer'
+import { stepAnnouncement, type ElementNode } from '@formsgen/renderer'
+import { SUBMITTED_TEXT, errorsTextFunction } from '../announce'
 import { RUNTIME_HELPERS } from '../compile'
 import {
   collectExportFields,
@@ -89,6 +90,10 @@ export const htmlTarget: ExportTarget = {
       stepActive: css.classes('stepItemActive'),
       stepBase: css.classes('stepItem'),
       stepPaths: host.sections.map((s) => s.paths),
+      announce:
+        host.kind === 'steps'
+          ? host.sections.map((s) => stepAnnouncement(s.index, host.sections.length, s.label))
+          : [],
     }))
 
     const assets = css.assets()
@@ -243,7 +248,16 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
       })
     })
 
-    var FG_SECTIONS = ${JSON.stringify(sectionsMeta)}
+    // Polite aria-live region; cleared first so repeated text re-announces.
+    function fgAnnounce(message) {
+      var live = document.getElementById('fg-live')
+      if (!live) return
+      live.textContent = ''
+      setTimeout(function () { live.textContent = message }, 50)
+    }
+    ${errorsTextFunction(false).split('\n').join('\n    ')}
+
+    var FG_SECTIONS = ${JSON.stringify(sectionsMeta).replace(/</g, '\\u003c')}
     var FG_SUBMIT_GATE = ${JSON.stringify(sb.gatingHosts.map((h) => h.key))}
     var fgSecState = {}
     function fgUpdateSubmit() {
@@ -256,8 +270,9 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
       })
       btn.hidden = !ready
     }
-    function fgSetSec(meta, index) {
+    function fgSetSec(meta, index, speak) {
       fgSecState[meta.key] = index
+      if (speak && meta.announce[index]) fgAnnounce(meta.announce[index])
       var panels = document.querySelectorAll('[data-fg-sec-panel]')
       Array.prototype.forEach.call(panels, function (panel) {
         var value = panel.getAttribute('data-fg-sec-panel')
@@ -296,7 +311,7 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
       var back = document.querySelector('[data-fg-step-back="' + meta.key + '"]')
       var nextBtn = document.querySelector('[data-fg-step-next="' + meta.key + '"]')
       if (back) back.addEventListener('click', function () {
-        fgSetSec(meta, Math.max(0, fgSecState[meta.key] - 1))
+        fgSetSec(meta, Math.max(0, fgSecState[meta.key] - 1), true)
       })
       if (nextBtn) nextBtn.addEventListener('click', function () {
         var ok = true
@@ -305,7 +320,7 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
           touched[path] = true
           if (!validateField(path)) ok = false
         })
-        if (ok) fgSetSec(meta, Math.min(meta.count - 1, fgSecState[meta.key] + 1))
+        if (ok) fgSetSec(meta, Math.min(meta.count - 1, fgSecState[meta.key] + 1), true)
       })
       fgSetSec(meta, 0)
     })
@@ -329,12 +344,13 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
 
     form.addEventListener('submit', function (event) {
       event.preventDefault()
-      var ok = true
+      var failed = 0
       Object.keys(FG_VALIDATORS).forEach(function (path) {
         touched[path] = true
-        if (!validateField(path)) ok = false
+        if (!validateField(path)) failed++
       })
-      if (!ok) {
+      if (failed > 0) {
+        fgAnnounce(fgErrorsText(failed))
         // Move each tabs/steps host to its first section holding an error
         // (unless the visible one already shows one).
         FG_SECTIONS.forEach(function (meta) {
@@ -350,6 +366,7 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
       var out = document.getElementById('fg-result')
       out.textContent = JSON.stringify(data, null, 2)
       out.hidden = false
+      fgAnnounce(${SUBMITTED_TEXT})
       console.log('Form submitted', data)
 ${submitBlock}    })
 
@@ -369,7 +386,8 @@ ${headAssets}${headAssets && styleTag ? '\n' : ''}${styleTag}
   <form id="fg-form" class="${css.classes('form')}" novalidate>
     <div class="${css.classes('grid')}">
 ${indentBlock(markup, 3)}
-    </div>${actionsBlock}
+    </div>
+    <div id="fg-live" class="${css.classes('srOnly')}" role="status" aria-live="polite" aria-atomic="true"></div>${actionsBlock}
     <pre id="fg-result" class="${css.classes('payload')}" hidden></pre>
   </form>
 ${script}

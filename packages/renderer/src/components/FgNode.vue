@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, onBeforeUnmount, ref, watch } from 'vue'
+import { stepAnnouncement } from '../announcements'
 import { isVisible } from '../conditions'
 import { FORM_CONTEXT } from '../context'
 import { getCoreElement } from '../elements'
@@ -139,7 +140,15 @@ function nextStep(): void {
     formCtx.touch(fieldPath)
     if (formCtx.getError(fieldPath) !== null) ok = false
   }
-  if (ok && activeIndex.value < sections.value.length - 1) activeIndex.value++
+  if (ok && activeIndex.value < sections.value.length - 1) goToStep(activeIndex.value + 1)
+}
+
+/** Steps: move to a step and announce it to screen readers. */
+function goToStep(index: number): void {
+  const section = sections.value[index]
+  if (!section) return
+  activeIndex.value = index
+  formCtx.announce?.(stepAnnouncement(index, sections.value.length, sectionLabel(section, index)))
 }
 
 function buttonText(prop: string, fallback: string): string {
@@ -298,7 +307,7 @@ const embeddedSubmit = computed(
           v-if="activeIndex > 0"
           type="button"
           class="fg-button fg-button--secondary"
-          @click="activeIndex--"
+          @click="goToStep(activeIndex - 1)"
         >
           {{ backText }}
         </button>

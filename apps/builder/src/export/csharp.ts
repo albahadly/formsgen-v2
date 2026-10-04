@@ -99,6 +99,16 @@ export function csAttributes(field: ExportField, kind: CsFieldKind): string[] | 
   ) {
     return null
   }
+  // [Url], [EmailAddress] and string [MinLength] reject "" (only null
+  // passes), but an EMPTY optional field must pass — rules only apply to
+  // non-empty values. Validate() guards every rule with the empty check.
+  if (
+    !numeric &&
+    !rules.some((r) => r.rule === 'required') &&
+    rules.some((r) => r.rule === 'url' || r.rule === 'email' || r.rule === 'min' || r.rule === 'between')
+  ) {
+    return null
+  }
   const attrs: string[] = []
   for (const rule of rules) {
     const msg = `ErrorMessage = ${csStr(ruleMessage(rule))}`

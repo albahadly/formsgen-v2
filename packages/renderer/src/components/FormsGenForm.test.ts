@@ -262,6 +262,44 @@ describe('FormsGenForm', () => {
     expect(wrapper.get('.fg-actions').attributes('style')).toContain('text-align: center')
   })
 
+  it('announces the error count on a failed submit via a polite live region', async () => {
+    const wrapper = mountForm()
+    const live = wrapper.get('[data-fg-live]')
+    expect(live.attributes('role')).toBe('status')
+    expect(live.attributes('aria-live')).toBe('polite')
+    expect(live.attributes('aria-atomic')).toBe('true')
+    expect(live.text()).toBe('')
+    await wrapper.get('form').trigger('submit')
+    await nextTick()
+    expect(live.text()).toMatch(/^\d+ errors\. Please fix the highlighted fields\.$/)
+  })
+
+  it('announces wizard step changes on Next and Back', async () => {
+    const wrapper = mountForm()
+    const live = wrapper.get('[data-fg-live]')
+    await wrapper.get('input[name="shipping_city"]').setValue('Muscat')
+    await wrapper
+      .findAll('.fg-step-actions button')
+      .find((b) => b.text() === 'Next')!
+      .trigger('click')
+    await nextTick()
+    expect(live.text()).toBe('Step 2 of 2: Review')
+    await wrapper
+      .findAll('.fg-step-actions button')
+      .find((b) => b.text() === 'Back')!
+      .trigger('click')
+    await nextTick()
+    expect(live.text()).toBe('Step 1 of 2: Shipping')
+  })
+
+  it('announces a successful submit', async () => {
+    const wrapper = mountForm()
+    await fillValidForm(wrapper)
+    await wrapper.get('form').trigger('submit')
+    await nextTick()
+    expect(wrapper.get('[data-fg-live]').text()).toBe('Form submitted.')
+  })
+
   it('tab headers show an error dot after a failed submit', async () => {
     const schema = fixtureSchema()
     // make the hidden tab's field required

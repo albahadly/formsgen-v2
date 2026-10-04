@@ -7,7 +7,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
 @using System.Linq
 @using Microsoft.AspNetCore.Components.Forms
 
-<EditForm EditContext="fgEdit" OnValidSubmit="HandleValidSubmit" OnInvalidSubmit="FgJumpToError" class="container py-4" dir="ltr">
+<EditForm EditContext="fgEdit" OnSubmit="FgSubmit" class="container py-4" dir="ltr">
     <DataAnnotationsValidator />
     <div class="row g-3">
         <div class="col-12 col-md-12">
@@ -264,7 +264,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
             <div class="mt-3 d-flex justify-content-between gap-2">
               @if (fgSec_ks_wizard > 0)
               {
-                  <button type="button" class="btn btn-outline-secondary" @onclick="() => fgSec_ks_wizard--">Back</button>
+                  <button type="button" class="btn btn-outline-secondary" @onclick="() => FgGo_ks_wizard(fgSec_ks_wizard - 1)">Back</button>
               }
               @if (fgSec_ks_wizard < 1)
               {
@@ -296,6 +296,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
           </div>
         </div>
     </div>
+    <div class="visually-hidden" role="status" aria-live="polite" aria-atomic="true">@fgAnnouncement</div>
     @if (ResultJson is not null)
     {
         <pre class="mt-3 p-3 bg-dark text-success rounded small overflow-auto">@ResultJson</pre>
@@ -316,8 +317,79 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
     {
         fgEdit = new EditContext(Model);
         fgMessages = new ValidationMessageStore(fgEdit);
-        // Submit-time validation repaints everything; drop stale step messages.
+        // Full validation repaints everything; editing a field drops its stale messages.
         fgEdit.OnValidationRequested += (_, _) => fgMessages.Clear();
+        fgEdit.OnFieldChanged += (_, e) => fgMessages.Clear(e.FieldIdentifier);
+    }
+
+    private async Task FgSubmit(EditContext context)
+    {
+        if (context.Validate())
+        {
+            await HandleValidSubmit();
+            return;
+        }
+        // DataAnnotations runs IValidatableObject.Validate() only once every
+        // attribute rule passes; run it now so all errors show at once.
+        foreach (var result in ((IValidatableObject)Model).Validate(new ValidationContext(Model)))
+        {
+            foreach (var name in result.MemberNames)
+            {
+                var field = new FieldIdentifier(Model, name);
+                if (!context.GetValidationMessages(field).Any()) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
+            }
+        }
+        context.NotifyValidationStateChanged();
+        await FgOnInvalidSubmit(context);
+    }
+
+    private string fgAnnouncement = "";
+
+    private async Task FgAnnounce(string message)
+    {
+        fgAnnouncement = "";
+        StateHasChanged();
+        await Task.Delay(50);
+        fgAnnouncement = message;
+        StateHasChanged();
+    }
+
+    private static string FgErrorsText(int count) =>
+        count == 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields.";
+
+    private static readonly string[] fgAllMembers =
+    {
+        "FullName",
+        "Email",
+        "Website",
+        "Seats",
+        "Satisfaction",
+        "City",
+        "Zip",
+        "AccountUsername",
+        "AccountPassword",
+        "AccountBio",
+        "AccountBirthday",
+        "Plan",
+        "Interests",
+        "Channels",
+        "Topics",
+        "ContactMethod",
+        "ContactPhone",
+        "ContactOther",
+        "Twitter",
+        "Github",
+        "ShippingCity",
+        "OrderNotes",
+        "Newsletter",
+        "Terms",
+    };
+
+    private async Task FgOnInvalidSubmit(EditContext context)
+    {
+        FgJumpToError();
+        var count = fgAllMembers.Count(m => context.GetValidationMessages(new FieldIdentifier(Model, m)).Any());
+        await FgAnnounce(FgErrorsText(count));
     }
 
     private bool FgValidateMembers((string Name, object? Value)[] members)
@@ -345,7 +417,19 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         return ok;
     }
 
-    private void FgNext_ks_wizard()
+    private static readonly string[] fgSecAnnounce_ks_wizard =
+    {
+        "Step 1 of 2: Shipping",
+        "Step 2 of 2: Review",
+    };
+
+    private async Task FgGo_ks_wizard(int index)
+    {
+        fgSec_ks_wizard = index;
+        await FgAnnounce(fgSecAnnounce_ks_wizard[index]);
+    }
+
+    private async Task FgNext_ks_wizard()
     {
         var members = fgSec_ks_wizard switch
         {
@@ -353,7 +437,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
             1 => new (string Name, object? Value)[] { (nameof(KitchenSinkFormModel.OrderNotes), Model.OrderNotes) },
             _ => Array.Empty<(string Name, object? Value)>(),
         };
-        if (FgValidateMembers(members) && fgSec_ks_wizard < 1) fgSec_ks_wizard++;
+        if (FgValidateMembers(members) && fgSec_ks_wizard < 1) await FgGo_ks_wizard(fgSec_ks_wizard + 1);
     }
 
     private static readonly string[][] fgSecMembers_ks_social_tabs =
@@ -411,10 +495,11 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         fgTagDrafts[key] = "";
     }
 
-    private void HandleValidSubmit()
+    private async Task HandleValidSubmit()
     {
         var payload = BuildPayload();
         ResultJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
+        await FgAnnounce("Form submitted.");
     }
 
     private Dictionary<string, object?> BuildPayload()
@@ -459,7 +544,6 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         [EmailAddress(ErrorMessage = "Must be a valid email address")]
         public string Email { get; set; } = "";
 
-        [Url(ErrorMessage = "Must be a valid URL")]
         public string Website { get; set; } = "";
 
         public double? Seats { get; set; }
@@ -514,6 +598,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
+        if (!(string.IsNullOrWhiteSpace(Website)) && (!Uri.TryCreate(Website, UriKind.Absolute, out _))) yield return new ValidationResult("Must be a valid URL", new[] { nameof(Website) });
         if (!(!Seats.HasValue) && (Seats!.Value < 1)) yield return new ValidationResult("Must be at least 1", new[] { nameof(Seats) });
         if (!(!Seats.HasValue) && (Seats!.Value > 50)) yield return new ValidationResult("Must be at most 50", new[] { nameof(Seats) });
         if (!(Topics.Count == 0) && (Topics.Count > 5)) yield return new ValidationResult("At most 5 topics", new[] { nameof(Topics) });
@@ -531,7 +616,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
 @using System.Linq
 @using Microsoft.AspNetCore.Components.Forms
 
-<EditForm EditContext="fgEdit" OnValidSubmit="HandleValidSubmit" OnInvalidSubmit="FgJumpToError" class="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" dir="ltr">
+<EditForm EditContext="fgEdit" OnSubmit="FgSubmit" class="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" dir="ltr">
     <DataAnnotationsValidator />
     <div class="grid grid-cols-12 gap-4">
         <div class="col-span-12 md:col-span-12">
@@ -788,7 +873,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
             <div class="mt-4 flex justify-between gap-2">
               @if (fgSec_ks_wizard > 0)
               {
-                  <button type="button" class="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" @onclick="() => fgSec_ks_wizard--">Back</button>
+                  <button type="button" class="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" @onclick="() => FgGo_ks_wizard(fgSec_ks_wizard - 1)">Back</button>
               }
               @if (fgSec_ks_wizard < 1)
               {
@@ -820,6 +905,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
           </div>
         </div>
     </div>
+    <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">@fgAnnouncement</div>
     @if (ResultJson is not null)
     {
         <pre class="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300">@ResultJson</pre>
@@ -840,8 +926,79 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
     {
         fgEdit = new EditContext(Model);
         fgMessages = new ValidationMessageStore(fgEdit);
-        // Submit-time validation repaints everything; drop stale step messages.
+        // Full validation repaints everything; editing a field drops its stale messages.
         fgEdit.OnValidationRequested += (_, _) => fgMessages.Clear();
+        fgEdit.OnFieldChanged += (_, e) => fgMessages.Clear(e.FieldIdentifier);
+    }
+
+    private async Task FgSubmit(EditContext context)
+    {
+        if (context.Validate())
+        {
+            await HandleValidSubmit();
+            return;
+        }
+        // DataAnnotations runs IValidatableObject.Validate() only once every
+        // attribute rule passes; run it now so all errors show at once.
+        foreach (var result in ((IValidatableObject)Model).Validate(new ValidationContext(Model)))
+        {
+            foreach (var name in result.MemberNames)
+            {
+                var field = new FieldIdentifier(Model, name);
+                if (!context.GetValidationMessages(field).Any()) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
+            }
+        }
+        context.NotifyValidationStateChanged();
+        await FgOnInvalidSubmit(context);
+    }
+
+    private string fgAnnouncement = "";
+
+    private async Task FgAnnounce(string message)
+    {
+        fgAnnouncement = "";
+        StateHasChanged();
+        await Task.Delay(50);
+        fgAnnouncement = message;
+        StateHasChanged();
+    }
+
+    private static string FgErrorsText(int count) =>
+        count == 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields.";
+
+    private static readonly string[] fgAllMembers =
+    {
+        "FullName",
+        "Email",
+        "Website",
+        "Seats",
+        "Satisfaction",
+        "City",
+        "Zip",
+        "AccountUsername",
+        "AccountPassword",
+        "AccountBio",
+        "AccountBirthday",
+        "Plan",
+        "Interests",
+        "Channels",
+        "Topics",
+        "ContactMethod",
+        "ContactPhone",
+        "ContactOther",
+        "Twitter",
+        "Github",
+        "ShippingCity",
+        "OrderNotes",
+        "Newsletter",
+        "Terms",
+    };
+
+    private async Task FgOnInvalidSubmit(EditContext context)
+    {
+        FgJumpToError();
+        var count = fgAllMembers.Count(m => context.GetValidationMessages(new FieldIdentifier(Model, m)).Any());
+        await FgAnnounce(FgErrorsText(count));
     }
 
     private bool FgValidateMembers((string Name, object? Value)[] members)
@@ -869,7 +1026,19 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         return ok;
     }
 
-    private void FgNext_ks_wizard()
+    private static readonly string[] fgSecAnnounce_ks_wizard =
+    {
+        "Step 1 of 2: Shipping",
+        "Step 2 of 2: Review",
+    };
+
+    private async Task FgGo_ks_wizard(int index)
+    {
+        fgSec_ks_wizard = index;
+        await FgAnnounce(fgSecAnnounce_ks_wizard[index]);
+    }
+
+    private async Task FgNext_ks_wizard()
     {
         var members = fgSec_ks_wizard switch
         {
@@ -877,7 +1046,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
             1 => new (string Name, object? Value)[] { (nameof(KitchenSinkFormModel.OrderNotes), Model.OrderNotes) },
             _ => Array.Empty<(string Name, object? Value)>(),
         };
-        if (FgValidateMembers(members) && fgSec_ks_wizard < 1) fgSec_ks_wizard++;
+        if (FgValidateMembers(members) && fgSec_ks_wizard < 1) await FgGo_ks_wizard(fgSec_ks_wizard + 1);
     }
 
     private static readonly string[][] fgSecMembers_ks_social_tabs =
@@ -935,10 +1104,11 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         fgTagDrafts[key] = "";
     }
 
-    private void HandleValidSubmit()
+    private async Task HandleValidSubmit()
     {
         var payload = BuildPayload();
         ResultJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
+        await FgAnnounce("Form submitted.");
     }
 
     private Dictionary<string, object?> BuildPayload()
@@ -983,7 +1153,6 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         [EmailAddress(ErrorMessage = "Must be a valid email address")]
         public string Email { get; set; } = "";
 
-        [Url(ErrorMessage = "Must be a valid URL")]
         public string Website { get; set; } = "";
 
         public double? Seats { get; set; }
@@ -1038,6 +1207,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
+        if (!(string.IsNullOrWhiteSpace(Website)) && (!Uri.TryCreate(Website, UriKind.Absolute, out _))) yield return new ValidationResult("Must be a valid URL", new[] { nameof(Website) });
         if (!(!Seats.HasValue) && (Seats!.Value < 1)) yield return new ValidationResult("Must be at least 1", new[] { nameof(Seats) });
         if (!(!Seats.HasValue) && (Seats!.Value > 50)) yield return new ValidationResult("Must be at most 50", new[] { nameof(Seats) });
         if (!(Topics.Count == 0) && (Topics.Count > 5)) yield return new ValidationResult("At most 5 topics", new[] { nameof(Topics) });
@@ -1055,7 +1225,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
 @using System.Linq
 @using Microsoft.AspNetCore.Components.Forms
 
-<EditForm EditContext="fgEdit" OnValidSubmit="HandleValidSubmit" OnInvalidSubmit="FgJumpToError" class="fg-form" dir="ltr">
+<EditForm EditContext="fgEdit" OnSubmit="FgSubmit" class="fg-form" dir="ltr">
     <DataAnnotationsValidator />
     <div class="fg-grid">
         <div class="fg-cell" style="grid-column: span 12 / span 12">
@@ -1312,7 +1482,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             <div class="fg-step-actions">
               @if (fgSec_ks_wizard > 0)
               {
-                  <button type="button" class="fg-button fg-button--secondary" @onclick="() => fgSec_ks_wizard--">Back</button>
+                  <button type="button" class="fg-button fg-button--secondary" @onclick="() => FgGo_ks_wizard(fgSec_ks_wizard - 1)">Back</button>
               }
               @if (fgSec_ks_wizard < 1)
               {
@@ -1344,6 +1514,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
           </div>
         </div>
     </div>
+    <div class="fg-sr-only" role="status" aria-live="polite" aria-atomic="true">@fgAnnouncement</div>
     @if (ResultJson is not null)
     {
         <pre class="fg-payload">@ResultJson</pre>
@@ -1364,8 +1535,79 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
     {
         fgEdit = new EditContext(Model);
         fgMessages = new ValidationMessageStore(fgEdit);
-        // Submit-time validation repaints everything; drop stale step messages.
+        // Full validation repaints everything; editing a field drops its stale messages.
         fgEdit.OnValidationRequested += (_, _) => fgMessages.Clear();
+        fgEdit.OnFieldChanged += (_, e) => fgMessages.Clear(e.FieldIdentifier);
+    }
+
+    private async Task FgSubmit(EditContext context)
+    {
+        if (context.Validate())
+        {
+            await HandleValidSubmit();
+            return;
+        }
+        // DataAnnotations runs IValidatableObject.Validate() only once every
+        // attribute rule passes; run it now so all errors show at once.
+        foreach (var result in ((IValidatableObject)Model).Validate(new ValidationContext(Model)))
+        {
+            foreach (var name in result.MemberNames)
+            {
+                var field = new FieldIdentifier(Model, name);
+                if (!context.GetValidationMessages(field).Any()) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
+            }
+        }
+        context.NotifyValidationStateChanged();
+        await FgOnInvalidSubmit(context);
+    }
+
+    private string fgAnnouncement = "";
+
+    private async Task FgAnnounce(string message)
+    {
+        fgAnnouncement = "";
+        StateHasChanged();
+        await Task.Delay(50);
+        fgAnnouncement = message;
+        StateHasChanged();
+    }
+
+    private static string FgErrorsText(int count) =>
+        count == 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields.";
+
+    private static readonly string[] fgAllMembers =
+    {
+        "FullName",
+        "Email",
+        "Website",
+        "Seats",
+        "Satisfaction",
+        "City",
+        "Zip",
+        "AccountUsername",
+        "AccountPassword",
+        "AccountBio",
+        "AccountBirthday",
+        "Plan",
+        "Interests",
+        "Channels",
+        "Topics",
+        "ContactMethod",
+        "ContactPhone",
+        "ContactOther",
+        "Twitter",
+        "Github",
+        "ShippingCity",
+        "OrderNotes",
+        "Newsletter",
+        "Terms",
+    };
+
+    private async Task FgOnInvalidSubmit(EditContext context)
+    {
+        FgJumpToError();
+        var count = fgAllMembers.Count(m => context.GetValidationMessages(new FieldIdentifier(Model, m)).Any());
+        await FgAnnounce(FgErrorsText(count));
     }
 
     private bool FgValidateMembers((string Name, object? Value)[] members)
@@ -1393,7 +1635,19 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         return ok;
     }
 
-    private void FgNext_ks_wizard()
+    private static readonly string[] fgSecAnnounce_ks_wizard =
+    {
+        "Step 1 of 2: Shipping",
+        "Step 2 of 2: Review",
+    };
+
+    private async Task FgGo_ks_wizard(int index)
+    {
+        fgSec_ks_wizard = index;
+        await FgAnnounce(fgSecAnnounce_ks_wizard[index]);
+    }
+
+    private async Task FgNext_ks_wizard()
     {
         var members = fgSec_ks_wizard switch
         {
@@ -1401,7 +1655,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             1 => new (string Name, object? Value)[] { (nameof(KitchenSinkFormModel.OrderNotes), Model.OrderNotes) },
             _ => Array.Empty<(string Name, object? Value)>(),
         };
-        if (FgValidateMembers(members) && fgSec_ks_wizard < 1) fgSec_ks_wizard++;
+        if (FgValidateMembers(members) && fgSec_ks_wizard < 1) await FgGo_ks_wizard(fgSec_ks_wizard + 1);
     }
 
     private static readonly string[][] fgSecMembers_ks_social_tabs =
@@ -1459,10 +1713,11 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         fgTagDrafts[key] = "";
     }
 
-    private void HandleValidSubmit()
+    private async Task HandleValidSubmit()
     {
         var payload = BuildPayload();
         ResultJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
+        await FgAnnounce("Form submitted.");
     }
 
     private Dictionary<string, object?> BuildPayload()
@@ -1507,7 +1762,6 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         [EmailAddress(ErrorMessage = "Must be a valid email address")]
         public string Email { get; set; } = "";
 
-        [Url(ErrorMessage = "Must be a valid URL")]
         public string Website { get; set; } = "";
 
         public double? Seats { get; set; }
@@ -1562,6 +1816,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
+        if (!(string.IsNullOrWhiteSpace(Website)) && (!Uri.TryCreate(Website, UriKind.Absolute, out _))) yield return new ValidationResult("Must be a valid URL", new[] { nameof(Website) });
         if (!(!Seats.HasValue) && (Seats!.Value < 1)) yield return new ValidationResult("Must be at least 1", new[] { nameof(Seats) });
         if (!(!Seats.HasValue) && (Seats!.Value > 50)) yield return new ValidationResult("Must be at most 50", new[] { nameof(Seats) });
         if (!(Topics.Count == 0) && (Topics.Count > 5)) yield return new ValidationResult("At most 5 topics", new[] { nameof(Topics) });
@@ -1739,7 +1994,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold mb-0" for="fg_contact_method">Preferred contact method<span class="text-danger ms-1" aria-hidden="true">*</span></label>
           <select id="fg_contact_method" class="form-select" data-fg-path="contact_method" data-fg-kind="select">
-            <option value="" disabled>—</option>
+            <option value="" disabled selected>—</option>
             <option value="email">Email</option>
             <option value="phone">Phone</option>
             <option value="other">Other</option>
@@ -1845,6 +2100,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         </div>
       </div>
     </div>
+    <div id="fg-live" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></div>
     <pre id="fg-result" class="mt-3 p-3 bg-dark text-success rounded small overflow-auto" hidden></pre>
   </form>
   <script>
@@ -2056,7 +2312,18 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       })
     })
 
-    var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"nav-link active","tabBase":"nav-link","stepActive":"d-inline-flex align-items-center gap-2 fw-semibold text-body","stepBase":"d-inline-flex align-items-center gap-2","stepPaths":[["twitter"],["github"]]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"nav-link active","tabBase":"nav-link","stepActive":"d-inline-flex align-items-center gap-2 fw-semibold text-body","stepBase":"d-inline-flex align-items-center gap-2","stepPaths":[["shipping_city"],["order_notes"]]}]
+    // Polite aria-live region; cleared first so repeated text re-announces.
+    function fgAnnounce(message) {
+      var live = document.getElementById('fg-live')
+      if (!live) return
+      live.textContent = ''
+      setTimeout(function () { live.textContent = message }, 50)
+    }
+    function fgErrorsText(count) {
+      return count === 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields."
+    }
+
+    var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"nav-link active","tabBase":"nav-link","stepActive":"d-inline-flex align-items-center gap-2 fw-semibold text-body","stepBase":"d-inline-flex align-items-center gap-2","stepPaths":[["twitter"],["github"]],"announce":[]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"nav-link active","tabBase":"nav-link","stepActive":"d-inline-flex align-items-center gap-2 fw-semibold text-body","stepBase":"d-inline-flex align-items-center gap-2","stepPaths":[["shipping_city"],["order_notes"]],"announce":["Step 1 of 2: Shipping","Step 2 of 2: Review"]}]
     var FG_SUBMIT_GATE = ["ks_wizard"]
     var fgSecState = {}
     function fgUpdateSubmit() {
@@ -2069,8 +2336,9 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       })
       btn.hidden = !ready
     }
-    function fgSetSec(meta, index) {
+    function fgSetSec(meta, index, speak) {
       fgSecState[meta.key] = index
+      if (speak && meta.announce[index]) fgAnnounce(meta.announce[index])
       var panels = document.querySelectorAll('[data-fg-sec-panel]')
       Array.prototype.forEach.call(panels, function (panel) {
         var value = panel.getAttribute('data-fg-sec-panel')
@@ -2109,7 +2377,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       var back = document.querySelector('[data-fg-step-back="' + meta.key + '"]')
       var nextBtn = document.querySelector('[data-fg-step-next="' + meta.key + '"]')
       if (back) back.addEventListener('click', function () {
-        fgSetSec(meta, Math.max(0, fgSecState[meta.key] - 1))
+        fgSetSec(meta, Math.max(0, fgSecState[meta.key] - 1), true)
       })
       if (nextBtn) nextBtn.addEventListener('click', function () {
         var ok = true
@@ -2118,7 +2386,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
           touched[path] = true
           if (!validateField(path)) ok = false
         })
-        if (ok) fgSetSec(meta, Math.min(meta.count - 1, fgSecState[meta.key] + 1))
+        if (ok) fgSetSec(meta, Math.min(meta.count - 1, fgSecState[meta.key] + 1), true)
       })
       fgSetSec(meta, 0)
     })
@@ -2169,12 +2437,13 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
 
     form.addEventListener('submit', function (event) {
       event.preventDefault()
-      var ok = true
+      var failed = 0
       Object.keys(FG_VALIDATORS).forEach(function (path) {
         touched[path] = true
-        if (!validateField(path)) ok = false
+        if (!validateField(path)) failed++
       })
-      if (!ok) {
+      if (failed > 0) {
+        fgAnnounce(fgErrorsText(failed))
         // Move each tabs/steps host to its first section holding an error
         // (unless the visible one already shows one).
         FG_SECTIONS.forEach(function (meta) {
@@ -2190,6 +2459,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       var out = document.getElementById('fg-result')
       out.textContent = JSON.stringify(data, null, 2)
       out.hidden = false
+      fgAnnounce("Form submitted.")
       console.log('Form submitted', data)
     })
 
@@ -2368,7 +2638,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_contact_method">Preferred contact method<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
           <select id="fg_contact_method" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="contact_method" data-fg-kind="select">
-            <option value="" disabled>—</option>
+            <option value="" disabled selected>—</option>
             <option value="email">Email</option>
             <option value="phone">Phone</option>
             <option value="other">Other</option>
@@ -2474,6 +2744,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
         </div>
       </div>
     </div>
+    <div id="fg-live" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
     <pre id="fg-result" class="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300" hidden></pre>
   </form>
   <script>
@@ -2685,7 +2956,18 @@ exports[`html target > snapshot (tailwind) 1`] = `
       })
     })
 
-    var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600","tabBase":"-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700","stepActive":"flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100","stepBase":"flex items-center gap-2","stepPaths":[["twitter"],["github"]]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600","tabBase":"-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700","stepActive":"flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100","stepBase":"flex items-center gap-2","stepPaths":[["shipping_city"],["order_notes"]]}]
+    // Polite aria-live region; cleared first so repeated text re-announces.
+    function fgAnnounce(message) {
+      var live = document.getElementById('fg-live')
+      if (!live) return
+      live.textContent = ''
+      setTimeout(function () { live.textContent = message }, 50)
+    }
+    function fgErrorsText(count) {
+      return count === 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields."
+    }
+
+    var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600","tabBase":"-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700","stepActive":"flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100","stepBase":"flex items-center gap-2","stepPaths":[["twitter"],["github"]],"announce":[]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600","tabBase":"-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700","stepActive":"flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100","stepBase":"flex items-center gap-2","stepPaths":[["shipping_city"],["order_notes"]],"announce":["Step 1 of 2: Shipping","Step 2 of 2: Review"]}]
     var FG_SUBMIT_GATE = ["ks_wizard"]
     var fgSecState = {}
     function fgUpdateSubmit() {
@@ -2698,8 +2980,9 @@ exports[`html target > snapshot (tailwind) 1`] = `
       })
       btn.hidden = !ready
     }
-    function fgSetSec(meta, index) {
+    function fgSetSec(meta, index, speak) {
       fgSecState[meta.key] = index
+      if (speak && meta.announce[index]) fgAnnounce(meta.announce[index])
       var panels = document.querySelectorAll('[data-fg-sec-panel]')
       Array.prototype.forEach.call(panels, function (panel) {
         var value = panel.getAttribute('data-fg-sec-panel')
@@ -2738,7 +3021,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
       var back = document.querySelector('[data-fg-step-back="' + meta.key + '"]')
       var nextBtn = document.querySelector('[data-fg-step-next="' + meta.key + '"]')
       if (back) back.addEventListener('click', function () {
-        fgSetSec(meta, Math.max(0, fgSecState[meta.key] - 1))
+        fgSetSec(meta, Math.max(0, fgSecState[meta.key] - 1), true)
       })
       if (nextBtn) nextBtn.addEventListener('click', function () {
         var ok = true
@@ -2747,7 +3030,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
           touched[path] = true
           if (!validateField(path)) ok = false
         })
-        if (ok) fgSetSec(meta, Math.min(meta.count - 1, fgSecState[meta.key] + 1))
+        if (ok) fgSetSec(meta, Math.min(meta.count - 1, fgSecState[meta.key] + 1), true)
       })
       fgSetSec(meta, 0)
     })
@@ -2798,12 +3081,13 @@ exports[`html target > snapshot (tailwind) 1`] = `
 
     form.addEventListener('submit', function (event) {
       event.preventDefault()
-      var ok = true
+      var failed = 0
       Object.keys(FG_VALIDATORS).forEach(function (path) {
         touched[path] = true
-        if (!validateField(path)) ok = false
+        if (!validateField(path)) failed++
       })
-      if (!ok) {
+      if (failed > 0) {
+        fgAnnounce(fgErrorsText(failed))
         // Move each tabs/steps host to its first section holding an error
         // (unless the visible one already shows one).
         FG_SECTIONS.forEach(function (meta) {
@@ -2819,6 +3103,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
       var out = document.getElementById('fg-result')
       out.textContent = JSON.stringify(data, null, 2)
       out.hidden = false
+      fgAnnounce("Form submitted.")
       console.log('Form submitted', data)
     })
 
@@ -2894,6 +3179,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
   .fg-tag-remove { border: none; background: none; padding: 0; cursor: pointer; color: var(--fg-color-muted); font-size: 0.875rem; line-height: 1; }
   .fg-tags-input { flex: 1; min-inline-size: 6rem; border: none; background: none; font: inherit; color: inherit; padding: 0.125rem; }
   .fg-tags-input:focus { outline: none; }
+  .fg-sr-only { position: absolute; inline-size: 1px; block-size: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
   .fg-group { margin: 0; padding: var(--fg-space); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
   .fg-group-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); }
   .fg-actions { margin-block-start: var(--fg-space); }
@@ -3067,7 +3353,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
         <div class="fg-field">
           <label class="fg-label" for="fg_contact_method">Preferred contact method<span class="fg-required" aria-hidden="true">*</span></label>
           <select id="fg_contact_method" class="fg-select" data-fg-path="contact_method" data-fg-kind="select">
-            <option value="" disabled>—</option>
+            <option value="" disabled selected>—</option>
             <option value="email">Email</option>
             <option value="phone">Phone</option>
             <option value="other">Other</option>
@@ -3173,6 +3459,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
         </div>
       </div>
     </div>
+    <div id="fg-live" class="fg-sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
     <pre id="fg-result" class="fg-payload" hidden></pre>
   </form>
   <script>
@@ -3384,7 +3671,18 @@ exports[`html target > snapshot (vanilla) 1`] = `
       })
     })
 
-    var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"fg-tab-button fg-tab-button--active","tabBase":"fg-tab-button","stepActive":"fg-step-item fg-step-item--active","stepBase":"fg-step-item","stepPaths":[["twitter"],["github"]]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"fg-tab-button fg-tab-button--active","tabBase":"fg-tab-button","stepActive":"fg-step-item fg-step-item--active","stepBase":"fg-step-item","stepPaths":[["shipping_city"],["order_notes"]]}]
+    // Polite aria-live region; cleared first so repeated text re-announces.
+    function fgAnnounce(message) {
+      var live = document.getElementById('fg-live')
+      if (!live) return
+      live.textContent = ''
+      setTimeout(function () { live.textContent = message }, 50)
+    }
+    function fgErrorsText(count) {
+      return count === 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields."
+    }
+
+    var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"fg-tab-button fg-tab-button--active","tabBase":"fg-tab-button","stepActive":"fg-step-item fg-step-item--active","stepBase":"fg-step-item","stepPaths":[["twitter"],["github"]],"announce":[]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"fg-tab-button fg-tab-button--active","tabBase":"fg-tab-button","stepActive":"fg-step-item fg-step-item--active","stepBase":"fg-step-item","stepPaths":[["shipping_city"],["order_notes"]],"announce":["Step 1 of 2: Shipping","Step 2 of 2: Review"]}]
     var FG_SUBMIT_GATE = ["ks_wizard"]
     var fgSecState = {}
     function fgUpdateSubmit() {
@@ -3397,8 +3695,9 @@ exports[`html target > snapshot (vanilla) 1`] = `
       })
       btn.hidden = !ready
     }
-    function fgSetSec(meta, index) {
+    function fgSetSec(meta, index, speak) {
       fgSecState[meta.key] = index
+      if (speak && meta.announce[index]) fgAnnounce(meta.announce[index])
       var panels = document.querySelectorAll('[data-fg-sec-panel]')
       Array.prototype.forEach.call(panels, function (panel) {
         var value = panel.getAttribute('data-fg-sec-panel')
@@ -3437,7 +3736,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
       var back = document.querySelector('[data-fg-step-back="' + meta.key + '"]')
       var nextBtn = document.querySelector('[data-fg-step-next="' + meta.key + '"]')
       if (back) back.addEventListener('click', function () {
-        fgSetSec(meta, Math.max(0, fgSecState[meta.key] - 1))
+        fgSetSec(meta, Math.max(0, fgSecState[meta.key] - 1), true)
       })
       if (nextBtn) nextBtn.addEventListener('click', function () {
         var ok = true
@@ -3446,7 +3745,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           touched[path] = true
           if (!validateField(path)) ok = false
         })
-        if (ok) fgSetSec(meta, Math.min(meta.count - 1, fgSecState[meta.key] + 1))
+        if (ok) fgSetSec(meta, Math.min(meta.count - 1, fgSecState[meta.key] + 1), true)
       })
       fgSetSec(meta, 0)
     })
@@ -3497,12 +3796,13 @@ exports[`html target > snapshot (vanilla) 1`] = `
 
     form.addEventListener('submit', function (event) {
       event.preventDefault()
-      var ok = true
+      var failed = 0
       Object.keys(FG_VALIDATORS).forEach(function (path) {
         touched[path] = true
-        if (!validateField(path)) ok = false
+        if (!validateField(path)) failed++
       })
-      if (!ok) {
+      if (failed > 0) {
+        fgAnnounce(fgErrorsText(failed))
         // Move each tabs/steps host to its first section holding an error
         // (unless the visible one already shows one).
         FG_SECTIONS.forEach(function (meta) {
@@ -3518,6 +3818,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
       var out = document.getElementById('fg-result')
       out.textContent = JSON.stringify(data, null, 2)
       out.hidden = false
+      fgAnnounce("Form submitted.")
       console.log('Form submitted', data)
     })
 
@@ -3711,6 +4012,11 @@ function buildPayload(data: FormData): Record<string, unknown> {
 
 const fgSecPaths_ks_social_tabs = [["twitter"], ["github"]]
 const fgSecPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
+const fgSecAnnounce_ks_wizard = ["Step 1 of 2: Shipping", "Step 2 of 2: Review"]
+
+function fgErrorsText(count: number): string {
+  return count === 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields."
+}
 
 export default function KitchenSinkForm({
   onSubmit,
@@ -3721,9 +4027,21 @@ export default function KitchenSinkForm({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [result, setResult] = useState<Record<string, unknown> | null>(null)
   const touched = useRef(new Set<string>())
+  const [fgAnnouncement, setFgAnnouncement] = useState('')
   const [fgSec_ks_social_tabs, setFgSec_ks_social_tabs] = useState(0)
   const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)
   const [tagDrafts, setTagDrafts] = useState<Record<string, string>>({})
+
+  // Polite aria-live region; cleared first so repeated text re-announces.
+  function fgAnnounce(message: string): void {
+    setFgAnnouncement('')
+    setTimeout(() => setFgAnnouncement(message), 50)
+  }
+
+  function fgGo_ks_wizard(index: number): void {
+    setFgSec_ks_wizard(index)
+    fgAnnounce(fgSecAnnounce_ks_wizard[index] ?? '')
+  }
 
   function fgNext_ks_wizard(): void {
     let ok = true
@@ -3735,7 +4053,7 @@ export default function KitchenSinkForm({
       if (message) { next[path] = message; ok = false } else { delete next[path] }
     }
     setErrors(next)
-    if (ok && fgSec_ks_wizard < 1) setFgSec_ks_wizard(fgSec_ks_wizard + 1)
+    if (ok && fgSec_ks_wizard < 1) fgGo_ks_wizard(fgSec_ks_wizard + 1)
   }
 
 
@@ -3799,10 +4117,12 @@ export default function KitchenSinkForm({
         const target = fgSecPaths_ks_wizard.findIndex((paths) => paths.some((p) => nextErrors[p]))
         if (target !== -1) setFgSec_ks_wizard(target)
       }
+      fgAnnounce(fgErrorsText(Object.keys(nextErrors).length))
       return
     }
     const data = buildPayload(form)
     setResult(data)
+    fgAnnounce("Form submitted.")
     onSubmit?.(data)
   }
 
@@ -4056,7 +4376,7 @@ export default function KitchenSinkForm({
               </div>
             </div>
             <div className="mt-3 d-flex justify-content-between gap-2">
-              {fgSec_ks_wizard > 0 && <button type="button" className="btn btn-outline-secondary" onClick={() => setFgSec_ks_wizard(fgSec_ks_wizard - 1)}>Back</button>}
+              {fgSec_ks_wizard > 0 && <button type="button" className="btn btn-outline-secondary" onClick={() => fgGo_ks_wizard(fgSec_ks_wizard - 1)}>Back</button>}
               {fgSec_ks_wizard < 1 && <button type="button" className="btn btn-primary" onClick={fgNext_ks_wizard}>Next</button>}
               {fgSec_ks_wizard === 1 && <button type="submit" className="btn btn-primary">Submit</button>}
             </div>
@@ -4081,6 +4401,7 @@ export default function KitchenSinkForm({
           </div>
         </div>
       </div>
+      <div className="visually-hidden" role="status" aria-live="polite" aria-atomic="true">{fgAnnouncement}</div>
       {result && <pre className="mt-3 p-3 bg-dark text-success rounded small overflow-auto">{JSON.stringify(result, null, 2)}</pre>}
     </form>
   )
@@ -4270,6 +4591,11 @@ function buildPayload(data: FormData): Record<string, unknown> {
 
 const fgSecPaths_ks_social_tabs = [["twitter"], ["github"]]
 const fgSecPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
+const fgSecAnnounce_ks_wizard = ["Step 1 of 2: Shipping", "Step 2 of 2: Review"]
+
+function fgErrorsText(count: number): string {
+  return count === 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields."
+}
 
 export default function KitchenSinkForm({
   onSubmit,
@@ -4280,9 +4606,21 @@ export default function KitchenSinkForm({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [result, setResult] = useState<Record<string, unknown> | null>(null)
   const touched = useRef(new Set<string>())
+  const [fgAnnouncement, setFgAnnouncement] = useState('')
   const [fgSec_ks_social_tabs, setFgSec_ks_social_tabs] = useState(0)
   const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)
   const [tagDrafts, setTagDrafts] = useState<Record<string, string>>({})
+
+  // Polite aria-live region; cleared first so repeated text re-announces.
+  function fgAnnounce(message: string): void {
+    setFgAnnouncement('')
+    setTimeout(() => setFgAnnouncement(message), 50)
+  }
+
+  function fgGo_ks_wizard(index: number): void {
+    setFgSec_ks_wizard(index)
+    fgAnnounce(fgSecAnnounce_ks_wizard[index] ?? '')
+  }
 
   function fgNext_ks_wizard(): void {
     let ok = true
@@ -4294,7 +4632,7 @@ export default function KitchenSinkForm({
       if (message) { next[path] = message; ok = false } else { delete next[path] }
     }
     setErrors(next)
-    if (ok && fgSec_ks_wizard < 1) setFgSec_ks_wizard(fgSec_ks_wizard + 1)
+    if (ok && fgSec_ks_wizard < 1) fgGo_ks_wizard(fgSec_ks_wizard + 1)
   }
 
 
@@ -4358,10 +4696,12 @@ export default function KitchenSinkForm({
         const target = fgSecPaths_ks_wizard.findIndex((paths) => paths.some((p) => nextErrors[p]))
         if (target !== -1) setFgSec_ks_wizard(target)
       }
+      fgAnnounce(fgErrorsText(Object.keys(nextErrors).length))
       return
     }
     const data = buildPayload(form)
     setResult(data)
+    fgAnnounce("Form submitted.")
     onSubmit?.(data)
   }
 
@@ -4615,7 +4955,7 @@ export default function KitchenSinkForm({
               </div>
             </div>
             <div className="mt-4 flex justify-between gap-2">
-              {fgSec_ks_wizard > 0 && <button type="button" className="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" onClick={() => setFgSec_ks_wizard(fgSec_ks_wizard - 1)}>Back</button>}
+              {fgSec_ks_wizard > 0 && <button type="button" className="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" onClick={() => fgGo_ks_wizard(fgSec_ks_wizard - 1)}>Back</button>}
               {fgSec_ks_wizard < 1 && <button type="button" className="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" onClick={fgNext_ks_wizard}>Next</button>}
               {fgSec_ks_wizard === 1 && <button type="submit" className="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300">Submit</button>}
             </div>
@@ -4640,6 +4980,7 @@ export default function KitchenSinkForm({
           </div>
         </div>
       </div>
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">{fgAnnouncement}</div>
       {result && <pre className="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300">{JSON.stringify(result, null, 2)}</pre>}
     </form>
   )
@@ -4830,6 +5171,11 @@ function buildPayload(data: FormData): Record<string, unknown> {
 
 const fgSecPaths_ks_social_tabs = [["twitter"], ["github"]]
 const fgSecPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
+const fgSecAnnounce_ks_wizard = ["Step 1 of 2: Shipping", "Step 2 of 2: Review"]
+
+function fgErrorsText(count: number): string {
+  return count === 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields."
+}
 
 export default function KitchenSinkForm({
   onSubmit,
@@ -4840,9 +5186,21 @@ export default function KitchenSinkForm({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [result, setResult] = useState<Record<string, unknown> | null>(null)
   const touched = useRef(new Set<string>())
+  const [fgAnnouncement, setFgAnnouncement] = useState('')
   const [fgSec_ks_social_tabs, setFgSec_ks_social_tabs] = useState(0)
   const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)
   const [tagDrafts, setTagDrafts] = useState<Record<string, string>>({})
+
+  // Polite aria-live region; cleared first so repeated text re-announces.
+  function fgAnnounce(message: string): void {
+    setFgAnnouncement('')
+    setTimeout(() => setFgAnnouncement(message), 50)
+  }
+
+  function fgGo_ks_wizard(index: number): void {
+    setFgSec_ks_wizard(index)
+    fgAnnounce(fgSecAnnounce_ks_wizard[index] ?? '')
+  }
 
   function fgNext_ks_wizard(): void {
     let ok = true
@@ -4854,7 +5212,7 @@ export default function KitchenSinkForm({
       if (message) { next[path] = message; ok = false } else { delete next[path] }
     }
     setErrors(next)
-    if (ok && fgSec_ks_wizard < 1) setFgSec_ks_wizard(fgSec_ks_wizard + 1)
+    if (ok && fgSec_ks_wizard < 1) fgGo_ks_wizard(fgSec_ks_wizard + 1)
   }
 
 
@@ -4918,10 +5276,12 @@ export default function KitchenSinkForm({
         const target = fgSecPaths_ks_wizard.findIndex((paths) => paths.some((p) => nextErrors[p]))
         if (target !== -1) setFgSec_ks_wizard(target)
       }
+      fgAnnounce(fgErrorsText(Object.keys(nextErrors).length))
       return
     }
     const data = buildPayload(form)
     setResult(data)
+    fgAnnounce("Form submitted.")
     onSubmit?.(data)
   }
 
@@ -5175,7 +5535,7 @@ export default function KitchenSinkForm({
               </div>
             </div>
             <div className="fg-step-actions">
-              {fgSec_ks_wizard > 0 && <button type="button" className="fg-button fg-button--secondary" onClick={() => setFgSec_ks_wizard(fgSec_ks_wizard - 1)}>Back</button>}
+              {fgSec_ks_wizard > 0 && <button type="button" className="fg-button fg-button--secondary" onClick={() => fgGo_ks_wizard(fgSec_ks_wizard - 1)}>Back</button>}
               {fgSec_ks_wizard < 1 && <button type="button" className="fg-button fg-button--primary" onClick={fgNext_ks_wizard}>Next</button>}
               {fgSec_ks_wizard === 1 && <button type="submit" className="fg-button fg-button--primary">Submit</button>}
             </div>
@@ -5200,6 +5560,7 @@ export default function KitchenSinkForm({
           </div>
         </div>
       </div>
+      <div className="fg-sr-only" role="status" aria-live="polite" aria-atomic="true">{fgAnnouncement}</div>
       {result && <pre className="fg-payload">{JSON.stringify(result, null, 2)}</pre>}
     </form>
   )
@@ -5210,7 +5571,7 @@ export default function KitchenSinkForm({
 exports[`vue-standalone target > snapshot (bootstrap5) 1`] = `
 "<script setup lang="ts">
 // Generated by FormsGen — no runtime dependencies beyond Vue.
-import { reactive, ref } from 'vue'
+import { nextTick, reactive, ref } from 'vue'
 
 const emit = defineEmits<{ submit: [data: Record<string, unknown>] }>()
 
@@ -5246,6 +5607,18 @@ const form = reactive({
 const errors = reactive<Record<string, string>>({})
 const touched = new Set<string>()
 const result = ref<Record<string, unknown> | null>(null)
+
+// Polite aria-live region; cleared first so repeated text re-announces.
+const fgAnnouncement = ref('')
+function fgAnnounce(message: string): void {
+  fgAnnouncement.value = ''
+  void nextTick(() => {
+    fgAnnouncement.value = message
+  })
+}
+function fgErrorsText(count: number): string {
+  return count === 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields."
+}
 
 function fgIsEmpty(v) {
   if (v === null || v === undefined) return true
@@ -5367,13 +5740,18 @@ const fgSec_ks_wizard = ref(0)
 const fgSecPaths_ks_social_tabs = [["twitter"], ["github"]]
 const fgSecPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
 
+const fgSecAnnounce_ks_wizard = ["Step 1 of 2: Shipping", "Step 2 of 2: Review"]
+function fgGo_ks_wizard(index: number): void {
+  fgSec_ks_wizard.value = index
+  fgAnnounce(fgSecAnnounce_ks_wizard[index] ?? '')
+}
 function fgNext_ks_wizard(): void {
   let ok = true
   for (const path of fgSecPaths_ks_wizard[fgSec_ks_wizard.value] ?? []) {
     touch(path)
     if (errors[path]) ok = false
   }
-  if (ok && fgSec_ks_wizard.value < 1) fgSec_ks_wizard.value++
+  if (ok && fgSec_ks_wizard.value < 1) fgGo_ks_wizard(fgSec_ks_wizard.value + 1)
 }
 
 function fgJumpToError(): void {
@@ -5438,10 +5816,12 @@ function buildPayload(): Record<string, unknown> {
 async function onSubmit(): Promise<void> {
   if (!validateAll()) {
     fgJumpToError()
+    fgAnnounce(fgErrorsText(Object.keys(errors).length))
     return
   }
   const data = buildPayload()
   result.value = data
+  fgAnnounce("Form submitted.")
   emit('submit', data)
 }
 </script>
@@ -5691,7 +6071,7 @@ async function onSubmit(): Promise<void> {
             </div>
           </div>
           <div class="mt-3 d-flex justify-content-between gap-2">
-            <button v-if="fgSec_ks_wizard > 0" type="button" class="btn btn-outline-secondary" @click="fgSec_ks_wizard--">Back</button>
+            <button v-if="fgSec_ks_wizard > 0" type="button" class="btn btn-outline-secondary" @click="fgGo_ks_wizard(fgSec_ks_wizard - 1)">Back</button>
             <button v-if="fgSec_ks_wizard < 1" type="button" class="btn btn-primary" @click="fgNext_ks_wizard()">Next</button>
             <button v-if="fgSec_ks_wizard === 1" type="submit" class="btn btn-primary">Submit</button>
           </div>
@@ -5716,6 +6096,7 @@ async function onSubmit(): Promise<void> {
         </div>
       </div>
     </div>
+    <div class="visually-hidden" role="status" aria-live="polite" aria-atomic="true">{{ fgAnnouncement }}</div>
     <pre v-if="result" class="mt-3 p-3 bg-dark text-success rounded small overflow-auto">{{ JSON.stringify(result, null, 2) }}</pre>
   </form>
 </template>
@@ -5725,7 +6106,7 @@ async function onSubmit(): Promise<void> {
 exports[`vue-standalone target > snapshot (tailwind) 1`] = `
 "<script setup lang="ts">
 // Generated by FormsGen — no runtime dependencies beyond Vue.
-import { reactive, ref } from 'vue'
+import { nextTick, reactive, ref } from 'vue'
 
 const emit = defineEmits<{ submit: [data: Record<string, unknown>] }>()
 
@@ -5761,6 +6142,18 @@ const form = reactive({
 const errors = reactive<Record<string, string>>({})
 const touched = new Set<string>()
 const result = ref<Record<string, unknown> | null>(null)
+
+// Polite aria-live region; cleared first so repeated text re-announces.
+const fgAnnouncement = ref('')
+function fgAnnounce(message: string): void {
+  fgAnnouncement.value = ''
+  void nextTick(() => {
+    fgAnnouncement.value = message
+  })
+}
+function fgErrorsText(count: number): string {
+  return count === 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields."
+}
 
 function fgIsEmpty(v) {
   if (v === null || v === undefined) return true
@@ -5882,13 +6275,18 @@ const fgSec_ks_wizard = ref(0)
 const fgSecPaths_ks_social_tabs = [["twitter"], ["github"]]
 const fgSecPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
 
+const fgSecAnnounce_ks_wizard = ["Step 1 of 2: Shipping", "Step 2 of 2: Review"]
+function fgGo_ks_wizard(index: number): void {
+  fgSec_ks_wizard.value = index
+  fgAnnounce(fgSecAnnounce_ks_wizard[index] ?? '')
+}
 function fgNext_ks_wizard(): void {
   let ok = true
   for (const path of fgSecPaths_ks_wizard[fgSec_ks_wizard.value] ?? []) {
     touch(path)
     if (errors[path]) ok = false
   }
-  if (ok && fgSec_ks_wizard.value < 1) fgSec_ks_wizard.value++
+  if (ok && fgSec_ks_wizard.value < 1) fgGo_ks_wizard(fgSec_ks_wizard.value + 1)
 }
 
 function fgJumpToError(): void {
@@ -5953,10 +6351,12 @@ function buildPayload(): Record<string, unknown> {
 async function onSubmit(): Promise<void> {
   if (!validateAll()) {
     fgJumpToError()
+    fgAnnounce(fgErrorsText(Object.keys(errors).length))
     return
   }
   const data = buildPayload()
   result.value = data
+  fgAnnounce("Form submitted.")
   emit('submit', data)
 }
 </script>
@@ -6206,7 +6606,7 @@ async function onSubmit(): Promise<void> {
             </div>
           </div>
           <div class="mt-4 flex justify-between gap-2">
-            <button v-if="fgSec_ks_wizard > 0" type="button" class="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" @click="fgSec_ks_wizard--">Back</button>
+            <button v-if="fgSec_ks_wizard > 0" type="button" class="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" @click="fgGo_ks_wizard(fgSec_ks_wizard - 1)">Back</button>
             <button v-if="fgSec_ks_wizard < 1" type="button" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" @click="fgNext_ks_wizard()">Next</button>
             <button v-if="fgSec_ks_wizard === 1" type="submit" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300">Submit</button>
           </div>
@@ -6231,6 +6631,7 @@ async function onSubmit(): Promise<void> {
         </div>
       </div>
     </div>
+    <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">{{ fgAnnouncement }}</div>
     <pre v-if="result" class="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300">{{ JSON.stringify(result, null, 2) }}</pre>
   </form>
 </template>
@@ -6240,7 +6641,7 @@ async function onSubmit(): Promise<void> {
 exports[`vue-standalone target > snapshot (vanilla) 1`] = `
 "<script setup lang="ts">
 // Generated by FormsGen — no runtime dependencies beyond Vue.
-import { reactive, ref } from 'vue'
+import { nextTick, reactive, ref } from 'vue'
 
 const emit = defineEmits<{ submit: [data: Record<string, unknown>] }>()
 
@@ -6276,6 +6677,18 @@ const form = reactive({
 const errors = reactive<Record<string, string>>({})
 const touched = new Set<string>()
 const result = ref<Record<string, unknown> | null>(null)
+
+// Polite aria-live region; cleared first so repeated text re-announces.
+const fgAnnouncement = ref('')
+function fgAnnounce(message: string): void {
+  fgAnnouncement.value = ''
+  void nextTick(() => {
+    fgAnnouncement.value = message
+  })
+}
+function fgErrorsText(count: number): string {
+  return count === 1 ? "1 error. Please fix the highlighted fields." : count + " errors. Please fix the highlighted fields."
+}
 
 function fgIsEmpty(v) {
   if (v === null || v === undefined) return true
@@ -6397,13 +6810,18 @@ const fgSec_ks_wizard = ref(0)
 const fgSecPaths_ks_social_tabs = [["twitter"], ["github"]]
 const fgSecPaths_ks_wizard = [["shipping_city"], ["order_notes"]]
 
+const fgSecAnnounce_ks_wizard = ["Step 1 of 2: Shipping", "Step 2 of 2: Review"]
+function fgGo_ks_wizard(index: number): void {
+  fgSec_ks_wizard.value = index
+  fgAnnounce(fgSecAnnounce_ks_wizard[index] ?? '')
+}
 function fgNext_ks_wizard(): void {
   let ok = true
   for (const path of fgSecPaths_ks_wizard[fgSec_ks_wizard.value] ?? []) {
     touch(path)
     if (errors[path]) ok = false
   }
-  if (ok && fgSec_ks_wizard.value < 1) fgSec_ks_wizard.value++
+  if (ok && fgSec_ks_wizard.value < 1) fgGo_ks_wizard(fgSec_ks_wizard.value + 1)
 }
 
 function fgJumpToError(): void {
@@ -6468,10 +6886,12 @@ function buildPayload(): Record<string, unknown> {
 async function onSubmit(): Promise<void> {
   if (!validateAll()) {
     fgJumpToError()
+    fgAnnounce(fgErrorsText(Object.keys(errors).length))
     return
   }
   const data = buildPayload()
   result.value = data
+  fgAnnounce("Form submitted.")
   emit('submit', data)
 }
 </script>
@@ -6721,7 +7141,7 @@ async function onSubmit(): Promise<void> {
             </div>
           </div>
           <div class="fg-step-actions">
-            <button v-if="fgSec_ks_wizard > 0" type="button" class="fg-button fg-button--secondary" @click="fgSec_ks_wizard--">Back</button>
+            <button v-if="fgSec_ks_wizard > 0" type="button" class="fg-button fg-button--secondary" @click="fgGo_ks_wizard(fgSec_ks_wizard - 1)">Back</button>
             <button v-if="fgSec_ks_wizard < 1" type="button" class="fg-button fg-button--primary" @click="fgNext_ks_wizard()">Next</button>
             <button v-if="fgSec_ks_wizard === 1" type="submit" class="fg-button fg-button--primary">Submit</button>
           </div>
@@ -6746,6 +7166,7 @@ async function onSubmit(): Promise<void> {
         </div>
       </div>
     </div>
+    <div class="fg-sr-only" role="status" aria-live="polite" aria-atomic="true">{{ fgAnnouncement }}</div>
     <pre v-if="result" class="fg-payload">{{ JSON.stringify(result, null, 2) }}</pre>
   </form>
 </template>
@@ -6807,6 +7228,7 @@ async function onSubmit(): Promise<void> {
 .fg-tag-remove { border: none; background: none; padding: 0; cursor: pointer; color: var(--fg-color-muted); font-size: 0.875rem; line-height: 1; }
 .fg-tags-input { flex: 1; min-inline-size: 6rem; border: none; background: none; font: inherit; color: inherit; padding: 0.125rem; }
 .fg-tags-input:focus { outline: none; }
+.fg-sr-only { position: absolute; inline-size: 1px; block-size: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .fg-group { margin: 0; padding: var(--fg-space); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
 .fg-group-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); }
 .fg-actions { margin-block-start: var(--fg-space); }

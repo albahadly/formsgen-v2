@@ -27,6 +27,8 @@ export interface FormContext {
   submitEmbedHostId?(): string | null
   /** Resolved submit button label/style for the embedding wizard. */
   submitButtonSpec?(): { text: string; secondary: boolean }
+  /** Speak a message through the form's polite aria-live region. */
+  announce?(message: string): void
 }
 
 export const FORM_CONTEXT: InjectionKey<FormContext> = Symbol('formsgen-form')

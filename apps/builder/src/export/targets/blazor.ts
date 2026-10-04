@@ -4,7 +4,14 @@
 // visibility properties, and a payload builder that reconstructs the
 // nested data shape (REBUILD_PROMPT §7 target 6).
 
-import { getCoreElement, joinPath, type ElementNode } from '@formsgen/renderer'
+import {
+  SUBMITTED_ANNOUNCEMENT,
+  errorsAnnouncement,
+  getCoreElement,
+  joinPath,
+  stepAnnouncement,
+  type ElementNode,
+} from '@formsgen/renderer'
 import { pascalMember } from '@/registry/emitters/shared'
 import {
   csAttributes,
@@ -79,7 +86,7 @@ export const blazorTarget: ExportTarget = {
         embeddedHost?.key === host.key
           ? `\n    @if (${state} == ${last})\n    {\n        ${submitButton}\n    }`
           : ''
-      return `<div>\n  <ol class="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div class="${css.classes('stepActions')}">\n    @if (${state} > 0)\n    {\n        <button type="button" class="${css.classes('buttonSecondary')}" @onclick="() => ${state}--">${labels.back}</button>\n    }\n    @if (${state} < ${last})\n    {\n        <button type="button" class="${css.classes('submitButton')}" @onclick="FgNext_${host.key}">${labels.next}</button>\n    }${embeddedSubmit}\n  </div>\n</div>`
+      return `<div>\n  <ol class="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div class="${css.classes('stepActions')}">\n    @if (${state} > 0)\n    {\n        <button type="button" class="${css.classes('buttonSecondary')}" @onclick="() => FgGo_${host.key}(${state} - 1)">${labels.back}</button>\n    }\n    @if (${state} < ${last})\n    {\n        <button type="button" class="${css.classes('submitButton')}" @onclick="FgNext_${host.key}">${labels.next}</button>\n    }${embeddedSubmit}\n  </div>\n</div>`
     }
 
     const sectionFields = hosts
@@ -202,12 +209,14 @@ export const blazorTarget: ExportTarget = {
     // EditContext machinery exists when any tabs/steps host needs per-step
     // gating or the invalid-submit jump; FgToggle/FgAddTag only when the
     // matching field types are present.
-    const hasEditContext = hosts.length > 0
+    const hasHosts = hosts.length > 0
     const tagsKeys = fields.filter((f) => f.node.type === 'tags').map((f) => f.key)
     const hasToggle = fields.some((f) => f.node.type === 'checkboxgroup')
 
-    const editContextBlock = hasEditContext
-      ? `
+    // The component owns its EditContext plus a message store for errors
+    // DataAnnotationsValidator doesn't produce (step gating, and model-level
+    // Validate() results it skips while any attribute rule fails).
+    const editContextBlock = `
     private EditContext fgEdit = default!;
     private ValidationMessageStore fgMessages = default!;
 
@@ -215,11 +224,32 @@ export const blazorTarget: ExportTarget = {
     {
         fgEdit = new EditContext(Model);
         fgMessages = new ValidationMessageStore(fgEdit);
-        // Submit-time validation repaints everything; drop stale step messages.
+        // Full validation repaints everything; editing a field drops its stale messages.
         fgEdit.OnValidationRequested += (_, _) => fgMessages.Clear();
+        fgEdit.OnFieldChanged += (_, e) => fgMessages.Clear(e.FieldIdentifier);
+    }
+
+    private async Task FgSubmit(EditContext context)
+    {
+        if (context.Validate())
+        {
+            await HandleValidSubmit();
+            return;
+        }
+        // DataAnnotations runs IValidatableObject.Validate() only once every
+        // attribute rule passes; run it now so all errors show at once.
+        foreach (var result in ((IValidatableObject)Model).Validate(new ValidationContext(Model)))
+        {
+            foreach (var name in result.MemberNames)
+            {
+                var field = new FieldIdentifier(Model, name);
+                if (!context.GetValidationMessages(field).Any()) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
+            }
+        }
+        context.NotifyValidationStateChanged();
+        await FgOnInvalidSubmit(context);
     }
 `
-      : ''
 
     const validateMembersBlock = stepsHosts.length
       ? `
@@ -262,20 +292,31 @@ export const blazorTarget: ExportTarget = {
           )
           .join('\n')
         return `
-    private void FgNext_${host.key}()
+    private static readonly string[] fgSecAnnounce_${host.key} =
+    {
+${host.sections.map((s) => `        ${csStr(stepAnnouncement(s.index, host.sections.length, s.label))},`).join('\n')}
+    };
+
+    private async Task FgGo_${host.key}(int index)
+    {
+        fgSec_${host.key} = index;
+        await FgAnnounce(fgSecAnnounce_${host.key}[index]);
+    }
+
+    private async Task FgNext_${host.key}()
     {
         var members = fgSec_${host.key} switch
         {
 ${arms}
             _ => Array.Empty<(string Name, object? Value)>(),
         };
-        if (FgValidateMembers(members) && fgSec_${host.key} < ${host.sections.length - 1}) fgSec_${host.key}++;
+        if (FgValidateMembers(members) && fgSec_${host.key} < ${host.sections.length - 1}) await FgGo_${host.key}(fgSec_${host.key} + 1);
     }
 `
       })
       .join('')
 
-    const jumpBlock = hasEditContext
+    const jumpBlock = hasHosts
       ? `
 ${hosts
   .map(
@@ -344,14 +385,39 @@ ${hosts
 `
       : ''
 
-    const helperBlocks = `${editContextBlock}${validateMembersBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}`
+    // aria-live: clear, re-render, then set — so repeated text re-announces.
+    const errorsMany = errorsAnnouncement(2).replace(/^2 /, ' ')
+    const announceBlock = `
+    private string fgAnnouncement = "";
 
-    const formBinding = hasEditContext
-      ? 'EditContext="fgEdit" OnValidSubmit="HandleValidSubmit" OnInvalidSubmit="FgJumpToError"'
-      : 'Model="Model" OnValidSubmit="HandleValidSubmit"'
-    const extraUsings = hasEditContext
-      ? '@using System.Linq\n@using Microsoft.AspNetCore.Components.Forms\n'
-      : ''
+    private async Task FgAnnounce(string message)
+    {
+        fgAnnouncement = "";
+        StateHasChanged();
+        await Task.Delay(50);
+        fgAnnouncement = message;
+        StateHasChanged();
+    }
+
+    private static string FgErrorsText(int count) =>
+        count == 1 ? ${csStr(errorsAnnouncement(1))} : count + ${csStr(errorsMany)};
+
+    private static readonly string[] fgAllMembers =
+    {
+${fields.map((f) => `        ${csStr(pascalMember(f.key))},`).join('\n')}
+    };
+
+    private async Task FgOnInvalidSubmit(EditContext context)
+    {${hasHosts ? '\n        FgJumpToError();' : ''}
+        var count = fgAllMembers.Count(m => context.GetValidationMessages(new FieldIdentifier(Model, m)).Any());
+        await FgAnnounce(FgErrorsText(count));
+    }
+`
+
+    const helperBlocks = `${editContextBlock}${announceBlock}${validateMembersBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}`
+
+    const formBinding = 'EditContext="fgEdit" OnSubmit="FgSubmit"'
+    const extraUsings = '@using System.Linq\n@using Microsoft.AspNetCore.Components.Forms\n'
 
     const submitUrl = schema.meta.submit?.url
     const httpInject = submitUrl ? '@inject HttpClient Http\n' : ''
@@ -381,7 +447,8 @@ ${extraUsings}${submitUrl ? '@using System.Net.Http.Json\n' : ''}${httpInject}
     <DataAnnotationsValidator />
     <div class="${css.classes('grid')}">
 ${indentBlock(markup, 2)}
-    </div>${actionsBlock}
+    </div>
+    <div class="${css.classes('srOnly')}" role="status" aria-live="polite" aria-atomic="true">@fgAnnouncement</div>${actionsBlock}
     @if (ResultJson is not null)
     {
         <pre class="${css.classes('payload')}">@ResultJson</pre>
@@ -392,11 +459,12 @@ ${indentBlock(markup, 2)}
     private ${name}Model Model { get; set; } = new();
     private string? ResultJson { get; set; }
 ${sectionFields ? `\n${sectionFields}\n` : ''}${helperBlocks}
-    private ${submitUrl ? 'async Task' : 'void'} HandleValidSubmit()
+    private async Task HandleValidSubmit()
     {
         var payload = BuildPayload();
         ResultJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
-${submitCall}    }
+${submitCall}        await FgAnnounce(${csStr(SUBMITTED_ANNOUNCEMENT)});
+    }
 
     private Dictionary<string, object?> BuildPayload()
     {

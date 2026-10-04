@@ -1,4 +1,10 @@
-import { parseFormSchema, type FormSchema } from '@formsgen/renderer'
+import {
+  SUBMITTED_ANNOUNCEMENT,
+  errorsAnnouncement,
+  parseFormSchema,
+  stepAnnouncement,
+  type FormSchema,
+} from '@formsgen/renderer'
 import { describe, expect, it } from 'vitest'
 import kitchenSink from '../../../../../fixtures/kitchen-sink.formsgen.json'
 import { getCssAdapter, listCssAdapters, type CssFrameworkId } from '../css'
@@ -296,6 +302,93 @@ describe('tags + submit error jump across code targets', () => {
   })
 })
 
+describe('aria-live announcements across code targets', () => {
+  // Strings come straight from the renderer, so every target matches it.
+  const step2 = stepAnnouncement(1, 2, 'Review')
+  const oneError = errorsAnnouncement(1)
+
+  it('vue-standalone renders the live region and announces steps/errors/submit', () => {
+    const c = generate('vue-standalone')[0]!.content
+    expect(c).toContain('role="status" aria-live="polite" aria-atomic="true">{{ fgAnnouncement }}</div>')
+    expect(c).toContain(JSON.stringify(step2))
+    expect(c).toContain(JSON.stringify(oneError))
+    expect(c).toContain('fgAnnounce(fgErrorsText(Object.keys(errors).length))')
+    expect(c).toContain(`fgAnnounce(${JSON.stringify(SUBMITTED_ANNOUNCEMENT)})`)
+    expect(c).toContain('@click="fgGo_ks_wizard(fgSec_ks_wizard - 1)"')
+  })
+
+  it('react renders the live region and announces via state', () => {
+    const c = generate('react')[0]!.content
+    expect(c).toContain('role="status" aria-live="polite" aria-atomic="true">{fgAnnouncement}</div>')
+    expect(c).toContain(JSON.stringify(step2))
+    expect(c).toContain('fgAnnounce(fgErrorsText(Object.keys(nextErrors).length))')
+    expect(c).toContain('onClick={() => fgGo_ks_wizard(fgSec_ks_wizard - 1)}')
+  })
+
+  it('html renders #fg-live and speaks only on user navigation', () => {
+    const c = generate('html')[0]!.content
+    expect(c).toContain('<div id="fg-live" class="fg-sr-only" role="status" aria-live="polite" aria-atomic="true"></div>')
+    expect(c).toContain(`"announce":["Step 1 of 2: Shipping",${JSON.stringify(step2)}]`)
+    expect(c).toContain('fgSetSec(meta, Math.max(0, fgSecState[meta.key] - 1), true)')
+    expect(c).toContain('fgAnnounce(fgErrorsText(failed))')
+  })
+
+  it('blazor renders the live region, an always-on invalid-submit handler and step announcements', () => {
+    const c = generate('blazor')[0]!.content
+    expect(c).toContain('role="status" aria-live="polite" aria-atomic="true">@fgAnnouncement</div>')
+    expect(c).toContain('private async Task FgOnInvalidSubmit(EditContext context)')
+    expect(c).toContain(JSON.stringify(step2))
+    expect(c).toContain(JSON.stringify(oneError))
+    expect(c).toContain(`await FgAnnounce(${JSON.stringify(SUBMITTED_ANNOUNCEMENT)});`)
+    expect(c).toContain('@onclick="() => FgGo_ks_wizard(fgSec_ks_wizard - 1)"')
+  })
+
+  it('uses each framework idiom for the visually-hidden class', () => {
+    expect(generate('html', 'tailwind')[0]!.content).toContain('class="sr-only" role="status"')
+    expect(generate('html', 'bootstrap5')[0]!.content).toContain('class="visually-hidden" role="status"')
+  })
+
+  it('escapes </script> in step labels inside the inline html runtime', () => {
+    const raw = JSON.parse(JSON.stringify(kitchenSink)) as {
+      tree: { id: string; children?: { props: Record<string, unknown> }[] }[]
+    }
+    raw.tree.find((n) => n.id === 'ks-wizard')!.children![0]!.props['label'] = '</script><b>x'
+    const parsed = parseFormSchema(raw as unknown as Record<string, unknown>)
+    if (!parsed.ok) throw new Error(parsed.errors.join('\n'))
+    const html = getTarget('html')!.generate({ schema: parsed.schema, css: getCssAdapter('vanilla') })[0]!
+      .content
+    const script = /<script>\n([\s\S]*?)<\/script>/.exec(html)?.[1] ?? ''
+    expect(script).not.toContain('</script>')
+    expect(script).toContain('\\u003c/script>')
+  })
+})
+
+describe('cross-target validation parity (found via live error counts)', () => {
+  it('html marks the select placeholder selected; bound targets do not need it', () => {
+    // Browsers skip a disabled option for default selection, so without
+    // `selected` the first real option was silently chosen.
+    expect(generate('html')[0]!.content).toContain('<option value="" disabled selected>—</option>')
+    expect(generate('vue-standalone')[0]!.content).not.toContain('disabled selected')
+    expect(generate('react')[0]!.content).not.toContain('disabled selected')
+  })
+
+  it('blazor: optional url/email/min fields validate in Validate(), not attributes', () => {
+    const c = generate('blazor')[0]!.content
+    // Website is optional with a url rule: [Url] would reject "".
+    expect(c).not.toMatch(/\[Url\([^\]]*\]\s*public string Website/)
+    expect(c).toContain('if (!(string.IsNullOrWhiteSpace(Website)) && (!Uri.TryCreate(Website')
+    // Required fields keep attributes ([Required] short-circuits the rest).
+    expect(c).toMatch(/\[EmailAddress\([^\]]*\]\s*public string Email/)
+  })
+
+  it('blazor: submit surfaces model-level errors alongside attribute errors', () => {
+    const c = generate('blazor')[0]!.content
+    expect(c).toContain('private async Task FgSubmit(EditContext context)')
+    expect(c).toContain('((IValidatableObject)Model).Validate(new ValidationContext(Model))')
+    expect(c).toContain('fgEdit.OnFieldChanged += (_, e) => fgMessages.Clear(e.FieldIdentifier);')
+  })
+})
+
 describe('blazor parity: multi-value controls, step gating, error jump', () => {
   const code = (): string => generate('blazor')[0]!.content
 
@@ -323,8 +416,8 @@ describe('blazor parity: multi-value controls, step gating, error jump', () => {
 
   it('steps gate Next behind per-step validation via an EditContext', () => {
     const c = code()
-    expect(c).toContain('<EditForm EditContext="fgEdit" OnValidSubmit="HandleValidSubmit" OnInvalidSubmit="FgJumpToError"')
-    expect(c).toContain('private void FgNext_ks_wizard()')
+    expect(c).toContain('<EditForm EditContext="fgEdit" OnSubmit="FgSubmit"')
+    expect(c).toContain('private async Task FgNext_ks_wizard()')
     expect(c).toContain('(nameof(KitchenSinkFormModel.ShippingCity), Model.ShippingCity)')
     expect(c).toContain('Validator.TryValidateProperty(value, context, results)')
     expect(c).toContain('new ValidationMessageStore(fgEdit)')

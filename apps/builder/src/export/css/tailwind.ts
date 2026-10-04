@@ -46,6 +46,7 @@ const CLASSES: Record<Slot, string> = {
   tag: 'inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700',
   tagRemove: 'text-gray-500 hover:text-red-600',
   tagsInput: 'min-w-24 flex-1 border-none bg-transparent text-sm focus:outline-none',
+  srOnly: 'sr-only',
 }
 
 export const tailwindAdapter: CssFrameworkAdapter = {

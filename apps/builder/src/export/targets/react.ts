@@ -2,6 +2,7 @@
 // (React 18+) with useState, compiled validation and conditions
 // (REBUILD_PROMPT §7 target 5). Added as a plugin — no core changes.
 
+import { SUBMITTED_TEXT, errorsTextFunction, stepAnnouncementsLiteral } from '../announce'
 import { RUNTIME_HELPERS } from '../compile'
 import {
   collectExportFields,
@@ -118,7 +119,7 @@ export const reactTarget: ExportTarget = {
         embeddedHost?.key === host.key
           ? `\n    {${state} === ${last} && <button type="submit" className="${submitClass}">${sb.text}</button>}`
           : ''
-      return `<div>\n  <ol className="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div className="${css.classes('stepActions')}">\n    {${state} > 0 && <button type="button" className="${css.classes('buttonSecondary')}" onClick={() => setFgSec_${host.key}(${state} - 1)}>${labels.back}</button>}\n    {${state} < ${last} && <button type="button" className="${css.classes('submitButton')}" onClick={fgNext_${host.key}}>${labels.next}</button>}${embeddedSubmit}\n  </div>\n</div>`
+      return `<div>\n  <ol className="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div className="${css.classes('stepActions')}">\n    {${state} > 0 && <button type="button" className="${css.classes('buttonSecondary')}" onClick={() => fgGo_${host.key}(${state} - 1)}>${labels.back}</button>}\n    {${state} < ${last} && <button type="button" className="${css.classes('submitButton')}" onClick={fgNext_${host.key}}>${labels.next}</button>}${embeddedSubmit}\n  </div>\n</div>`
     }
 
     const markup = renderTree(schema, {
@@ -146,7 +147,12 @@ export const reactTarget: ExportTarget = {
     const stepHandlers = hosts
       .filter((host) => host.kind === 'steps')
       .map(
-        (host) => `  function fgNext_${host.key}(): void {
+        (host) => `  function fgGo_${host.key}(index: number): void {
+    setFgSec_${host.key}(index)
+    fgAnnounce(fgSecAnnounce_${host.key}[index] ?? '')
+  }
+
+  function fgNext_${host.key}(): void {
     let ok = true
     const next = { ...errors }
     for (const path of fgSecPaths_${host.key}[fgSec_${host.key}] ?? []) {
@@ -156,10 +162,14 @@ export const reactTarget: ExportTarget = {
       if (message) { next[path] = message; ok = false } else { delete next[path] }
     }
     setErrors(next)
-    if (ok && fgSec_${host.key} < ${host.sections.length - 1}) setFgSec_${host.key}(fgSec_${host.key} + 1)
+    if (ok && fgSec_${host.key} < ${host.sections.length - 1}) fgGo_${host.key}(fgSec_${host.key} + 1)
   }`,
       )
       .join('\n\n')
+    const stepAnnounceConsts = hosts
+      .filter((host) => host.kind === 'steps')
+      .map((host) => `const fgSecAnnounce_${host.key} = ${stepAnnouncementsLiteral(host)}`)
+      .join('\n')
 
     // On a failed submit, move each tabs/steps host to its first section
     // holding an error (unless the current one already shows one).
@@ -237,7 +247,9 @@ const validators: Record<string, (data: FormData) => string | null> = ${validato
 function buildPayload(data: FormData): Record<string, unknown> {
   return ${indentBlock(payloadExpr(schema, dataAccessor, (key) => `fgVisible_${key}(data)`), 1).trimStart()}
 }
-${sectionPathsConsts ? `\n${sectionPathsConsts}\n` : ''}
+${sectionPathsConsts ? `\n${sectionPathsConsts}\n` : ''}${stepAnnounceConsts ? `${stepAnnounceConsts}\n` : ''}
+${errorsTextFunction(true)}
+
 export default function ${name}({
   onSubmit,
 }: {
@@ -247,7 +259,14 @@ export default function ${name}({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [result, setResult] = useState<Record<string, unknown> | null>(null)
   const touched = useRef(new Set<string>())
-${sectionHooks ? `${sectionHooks}\n` : ''}${tagsState ? `${tagsState}\n` : ''}${stepHandlers ? `\n${stepHandlers}\n` : ''}
+  const [fgAnnouncement, setFgAnnouncement] = useState('')
+${sectionHooks ? `${sectionHooks}\n` : ''}${tagsState ? `${tagsState}\n` : ''}
+  // Polite aria-live region; cleared first so repeated text re-announces.
+  function fgAnnounce(message: string): void {
+    setFgAnnouncement('')
+    setTimeout(() => setFgAnnouncement(message), 50)
+  }
+${stepHandlers ? `\n${stepHandlers}\n` : ''}
 
   function applyError(path: string, message: string | null): void {
     setErrors((prev) => {
@@ -291,10 +310,12 @@ ${tagsHandlers ? `\n${tagsHandlers}\n` : ''}
     }
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) {
-${jumpBlock ? `${jumpBlock}\n` : ''}      return
+${jumpBlock ? `${jumpBlock}\n` : ''}      fgAnnounce(fgErrorsText(Object.keys(nextErrors).length))
+      return
     }
     const data = buildPayload(form)
     setResult(data)
+    fgAnnounce(${SUBMITTED_TEXT})
     onSubmit?.(data)
 ${submitBlock}  }
 
@@ -302,7 +323,8 @@ ${submitBlock}  }
     <form className="${css.classes('form')}" dir="${schema.meta.dir}" noValidate onSubmit={handleSubmit}>
       <div className="${css.classes('grid')}">
 ${indentBlock(markup, 4)}
-      </div>${actionsBlock}
+      </div>
+      <div className="${css.classes('srOnly')}" role="status" aria-live="polite" aria-atomic="true">{fgAnnouncement}</div>${actionsBlock}
       {result && <pre className="${css.classes('payload')}">{JSON.stringify(result, null, 2)}</pre>}
     </form>
   )

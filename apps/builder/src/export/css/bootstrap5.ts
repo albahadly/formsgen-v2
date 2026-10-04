@@ -38,6 +38,7 @@ const CLASSES: Record<Slot, string> = {
   tag: 'badge rounded-pill text-bg-secondary d-inline-flex align-items-center gap-1',
   tagRemove: 'border-0 bg-transparent p-0 ms-1 text-white',
   tagsInput: 'border-0 p-0 flex-grow-1 shadow-none',
+  srOnly: 'visually-hidden',
 }
 
 export const bootstrap5Adapter: CssFrameworkAdapter = {

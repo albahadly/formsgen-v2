@@ -23,11 +23,14 @@ interface Item {
   label: string
 }
 
-function optionTags(node: { props: Record<string, unknown> }): string {
+function optionTags(node: { props: Record<string, unknown> }, selectPlaceholder = false): string {
   const items = Array.isArray(node.props['items']) ? (node.props['items'] as Item[]) : []
   const placeholder = esc(String(node.props['placeholder'] ?? '—'))
   return [
-    `<option value="" disabled>${placeholder}</option>`,
+    // Unbound HTML must mark the placeholder selected: browsers skip a
+    // disabled option for default selection and would silently pick the
+    // first real option (passing "required" with no user choice).
+    `<option value="" disabled${selectPlaceholder ? ' selected' : ''}>${placeholder}</option>`,
     ...items.map((i) => `<option value="${esc(i.value)}">${esc(i.label)}</option>`),
   ].join('\n    ')
 }
@@ -63,7 +66,7 @@ export const selectElement: ElementDefinition = {
       fieldWrap(
         [
           labelFor(node, ctx),
-          `<select id="${ctx.id}" class="${ctx.css.classes('select')}"${htmlDataAttrs(ctx, 'select')}>\n    ${optionTags(node)}\n  </select>`,
+          `<select id="${ctx.id}" class="${ctx.css.classes('select')}"${htmlDataAttrs(ctx, 'select')}>\n    ${optionTags(node, true)}\n  </select>`,
           descriptionFor(node, ctx),
           htmlError(ctx),
         ],
