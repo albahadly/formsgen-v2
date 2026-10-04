@@ -201,6 +201,22 @@ describe('FormsGenForm', () => {
     ).toBe('Muscat')
   })
 
+  it('steps: Back/Next labels are configurable via backText/nextText props', async () => {
+    const schema = fixtureSchema()
+    const wizard = schema.tree.find((n) => n.id === 'ks-wizard')!
+    wizard.props['backText'] = 'السابق'
+    wizard.props['nextText'] = 'التالي'
+    const wrapper = mount(FormsGenForm, { props: { schema } })
+    const next = wrapper
+      .findAll('.fg-step-actions button')
+      .find((b) => b.text() === 'التالي')!
+    expect(next).toBeDefined()
+    await wrapper.get('input[name="shipping_city"]').setValue('Muscat')
+    await next.trigger('click')
+    const labels = wrapper.findAll('.fg-step-actions button').map((b) => b.text())
+    expect(labels).toContain('السابق')
+  })
+
   it('tab headers show an error dot after a failed submit', async () => {
     const schema = fixtureSchema()
     // make the hidden tab's field required

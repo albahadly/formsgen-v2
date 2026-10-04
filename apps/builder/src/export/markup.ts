@@ -64,6 +64,15 @@ export interface RenderedSectionHost {
   sections: RenderedSection[]
 }
 
+/** Escaped Back/Next button labels for a steps host (props backText/nextText). */
+export function stepButtonLabels(host: RenderedSectionHost): { back: string; next: string } {
+  const read = (prop: string, fallback: string): string => {
+    const value = host.node.props[prop]
+    return esc(typeof value === 'string' && value !== '' ? value : fallback)
+  }
+  return { back: read('backText', 'Back'), next: read('nextText', 'Next') }
+}
+
 function indentBlock(text: string, depth: number): string {
   const pad = '  '.repeat(depth)
   return text

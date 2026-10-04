@@ -9,7 +9,7 @@ import {
   validatorsLiteral,
   visibilityFunctions,
 } from '../logic'
-import { renderTree, type RenderedSectionHost } from '../markup'
+import { renderTree, stepButtonLabels, type RenderedSectionHost } from '../markup'
 import { collectSectionHosts, defaultsObject, toJsLiteral } from '../structure'
 import { componentName, type ExportTarget } from './types'
 
@@ -56,7 +56,8 @@ export const vueStandaloneTarget: ExportTarget = {
         .map((s) => `  <div v-show="${state} === ${s.index}">\n${indentBlock(s.html, 2)}\n  </div>`)
         .join('\n')
       const last = host.sections.length - 1
-      return `<div>\n  <ol class="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div class="${css.classes('stepActions')}">\n    <button v-if="${state} > 0" type="button" class="${css.classes('buttonSecondary')}" @click="${state}--">Back</button>\n    <button v-if="${state} < ${last}" type="button" class="${css.classes('submitButton')}" @click="fgNext_${host.key}()">Next</button>\n  </div>\n</div>`
+      const labels = stepButtonLabels(host)
+      return `<div>\n  <ol class="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div class="${css.classes('stepActions')}">\n    <button v-if="${state} > 0" type="button" class="${css.classes('buttonSecondary')}" @click="${state}--">${labels.back}</button>\n    <button v-if="${state} < ${last}" type="button" class="${css.classes('submitButton')}" @click="fgNext_${host.key}()">${labels.next}</button>\n  </div>\n</div>`
     }
 
     const markup = renderTree(schema, {

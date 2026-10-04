@@ -9,7 +9,7 @@ import {
   validatorsLiteral,
   visibilityFunctions,
 } from '../logic'
-import { renderTree, type RenderedSectionHost } from '../markup'
+import { renderTree, stepButtonLabels, type RenderedSectionHost } from '../markup'
 import { collectSectionHosts, defaultsObject, toJsLiteral } from '../structure'
 import { componentName, type ExportTarget } from './types'
 
@@ -101,7 +101,8 @@ export const reactTarget: ExportTarget = {
         )
         .join('\n')
       const last = host.sections.length - 1
-      return `<div>\n  <ol className="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div className="${css.classes('stepActions')}">\n    {${state} > 0 && <button type="button" className="${css.classes('buttonSecondary')}" onClick={() => setFgSec_${host.key}(${state} - 1)}>Back</button>}\n    {${state} < ${last} && <button type="button" className="${css.classes('submitButton')}" onClick={fgNext_${host.key}}>Next</button>}\n  </div>\n</div>`
+      const labels = stepButtonLabels(host)
+      return `<div>\n  <ol className="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div className="${css.classes('stepActions')}">\n    {${state} > 0 && <button type="button" className="${css.classes('buttonSecondary')}" onClick={() => setFgSec_${host.key}(${state} - 1)}>${labels.back}</button>}\n    {${state} < ${last} && <button type="button" className="${css.classes('submitButton')}" onClick={fgNext_${host.key}}>${labels.next}</button>}\n  </div>\n</div>`
     }
 
     const markup = renderTree(schema, {

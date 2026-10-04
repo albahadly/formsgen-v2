@@ -188,6 +188,30 @@ describe('tabs/steps across code targets', () => {
     expect(code).toContain('@if (fgSec_ks_wizard == 0)')
     expect(code).toContain('@onclick="() => fgSec_ks_wizard++"')
   })
+
+  it('steps hosts honor custom backText/nextText in every target', () => {
+    interface RawNode {
+      id: string
+      props: Record<string, unknown>
+      children?: RawNode[]
+    }
+    const raw = JSON.parse(JSON.stringify(kitchenSink)) as { tree: RawNode[] }
+    const wizard = raw.tree.find((n) => n.id === 'ks-wizard')!
+    wizard.props['backText'] = 'السابق'
+    wizard.props['nextText'] = 'التالي <&>'
+    const parsed = parseFormSchema(raw as unknown as Record<string, unknown>)
+    if (!parsed.ok) throw new Error(parsed.errors.join('\n'))
+    for (const targetId of ['vue-standalone', 'react', 'html', 'blazor']) {
+      const [file] = getTarget(targetId)!.generate({
+        schema: parsed.schema,
+        css: getCssAdapter('vanilla'),
+      })
+      expect(file!.content, targetId).toContain('السابق')
+      expect(file!.content, targetId).toContain('التالي &lt;&amp;&gt;')
+      expect(file!.content, targetId).not.toContain('>Back<')
+      expect(file!.content, targetId).not.toContain('>Next<')
+    }
+  })
 })
 
 describe('tags + submit error jump across code targets', () => {

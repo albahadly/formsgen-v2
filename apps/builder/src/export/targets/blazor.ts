@@ -14,7 +14,7 @@ import {
   type CsFieldKind,
 } from '../csharp'
 import { collectExportFields } from '../logic'
-import { renderTree, type RenderedSectionHost } from '../markup'
+import { renderTree, stepButtonLabels, type RenderedSectionHost } from '../markup'
 import { collectSectionHosts, fieldDefault, pathKey } from '../structure'
 import { componentName, type ExportTarget } from './types'
 
@@ -65,7 +65,8 @@ export const blazorTarget: ExportTarget = {
         )
         .join('\n')
       const last = host.sections.length - 1
-      return `<div>\n  <ol class="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div class="${css.classes('stepActions')}">\n    @if (${state} > 0)\n    {\n        <button type="button" class="${css.classes('buttonSecondary')}" @onclick="() => ${state}--">Back</button>\n    }\n    @if (${state} < ${last})\n    {\n        <button type="button" class="${css.classes('submitButton')}" @onclick="() => ${state}++">Next</button>\n    }\n  </div>\n</div>`
+      const labels = stepButtonLabels(host)
+      return `<div>\n  <ol class="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div class="${css.classes('stepActions')}">\n    @if (${state} > 0)\n    {\n        <button type="button" class="${css.classes('buttonSecondary')}" @onclick="() => ${state}--">${labels.back}</button>\n    }\n    @if (${state} < ${last})\n    {\n        <button type="button" class="${css.classes('submitButton')}" @onclick="() => ${state}++">${labels.next}</button>\n    }\n  </div>\n</div>`
     }
 
     const sectionFields = hosts

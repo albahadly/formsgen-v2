@@ -11,7 +11,7 @@ import {
   validatorsLiteral,
   visibilityFunctions,
 } from '../logic'
-import { renderTree, type RenderedSectionHost } from '../markup'
+import { renderTree, stepButtonLabels, type RenderedSectionHost } from '../markup'
 import { collectSectionHosts } from '../structure'
 import { esc } from '@/registry/emitters/shared'
 import type { ExportTarget } from './types'
@@ -63,7 +63,8 @@ export const htmlTarget: ExportTarget = {
             `    <li class="${s.index === 0 ? css.classes('stepItemActive') : css.classes('stepItem')}" data-fg-sec-item="${host.key}:${s.index}">${s.index + 1}. ${s.label}</li>`,
         )
         .join('\n')
-      return `<div>\n  <ol class="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div class="${css.classes('stepActions')}">\n    <button type="button" class="${css.classes('buttonSecondary')}" data-fg-step-back="${host.key}" hidden>Back</button>\n    <button type="button" class="${css.classes('submitButton')}" data-fg-step-next="${host.key}">Next</button>\n  </div>\n</div>`
+      const labels = stepButtonLabels(host)
+      return `<div>\n  <ol class="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div class="${css.classes('stepActions')}">\n    <button type="button" class="${css.classes('buttonSecondary')}" data-fg-step-back="${host.key}" hidden>${labels.back}</button>\n    <button type="button" class="${css.classes('submitButton')}" data-fg-step-next="${host.key}">${labels.next}</button>\n  </div>\n</div>`
     }
 
     const markup = renderTree(schema, { lang: 'html', css, accessor, conditionAttr, renderSections })

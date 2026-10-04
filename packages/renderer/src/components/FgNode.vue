@@ -142,8 +142,12 @@ function nextStep(): void {
   if (ok && activeIndex.value < sections.value.length - 1) activeIndex.value++
 }
 
-const backText = computed(() => String(props.node.props['backText'] ?? 'Back'))
-const nextText = computed(() => String(props.node.props['nextText'] ?? 'Next'))
+function buttonText(prop: string, fallback: string): string {
+  const value = props.node.props[prop]
+  return typeof value === 'string' && value !== '' ? value : fallback
+}
+const backText = computed(() => buttonText('backText', 'Back'))
+const nextText = computed(() => buttonText('nextText', 'Next'))
 </script>
 
 <template>
