@@ -14,6 +14,7 @@ describe('element registry', () => {
       'email',
       'group',
       'heading',
+      'multiselect',
       'number',
       'paragraph',
       'password',
@@ -46,7 +47,7 @@ describe('element registry', () => {
       'heading',
       'paragraph',
     ])
-    expect(listElements('fields')).toHaveLength(14)
+    expect(listElements('fields')).toHaveLength(15)
   })
 
   it('every definition matches its core semantics in the renderer', () => {

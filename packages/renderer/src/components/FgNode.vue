@@ -7,6 +7,7 @@ import { joinPath } from '../runtime'
 import type { ColSpan, ElementNode } from '../schema'
 import FgCheckbox from './fields/FgCheckbox.vue'
 import FgCheckboxGroup from './fields/FgCheckboxGroup.vue'
+import FgMultiSelect from './fields/FgMultiSelect.vue'
 import FgNumber from './fields/FgNumber.vue'
 import FgRadioGroup from './fields/FgRadioGroup.vue'
 import FgRange from './fields/FgRange.vue'
@@ -38,6 +39,7 @@ const fieldComponents = {
   textarea: FgTextarea,
   number: FgNumber,
   select: FgSelect,
+  multiselect: FgMultiSelect,
   radiogroup: FgRadioGroup,
   checkbox: FgCheckbox,
   checkboxgroup: FgCheckboxGroup,
@@ -112,6 +114,19 @@ function sectionPaths(section: ElementNode): string[] {
 function sectionHasError(section: ElementNode): boolean {
   return sectionPaths(section).some((p) => formCtx.getError(p) !== null)
 }
+
+// After a submit attempt, reveal the first section that holds an error
+// (only when the currently active one is clean).
+watch(
+  () => formCtx.submitCount(),
+  (count) => {
+    if (count === 0 || !isSectionHost.value) return
+    const current = activeSection.value
+    if (current && sectionHasError(current)) return
+    const firstErrored = sections.value.findIndex((s) => sectionHasError(s))
+    if (firstErrored !== -1) activeIndex.value = firstErrored
+  },
+)
 
 /** Steps: validate the current step's fields; advance only when clean. */
 function nextStep(): void {

@@ -245,6 +245,19 @@ describe('palette → canvas → properties workflow', () => {
     expect(tabs.children).toHaveLength(3)
   })
 
+  it('locale toggle switches the UI to Arabic and flips direction', async () => {
+    const { wrapper } = mountApp()
+    expect(wrapper.text()).toContain('Text Input')
+    await wrapper.get('[data-testid="locale-toggle"]').trigger('click')
+    expect(document.documentElement.dir).toBe('rtl')
+    expect(document.documentElement.lang).toBe('ar')
+    expect(wrapper.text()).toContain('حقل نصي') // localized palette label
+    expect(wrapper.text()).toContain('العناصر') // palette title
+    await wrapper.get('[data-testid="locale-toggle"]').trigger('click')
+    expect(document.documentElement.dir).toBe('ltr')
+    expect(wrapper.text()).toContain('Text Input')
+  })
+
   it('adds into a selected container and renders nested chrome', async () => {
     const { wrapper, store } = mountApp()
     const structureTab = wrapper

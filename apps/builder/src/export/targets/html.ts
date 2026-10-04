@@ -116,6 +116,9 @@ export const htmlTarget: ExportTarget = {
         var checked = document.querySelector('[data-fg-path="' + path + '"]:checked')
         return checked ? checked.value : null
       }
+      if (kind === 'multiselect') {
+        return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
+      }
       if (kind === 'checks') {
         return Array.prototype.map.call(
           document.querySelectorAll('[data-fg-path="' + path + '"]:checked'),

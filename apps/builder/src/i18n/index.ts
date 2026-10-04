@@ -1,8 +1,16 @@
-// Minimal message catalog (REBUILD_PROMPT.md §8). All user-facing builder
-// strings go through t(); more locales plug in later.
+// Builder UI message catalogs (REBUILD_PROMPT.md §8). All user-facing
+// builder strings go through t()/tOr(); the active locale is reactive,
+// persisted, and flips the document direction for RTL locales.
+
+import { ref } from 'vue'
+
+export type BuilderLocale = 'en' | 'ar'
+
+const LOCALE_KEY = 'formsgen.locale'
 
 const en: Record<string, string> = {
   'app.title': 'FormsGen Builder',
+  'app.language': 'العربية',
   'palette.title': 'Elements',
   'palette.search': 'Search elements…',
   'palette.category.fields': 'Fields',
@@ -73,6 +81,165 @@ const en: Record<string, string> = {
   'properties.items.remove': 'Remove option',
 }
 
+const ar: Record<string, string> = {
+  'app.title': 'منشئ النماذج FormsGen',
+  'app.language': 'English',
+  'palette.title': 'العناصر',
+  'palette.search': 'ابحث عن عنصر…',
+  'palette.category.fields': 'حقول',
+  'palette.category.static': 'ثابتة',
+  'palette.category.structure': 'هيكلية',
+  'palette.empty': 'لا توجد عناصر مطابقة لبحثك.',
+  'canvas.empty': 'اسحب العناصر إلى هنا، أو انقر على عنصر في القائمة.',
+  'canvas.container.empty': 'اسحب العناصر إلى هنا.',
+  'canvas.delete': 'حذف العنصر',
+  'canvas.duplicate': 'تكرار العنصر',
+  'canvas.section.addTab': 'إضافة تبويب',
+  'canvas.section.addStep': 'إضافة خطوة',
+  'canvas.section.remove': 'إزالة القسم',
+  'tree.title': 'المخطط',
+  'tree.empty': 'لا توجد عناصر بعد.',
+  'tree.toggle': 'إظهار/إخفاء المخطط',
+  'properties.title': 'الخصائص',
+  'properties.empty': 'اختر عنصراً من اللوحة لتحريره.',
+  'properties.name.label': 'الاسم (مفتاح البيانات)',
+  'properties.name.invalid': 'يجب أن يبدأ بحرف لاتيني؛ أحرف وأرقام وشرطات سفلية فقط.',
+  'properties.name.duplicate': 'هذا الاسم مستخدم بالفعل لعنصر مجاور.',
+  'properties.colspan.label': 'عرض العمود',
+  'properties.validation.add': 'إضافة قاعدة…',
+  'properties.validation.remove': 'إزالة القاعدة',
+  'properties.conditions.placeholder': 'منشئ الشروط المرئي سيتوفر في مرحلة لاحقة.',
+  'toolbar.view': 'العرض',
+  'toolbar.view.editor': 'المحرر',
+  'toolbar.view.preview': 'معاينة',
+  'toolbar.view.code': 'الكود',
+  'toolbar.device': 'الجهاز',
+  'toolbar.device.mobile': 'هاتف',
+  'toolbar.device.tablet': 'لوحي',
+  'toolbar.device.desktop': 'حاسوب',
+  'toolbar.theme': 'تبديل سمة النموذج',
+  'toolbar.settings': 'الإعدادات',
+  'preview.submitted': 'البيانات المُرسلة',
+  'code.copy': 'نسخ',
+  'code.copied': 'تم النسخ!',
+  'settings.title': 'إعدادات النموذج',
+  'settings.close': 'إغلاق الإعدادات',
+  'settings.formTitle': 'العنوان',
+  'settings.formName': 'الاسم (المفتاح البرمجي)',
+  'settings.locale': 'اللغة',
+  'settings.direction': 'الاتجاه',
+  'settings.submitUrl': 'رابط الإرسال',
+  'settings.submitMethod': 'الطريقة',
+  'settings.primaryColor': 'اللون الأساسي',
+  'settings.radius': 'استدارة الزوايا',
+  'export.title': 'تصدير النموذج',
+  'export.close': 'إغلاق التصدير',
+  'export.framework': 'إطار CSS',
+  'export.download': 'تنزيل',
+  'export.zip': 'تنزيل .zip',
+  'export.zip.hint': 'حزمة المشروع: الملفات المُنشأة مع ملف README بخطوات التثبيت',
+  'toolbar.export': 'تصدير',
+  'toolbar.undo': 'تراجع',
+  'toolbar.redo': 'إعادة',
+  'toolbar.save': 'حفظ',
+  'toolbar.open': 'فتح',
+  'toolbar.open.invalid': 'هذا الملف ليس مشروع FormsGen صالحاً:',
+  'toolbar.open.unreadable': 'تعذّرت قراءة هذا الملف بصيغة JSON.',
+  'draft.restored': 'تمت استعادة مسودتك غير المحفوظة.',
+  'draft.startFresh': 'البدء من جديد',
+  'draft.dismiss': 'إبقاء المسودة',
+  'properties.items.value': 'القيمة',
+  'properties.items.label': 'التسمية',
+  'properties.items.add': 'إضافة خيار',
+  'properties.items.remove': 'إزالة الخيار',
+  // Element display names (palette, outline, properties header).
+  'element.text.label': 'حقل نصي',
+  'element.text.description': 'إدخال نص من سطر واحد',
+  'element.textarea.label': 'مساحة نص',
+  'element.textarea.description': 'إدخال نص متعدد الأسطر',
+  'element.number.label': 'رقم',
+  'element.number.description': 'إدخال رقمي',
+  'element.email.label': 'البريد الإلكتروني',
+  'element.email.description': 'حقل نصي لعنوان بريد إلكتروني',
+  'element.phone.label': 'الهاتف',
+  'element.phone.description': 'حقل نصي لرقم هاتف',
+  'element.password.label': 'كلمة المرور',
+  'element.password.description': 'حقل نص مخفي',
+  'element.url.label': 'رابط',
+  'element.url.description': 'حقل نصي لعنوان ويب',
+  'element.date.label': 'تاريخ',
+  'element.date.description': 'منتقي تاريخ أصلي',
+  'element.time.label': 'وقت',
+  'element.time.description': 'منتقي وقت أصلي',
+  'element.select.label': 'قائمة منسدلة',
+  'element.select.description': 'قائمة اختيار بخيارات',
+  'element.multiselect.label': 'اختيار متعدد',
+  'element.multiselect.description': 'اختيار عدة خيارات من قائمة',
+  'element.radiogroup.label': 'أزرار اختيار',
+  'element.radiogroup.description': 'اختيار خيار واحد',
+  'element.checkbox.label': 'مربع اختيار',
+  'element.checkbox.description': 'مربع نعم/لا واحد',
+  'element.checkboxgroup.label': 'مجموعة مربعات',
+  'element.checkboxgroup.description': 'اختيار أي عدد من الخيارات',
+  'element.range.label': 'شريط تمرير',
+  'element.range.description': 'شريط تمرير أفقي',
+  'element.heading.label': 'عنوان',
+  'element.heading.description': 'عنوان قسم (H1–H4)',
+  'element.paragraph.label': 'فقرة',
+  'element.paragraph.description': 'نص توضيحي',
+  'element.divider.label': 'فاصل',
+  'element.divider.description': 'خط أفقي',
+  'element.group.label': 'مجموعة',
+  'element.group.description': 'حاوية؛ مع اسم تُدرج أبناءها ضمن البيانات',
+  'element.columns.label': 'أعمدة',
+  'element.columns.description': 'تخطيط أعمدة متجاورة (شفاف في البيانات)',
+  'element.tabs.label': 'تبويبات',
+  'element.tabs.description': 'تقسيم النموذج إلى تبويبات',
+  'element.tab.label': 'تبويب',
+  'element.tab.description': 'لوحة تبويب واحدة (تُسحب داخل التبويبات)',
+  'element.steps.label': 'خطوات',
+  'element.steps.description': 'معالج متعدد الخطوات مع تحقق لكل خطوة',
+  'element.step.label': 'خطوة',
+  'element.step.description': 'خطوة واحدة في المعالج (تُسحب داخل الخطوات)',
+}
+
+const catalogs: Record<BuilderLocale, Record<string, string>> = { en, ar }
+
+function readStoredLocale(): BuilderLocale {
+  try {
+    const stored = localStorage.getItem(LOCALE_KEY)
+    return stored === 'ar' ? 'ar' : 'en'
+  } catch {
+    return 'en'
+  }
+}
+
+export const locale = ref<BuilderLocale>(readStoredLocale())
+
+export function applyLocaleToDocument(): void {
+  document.documentElement.lang = locale.value
+  document.documentElement.dir = locale.value === 'ar' ? 'rtl' : 'ltr'
+}
+
+export function setLocale(next: BuilderLocale): void {
+  locale.value = next
+  try {
+    localStorage.setItem(LOCALE_KEY, next)
+  } catch {
+    // storage unavailable — locale stays for this session only
+  }
+  applyLocaleToDocument()
+}
+
+export function toggleLocale(): void {
+  setLocale(locale.value === 'en' ? 'ar' : 'en')
+}
+
 export function t(key: string): string {
-  return en[key] ?? key
+  return catalogs[locale.value][key] ?? en[key] ?? key
+}
+
+/** Like t(), but falls back to `fallback` (element registry metadata). */
+export function tOr(key: string, fallback: string): string {
+  return catalogs[locale.value][key] ?? fallback
 }

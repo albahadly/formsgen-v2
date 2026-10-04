@@ -10,6 +10,8 @@ export interface FormContext {
   touch(path: string): void
   /** True once a submit was attempted (errors show everywhere). */
   isSubmitted(): boolean
+  /** Number of submit attempts; sections use it to jump to errors. */
+  submitCount(): number
 }
 
 export const FORM_CONTEXT: InjectionKey<FormContext> = Symbol('formsgen-form')

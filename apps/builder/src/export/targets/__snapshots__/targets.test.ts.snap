@@ -127,6 +127,9 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
           <!-- element type "checkboxgroup" has no blazor emitter yet -->
         </div>
         <div class="col-12 col-md-12">
+          <!-- element type "multiselect" has no blazor emitter yet -->
+        </div>
+        <div class="col-12 col-md-12">
           <div class="d-flex flex-column gap-1">
             <label class="form-label fw-semibold mb-0" for="fg_contact_method">Preferred contact method<span class="text-danger ms-1" aria-hidden="true">*</span></label>
             <InputSelect id="fg_contact_method" @bind-Value="Model.ContactMethod" class="form-select">
@@ -291,6 +294,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         payload["account"] = dict0;
         payload["plan"] = string.IsNullOrEmpty(Model.Plan) ? null : Model.Plan;
         payload["interests"] = Model.Interests;
+        payload["channels"] = Model.Channels;
         payload["contact_method"] = string.IsNullOrEmpty(Model.ContactMethod) ? null : Model.ContactMethod;
         if (((Equals(Model.ContactMethod, "phone")))) payload["contact_phone"] = Model.ContactPhone;
         if (((Equals(Model.ContactMethod, "other")))) payload["contact_other"] = Model.ContactOther;
@@ -343,6 +347,8 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         public string Plan { get; set; } = "";
 
         public List<string> Interests { get; set; } = new();
+
+        public List<string> Channels { get; set; } = new();
 
         [Required(ErrorMessage = "This field is required")]
         public string ContactMethod { get; set; } = "";
@@ -498,6 +504,9 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         </div>
         <div class="col-span-12 md:col-span-12">
           <!-- element type "checkboxgroup" has no blazor emitter yet -->
+        </div>
+        <div class="col-span-12 md:col-span-12">
+          <!-- element type "multiselect" has no blazor emitter yet -->
         </div>
         <div class="col-span-12 md:col-span-12">
           <div class="flex flex-col gap-1.5">
@@ -664,6 +673,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         payload["account"] = dict0;
         payload["plan"] = string.IsNullOrEmpty(Model.Plan) ? null : Model.Plan;
         payload["interests"] = Model.Interests;
+        payload["channels"] = Model.Channels;
         payload["contact_method"] = string.IsNullOrEmpty(Model.ContactMethod) ? null : Model.ContactMethod;
         if (((Equals(Model.ContactMethod, "phone")))) payload["contact_phone"] = Model.ContactPhone;
         if (((Equals(Model.ContactMethod, "other")))) payload["contact_other"] = Model.ContactOther;
@@ -716,6 +726,8 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         public string Plan { get; set; } = "";
 
         public List<string> Interests { get; set; } = new();
+
+        public List<string> Channels { get; set; } = new();
 
         [Required(ErrorMessage = "This field is required")]
         public string ContactMethod { get; set; } = "";
@@ -871,6 +883,9 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         </div>
         <div class="fg-cell" style="grid-column: span 12 / span 12">
           <!-- element type "checkboxgroup" has no blazor emitter yet -->
+        </div>
+        <div class="fg-cell" style="grid-column: span 12 / span 12">
+          <!-- element type "multiselect" has no blazor emitter yet -->
         </div>
         <div class="fg-cell" style="grid-column: span 12 / span 12">
           <div class="fg-field">
@@ -1037,6 +1052,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         payload["account"] = dict0;
         payload["plan"] = string.IsNullOrEmpty(Model.Plan) ? null : Model.Plan;
         payload["interests"] = Model.Interests;
+        payload["channels"] = Model.Channels;
         payload["contact_method"] = string.IsNullOrEmpty(Model.ContactMethod) ? null : Model.ContactMethod;
         if (((Equals(Model.ContactMethod, "phone")))) payload["contact_phone"] = Model.ContactPhone;
         if (((Equals(Model.ContactMethod, "other")))) payload["contact_other"] = Model.ContactOther;
@@ -1089,6 +1105,8 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         public string Plan { get; set; } = "";
 
         public List<string> Interests { get; set; } = new();
+
+        public List<string> Channels { get; set; } = new();
 
         [Required(ErrorMessage = "This field is required")]
         public string ContactMethod { get; set; } = "";
@@ -1262,6 +1280,17 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       </div>
       <div class="col-12 col-md-12">
         <div class="d-flex flex-column gap-1">
+          <label class="form-label fw-semibold mb-0" for="fg_channels">Notification channels</label>
+          <select id="fg_channels" multiple class="form-select" data-fg-path="channels" data-fg-kind="multiselect">
+            <option value="email">Email</option>
+            <option value="sms">SMS</option>
+            <option value="push">Push</option>
+          </select>
+          <p id="fg_err_channels" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold mb-0" for="fg_contact_method">Preferred contact method<span class="text-danger ms-1" aria-hidden="true">*</span></label>
           <select id="fg_contact_method" class="form-select" data-fg-path="contact_method" data-fg-kind="select">
             <option value="" disabled>—</option>
@@ -1403,6 +1432,9 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       if (kind === 'radio') {
         var checked = document.querySelector('[data-fg-path="' + path + '"]:checked')
         return checked ? checked.value : null
+      }
+      if (kind === 'multiselect') {
+        return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }
       if (kind === 'checks') {
         return Array.prototype.map.call(
@@ -1591,6 +1623,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         },
         "plan": fgGet("plan"),
         "interests": fgGet("interests"),
+        "channels": fgGet("channels"),
         "contact_method": fgGet("contact_method"),
         ...(fgVisible_contact_phone() ? { "contact_phone": fgGet("contact_phone") } : {}),
         ...(fgVisible_contact_other() ? { "contact_other": fgGet("contact_other") } : {}),
@@ -1782,6 +1815,17 @@ exports[`html target > snapshot (tailwind) 1`] = `
       </div>
       <div class="col-span-12 md:col-span-12">
         <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_channels">Notification channels</label>
+          <select id="fg_channels" multiple class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="channels" data-fg-kind="multiselect">
+            <option value="email">Email</option>
+            <option value="sms">SMS</option>
+            <option value="push">Push</option>
+          </select>
+          <p id="fg_err_channels" class="text-xs text-red-600" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_contact_method">Preferred contact method<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
           <select id="fg_contact_method" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="contact_method" data-fg-kind="select">
             <option value="" disabled>—</option>
@@ -1923,6 +1967,9 @@ exports[`html target > snapshot (tailwind) 1`] = `
       if (kind === 'radio') {
         var checked = document.querySelector('[data-fg-path="' + path + '"]:checked')
         return checked ? checked.value : null
+      }
+      if (kind === 'multiselect') {
+        return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }
       if (kind === 'checks') {
         return Array.prototype.map.call(
@@ -2111,6 +2158,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
         },
         "plan": fgGet("plan"),
         "interests": fgGet("interests"),
+        "channels": fgGet("channels"),
         "contact_method": fgGet("contact_method"),
         ...(fgVisible_contact_phone() ? { "contact_phone": fgGet("contact_phone") } : {}),
         ...(fgVisible_contact_other() ? { "contact_other": fgGet("contact_other") } : {}),
@@ -2366,6 +2414,17 @@ exports[`html target > snapshot (vanilla) 1`] = `
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
         <div class="fg-field">
+          <label class="fg-label" for="fg_channels">Notification channels</label>
+          <select id="fg_channels" multiple class="fg-select" data-fg-path="channels" data-fg-kind="multiselect">
+            <option value="email">Email</option>
+            <option value="sms">SMS</option>
+            <option value="push">Push</option>
+          </select>
+          <p id="fg_err_channels" class="fg-error" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-field">
           <label class="fg-label" for="fg_contact_method">Preferred contact method<span class="fg-required" aria-hidden="true">*</span></label>
           <select id="fg_contact_method" class="fg-select" data-fg-path="contact_method" data-fg-kind="select">
             <option value="" disabled>—</option>
@@ -2507,6 +2566,9 @@ exports[`html target > snapshot (vanilla) 1`] = `
       if (kind === 'radio') {
         var checked = document.querySelector('[data-fg-path="' + path + '"]:checked')
         return checked ? checked.value : null
+      }
+      if (kind === 'multiselect') {
+        return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }
       if (kind === 'checks') {
         return Array.prototype.map.call(
@@ -2695,6 +2757,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
         },
         "plan": fgGet("plan"),
         "interests": fgGet("interests"),
+        "channels": fgGet("channels"),
         "contact_method": fgGet("contact_method"),
         ...(fgVisible_contact_phone() ? { "contact_phone": fgGet("contact_phone") } : {}),
         ...(fgVisible_contact_other() ? { "contact_other": fgGet("contact_other") } : {}),
@@ -2776,6 +2839,7 @@ type FormData = {
   }
   plan: string | null
   interests: string[]
+  channels: string[]
   contact_method: string | null
   contact_phone: string
   contact_other: string
@@ -2803,6 +2867,7 @@ const INITIAL: FormData = {
   },
   plan: null,
   interests: [],
+  channels: [],
   contact_method: null,
   contact_phone: "",
   contact_other: "",
@@ -2900,6 +2965,7 @@ function buildPayload(data: FormData): Record<string, unknown> {
     },
     "plan": data.plan,
     "interests": data.interests,
+    "channels": data.channels,
     "contact_method": data.contact_method,
     ...(fgVisible_contact_phone(data) ? { "contact_phone": data.contact_phone } : {}),
     ...(fgVisible_contact_other(data) ? { "contact_other": data.contact_other } : {}),
@@ -3126,6 +3192,17 @@ export default function KitchenSinkForm({
         </div>
         <div className="col-12 col-md-12">
           <div className="d-flex flex-column gap-1">
+            <label className="form-label fw-semibold mb-0" htmlFor="fg_channels">Notification channels</label>
+            <select id="fg_channels" multiple value={form.channels} className={errors['channels'] ? "form-select is-invalid" : "form-select"} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => { setField('channels', Array.from(e.target.selectedOptions).map((o) => o.value)); touch('channels') }}>
+              <option value="email">Email</option>
+              <option value="sms">SMS</option>
+              <option value="push">Push</option>
+            </select>
+            {errors['channels'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['channels']}</p>}
+          </div>
+        </div>
+        <div className="col-12 col-md-12">
+          <div className="d-flex flex-column gap-1">
             <label className="form-label fw-semibold mb-0" htmlFor="fg_contact_method">Preferred contact method<span className="text-danger ms-1" aria-hidden="true">*</span></label>
             <select id="fg_contact_method" value={form.contact_method ?? ''} className={errors['contact_method'] ? "form-select is-invalid" : "form-select"} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setField('contact_method', e.target.value === '' ? null : e.target.value)} onBlur={() => touch('contact_method')}>
               <option value="" disabled>—</option>
@@ -3280,6 +3357,7 @@ type FormData = {
   }
   plan: string | null
   interests: string[]
+  channels: string[]
   contact_method: string | null
   contact_phone: string
   contact_other: string
@@ -3307,6 +3385,7 @@ const INITIAL: FormData = {
   },
   plan: null,
   interests: [],
+  channels: [],
   contact_method: null,
   contact_phone: "",
   contact_other: "",
@@ -3404,6 +3483,7 @@ function buildPayload(data: FormData): Record<string, unknown> {
     },
     "plan": data.plan,
     "interests": data.interests,
+    "channels": data.channels,
     "contact_method": data.contact_method,
     ...(fgVisible_contact_phone(data) ? { "contact_phone": data.contact_phone } : {}),
     ...(fgVisible_contact_other(data) ? { "contact_other": data.contact_other } : {}),
@@ -3630,6 +3710,17 @@ export default function KitchenSinkForm({
         </div>
         <div className="col-span-12 md:col-span-12">
           <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold" htmlFor="fg_channels">Notification channels</label>
+            <select id="fg_channels" multiple value={form.channels} className={errors['channels'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => { setField('channels', Array.from(e.target.selectedOptions).map((o) => o.value)); touch('channels') }}>
+              <option value="email">Email</option>
+              <option value="sms">SMS</option>
+              <option value="push">Push</option>
+            </select>
+            {errors['channels'] && <p className="text-xs text-red-600" role="alert">{errors['channels']}</p>}
+          </div>
+        </div>
+        <div className="col-span-12 md:col-span-12">
+          <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold" htmlFor="fg_contact_method">Preferred contact method<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
             <select id="fg_contact_method" value={form.contact_method ?? ''} className={errors['contact_method'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setField('contact_method', e.target.value === '' ? null : e.target.value)} onBlur={() => touch('contact_method')}>
               <option value="" disabled>—</option>
@@ -3785,6 +3876,7 @@ type FormData = {
   }
   plan: string | null
   interests: string[]
+  channels: string[]
   contact_method: string | null
   contact_phone: string
   contact_other: string
@@ -3812,6 +3904,7 @@ const INITIAL: FormData = {
   },
   plan: null,
   interests: [],
+  channels: [],
   contact_method: null,
   contact_phone: "",
   contact_other: "",
@@ -3909,6 +4002,7 @@ function buildPayload(data: FormData): Record<string, unknown> {
     },
     "plan": data.plan,
     "interests": data.interests,
+    "channels": data.channels,
     "contact_method": data.contact_method,
     ...(fgVisible_contact_phone(data) ? { "contact_phone": data.contact_phone } : {}),
     ...(fgVisible_contact_other(data) ? { "contact_other": data.contact_other } : {}),
@@ -4135,6 +4229,17 @@ export default function KitchenSinkForm({
         </div>
         <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
           <div className="fg-field">
+            <label className="fg-label" htmlFor="fg_channels">Notification channels</label>
+            <select id="fg_channels" multiple value={form.channels} className={errors['channels'] ? "fg-select fg-invalid" : "fg-select"} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => { setField('channels', Array.from(e.target.selectedOptions).map((o) => o.value)); touch('channels') }}>
+              <option value="email">Email</option>
+              <option value="sms">SMS</option>
+              <option value="push">Push</option>
+            </select>
+            {errors['channels'] && <p className="fg-error" role="alert">{errors['channels']}</p>}
+          </div>
+        </div>
+        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+          <div className="fg-field">
             <label className="fg-label" htmlFor="fg_contact_method">Preferred contact method<span className="fg-required" aria-hidden="true">*</span></label>
             <select id="fg_contact_method" value={form.contact_method ?? ''} className={errors['contact_method'] ? "fg-select fg-invalid" : "fg-select"} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setField('contact_method', e.target.value === '' ? null : e.target.value)} onBlur={() => touch('contact_method')}>
               <option value="" disabled>—</option>
@@ -4279,6 +4384,7 @@ const form = reactive({
   },
   plan: null,
   interests: [],
+  channels: [],
   contact_method: null,
   contact_phone: "",
   contact_other: "",
@@ -4433,6 +4539,7 @@ function buildPayload(): Record<string, unknown> {
     },
     "plan": form.plan,
     "interests": form.interests,
+    "channels": form.channels,
     "contact_method": form.contact_method,
     ...(fgVisible_contact_phone() ? { "contact_phone": form.contact_phone } : {}),
     ...(fgVisible_contact_other() ? { "contact_other": form.contact_other } : {}),
@@ -4593,6 +4700,17 @@ async function onSubmit(): Promise<void> {
       </div>
       <div class="col-12 col-md-12">
         <div class="d-flex flex-column gap-1">
+          <label class="form-label fw-semibold mb-0" for="fg_channels">Notification channels</label>
+          <select id="fg_channels" v-model="form.channels" multiple class="form-select" :class="{ 'is-invalid': !!errors['channels'] }" @change="touch('channels')">
+            <option value="email">Email</option>
+            <option value="sms">SMS</option>
+            <option value="push">Push</option>
+          </select>
+          <p v-if="errors['channels']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['channels'] }}</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold mb-0" for="fg_contact_method">Preferred contact method<span class="text-danger ms-1" aria-hidden="true">*</span></label>
           <select id="fg_contact_method" v-model="form.contact_method" class="form-select" :class="{ 'is-invalid': !!errors['contact_method'] }" @blur="touch('contact_method')" @change="revalidate('contact_method')">
             <option value="" disabled>—</option>
@@ -4732,6 +4850,7 @@ const form = reactive({
   },
   plan: null,
   interests: [],
+  channels: [],
   contact_method: null,
   contact_phone: "",
   contact_other: "",
@@ -4886,6 +5005,7 @@ function buildPayload(): Record<string, unknown> {
     },
     "plan": form.plan,
     "interests": form.interests,
+    "channels": form.channels,
     "contact_method": form.contact_method,
     ...(fgVisible_contact_phone() ? { "contact_phone": form.contact_phone } : {}),
     ...(fgVisible_contact_other() ? { "contact_other": form.contact_other } : {}),
@@ -5046,6 +5166,17 @@ async function onSubmit(): Promise<void> {
       </div>
       <div class="col-span-12 md:col-span-12">
         <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_channels">Notification channels</label>
+          <select id="fg_channels" v-model="form.channels" multiple class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['channels'] }" @change="touch('channels')">
+            <option value="email">Email</option>
+            <option value="sms">SMS</option>
+            <option value="push">Push</option>
+          </select>
+          <p v-if="errors['channels']" class="text-xs text-red-600" role="alert">{{ errors['channels'] }}</p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_contact_method">Preferred contact method<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
           <select id="fg_contact_method" v-model="form.contact_method" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['contact_method'] }" @blur="touch('contact_method')" @change="revalidate('contact_method')">
             <option value="" disabled>—</option>
@@ -5185,6 +5316,7 @@ const form = reactive({
   },
   plan: null,
   interests: [],
+  channels: [],
   contact_method: null,
   contact_phone: "",
   contact_other: "",
@@ -5339,6 +5471,7 @@ function buildPayload(): Record<string, unknown> {
     },
     "plan": form.plan,
     "interests": form.interests,
+    "channels": form.channels,
     "contact_method": form.contact_method,
     ...(fgVisible_contact_phone() ? { "contact_phone": form.contact_phone } : {}),
     ...(fgVisible_contact_other() ? { "contact_other": form.contact_other } : {}),
@@ -5496,6 +5629,17 @@ async function onSubmit(): Promise<void> {
           </div>
           <p v-if="errors['interests']" class="fg-error" role="alert">{{ errors['interests'] }}</p>
         </fieldset>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-field">
+          <label class="fg-label" for="fg_channels">Notification channels</label>
+          <select id="fg_channels" v-model="form.channels" multiple class="fg-select" :class="{ 'fg-invalid': !!errors['channels'] }" @change="touch('channels')">
+            <option value="email">Email</option>
+            <option value="sms">SMS</option>
+            <option value="push">Push</option>
+          </select>
+          <p v-if="errors['channels']" class="fg-error" role="alert">{{ errors['channels'] }}</p>
+        </div>
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
         <div class="fg-field">

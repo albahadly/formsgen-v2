@@ -45,6 +45,7 @@ export const coreElements: Record<string, CoreElementMeta> = {
   textarea: meta('textarea', true, false, () => ''),
   number: meta('number', true, false, () => null),
   select: meta('select', true, false, () => null),
+  multiselect: meta('multiselect', true, false, () => []),
   radiogroup: meta('radiogroup', true, false, () => null),
   checkbox: meta('checkbox', true, false, () => false),
   checkboxgroup: meta('checkboxgroup', true, false, () => []),

@@ -12,7 +12,7 @@ import {
 } from './tree'
 
 function loadFixture(): FormSchema {
-  const result = parseFormSchema(kitchenSink)
+  const result = parseFormSchema(JSON.parse(JSON.stringify(kitchenSink)))
   if (!result.ok) throw new Error(result.errors.join('\n'))
   return result.schema
 }
@@ -78,6 +78,7 @@ describe('buildDefaultData', () => {
       account: { username: '', password: '', bio: '', birthday: '' },
       plan: null,
       interests: [],
+      channels: [],
       contact_method: null,
       contact_phone: '',
       contact_other: '',

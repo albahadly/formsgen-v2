@@ -14,7 +14,7 @@ import {
 } from '@formsgen/renderer'
 import { computed, ref, watch } from 'vue'
 import draggable from 'vuedraggable'
-import { t } from '@/i18n'
+import { t, tOr } from '@/i18n'
 import { getElement } from '@/registry'
 import { useBuilderStore } from '@/stores/builder'
 import { useDropList } from './useDropList'
@@ -138,7 +138,7 @@ function onDuplicate(): void {
       :class="{ '!flex': selected }"
     >
       <span class="cursor-grab rounded bg-indigo-600 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
-        {{ definition?.label ?? node.type }}
+        {{ tOr(`element.${node.type}.label`, definition?.label ?? node.type) }}
       </span>
       <span
         v-if="hasConditions"
@@ -247,7 +247,7 @@ function onDuplicate(): void {
       class="rounded border border-dashed border-gray-300 bg-gray-50/60 p-2"
     >
       <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
-        {{ definition?.label }}
+        {{ tOr(`element.${node.type}.label`, definition?.label ?? node.type) }}
         <span v-if="node.props.label"> — {{ node.props.label }}</span>
       </p>
       <draggable

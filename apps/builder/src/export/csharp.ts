@@ -70,6 +70,7 @@ export function csFieldKind(type: string): CsFieldKind {
     case 'range':
       return 'numberValue'
     case 'checkboxgroup':
+    case 'multiselect':
       return 'list'
     default:
       return 'string'

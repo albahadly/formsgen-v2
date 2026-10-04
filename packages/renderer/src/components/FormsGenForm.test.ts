@@ -6,7 +6,9 @@ import type { FormSchema } from '../schema'
 import FormsGenForm from './FormsGenForm.vue'
 
 function fixtureSchema(): FormSchema {
-  const result = parseFormSchema(kitchenSink)
+  // Deep-clone: parseFormSchema returns the SAME object it was given, and
+  // some tests mutate the schema — the shared JSON module must stay pristine.
+  const result = parseFormSchema(JSON.parse(JSON.stringify(kitchenSink)))
   if (!result.ok) throw new Error(result.errors.join('\n'))
   return result.schema
 }
@@ -81,6 +83,7 @@ describe('FormsGenForm', () => {
       account: { username: 'jane', password: '', bio: '', birthday: '' },
       plan: 'pro',
       interests: [],
+      channels: [],
       contact_method: 'email',
       twitter: '',
       github: '',
@@ -209,6 +212,26 @@ describe('FormsGenForm', () => {
       .find((b) => b.text().includes('Code'))!
     expect(codeTab.classes()).toContain('fg-tab-button--error')
     expect(codeTab.find('.fg-tab-error-dot').exists()).toBe(true)
+  })
+
+  it('multiselect binds an array of selected options', async () => {
+    const wrapper = mountForm()
+    await fillValidForm(wrapper)
+    await wrapper.get('select[name="channels"]').setValue(['email', 'push'])
+    await wrapper.get('form').trigger('submit')
+    const payload = wrapper.emitted('submit')![0]![0] as Record<string, unknown>
+    expect(payload['channels']).toEqual(['email', 'push'])
+  })
+
+  it('jumps to the first errored section after a failed submit', async () => {
+    const schema = fixtureSchema()
+    const tabs = schema.tree.find((n) => n.id === 'ks-social-tabs')!
+    tabs.children![1]!.children![0]!.validation = [{ rule: 'required' }]
+    const wrapper = mount(FormsGenForm, { props: { schema } })
+    // active tab is Social (clean); the required github field is in Code
+    expect(wrapper.find('input[name="github"]').exists()).toBe(false)
+    await wrapper.get('form').trigger('submit')
+    expect(wrapper.find('input[name="github"]').exists()).toBe(true)
   })
 
   it('merges a provided modelValue over defaults', () => {

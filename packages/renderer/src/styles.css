@@ -295,3 +295,4 @@
 .fg-button--primary:hover {
   filter: brightness(1.08);
 }
+.fg-select--multiple { min-block-size: 5rem; }

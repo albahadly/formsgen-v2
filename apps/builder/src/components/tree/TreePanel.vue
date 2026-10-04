@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ElementNode } from '@formsgen/renderer'
 import { computed } from 'vue'
-import { t } from '@/i18n'
+import { t, tOr } from '@/i18n'
 import { getElement } from '@/registry'
 import { useBuilderStore } from '@/stores/builder'
 
@@ -21,7 +21,7 @@ const rows = computed<Row[]>(() => {
       out.push({
         id: node.id,
         depth,
-        label: getElement(node.type)?.label ?? node.type,
+        label: tOr(`element.${node.type}.label`, getElement(node.type)?.label ?? node.type),
         name: node.name,
       })
       if (node.children) walk(node.children, depth + 1)

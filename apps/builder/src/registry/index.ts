@@ -4,7 +4,7 @@ import { checkboxGroupElement, radioGroupElement } from './elements/choiceGroups
 import { columnsElement } from './elements/columns'
 import { groupElement } from './elements/group'
 import { numberElement, rangeElement } from './elements/number'
-import { selectElement } from './elements/select'
+import { multiSelectElement, selectElement } from './elements/select'
 import {
   stepElement,
   stepsElement,
@@ -65,6 +65,7 @@ for (const def of [
   dateElement,
   timeElement,
   selectElement,
+  multiSelectElement,
   radioGroupElement,
   checkboxElement,
   checkboxGroupElement,

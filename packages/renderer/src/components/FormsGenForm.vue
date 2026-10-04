@@ -57,6 +57,7 @@ const data = reactive<Record<string, unknown>>(
 const errors = reactive<Record<string, string | null>>({})
 const touched = reactive<Set<string>>(new Set())
 const submitted = ref(false)
+const submitAttempts = ref(0)
 
 const lookup = (field: string): unknown => getValueByPath(data, field)
 
@@ -102,12 +103,15 @@ const context: FormContext = {
     validateField(path)
   },
   isSubmitted: () => submitted.value,
+  submitCount: () => submitAttempts.value,
 }
 provide(FORM_CONTEXT, context)
 
 function onSubmit(): void {
   submitted.value = true
-  if (validateAll()) {
+  const ok = validateAll()
+  submitAttempts.value++
+  if (ok) {
     emit('submit', pickVisibleData(props.schema.tree, data))
   }
 }

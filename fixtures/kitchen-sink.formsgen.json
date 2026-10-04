@@ -139,6 +139,19 @@
       }
     },
     {
+      "id": "ks-channels",
+      "type": "multiselect",
+      "name": "channels",
+      "props": {
+        "label": "Notification channels",
+        "items": [
+          { "value": "email", "label": "Email" },
+          { "value": "sms", "label": "SMS" },
+          { "value": "push", "label": "Push" }
+        ]
+      }
+    },
+    {
       "id": "ks-contact-method",
       "type": "select",
       "name": "contact_method",

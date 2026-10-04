@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { t } from '@/i18n'
+import { t, tOr } from '@/i18n'
 import { getElement } from '@/registry'
 import type { PanelControl } from '@/registry/types'
 import { useBuilderStore } from '@/stores/builder'
@@ -39,7 +39,7 @@ function key(control: PanelControl, index: number): string {
     </p>
     <template v-else>
       <p class="text-xs text-gray-500">
-        {{ definition.label }}
+        {{ tOr(`element.${node.type}.label`, definition.label) }}
         <code
           v-if="node.name"
           class="ms-1 rounded bg-gray-100 px-1 py-0.5 text-[11px]"

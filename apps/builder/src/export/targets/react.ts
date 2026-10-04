@@ -28,6 +28,7 @@ const FIELD_TS_TYPES: Record<string, string> = {
   radiogroup: 'string | null',
   checkbox: 'boolean',
   checkboxgroup: 'string[]',
+  multiselect: 'string[]',
   range: 'number',
 }
 

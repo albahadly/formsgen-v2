@@ -14,7 +14,7 @@ const ExportDialog = defineAsyncComponent(
 import AppToolbar from '@/components/toolbar/AppToolbar.vue'
 import TreePanel from '@/components/tree/TreePanel.vue'
 import { clearDraft, readDraft, startAutosave } from '@/composables/persistence'
-import { t } from '@/i18n'
+import { applyLocaleToDocument, t, toggleLocale } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'
 import { useHistoryStore } from '@/stores/history'
 
@@ -34,6 +34,7 @@ if (draft) {
 }
 history.start()
 startAutosave()
+applyLocaleToDocument()
 
 function startFresh(): void {
   builder.reset()
@@ -74,6 +75,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       </h1>
       <div class="flex items-center gap-3">
         <AppToolbar @notice="onNotice" />
+        <button
+          type="button"
+          class="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+          data-testid="locale-toggle"
+          @click="toggleLocale()"
+        >
+          {{ t('app.language') }}
+        </button>
         <button
           type="button"
           class="rounded border px-2 py-1 text-xs font-medium"

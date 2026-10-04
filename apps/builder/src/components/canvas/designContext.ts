@@ -34,6 +34,7 @@ export function provideDesignContext(): void {
     getError: () => null,
     touch: () => undefined,
     isSubmitted: () => false,
+    submitCount: () => 0,
   }
   provide(FORM_CONTEXT, ctx)
 }

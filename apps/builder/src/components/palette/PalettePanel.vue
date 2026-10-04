@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import draggable from 'vuedraggable'
 import SvgIcon from '@/components/ui/SvgIcon.vue'
-import { t } from '@/i18n'
+import { t, tOr } from '@/i18n'
 import { listElements } from '@/registry'
 import { createNode } from '@/registry/factory'
 import type { ElementCategory, ElementDefinition } from '@/registry/types'
@@ -21,7 +21,9 @@ const items = computed<ElementDefinition[]>(() => {
       : listElements().filter((d) => {
           const q = search.value.toLowerCase()
           return (
-            d.label.toLowerCase().includes(q) || d.description.toLowerCase().includes(q)
+            d.label.toLowerCase().includes(q) ||
+            d.description.toLowerCase().includes(q) ||
+            tOr(`element.${d.type}.label`, d.label).toLowerCase().includes(q)
           )
         })
   return base
@@ -92,8 +94,8 @@ function clone(def: ElementDefinition) {
               :svg="def.icon"
             />
             <span class="min-w-0">
-              <span class="block truncate text-sm font-medium text-gray-800">{{ def.label }}</span>
-              <span class="block truncate text-xs text-gray-500">{{ def.description }}</span>
+              <span class="block truncate text-sm font-medium text-gray-800">{{ tOr(`element.${def.type}.label`, def.label) }}</span>
+              <span class="block truncate text-xs text-gray-500">{{ tOr(`element.${def.type}.description`, def.description) }}</span>
             </span>
           </button>
         </li>
