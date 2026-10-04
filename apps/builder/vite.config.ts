@@ -4,6 +4,9 @@ import tailwindcss from '@tailwindcss/vite'
 import { fileURLToPath } from 'node:url'
 
 export default defineConfig({
+  // GitHub Pages serves the app from /formsgen-v2/; local dev and other
+  // hosts use the root path. The deploy workflow sets BASE_PATH.
+  base: process.env.BASE_PATH ?? '/',
   plugins: [vue(), tailwindcss()],
   resolve: {
     alias: {
