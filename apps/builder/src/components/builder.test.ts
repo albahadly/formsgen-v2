@@ -1,20 +1,31 @@
 // Integration-style tests across the three panels, mounted via App.
-import { flushPromises, mount } from '@vue/test-utils'
+import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import App from '../App.vue'
 import { useBuilderStore } from '../stores/builder'
+
+const mounted: VueWrapper[] = []
 
 function mountApp() {
   const pinia = createPinia()
   setActivePinia(pinia)
   const wrapper = mount(App, { global: { plugins: [pinia] } })
+  mounted.push(wrapper)
   return { wrapper, store: useBuilderStore() }
 }
 
 describe('palette → canvas → properties workflow', () => {
   beforeEach(() => {
+    // Autosave writes drafts that App restores on mount — isolate tests.
+    localStorage.clear()
     setActivePinia(createPinia())
+  })
+
+  afterEach(() => {
+    // Unmount so stray debounced autosave watchers stop writing drafts.
+    for (const wrapper of mounted.splice(0)) wrapper.unmount()
+    localStorage.clear()
   })
 
   it('adds an element from the palette and renders it on the canvas', async () => {
@@ -165,6 +176,51 @@ describe('palette → canvas → properties workflow', () => {
     expect(store.schema.meta.dir).toBe('rtl')
     await wrapper.get('[data-testid="settings-close"]').trigger('click')
     expect(wrapper.find('[data-testid="settings-dialog"]').exists()).toBe(false)
+  })
+
+  it('keyboard: Alt+Arrows move the selected element (DnD alternative)', async () => {
+    const { wrapper, store } = mountApp()
+    await wrapper.get('[data-testid="palette-item-text"]').trigger('click')
+    store.select(null)
+    await wrapper.get('[data-testid="palette-item-textarea"]').trigger('click')
+    const canvas = wrapper.get('[data-testid="panel-canvas"]')
+    const [first, second] = store.schema.tree
+    store.select(second!.id)
+    await canvas.trigger('keydown', { key: 'ArrowUp', altKey: true })
+    expect(store.schema.tree[0]?.id).toBe(second!.id)
+    await canvas.trigger('keydown', { key: 'ArrowDown', altKey: true })
+    expect(store.schema.tree[0]?.id).toBe(first!.id)
+  })
+
+  it('settings dialog traps focus and restores it on close', async () => {
+    // Focus only works on attached DOM; this test mounts into the body.
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const wrapper = mount(App, { global: { plugins: [pinia] }, attachTo: document.body })
+    mounted.push(wrapper)
+    ;(wrapper.get('[data-testid="open-settings"]').element as HTMLButtonElement).focus()
+    await wrapper.get('[data-testid="open-settings"]').trigger('click')
+    await flushPromises()
+    const dialog = wrapper.get('[data-testid="settings-dialog"]')
+    expect(dialog.element.contains(document.activeElement)).toBe(true)
+    await wrapper.get('[data-testid="settings-close"]').trigger('click')
+    await flushPromises()
+    expect(document.activeElement).toBe(
+      wrapper.get('[data-testid="open-settings"]').element,
+    )
+  })
+
+  it('error messages are linked to inputs via aria-describedby in preview', async () => {
+    const { wrapper } = mountApp()
+    await wrapper.get('[data-testid="palette-item-text"]').trigger('click')
+    await wrapper.get('[data-testid="rule-add-select"]').setValue('required')
+    await wrapper.get('[data-testid="rule-add-button"]').trigger('click')
+    await wrapper.get('[data-testid="view-preview"]').trigger('click')
+    const input = wrapper.get('[data-testid="panel-preview"] .fg-input')
+    await input.trigger('blur')
+    const describedBy = input.attributes('aria-describedby')
+    expect(describedBy).toBeTruthy()
+    expect(wrapper.get(`#${describedBy}`).text()).toBe('This field is required')
   })
 
   it('adds into a selected container and renders nested chrome', async () => {

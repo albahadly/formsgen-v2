@@ -2,6 +2,7 @@
 import JSZip from 'jszip'
 import { computed, ref, watch } from 'vue'
 import CodeBlock from '@/components/ui/CodeBlock.vue'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import { getCssAdapter, listCssAdapters, type CssFrameworkId } from '@/export/css'
 import { getTarget, listTargets, type ExportedFile } from '@/export/targets'
 import { t } from '@/i18n'
@@ -10,6 +11,12 @@ import { useUiStore } from '@/stores/ui'
 
 const builder = useBuilderStore()
 const ui = useUiStore()
+
+const dialogRef = ref<HTMLElement | null>(null)
+useFocusTrap(
+  dialogRef,
+  computed(() => ui.showExport),
+)
 
 const targetId = ref('json')
 const framework = ref<CssFrameworkId>('vanilla')
@@ -82,10 +89,12 @@ async function downloadZip(): Promise<void> {
     @click.self="ui.closeExport()"
   >
     <div
+      ref="dialogRef"
       class="flex h-[80vh] w-full max-w-4xl flex-col rounded-lg bg-white shadow-xl"
       role="dialog"
       aria-modal="true"
       :aria-label="t('export.title')"
+      @keydown.escape="ui.closeExport()"
     >
       <div class="flex items-center justify-between border-b border-gray-200 px-4 py-2.5">
         <h2 class="text-sm font-semibold text-gray-800">

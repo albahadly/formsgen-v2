@@ -9,7 +9,7 @@ interface Item {
 }
 
 const props = defineProps<{ node: ElementNode; path: string }>()
-const { value, error, label, description, required, fieldId, onBlur } = useField(props)
+const { value, error, label, description, required, fieldId, errorId, describedBy, onBlur } = useField(props)
 
 const items = computed<Item[]>(() => {
   const raw = props.node.props['items']
@@ -48,6 +48,7 @@ const selected = computed({
           v-model="selected"
           type="radio"
           class="fg-checkbox"
+          :aria-describedby="describedBy"
           :name="path"
           :value="item.value"
           @blur="onBlur"
@@ -63,6 +64,7 @@ const selected = computed({
     </p>
     <p
       v-if="error"
+      :id="errorId"
       class="fg-error"
       role="alert"
     >

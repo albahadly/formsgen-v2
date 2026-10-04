@@ -4,7 +4,7 @@ import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
 
 const props = defineProps<{ node: ElementNode; path: string }>()
-const { value, error, label, description, required, fieldId, onBlur } = useField(props)
+const { value, error, label, description, required, fieldId, errorId, describedBy, onBlur } = useField(props)
 
 const min = computed(() => Number(props.node.props['min'] ?? 0))
 const max = computed(() => Number(props.node.props['max'] ?? 100))
@@ -39,6 +39,7 @@ const current = computed({
       v-model="current"
       class="fg-range"
       type="range"
+      :aria-describedby="describedBy"
       :name="node.name"
       :min="min"
       :max="max"
@@ -53,6 +54,7 @@ const current = computed({
     </p>
     <p
       v-if="error"
+      :id="errorId"
       class="fg-error"
       role="alert"
     >

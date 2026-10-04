@@ -88,19 +88,29 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       </div>
     </header>
     <main class="flex flex-1 overflow-hidden">
-      <aside class="w-64 shrink-0 overflow-y-auto border-e border-gray-200 bg-white p-3">
+      <aside
+        class="w-64 shrink-0 overflow-y-auto border-e border-gray-200 bg-white p-3"
+        :aria-label="t('palette.title')"
+      >
         <PalettePanel />
       </aside>
       <aside
         v-if="showTree"
         class="w-56 shrink-0 overflow-y-auto border-e border-gray-200 bg-white p-3"
+        :aria-label="t('tree.title')"
       >
         <TreePanel />
       </aside>
-      <section class="flex-1 overflow-hidden">
+      <section
+        class="flex-1 overflow-hidden"
+        :aria-label="t('toolbar.view.editor')"
+      >
         <WorkArea />
       </section>
-      <aside class="w-80 shrink-0 overflow-y-auto border-s border-gray-200 bg-white p-3">
+      <aside
+        class="w-80 shrink-0 overflow-y-auto border-s border-gray-200 bg-white p-3"
+        :aria-label="t('properties.title')"
+      >
         <PropertiesPanel />
       </aside>
     </main>

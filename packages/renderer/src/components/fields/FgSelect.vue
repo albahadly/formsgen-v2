@@ -9,7 +9,7 @@ interface SelectItem {
 }
 
 const props = defineProps<{ node: ElementNode; path: string }>()
-const { value, error, label, description, placeholder, required, fieldId, onBlur } =
+const { value, error, label, description, placeholder, required, fieldId, errorId, describedBy, onBlur } =
   useField(props)
 
 const items = computed<SelectItem[]>(() => {
@@ -46,6 +46,7 @@ const selected = computed({
       class="fg-select"
       :name="node.name"
       :aria-invalid="error ? 'true' : undefined"
+      :aria-describedby="describedBy"
       @blur="onBlur"
     >
       <option
@@ -70,6 +71,7 @@ const selected = computed({
     </p>
     <p
       v-if="error"
+      :id="errorId"
       class="fg-error"
       role="alert"
     >

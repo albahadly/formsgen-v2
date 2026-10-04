@@ -1,11 +1,18 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import { t } from '@/i18n'
 import { useBuilderStore, type NameError } from '@/stores/builder'
 import { useUiStore } from '@/stores/ui'
 
 const builder = useBuilderStore()
 const ui = useUiStore()
+
+const dialogRef = ref<HTMLElement | null>(null)
+useFocusTrap(
+  dialogRef,
+  computed(() => ui.showSettings),
+)
 
 const nameDraft = ref(builder.schema.meta.name)
 const nameError = ref<NameError>(null)
@@ -79,6 +86,7 @@ function onKeydown(event: KeyboardEvent): void {
     @keydown="onKeydown"
   >
     <div
+      ref="dialogRef"
       class="w-full max-w-md rounded-lg bg-white p-5 shadow-xl"
       role="dialog"
       aria-modal="true"

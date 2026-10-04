@@ -5,7 +5,7 @@ import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
 
 const props = defineProps<{ node: ElementNode; path: string }>()
-const { value, error, label, description, placeholder, required, fieldId, onBlur } =
+const { value, error, label, description, placeholder, required, fieldId, errorId, describedBy, onBlur } =
   useField(props)
 
 const inputType = computed(() => TEXT_INPUT_TYPES[props.node.type] ?? 'text')
@@ -41,6 +41,7 @@ const text = computed({
       :name="node.name"
       :placeholder="placeholder"
       :aria-invalid="error ? 'true' : undefined"
+      :aria-describedby="describedBy"
       @blur="onBlur"
     >
     <p
@@ -51,6 +52,7 @@ const text = computed({
     </p>
     <p
       v-if="error"
+      :id="errorId"
       class="fg-error"
       role="alert"
     >

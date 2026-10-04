@@ -4,7 +4,7 @@ import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
 
 const props = defineProps<{ node: ElementNode; path: string }>()
-const { value, error, label, description, placeholder, required, fieldId, onBlur } =
+const { value, error, label, description, placeholder, required, fieldId, errorId, describedBy, onBlur } =
   useField(props)
 
 const num = computed({
@@ -48,6 +48,7 @@ const step = computed(() => props.node.props['step'] as number | undefined)
       :max="max"
       :step="step"
       :aria-invalid="error ? 'true' : undefined"
+      :aria-describedby="describedBy"
       @blur="onBlur"
     >
     <p
@@ -58,6 +59,7 @@ const step = computed(() => props.node.props['step'] as number | undefined)
     </p>
     <p
       v-if="error"
+      :id="errorId"
       class="fg-error"
       role="alert"
     >

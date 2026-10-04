@@ -4,7 +4,8 @@ import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
 
 const props = defineProps<{ node: ElementNode; path: string }>()
-const { value, error, label, description, fieldId, required, onBlur } = useField(props)
+const { value, error, label, description, fieldId, errorId, describedBy, required, onBlur } =
+  useField(props)
 
 const checked = computed({
   get: () => value.value === true,
@@ -30,6 +31,7 @@ const checked = computed({
         type="checkbox"
         :name="node.name"
         :aria-invalid="error ? 'true' : undefined"
+        :aria-describedby="describedBy"
         @blur="onBlur"
       >
       <span>
@@ -48,6 +50,7 @@ const checked = computed({
     </p>
     <p
       v-if="error"
+      :id="errorId"
       class="fg-error"
       role="alert"
     >

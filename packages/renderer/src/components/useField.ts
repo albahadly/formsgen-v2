@@ -27,7 +27,22 @@ export function useField(props: FieldProps) {
     () => props.node.validation?.some((r) => r.rule === 'required') ?? false,
   )
   const fieldId = computed(() => `fg-${props.node.id}`)
+  const errorId = computed(() => `fg-${props.node.id}-error`)
+  /** Links the control to its error message for screen readers. */
+  const describedBy = computed(() => (error.value ? errorId.value : undefined))
   const onBlur = (): void => ctx.touch(props.path)
 
-  return { ctx: ctx as FormContext, value, error, label, description, placeholder, required, fieldId, onBlur }
+  return {
+    ctx: ctx as FormContext,
+    value,
+    error,
+    label,
+    description,
+    placeholder,
+    required,
+    fieldId,
+    errorId,
+    describedBy,
+    onBlur,
+  }
 }

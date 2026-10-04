@@ -174,3 +174,43 @@ describe('drop guards', () => {
     expect(canDropInto(store.schema.tree, flat, g4.id)).toBe(true)
   })
 })
+
+describe('keyboard move actions', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
+
+  it('moveSibling swaps within bounds and reports edges', () => {
+    const store = useBuilderStore()
+    const a = store.addElement('text')
+    store.select(null)
+    const b = store.addElement('textarea')
+    expect(store.moveSibling(b.id, -1)).toBe(true)
+    expect(store.schema.tree.map((n) => n.id)).toEqual([b.id, a.id])
+    expect(store.moveSibling(b.id, -1)).toBe(false)
+  })
+
+  it('moveOut lifts a nested node after its container', () => {
+    const store = useBuilderStore()
+    const group = store.addElement('group')
+    const field = store.addElement('text') // nested (selected container)
+    expect(store.moveOut(field.id)).toBe(true)
+    expect(group.children).toHaveLength(0)
+    expect(store.schema.tree.map((n) => n.id)).toEqual([group.id, field.id])
+    expect(store.moveOut(field.id)).toBe(false) // already at root
+  })
+
+  it('moveInto drops a node into the nearest preceding container', () => {
+    const store = useBuilderStore()
+    const group = store.addElement('group')
+    store.select(null)
+    const field = store.addElement('text')
+    expect(store.moveInto(field.id)).toBe(true)
+    expect(group.children?.map((n) => n.id)).toEqual([field.id])
+    // no preceding container -> refused
+    store.select(null)
+    const lonely = store.addElement('text')
+    store.setChildren(null, [lonely])
+    expect(store.moveInto(lonely.id)).toBe(false)
+  })
+})

@@ -191,6 +191,51 @@ export const useBuilderStore = defineStore('builder', {
       this.selectedId = null
     },
 
+    /** Keyboard DnD: swaps the node with a sibling (delta -1 or +1). */
+    moveSibling(id: string, delta: -1 | 1): boolean {
+      const parent = findParent(this.schema.tree, id)
+      const siblings = parent ? (parent.children ?? []) : this.schema.tree
+      const index = siblings.findIndex((n) => n.id === id)
+      const target = index + delta
+      if (index === -1 || target < 0 || target >= siblings.length) return false
+      const [node] = siblings.splice(index, 1)
+      siblings.splice(target, 0, node!)
+      return true
+    },
+
+    /** Keyboard DnD: lifts the node out of its container, placed after it. */
+    moveOut(id: string): boolean {
+      const parent = findParent(this.schema.tree, id)
+      if (!parent) return false
+      const grandparent = findParent(this.schema.tree, parent.id)
+      const targetList = grandparent ? (grandparent.children ?? []) : this.schema.tree
+      const node = findNodeById(this.schema.tree, id)!
+      parent.children = (parent.children ?? []).filter((n) => n.id !== id)
+      targetList.splice(targetList.findIndex((n) => n.id === parent.id) + 1, 0, node)
+      return true
+    },
+
+    /** Keyboard DnD: moves the node into the nearest preceding container. */
+    moveInto(id: string): boolean {
+      const parent = findParent(this.schema.tree, id)
+      const siblings = parent ? (parent.children ?? []) : this.schema.tree
+      const index = siblings.findIndex((n) => n.id === id)
+      const node = siblings[index]
+      if (!node) return false
+      for (let i = index - 1; i >= 0; i--) {
+        const candidate = siblings[i]!
+        if (
+          getCoreElement(candidate.type)?.isContainer &&
+          canDropInto(this.schema.tree, node, candidate.id)
+        ) {
+          siblings.splice(index, 1)
+          ;(candidate.children ??= []).push(node)
+          return true
+        }
+      }
+      return false
+    },
+
     reset(): void {
       this.schema = createEmptySchema()
       this.selectedId = null

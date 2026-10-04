@@ -4,7 +4,7 @@ import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
 
 const props = defineProps<{ node: ElementNode; path: string }>()
-const { value, error, label, description, placeholder, required, fieldId, onBlur } =
+const { value, error, label, description, placeholder, required, fieldId, errorId, describedBy, onBlur } =
   useField(props)
 
 const text = computed({
@@ -39,6 +39,7 @@ const rows = computed(() => Number(props.node.props['rows'] ?? 3))
       :rows="rows"
       :placeholder="placeholder"
       :aria-invalid="error ? 'true' : undefined"
+      :aria-describedby="describedBy"
       @blur="onBlur"
     />
     <p
@@ -49,6 +50,7 @@ const rows = computed(() => Number(props.node.props['rows'] ?? 3))
     </p>
     <p
       v-if="error"
+      :id="errorId"
       class="fg-error"
       role="alert"
     >

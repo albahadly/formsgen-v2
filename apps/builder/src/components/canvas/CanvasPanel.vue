@@ -39,6 +39,14 @@ function onKeydown(event: KeyboardEvent): void {
 
   if (event.key === 'Escape') {
     store.select(null)
+  } else if (event.altKey && event.key.startsWith('Arrow') && store.selectedId) {
+    // Keyboard alternative to drag-and-drop (Alt+Arrows).
+    event.preventDefault()
+    const id = store.selectedId
+    if (event.key === 'ArrowUp') store.moveSibling(id, -1)
+    else if (event.key === 'ArrowDown') store.moveSibling(id, 1)
+    else if (event.key === 'ArrowLeft') store.moveOut(id)
+    else if (event.key === 'ArrowRight') store.moveInto(id)
   } else if ((event.key === 'Delete' || event.key === 'Backspace') && store.selectedId) {
     event.preventDefault()
     store.removeElement(store.selectedId)
@@ -73,6 +81,7 @@ function onKeydown(event: KeyboardEvent): void {
       class="fg-form mx-auto rounded-lg p-6 shadow-sm transition-all"
       :style="{ maxWidth: ui.deviceWidth === '100%' ? '42rem' : ui.deviceWidth }"
       :data-fg-theme="ui.previewTheme"
+      :dir="store.schema.meta.dir"
     >
       <draggable
         v-model="list"
