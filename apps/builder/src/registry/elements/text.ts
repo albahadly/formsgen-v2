@@ -1,10 +1,18 @@
 import {
+  blazorValidationMessage,
   descriptionFor,
   fieldWrap,
   htmlDataAttrs,
   htmlError,
   labelFor,
+  pascalMember,
   placeholderAttr,
+  reactControlClass,
+  reactDescription,
+  reactError,
+  reactEvents,
+  reactFieldWrap,
+  reactLabelFor,
   vueError,
   vueEvents,
   vueInvalid,
@@ -38,6 +46,26 @@ export const textElement: ElementDefinition = {
           `<input id="${ctx.id}" type="text" class="${ctx.css.classes('input')}"${htmlDataAttrs(ctx, 'text')}${placeholderAttr(node)}>`,
           descriptionFor(node, ctx),
           htmlError(ctx),
+        ],
+        ctx,
+      ),
+    react: (node, ctx) =>
+      reactFieldWrap(
+        [
+          reactLabelFor(node, ctx),
+          `<input id="${ctx.id}" type="text" value={form.${ctx.path}} ${reactControlClass(ctx, 'input')}${placeholderAttr(node)}${reactEvents(ctx)} />`,
+          reactDescription(node, ctx),
+          reactError(ctx),
+        ],
+        ctx,
+      ),
+    blazor: (node, ctx) =>
+      fieldWrap(
+        [
+          labelFor(node, ctx),
+          `<InputText id="${ctx.id}" @bind-Value="Model.${pascalMember(ctx.key)}" class="${ctx.css.classes('input')}"${placeholderAttr(node)} />`,
+          descriptionFor(node, ctx),
+          blazorValidationMessage(ctx),
         ],
         ctx,
       ),

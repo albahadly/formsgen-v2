@@ -24,7 +24,7 @@ export interface EmitCtx {
 export type ElementEmitter = (node: ElementNode, ctx: EmitCtx) => string
 
 /** Target languages with per-element markup (containers are structural). */
-export type EmitterLang = 'vue' | 'html'
+export type EmitterLang = 'vue' | 'html' | 'react' | 'blazor'
 
 /** Declarative properties-panel controls, rendered by ~8 shared components. */
 export type PanelControl =

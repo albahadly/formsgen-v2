@@ -12,28 +12,41 @@ import {
 import { compileConditions, compileValidator, type ValueAccessor } from './compile'
 import { collectExportFields, pathKey, type ExportField } from './structure'
 
-/** `function fgVisible_<key>() { ... }` for every field with conditions. */
-export function visibilityFunctions(fields: ExportField[], accessor: ValueAccessor): string {
+/**
+ * `function fgVisible_<key>(<args>) { ... }` for every field with
+ * conditions. `args` lets targets thread a state parameter through
+ * (e.g. React passes `data: FormData`).
+ */
+export function visibilityFunctions(
+  fields: ExportField[],
+  accessor: ValueAccessor,
+  args = '',
+): string {
   return fields
     .filter((f) => f.conditionChain.length > 0)
     .map((f) => {
       const expr = f.conditionChain
         .map((groups) => `(${compileConditions(groups, accessor)})`)
         .join(' && ')
-      return `function fgVisible_${f.key}() {\n  return ${expr}\n}`
+      return `function fgVisible_${f.key}(${args}) {\n  return ${expr}\n}`
     })
     .join('\n')
 }
 
 /** Object literal mapping data paths to validator functions. */
-export function validatorsLiteral(fields: ExportField[], accessor: ValueAccessor): string {
+export function validatorsLiteral(
+  fields: ExportField[],
+  accessor: ValueAccessor,
+  args = '',
+  visibleCall = (key: string) => `fgVisible_${key}()`,
+): string {
   const entries = fields
     .filter((f) => (f.node.validation?.length ?? 0) > 0)
     .map((f) => {
       const guard =
-        f.conditionChain.length > 0 ? `if (!fgVisible_${f.key}()) return null\n  ` : ''
+        f.conditionChain.length > 0 ? `if (!${visibleCall(f.key)}) return null\n  ` : ''
       const body = compileValidator(f.node.validation ?? [], accessor(f.path), accessor)
-      return `  '${f.path}': function () {\n  ${guard}${body}\n  },`
+      return `  '${f.path}': function (${args}) {\n  ${guard}${body}\n  },`
     })
   return `{\n${entries.join('\n')}\n}`
 }
@@ -42,7 +55,11 @@ export function validatorsLiteral(fields: ExportField[], accessor: ValueAccessor
  * JS object-literal expression building the submit payload from visible
  * fields only (conditional fields/containers become conditional spreads).
  */
-export function payloadExpr(schema: FormSchema, accessor: ValueAccessor): string {
+export function payloadExpr(
+  schema: FormSchema,
+  accessor: ValueAccessor,
+  visibleCall = (key: string) => `fgVisible_${key}()`,
+): string {
   const fields = collectExportFields(schema)
   const chainByPath = new Map(fields.map((f) => [f.path, f]))
 
@@ -77,7 +94,7 @@ export function payloadExpr(schema: FormSchema, accessor: ValueAccessor): string
         const value = accessor(path)
         if (field && field.conditionChain.length > 0) {
           entries.push(
-            `${pad}...(fgVisible_${field.key}() ? { ${JSON.stringify(node.name)}: ${value} } : {}),`,
+            `${pad}...(${visibleCall(field.key)} ? { ${JSON.stringify(node.name)}: ${value} } : {}),`,
           )
         } else {
           entries.push(`${pad}${JSON.stringify(node.name)}: ${value},`)

@@ -1,10 +1,18 @@
 import {
+  blazorValidationMessage,
   descriptionFor,
   fieldWrap,
   htmlDataAttrs,
   htmlError,
   labelFor,
+  pascalMember,
   placeholderAttr,
+  reactControlClass,
+  reactDescription,
+  reactError,
+  reactEvents,
+  reactFieldWrap,
+  reactLabelFor,
   vueError,
   vueEvents,
   vueInvalid,
@@ -40,6 +48,26 @@ export const textareaElement: ElementDefinition = {
           `<textarea id="${ctx.id}" class="${ctx.css.classes('textarea')}" rows="${Number(node.props['rows'] ?? 3)}"${htmlDataAttrs(ctx, 'text')}${placeholderAttr(node)}></textarea>`,
           descriptionFor(node, ctx),
           htmlError(ctx),
+        ],
+        ctx,
+      ),
+    react: (node, ctx) =>
+      reactFieldWrap(
+        [
+          reactLabelFor(node, ctx),
+          `<textarea id="${ctx.id}" rows={${Number(node.props['rows'] ?? 3)}} value={form.${ctx.path}} ${reactControlClass(ctx, 'textarea')}${placeholderAttr(node)}${reactEvents(ctx, 'textarea')} />`,
+          reactDescription(node, ctx),
+          reactError(ctx),
+        ],
+        ctx,
+      ),
+    blazor: (node, ctx) =>
+      fieldWrap(
+        [
+          labelFor(node, ctx),
+          `<InputTextArea id="${ctx.id}" @bind-Value="Model.${pascalMember(ctx.key)}" class="${ctx.css.classes('textarea')}" rows="${Number(node.props['rows'] ?? 3)}"${placeholderAttr(node)} />`,
+          descriptionFor(node, ctx),
+          blazorValidationMessage(ctx),
         ],
         ctx,
       ),

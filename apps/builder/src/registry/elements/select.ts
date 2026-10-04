@@ -1,10 +1,17 @@
 import {
+  blazorValidationMessage,
   descriptionFor,
   esc,
   fieldWrap,
   htmlDataAttrs,
   htmlError,
   labelFor,
+  pascalMember,
+  reactControlClass,
+  reactDescription,
+  reactError,
+  reactFieldWrap,
+  reactLabelFor,
   vueError,
   vueEvents,
   vueInvalid,
@@ -59,6 +66,26 @@ export const selectElement: ElementDefinition = {
           `<select id="${ctx.id}" class="${ctx.css.classes('select')}"${htmlDataAttrs(ctx, 'select')}>\n    ${optionTags(node)}\n  </select>`,
           descriptionFor(node, ctx),
           htmlError(ctx),
+        ],
+        ctx,
+      ),
+    react: (node, ctx) =>
+      reactFieldWrap(
+        [
+          reactLabelFor(node, ctx),
+          `<select id="${ctx.id}" value={form.${ctx.path} ?? ''} ${reactControlClass(ctx, 'select')} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setField('${ctx.path}', e.target.value === '' ? null : e.target.value)} onBlur={() => touch('${ctx.path}')}>\n    ${optionTags(node)}\n  </select>`,
+          reactDescription(node, ctx),
+          reactError(ctx),
+        ],
+        ctx,
+      ),
+    blazor: (node, ctx) =>
+      fieldWrap(
+        [
+          labelFor(node, ctx),
+          `<InputSelect id="${ctx.id}" @bind-Value="Model.${pascalMember(ctx.key)}" class="${ctx.css.classes('select')}">\n    ${optionTags(node)}\n  </InputSelect>`,
+          descriptionFor(node, ctx),
+          blazorValidationMessage(ctx),
         ],
         ctx,
       ),

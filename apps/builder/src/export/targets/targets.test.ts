@@ -16,8 +16,15 @@ const generate = (targetId: string, framework: CssFrameworkId = 'vanilla') =>
   getTarget(targetId)!.generate({ schema: fixture(), css: getCssAdapter(framework) })
 
 describe('export target registry', () => {
-  it('registers the four core targets', () => {
-    expect(listTargets().map((t) => t.id)).toEqual(['json', 'vue-lib', 'vue-standalone', 'html'])
+  it('registers the six targets', () => {
+    expect(listTargets().map((t) => t.id)).toEqual([
+      'json',
+      'vue-lib',
+      'vue-standalone',
+      'react',
+      'blazor',
+      'html',
+    ])
   })
 
   it('every target produces files and a README for every framework', () => {
@@ -75,6 +82,76 @@ describe('vue-standalone target', () => {
     expect(file!.content).toContain('is-invalid')
     expect(file!.content).not.toContain('fg-input')
     expect(file!.content).not.toContain('<style scoped>')
+  })
+})
+
+describe('react target', () => {
+  it.each(frameworks)('snapshot (%s)', (framework) => {
+    const [file] = generate('react', framework)
+    expect(file!.content).toMatchSnapshot()
+  })
+
+  it('is syntactically valid TSX with compiled logic', async () => {
+    const ts = await import('typescript')
+    const [file] = generate('react')
+    const source = ts.createSourceFile(
+      'Form.tsx',
+      file!.content,
+      ts.ScriptTarget.ES2022,
+      true,
+      ts.ScriptKind.TSX,
+    )
+    // @ts-expect-error parseDiagnostics is internal but stable
+    expect((source.parseDiagnostics as unknown[]).length).toBe(0)
+    expect(file!.content).toContain('useState<FormData>')
+    expect(file!.content).toContain('fgVisible_contact_other(data)')
+    expect(file!.content).toContain("'full_name': function (data: FormData)")
+    expect(file!.content).toContain('value={form.account.username}')
+  })
+
+  it('vanilla mode emits a css file and imports it', () => {
+    const files = generate('react')
+    expect(files).toHaveLength(2)
+    expect(files[1]!.path).toBe('KitchenSinkForm.css')
+    expect(files[0]!.content).toContain("import './KitchenSinkForm.css'")
+    const tailwind = generate('react', 'tailwind')
+    expect(tailwind).toHaveLength(1)
+    expect(tailwind[0]!.content).toContain('className=')
+  })
+})
+
+describe('blazor target', () => {
+  it.each(frameworks)('snapshot (%s)', (framework) => {
+    const [file] = generate('blazor', framework)
+    expect(file!.content).toMatchSnapshot()
+  })
+
+  it('generates EditForm, flat model with attributes, and C# conditions', () => {
+    const [file] = generate('blazor', 'bootstrap5')
+    const code = file!.content
+    expect(code).toContain('<EditForm Model="Model"')
+    expect(code).toContain('<DataAnnotationsValidator />')
+    expect(code).toContain('[Required(ErrorMessage = "This field is required")]')
+    expect(code).toContain('[EmailAddress(')
+    expect(code).toContain('[RegularExpression(@"^[0-9]{4,6}$"')
+    expect(code).toContain('public string AccountUsername { get; set; }')
+    expect(code).toContain('@bind-Value="Model.AccountUsername"')
+    // conditional field rules live in Validate(), not attributes
+    expect(code).toContain('IValidatableObject')
+    expect(code).toMatch(/@if \(+Equals\(Model\.ContactMethod, "other"\)/)
+    // required checkbox handled in Validate()
+    expect(code).toContain('if (!Terms)')
+    // nested payload reconstruction with hidden-field exclusion
+    expect(code).toContain('payload["account"]')
+    expect(code).toMatch(/if \(+Equals\(Model\.ContactMethod, "other"\)+\) payload\["contact_other"\]/)
+    // bootstrap idioms, no vanilla classes
+    expect(code).toContain('form-control')
+    expect(code).not.toContain('fg-input')
+  })
+
+  it('vanilla mode emits a scoped .razor.css file', () => {
+    const files = generate('blazor')
+    expect(files.map((f) => f.path)).toEqual(['KitchenSinkForm.razor', 'KitchenSinkForm.razor.css'])
   })
 })
 

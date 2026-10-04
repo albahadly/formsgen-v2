@@ -54,3 +54,54 @@ export function fieldWrap(parts: (string | '')[], ctx: EmitCtx): string {
   const inner = parts.filter(Boolean).join('\n  ')
   return `<div class="${ctx.css.classes('field')}">\n  ${inner}\n</div>`
 }
+
+// ---- React (JSX) helpers ----
+
+export function reactFieldWrap(parts: (string | '')[], ctx: EmitCtx): string {
+  const inner = parts.filter(Boolean).join('\n  ')
+  return `<div className="${ctx.css.classes('field')}">\n  ${inner}\n</div>`
+}
+
+export function reactLabelFor(node: ElementNode, ctx: EmitCtx): string {
+  const text = esc(String(node.props['label'] ?? ''))
+  const req = ctx.required
+    ? `<span className="${ctx.css.classes('required')}" aria-hidden="true">*</span>`
+    : ''
+  return `<label className="${ctx.css.classes('label')}" htmlFor="${ctx.id}">${text}${req}</label>`
+}
+
+export function reactDescription(node: ElementNode, ctx: EmitCtx): string {
+  const d = node.props['description']
+  if (typeof d !== 'string' || d === '') return ''
+  return `<p className="${ctx.css.classes('description')}">${esc(d)}</p>`
+}
+
+export function reactError(ctx: EmitCtx): string {
+  return `{errors['${ctx.path}'] && <p className="${ctx.css.classes('error')}" role="alert">{errors['${ctx.path}']}</p>}`
+}
+
+/** className expression switching to the invalid classes while errored. */
+export function reactControlClass(ctx: EmitCtx, slot: 'input' | 'textarea' | 'select'): string {
+  const base = ctx.css.classes(slot)
+  return `className={errors['${ctx.path}'] ? "${base} ${ctx.css.invalidClass()}" : "${base}"}`
+}
+
+export function reactEvents(ctx: EmitCtx, element: 'input' | 'textarea' = 'input'): string {
+  const eventType = element === 'textarea' ? 'HTMLTextAreaElement' : 'HTMLInputElement'
+  return ` onChange={(e: React.ChangeEvent<${eventType}>) => setField('${ctx.path}', e.target.value)} onBlur={() => touch('${ctx.path}')}`
+}
+
+// ---- Blazor (Razor) helpers ----
+
+/** PascalCase model member from an identifier-safe key. */
+export function pascalMember(key: string): string {
+  return key
+    .split('_')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('')
+}
+
+export function blazorValidationMessage(ctx: EmitCtx): string {
+  return `<ValidationMessage For="@(() => Model.${pascalMember(ctx.key)})" class="${ctx.css.classes('error')}" />`
+}

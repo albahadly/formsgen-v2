@@ -4,17 +4,23 @@ import {
   fieldWrap,
   htmlDataAttrs,
   htmlError,
+  pascalMember,
+  reactDescription,
+  reactError,
+  reactFieldWrap,
   vueError,
 } from '../emitters/shared'
 import { commonFieldSections, type ElementDefinition, type EmitCtx } from '../types'
 import type { ElementNode } from '@formsgen/renderer'
 
-function checkboxLabel(node: ElementNode, ctx: EmitCtx): string {
+function checkboxLabel(node: ElementNode, ctx: EmitCtx, jsx = false): string {
   const text = esc(String(node.props['label'] ?? ''))
+  const classAttr = jsx ? 'className' : 'class'
+  const forAttr = jsx ? 'htmlFor' : 'for'
   const req = ctx.required
-    ? `<span class="${ctx.css.classes('required')}" aria-hidden="true">*</span>`
+    ? `<span ${classAttr}="${ctx.css.classes('required')}" aria-hidden="true">*</span>`
     : ''
-  return `<label class="${ctx.css.classes('checkboxLabel')}" for="${ctx.id}">${text}${req}</label>`
+  return `<label ${classAttr}="${ctx.css.classes('checkboxLabel')}" ${forAttr}="${ctx.id}">${text}${req}</label>`
 }
 
 export const checkboxElement: ElementDefinition = {
@@ -44,6 +50,24 @@ export const checkboxElement: ElementDefinition = {
           `<div class="${ctx.css.classes('checkboxWrap')}">\n    <input id="${ctx.id}" type="checkbox" class="${ctx.css.classes('checkbox')}"${htmlDataAttrs(ctx, 'checkbox')}${node.props['default'] === true ? ' checked' : ''}>\n    ${checkboxLabel(node, ctx)}\n  </div>`,
           descriptionFor(node, ctx),
           htmlError(ctx),
+        ],
+        ctx,
+      ),
+    react: (node, ctx) =>
+      reactFieldWrap(
+        [
+          `<div className="${ctx.css.classes('checkboxWrap')}">\n    <input id="${ctx.id}" type="checkbox" checked={form.${ctx.path}} className="${ctx.css.classes('checkbox')}" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('${ctx.path}', e.target.checked); touch('${ctx.path}') }} />\n    ${checkboxLabel(node, ctx, true)}\n  </div>`,
+          reactDescription(node, ctx),
+          reactError(ctx),
+        ],
+        ctx,
+      ),
+    blazor: (node, ctx) =>
+      fieldWrap(
+        [
+          `<div class="${ctx.css.classes('checkboxWrap')}">\n    <InputCheckbox id="${ctx.id}" @bind-Value="Model.${pascalMember(ctx.key)}" class="${ctx.css.classes('checkbox')}" />\n    ${checkboxLabel(node, ctx)}\n  </div>`,
+          descriptionFor(node, ctx),
+          `<ValidationMessage For="@(() => Model.${pascalMember(ctx.key)})" class="${ctx.css.classes('error')}" />`,
         ],
         ctx,
       ),

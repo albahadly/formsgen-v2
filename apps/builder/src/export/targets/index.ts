@@ -1,5 +1,7 @@
+import { blazorTarget } from './blazor'
 import { htmlTarget } from './html'
 import { jsonTarget } from './json'
+import { reactTarget } from './react'
 import type { ExportTarget } from './types'
 import { vueLibTarget } from './vue-lib'
 import { vueStandaloneTarget } from './vue-standalone'
@@ -21,10 +23,14 @@ export function listTargets(): ExportTarget[] {
   return [...targets.values()]
 }
 
-// Core targets (phase 8). React and Blazor register here in phase 9 —
-// adding a target must not require touching anything but its own file
-// plus this list.
-for (const target of [jsonTarget, vueLibTarget, vueStandaloneTarget, htmlTarget]) {
+for (const target of [
+  jsonTarget,
+  vueLibTarget,
+  vueStandaloneTarget,
+  reactTarget,
+  blazorTarget,
+  htmlTarget,
+]) {
   registerTarget(target)
 }
 
