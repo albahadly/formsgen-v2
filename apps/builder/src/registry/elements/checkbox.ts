@@ -33,7 +33,7 @@ export const checkboxElement: ElementDefinition = {
   defaultProps: { label: 'Checkbox' },
   propertyPanel: commonFieldSections([
     { kind: 'toggle', prop: 'default', label: 'Checked by default' },
-  ]),
+  ], ['align', 'className']),
   export: {
     vue: (node, ctx) =>
       fieldWrap(

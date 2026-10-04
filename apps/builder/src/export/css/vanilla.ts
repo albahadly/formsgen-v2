@@ -1,5 +1,5 @@
 import type { ThemeTokens } from '@formsgen/renderer'
-import type { CssFrameworkAdapter, Slot } from './types'
+import { SIZED_SLOTS, TONED_SLOTS, type CssFrameworkAdapter, type Slot, type SlotMods } from './types'
 
 const CLASSES: Record<Slot, string> = {
   form: 'fg-form',
@@ -102,6 +102,18 @@ ${overrides ? `${overrides}\n` : ''}  font-family: var(--fg-font);
 .fg-tag-remove { border: none; background: none; padding: 0; cursor: pointer; color: var(--fg-color-muted); font-size: 0.875rem; line-height: 1; }
 .fg-tags-input { flex: 1; min-inline-size: 6rem; border: none; background: none; font: inherit; color: inherit; padding: 0.125rem; }
 .fg-tags-input:focus { outline: none; }
+.fg-control--sm { padding: 0.25rem 0.5rem; font-size: 0.8125rem; }
+.fg-control--lg { padding: 0.75rem 1rem; font-size: 1.0625rem; }
+.fg-tags.fg-control--sm { padding: 0.125rem 0.375rem; font-size: 0.8125rem; }
+.fg-tags.fg-control--lg { padding: 0.5rem 0.75rem; font-size: 1.0625rem; }
+.fg-align-center { text-align: center; }
+.fg-align-end { text-align: end; }
+.fg-tone-muted { color: var(--fg-color-muted); }
+.fg-tone-primary { color: var(--fg-color-primary); }
+.fg-tone-danger { color: var(--fg-color-error); }
+.fg-divider.fg-tone-muted { border-block-start-color: var(--fg-color-border); }
+.fg-divider.fg-tone-primary { border-block-start-color: var(--fg-color-primary); }
+.fg-divider.fg-tone-danger { border-block-start-color: var(--fg-color-error); }
 .fg-sr-only { position: absolute; inline-size: 1px; block-size: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .fg-group { margin: 0; padding: var(--fg-space); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
 .fg-group-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); }
@@ -122,7 +134,13 @@ ${overrides ? `${overrides}\n` : ''}  font-family: var(--fg-font);
 export const vanillaAdapter: CssFrameworkAdapter = {
   id: 'vanilla',
   label: 'Vanilla CSS',
-  classes: (slot) => CLASSES[slot],
+  classes: (slot: Slot, mods?: SlotMods) => {
+    const base = CLASSES[slot]
+    if (mods?.size && SIZED_SLOTS.has(slot)) return `${base} fg-control--${mods.size}`
+    if (mods?.tone && TONED_SLOTS.has(slot)) return `${base} fg-tone-${mods.tone}`
+    return base
+  },
+  alignClass: (align) => `fg-align-${align}`,
   cell: (span) => ({ class: 'fg-cell', style: `grid-column: span ${span} / span ${span}` }),
   invalidClass: () => 'fg-invalid',
   stylesheet: (theme) => baseStylesheet(theme),

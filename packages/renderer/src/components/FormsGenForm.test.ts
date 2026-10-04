@@ -359,6 +359,25 @@ describe('FormsGenForm', () => {
     expect(wrapper.text()).toContain('Must be a valid email address')
   })
 
+  it('applies element appearance: size, hidden label, alignment, color, custom class', () => {
+    const wrapper = mountForm()
+    // size
+    expect(wrapper.get('input[name="website"]').classes()).toContain('fg-control--sm')
+    expect(wrapper.get('textarea[name="bio"]').classes()).toContain('fg-control--lg')
+    expect(wrapper.get('input[name="email"]').classes()).not.toContain('fg-control--sm')
+    // hidden label: visually hidden but still the input's accessible label
+    const zip = wrapper.get('input[name="zip"]')
+    const zipLabel = wrapper.get(`label[for="${zip.attributes('id')}"]`)
+    expect(zipLabel.classes()).toEqual(['fg-sr-only'])
+    expect(zipLabel.text()).toBe('ZIP')
+    // heading color + alignment on its cell; custom class on a group's cell
+    const heading = wrapper.get('h2.fg-heading')
+    expect(heading.classes()).toContain('fg-tone-primary')
+    expect(heading.element.closest('.fg-cell')!.classList.contains('fg-align-center')).toBe(true)
+    expect(wrapper.find('.fg-cell.account-box fieldset.fg-group').exists()).toBe(true)
+    expect(wrapper.get('hr.fg-divider').classes()).toContain('fg-tone-primary')
+  })
+
   it('tab headers show an error dot after a failed submit', async () => {
     const schema = fixtureSchema()
     // make the hidden tab's field required

@@ -4,6 +4,7 @@ import { t, tOr, tText } from '@/i18n'
 import { getElement } from '@/registry'
 import type { PanelControl } from '@/registry/types'
 import { useBuilderStore } from '@/stores/builder'
+import ControlAppearance from './controls/ControlAppearance.vue'
 import ControlColspan from './controls/ControlColspan.vue'
 import ControlConditions from './controls/ControlConditions.vue'
 import ControlItems from './controls/ControlItems.vue'
@@ -107,6 +108,12 @@ function key(control: PanelControl, index: number): string {
           <ControlConditions
             v-else-if="control.kind === 'conditions'"
             :node="node"
+          />
+          <ControlAppearance
+            v-else-if="control.kind === 'appearance'"
+            :key="`appearance-${node.id}`"
+            :node="node"
+            :features="control.features"
           />
         </template>
       </section>

@@ -6,8 +6,20 @@ import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
 
 const props = defineProps<{ node: ElementNode; path: string }>()
-const { value, error, label, description, placeholder, required, fieldId, errorId, describedBy, onBlur } =
-  useField(props)
+const {
+  value,
+  error,
+  label,
+  description,
+  placeholder,
+  required,
+  fieldId,
+  errorId,
+  describedBy,
+  onBlur,
+  labelClass,
+  sizeClass,
+} = useField(props)
 
 const ctx = inject(FORM_CONTEXT)
 const removeLabel = (tag: string): string =>
@@ -40,7 +52,7 @@ function onBackspace(): void {
     :class="{ 'fg-field--error': error }"
   >
     <label
-      class="fg-label"
+      :class="labelClass"
       :for="fieldId"
     >
       {{ label }}<span
@@ -49,7 +61,10 @@ function onBackspace(): void {
         aria-hidden="true"
       >*</span>
     </label>
-    <div class="fg-tags">
+    <div
+      class="fg-tags"
+      :class="sizeClass"
+    >
       <span
         v-for="(tag, index) in tags"
         :key="tag"

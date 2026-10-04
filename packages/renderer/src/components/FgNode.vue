@@ -64,6 +64,11 @@ const path = computed(() =>
 )
 
 const span = computed<number>(() => (props.node.layout?.colSpan as ColSpan | undefined) ?? props.defaultSpan)
+/** style.align and style.className apply to the element's cell. */
+const cellClasses = computed(() => {
+  const style = props.node.style
+  return [style?.align ? `fg-align-${style.align}` : '', style?.className ?? ''].filter(Boolean)
+})
 const cellStyle = computed(() => ({ gridColumn: `span ${span.value} / span ${span.value}` }))
 
 const columnCount = computed(() => Number(props.node.props['count'] ?? 2))
@@ -191,6 +196,7 @@ const embeddedSubmit = computed(
   <div
     v-if="visible && (fieldComponent || isStatic || isSectionHost || ['group', 'columns', 'tab', 'step'].includes(node.type))"
     class="fg-cell"
+    :class="cellClasses"
     :style="cellStyle"
   >
     <component

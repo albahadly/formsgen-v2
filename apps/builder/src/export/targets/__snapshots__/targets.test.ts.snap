@@ -10,10 +10,10 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
 <EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate class="container py-4" dir="ltr">
     <div style="display: contents" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
     <div class="row g-3">
-        <div class="col-12 col-md-12">
-          <h2 class="fw-semibold">Kitchen Sink</h2>
+        <div class="col-12 col-md-12 text-center">
+          <h2 class="fw-semibold text-primary">Kitchen Sink</h2>
         </div>
-        <div class="col-12 col-md-12">
+        <div class="col-12 col-md-12 text-center">
           <p class="text-secondary">Every implemented element appears in this form.</p>
         </div>
         <div class="col-12 col-md-12">
@@ -33,7 +33,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         <div class="col-12 col-md-12">
           <div class="d-flex flex-column gap-1">
             <label class="form-label fw-semibold mb-0" for="fg_website">Website</label>
-            <InputText id="fg_website" type="url" @bind-Value="Model.Website" class="form-control" />
+            <InputText id="fg_website" type="url" @bind-Value="Model.Website" class="form-control form-control-sm" />
             <ValidationMessage For="@(() => Model.Website)" class="invalid-feedback d-block mt-0" />
           </div>
         </div>
@@ -52,7 +52,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
           </div>
         </div>
         <div class="col-12 col-md-12">
-          <hr class="border-top" />
+          <hr class="border-top border-primary opacity-100" />
         </div>
         <div class="col-12 col-md-12">
           <div class="row g-3">
@@ -65,14 +65,14 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
             </div>
             <div class="col-12 col-md-6">
               <div class="d-flex flex-column gap-1">
-                <label class="form-label fw-semibold mb-0" for="fg_zip">ZIP</label>
+                <label class="visually-hidden" for="fg_zip">ZIP</label>
                 <InputText id="fg_zip" @bind-Value="Model.Zip" class="form-control" />
                 <ValidationMessage For="@(() => Model.Zip)" class="invalid-feedback d-block mt-0" />
               </div>
             </div>
           </div>
         </div>
-        <div class="col-12 col-md-12">
+        <div class="col-12 col-md-12 account-box">
           <fieldset class="border rounded p-3 bg-body-tertiary">
             <legend class="fw-semibold text-secondary small px-1">Account</legend>
             <div class="row g-3">
@@ -93,7 +93,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
               <div class="col-12 col-md-12">
                 <div class="d-flex flex-column gap-1">
                   <label class="form-label fw-semibold mb-0" for="fg_account_bio">Bio</label>
-                  <InputTextArea id="fg_account_bio" @bind-Value="Model.AccountBio" class="form-control" rows="4" />
+                  <InputTextArea id="fg_account_bio" @bind-Value="Model.AccountBio" class="form-control form-control-lg" rows="4" />
                   <ValidationMessage For="@(() => Model.AccountBio)" class="invalid-feedback d-block mt-0" />
                 </div>
               </div>
@@ -685,10 +685,10 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
 <EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate class="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" dir="ltr">
     <div style="display: contents" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
     <div class="grid grid-cols-12 gap-4">
-        <div class="col-span-12 md:col-span-12">
-          <h2 class="font-semibold">Kitchen Sink</h2>
+        <div class="col-span-12 md:col-span-12 text-center">
+          <h2 class="font-semibold text-indigo-600 dark:text-indigo-400">Kitchen Sink</h2>
         </div>
-        <div class="col-span-12 md:col-span-12">
+        <div class="col-span-12 md:col-span-12 text-center">
           <p class="text-sm text-gray-600 dark:text-gray-300">Every implemented element appears in this form.</p>
         </div>
         <div class="col-span-12 md:col-span-12">
@@ -708,7 +708,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         <div class="col-span-12 md:col-span-12">
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-semibold" for="fg_website">Website</label>
-            <InputText id="fg_website" type="url" @bind-Value="Model.Website" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
+            <InputText id="fg_website" type="url" @bind-Value="Model.Website" class="w-full rounded-md border border-gray-300 bg-white px-2 py-1 text-xs shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
             <ValidationMessage For="@(() => Model.Website)" class="text-xs text-red-600" />
           </div>
         </div>
@@ -727,7 +727,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
           </div>
         </div>
         <div class="col-span-12 md:col-span-12">
-          <hr class="border-t border-gray-200 dark:border-gray-700" />
+          <hr class="border-t border-indigo-500" />
         </div>
         <div class="col-span-12 md:col-span-12">
           <div class="grid grid-cols-12 gap-4">
@@ -740,14 +740,14 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
             </div>
             <div class="col-span-12 md:col-span-6">
               <div class="flex flex-col gap-1.5">
-                <label class="text-sm font-semibold" for="fg_zip">ZIP</label>
+                <label class="sr-only" for="fg_zip">ZIP</label>
                 <InputText id="fg_zip" @bind-Value="Model.Zip" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
                 <ValidationMessage For="@(() => Model.Zip)" class="text-xs text-red-600" />
               </div>
             </div>
           </div>
         </div>
-        <div class="col-span-12 md:col-span-12">
+        <div class="col-span-12 md:col-span-12 account-box">
           <fieldset class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
             <legend class="px-1 text-sm font-semibold text-gray-500 dark:text-gray-400">Account</legend>
             <div class="grid grid-cols-12 gap-4">
@@ -768,7 +768,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
               <div class="col-span-12 md:col-span-12">
                 <div class="flex flex-col gap-1.5">
                   <label class="text-sm font-semibold" for="fg_account_bio">Bio</label>
-                  <InputTextArea id="fg_account_bio" @bind-Value="Model.AccountBio" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="4" />
+                  <InputTextArea id="fg_account_bio" @bind-Value="Model.AccountBio" class="w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="4" />
                   <ValidationMessage For="@(() => Model.AccountBio)" class="text-xs text-red-600" />
                 </div>
               </div>
@@ -1360,10 +1360,10 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
 <EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate class="fg-form" dir="ltr">
     <div style="display: contents" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
     <div class="fg-grid">
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
-          <h2 class="fg-heading">Kitchen Sink</h2>
+        <div class="fg-cell fg-align-center" style="grid-column: span 12 / span 12">
+          <h2 class="fg-heading fg-tone-primary">Kitchen Sink</h2>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell fg-align-center" style="grid-column: span 12 / span 12">
           <p class="fg-paragraph">Every implemented element appears in this form.</p>
         </div>
         <div class="fg-cell" style="grid-column: span 12 / span 12">
@@ -1383,7 +1383,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         <div class="fg-cell" style="grid-column: span 12 / span 12">
           <div class="fg-field">
             <label class="fg-label" for="fg_website">Website</label>
-            <InputText id="fg_website" type="url" @bind-Value="Model.Website" class="fg-input" />
+            <InputText id="fg_website" type="url" @bind-Value="Model.Website" class="fg-input fg-control--sm" />
             <ValidationMessage For="@(() => Model.Website)" class="fg-error" />
           </div>
         </div>
@@ -1402,7 +1402,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
           </div>
         </div>
         <div class="fg-cell" style="grid-column: span 12 / span 12">
-          <hr class="fg-divider" />
+          <hr class="fg-divider fg-tone-primary" />
         </div>
         <div class="fg-cell" style="grid-column: span 12 / span 12">
           <div class="fg-grid">
@@ -1415,14 +1415,14 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             </div>
             <div class="fg-cell" style="grid-column: span 6 / span 6">
               <div class="fg-field">
-                <label class="fg-label" for="fg_zip">ZIP</label>
+                <label class="fg-sr-only" for="fg_zip">ZIP</label>
                 <InputText id="fg_zip" @bind-Value="Model.Zip" class="fg-input" />
                 <ValidationMessage For="@(() => Model.Zip)" class="fg-error" />
               </div>
             </div>
           </div>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell account-box" style="grid-column: span 12 / span 12">
           <fieldset class="fg-group">
             <legend class="fg-group-label">Account</legend>
             <div class="fg-grid">
@@ -1443,7 +1443,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
               <div class="fg-cell" style="grid-column: span 12 / span 12">
                 <div class="fg-field">
                   <label class="fg-label" for="fg_account_bio">Bio</label>
-                  <InputTextArea id="fg_account_bio" @bind-Value="Model.AccountBio" class="fg-textarea" rows="4" />
+                  <InputTextArea id="fg_account_bio" @bind-Value="Model.AccountBio" class="fg-textarea fg-control--lg" rows="4" />
                   <ValidationMessage For="@(() => Model.AccountBio)" class="fg-error" />
                 </div>
               </div>
@@ -2037,10 +2037,10 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
 <body>
   <form id="fg-form" class="container py-4" novalidate>
     <div class="row g-3">
-      <div class="col-12 col-md-12">
-        <h2 class="fw-semibold">Kitchen Sink</h2>
+      <div class="col-12 col-md-12 text-center">
+        <h2 class="fw-semibold text-primary">Kitchen Sink</h2>
       </div>
-      <div class="col-12 col-md-12">
+      <div class="col-12 col-md-12 text-center">
         <p class="text-secondary">Every implemented element appears in this form.</p>
       </div>
       <div class="col-12 col-md-12">
@@ -2060,7 +2060,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       <div class="col-12 col-md-12">
         <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold mb-0" for="fg_website">Website</label>
-          <input id="fg_website" type="url" class="form-control" data-fg-path="website" data-fg-kind="text">
+          <input id="fg_website" type="url" class="form-control form-control-sm" data-fg-path="website" data-fg-kind="text">
           <p id="fg_err_website" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
         </div>
       </div>
@@ -2079,7 +2079,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         </div>
       </div>
       <div class="col-12 col-md-12">
-        <hr class="border-top">
+        <hr class="border-top border-primary opacity-100">
       </div>
       <div class="col-12 col-md-12">
         <div class="row g-3">
@@ -2092,14 +2092,14 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
           </div>
           <div class="col-12 col-md-6">
             <div class="d-flex flex-column gap-1">
-              <label class="form-label fw-semibold mb-0" for="fg_zip">ZIP</label>
+              <label class="visually-hidden" for="fg_zip">ZIP</label>
               <input id="fg_zip" type="text" class="form-control" data-fg-path="zip" data-fg-kind="text">
               <p id="fg_err_zip" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
             </div>
           </div>
         </div>
       </div>
-      <div class="col-12 col-md-12">
+      <div class="col-12 col-md-12 account-box">
         <fieldset class="border rounded p-3 bg-body-tertiary">
           <legend class="fw-semibold text-secondary small px-1">Account</legend>
           <div class="row g-3">
@@ -2120,7 +2120,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
             <div class="col-12 col-md-12">
               <div class="d-flex flex-column gap-1">
                 <label class="form-label fw-semibold mb-0" for="fg_account_bio">Bio</label>
-                <textarea id="fg_account_bio" class="form-control" rows="4" data-fg-path="account.bio" data-fg-kind="text"></textarea>
+                <textarea id="fg_account_bio" class="form-control form-control-lg" rows="4" data-fg-path="account.bio" data-fg-kind="text"></textarea>
                 <p id="fg_err_account_bio" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
               </div>
             </div>
@@ -2711,10 +2711,10 @@ exports[`html target > snapshot (tailwind) 1`] = `
 <body>
   <form id="fg-form" class="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" novalidate>
     <div class="grid grid-cols-12 gap-4">
-      <div class="col-span-12 md:col-span-12">
-        <h2 class="font-semibold">Kitchen Sink</h2>
+      <div class="col-span-12 md:col-span-12 text-center">
+        <h2 class="font-semibold text-indigo-600 dark:text-indigo-400">Kitchen Sink</h2>
       </div>
-      <div class="col-span-12 md:col-span-12">
+      <div class="col-span-12 md:col-span-12 text-center">
         <p class="text-sm text-gray-600 dark:text-gray-300">Every implemented element appears in this form.</p>
       </div>
       <div class="col-span-12 md:col-span-12">
@@ -2734,7 +2734,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
       <div class="col-span-12 md:col-span-12">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_website">Website</label>
-          <input id="fg_website" type="url" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="website" data-fg-kind="text">
+          <input id="fg_website" type="url" class="w-full rounded-md border border-gray-300 bg-white px-2 py-1 text-xs shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="website" data-fg-kind="text">
           <p id="fg_err_website" class="text-xs text-red-600" role="alert" hidden></p>
         </div>
       </div>
@@ -2753,7 +2753,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
         </div>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <hr class="border-t border-gray-200 dark:border-gray-700">
+        <hr class="border-t border-indigo-500">
       </div>
       <div class="col-span-12 md:col-span-12">
         <div class="grid grid-cols-12 gap-4">
@@ -2766,14 +2766,14 @@ exports[`html target > snapshot (tailwind) 1`] = `
           </div>
           <div class="col-span-12 md:col-span-6">
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-semibold" for="fg_zip">ZIP</label>
+              <label class="sr-only" for="fg_zip">ZIP</label>
               <input id="fg_zip" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="zip" data-fg-kind="text">
               <p id="fg_err_zip" class="text-xs text-red-600" role="alert" hidden></p>
             </div>
           </div>
         </div>
       </div>
-      <div class="col-span-12 md:col-span-12">
+      <div class="col-span-12 md:col-span-12 account-box">
         <fieldset class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
           <legend class="px-1 text-sm font-semibold text-gray-500 dark:text-gray-400">Account</legend>
           <div class="grid grid-cols-12 gap-4">
@@ -2794,7 +2794,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
             <div class="col-span-12 md:col-span-12">
               <div class="flex flex-col gap-1.5">
                 <label class="text-sm font-semibold" for="fg_account_bio">Bio</label>
-                <textarea id="fg_account_bio" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="4" data-fg-path="account.bio" data-fg-kind="text"></textarea>
+                <textarea id="fg_account_bio" class="w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="4" data-fg-path="account.bio" data-fg-kind="text"></textarea>
                 <p id="fg_err_account_bio" class="text-xs text-red-600" role="alert" hidden></p>
               </div>
             </div>
@@ -3437,6 +3437,18 @@ exports[`html target > snapshot (vanilla) 1`] = `
   .fg-tag-remove { border: none; background: none; padding: 0; cursor: pointer; color: var(--fg-color-muted); font-size: 0.875rem; line-height: 1; }
   .fg-tags-input { flex: 1; min-inline-size: 6rem; border: none; background: none; font: inherit; color: inherit; padding: 0.125rem; }
   .fg-tags-input:focus { outline: none; }
+  .fg-control--sm { padding: 0.25rem 0.5rem; font-size: 0.8125rem; }
+  .fg-control--lg { padding: 0.75rem 1rem; font-size: 1.0625rem; }
+  .fg-tags.fg-control--sm { padding: 0.125rem 0.375rem; font-size: 0.8125rem; }
+  .fg-tags.fg-control--lg { padding: 0.5rem 0.75rem; font-size: 1.0625rem; }
+  .fg-align-center { text-align: center; }
+  .fg-align-end { text-align: end; }
+  .fg-tone-muted { color: var(--fg-color-muted); }
+  .fg-tone-primary { color: var(--fg-color-primary); }
+  .fg-tone-danger { color: var(--fg-color-error); }
+  .fg-divider.fg-tone-muted { border-block-start-color: var(--fg-color-border); }
+  .fg-divider.fg-tone-primary { border-block-start-color: var(--fg-color-primary); }
+  .fg-divider.fg-tone-danger { border-block-start-color: var(--fg-color-error); }
   .fg-sr-only { position: absolute; inline-size: 1px; block-size: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
   .fg-group { margin: 0; padding: var(--fg-space); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
   .fg-group-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); }
@@ -3456,10 +3468,10 @@ exports[`html target > snapshot (vanilla) 1`] = `
 <body>
   <form id="fg-form" class="fg-form" novalidate>
     <div class="fg-grid">
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
-        <h2 class="fg-heading">Kitchen Sink</h2>
+      <div class="fg-cell fg-align-center" style="grid-column: span 12 / span 12">
+        <h2 class="fg-heading fg-tone-primary">Kitchen Sink</h2>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell fg-align-center" style="grid-column: span 12 / span 12">
         <p class="fg-paragraph">Every implemented element appears in this form.</p>
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
@@ -3479,7 +3491,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
       <div class="fg-cell" style="grid-column: span 12 / span 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_website">Website</label>
-          <input id="fg_website" type="url" class="fg-input" data-fg-path="website" data-fg-kind="text">
+          <input id="fg_website" type="url" class="fg-input fg-control--sm" data-fg-path="website" data-fg-kind="text">
           <p id="fg_err_website" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
@@ -3498,7 +3510,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
         </div>
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
-        <hr class="fg-divider">
+        <hr class="fg-divider fg-tone-primary">
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
         <div class="fg-grid">
@@ -3511,14 +3523,14 @@ exports[`html target > snapshot (vanilla) 1`] = `
           </div>
           <div class="fg-cell" style="grid-column: span 6 / span 6">
             <div class="fg-field">
-              <label class="fg-label" for="fg_zip">ZIP</label>
+              <label class="fg-sr-only" for="fg_zip">ZIP</label>
               <input id="fg_zip" type="text" class="fg-input" data-fg-path="zip" data-fg-kind="text">
               <p id="fg_err_zip" class="fg-error" role="alert" hidden></p>
             </div>
           </div>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell account-box" style="grid-column: span 12 / span 12">
         <fieldset class="fg-group">
           <legend class="fg-group-label">Account</legend>
           <div class="fg-grid">
@@ -3539,7 +3551,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
             <div class="fg-cell" style="grid-column: span 12 / span 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_account_bio">Bio</label>
-                <textarea id="fg_account_bio" class="fg-textarea" rows="4" data-fg-path="account.bio" data-fg-kind="text"></textarea>
+                <textarea id="fg_account_bio" class="fg-textarea fg-control--lg" rows="4" data-fg-path="account.bio" data-fg-kind="text"></textarea>
                 <p id="fg_err_account_bio" class="fg-error" role="alert" hidden></p>
               </div>
             </div>
@@ -4453,10 +4465,10 @@ export default function KitchenSinkForm({
   return (
     <form className="container py-4" dir="ltr" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
       <div className="row g-3">
-        <div className="col-12 col-md-12">
-          <h2 className="fw-semibold">Kitchen Sink</h2>
+        <div className="col-12 col-md-12 text-center">
+          <h2 className="fw-semibold text-primary">Kitchen Sink</h2>
         </div>
-        <div className="col-12 col-md-12">
+        <div className="col-12 col-md-12 text-center">
           <p className="text-secondary">Every implemented element appears in this form.</p>
         </div>
         <div className="col-12 col-md-12">
@@ -4476,7 +4488,7 @@ export default function KitchenSinkForm({
         <div className="col-12 col-md-12">
           <div className="d-flex flex-column gap-1">
             <label className="form-label fw-semibold mb-0" htmlFor="fg_website">Website</label>
-            <input id="fg_website" type="url" value={form.website} className={errors['website'] ? "form-control is-invalid" : "form-control"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('website', e.target.value)} onBlur={() => touch('website')} />
+            <input id="fg_website" type="url" value={form.website} className={errors['website'] ? "form-control form-control-sm is-invalid" : "form-control form-control-sm"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('website', e.target.value)} onBlur={() => touch('website')} />
             {errors['website'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['website']}</p>}
           </div>
         </div>
@@ -4496,7 +4508,7 @@ export default function KitchenSinkForm({
           </div>
         </div>
         <div className="col-12 col-md-12">
-          <hr className="border-top" />
+          <hr className="border-top border-primary opacity-100" />
         </div>
         <div className="col-12 col-md-12">
           <div className="row g-3">
@@ -4509,14 +4521,14 @@ export default function KitchenSinkForm({
             </div>
             <div className="col-12 col-md-6">
               <div className="d-flex flex-column gap-1">
-                <label className="form-label fw-semibold mb-0" htmlFor="fg_zip">ZIP</label>
+                <label className="visually-hidden" htmlFor="fg_zip">ZIP</label>
                 <input id="fg_zip" type="text" value={form.zip} className={errors['zip'] ? "form-control is-invalid" : "form-control"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('zip', e.target.value)} onBlur={() => touch('zip')} />
                 {errors['zip'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['zip']}</p>}
               </div>
             </div>
           </div>
         </div>
-        <div className="col-12 col-md-12">
+        <div className="col-12 col-md-12 account-box">
           <fieldset className="border rounded p-3 bg-body-tertiary">
             <legend className="fw-semibold text-secondary small px-1">Account</legend>
             <div className="row g-3">
@@ -4537,7 +4549,7 @@ export default function KitchenSinkForm({
               <div className="col-12 col-md-12">
                 <div className="d-flex flex-column gap-1">
                   <label className="form-label fw-semibold mb-0" htmlFor="fg_account_bio">Bio</label>
-                  <textarea id="fg_account_bio" rows={4} value={form.account.bio} className={errors['account.bio'] ? "form-control is-invalid" : "form-control"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('account.bio', e.target.value)} onBlur={() => touch('account.bio')} />
+                  <textarea id="fg_account_bio" rows={4} value={form.account.bio} className={errors['account.bio'] ? "form-control form-control-lg is-invalid" : "form-control form-control-lg"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('account.bio', e.target.value)} onBlur={() => touch('account.bio')} />
                   {errors['account.bio'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['account.bio']}</p>}
                 </div>
               </div>
@@ -5068,10 +5080,10 @@ export default function KitchenSinkForm({
   return (
     <form className="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" dir="ltr" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
       <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-12 md:col-span-12">
-          <h2 className="font-semibold">Kitchen Sink</h2>
+        <div className="col-span-12 md:col-span-12 text-center">
+          <h2 className="font-semibold text-indigo-600 dark:text-indigo-400">Kitchen Sink</h2>
         </div>
-        <div className="col-span-12 md:col-span-12">
+        <div className="col-span-12 md:col-span-12 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-300">Every implemented element appears in this form.</p>
         </div>
         <div className="col-span-12 md:col-span-12">
@@ -5091,7 +5103,7 @@ export default function KitchenSinkForm({
         <div className="col-span-12 md:col-span-12">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold" htmlFor="fg_website">Website</label>
-            <input id="fg_website" type="url" value={form.website} className={errors['website'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('website', e.target.value)} onBlur={() => touch('website')} />
+            <input id="fg_website" type="url" value={form.website} className={errors['website'] ? "w-full rounded-md border border-gray-300 bg-white px-2 py-1 text-xs shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-2 py-1 text-xs shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('website', e.target.value)} onBlur={() => touch('website')} />
             {errors['website'] && <p className="text-xs text-red-600" role="alert">{errors['website']}</p>}
           </div>
         </div>
@@ -5111,7 +5123,7 @@ export default function KitchenSinkForm({
           </div>
         </div>
         <div className="col-span-12 md:col-span-12">
-          <hr className="border-t border-gray-200 dark:border-gray-700" />
+          <hr className="border-t border-indigo-500" />
         </div>
         <div className="col-span-12 md:col-span-12">
           <div className="grid grid-cols-12 gap-4">
@@ -5124,14 +5136,14 @@ export default function KitchenSinkForm({
             </div>
             <div className="col-span-12 md:col-span-6">
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold" htmlFor="fg_zip">ZIP</label>
+                <label className="sr-only" htmlFor="fg_zip">ZIP</label>
                 <input id="fg_zip" type="text" value={form.zip} className={errors['zip'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('zip', e.target.value)} onBlur={() => touch('zip')} />
                 {errors['zip'] && <p className="text-xs text-red-600" role="alert">{errors['zip']}</p>}
               </div>
             </div>
           </div>
         </div>
-        <div className="col-span-12 md:col-span-12">
+        <div className="col-span-12 md:col-span-12 account-box">
           <fieldset className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
             <legend className="px-1 text-sm font-semibold text-gray-500 dark:text-gray-400">Account</legend>
             <div className="grid grid-cols-12 gap-4">
@@ -5152,7 +5164,7 @@ export default function KitchenSinkForm({
               <div className="col-span-12 md:col-span-12">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-sm font-semibold" htmlFor="fg_account_bio">Bio</label>
-                  <textarea id="fg_account_bio" rows={4} value={form.account.bio} className={errors['account.bio'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('account.bio', e.target.value)} onBlur={() => touch('account.bio')} />
+                  <textarea id="fg_account_bio" rows={4} value={form.account.bio} className={errors['account.bio'] ? "w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('account.bio', e.target.value)} onBlur={() => touch('account.bio')} />
                   {errors['account.bio'] && <p className="text-xs text-red-600" role="alert">{errors['account.bio']}</p>}
                 </div>
               </div>
@@ -5684,10 +5696,10 @@ export default function KitchenSinkForm({
   return (
     <form className="fg-form" dir="ltr" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
       <div className="fg-grid">
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
-          <h2 className="fg-heading">Kitchen Sink</h2>
+        <div className="fg-cell fg-align-center" style={{ gridColumn: 'span 12 / span 12' }}>
+          <h2 className="fg-heading fg-tone-primary">Kitchen Sink</h2>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell fg-align-center" style={{ gridColumn: 'span 12 / span 12' }}>
           <p className="fg-paragraph">Every implemented element appears in this form.</p>
         </div>
         <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
@@ -5707,7 +5719,7 @@ export default function KitchenSinkForm({
         <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
           <div className="fg-field">
             <label className="fg-label" htmlFor="fg_website">Website</label>
-            <input id="fg_website" type="url" value={form.website} className={errors['website'] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('website', e.target.value)} onBlur={() => touch('website')} />
+            <input id="fg_website" type="url" value={form.website} className={errors['website'] ? "fg-input fg-control--sm fg-invalid" : "fg-input fg-control--sm"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('website', e.target.value)} onBlur={() => touch('website')} />
             {errors['website'] && <p className="fg-error" role="alert">{errors['website']}</p>}
           </div>
         </div>
@@ -5727,7 +5739,7 @@ export default function KitchenSinkForm({
           </div>
         </div>
         <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
-          <hr className="fg-divider" />
+          <hr className="fg-divider fg-tone-primary" />
         </div>
         <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
           <div className="fg-grid">
@@ -5740,14 +5752,14 @@ export default function KitchenSinkForm({
             </div>
             <div className="fg-cell" style={{ gridColumn: 'span 6 / span 6' }}>
               <div className="fg-field">
-                <label className="fg-label" htmlFor="fg_zip">ZIP</label>
+                <label className="fg-sr-only" htmlFor="fg_zip">ZIP</label>
                 <input id="fg_zip" type="text" value={form.zip} className={errors['zip'] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('zip', e.target.value)} onBlur={() => touch('zip')} />
                 {errors['zip'] && <p className="fg-error" role="alert">{errors['zip']}</p>}
               </div>
             </div>
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell account-box" style={{ gridColumn: 'span 12 / span 12' }}>
           <fieldset className="fg-group">
             <legend className="fg-group-label">Account</legend>
             <div className="fg-grid">
@@ -5768,7 +5780,7 @@ export default function KitchenSinkForm({
               <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
                 <div className="fg-field">
                   <label className="fg-label" htmlFor="fg_account_bio">Bio</label>
-                  <textarea id="fg_account_bio" rows={4} value={form.account.bio} className={errors['account.bio'] ? "fg-textarea fg-invalid" : "fg-textarea"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('account.bio', e.target.value)} onBlur={() => touch('account.bio')} />
+                  <textarea id="fg_account_bio" rows={4} value={form.account.bio} className={errors['account.bio'] ? "fg-textarea fg-control--lg fg-invalid" : "fg-textarea fg-control--lg"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('account.bio', e.target.value)} onBlur={() => touch('account.bio')} />
                   {errors['account.bio'] && <p className="fg-error" role="alert">{errors['account.bio']}</p>}
                 </div>
               </div>
@@ -6264,10 +6276,10 @@ async function onSubmit(): Promise<void> {
     @pointerdown.capture="fgPointerDown"
   >
     <div class="row g-3">
-      <div class="col-12 col-md-12">
-        <h2 class="fw-semibold">Kitchen Sink</h2>
+      <div class="col-12 col-md-12 text-center">
+        <h2 class="fw-semibold text-primary">Kitchen Sink</h2>
       </div>
-      <div class="col-12 col-md-12">
+      <div class="col-12 col-md-12 text-center">
         <p class="text-secondary">Every implemented element appears in this form.</p>
       </div>
       <div class="col-12 col-md-12">
@@ -6287,7 +6299,7 @@ async function onSubmit(): Promise<void> {
       <div class="col-12 col-md-12">
         <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold mb-0" for="fg_website">Website</label>
-          <input id="fg_website" v-model="form.website" type="url" class="form-control" :class="{ 'is-invalid': !!errors['website'] }" @blur="touch('website')" @input="revalidate('website')">
+          <input id="fg_website" v-model="form.website" type="url" class="form-control form-control-sm" :class="{ 'is-invalid': !!errors['website'] }" @blur="touch('website')" @input="revalidate('website')">
           <p v-if="errors['website']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['website'] }}</p>
         </div>
       </div>
@@ -6307,7 +6319,7 @@ async function onSubmit(): Promise<void> {
         </div>
       </div>
       <div class="col-12 col-md-12">
-        <hr class="border-top">
+        <hr class="border-top border-primary opacity-100">
       </div>
       <div class="col-12 col-md-12">
         <div class="row g-3">
@@ -6320,14 +6332,14 @@ async function onSubmit(): Promise<void> {
           </div>
           <div class="col-12 col-md-6">
             <div class="d-flex flex-column gap-1">
-              <label class="form-label fw-semibold mb-0" for="fg_zip">ZIP</label>
+              <label class="visually-hidden" for="fg_zip">ZIP</label>
               <input id="fg_zip" v-model="form.zip" type="text" class="form-control" :class="{ 'is-invalid': !!errors['zip'] }" @blur="touch('zip')" @input="revalidate('zip')">
               <p v-if="errors['zip']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['zip'] }}</p>
             </div>
           </div>
         </div>
       </div>
-      <div class="col-12 col-md-12">
+      <div class="col-12 col-md-12 account-box">
         <fieldset class="border rounded p-3 bg-body-tertiary">
           <legend class="fw-semibold text-secondary small px-1">Account</legend>
           <div class="row g-3">
@@ -6348,7 +6360,7 @@ async function onSubmit(): Promise<void> {
             <div class="col-12 col-md-12">
               <div class="d-flex flex-column gap-1">
                 <label class="form-label fw-semibold mb-0" for="fg_account_bio">Bio</label>
-                <textarea id="fg_account_bio" v-model="form.account.bio" class="form-control" rows="4" :class="{ 'is-invalid': !!errors['account.bio'] }" @blur="touch('account.bio')" @input="revalidate('account.bio')"></textarea>
+                <textarea id="fg_account_bio" v-model="form.account.bio" class="form-control form-control-lg" rows="4" :class="{ 'is-invalid': !!errors['account.bio'] }" @blur="touch('account.bio')" @input="revalidate('account.bio')"></textarea>
                 <p v-if="errors['account.bio']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['account.bio'] }}</p>
               </div>
             </div>
@@ -6833,10 +6845,10 @@ async function onSubmit(): Promise<void> {
     @pointerdown.capture="fgPointerDown"
   >
     <div class="grid grid-cols-12 gap-4">
-      <div class="col-span-12 md:col-span-12">
-        <h2 class="font-semibold">Kitchen Sink</h2>
+      <div class="col-span-12 md:col-span-12 text-center">
+        <h2 class="font-semibold text-indigo-600 dark:text-indigo-400">Kitchen Sink</h2>
       </div>
-      <div class="col-span-12 md:col-span-12">
+      <div class="col-span-12 md:col-span-12 text-center">
         <p class="text-sm text-gray-600 dark:text-gray-300">Every implemented element appears in this form.</p>
       </div>
       <div class="col-span-12 md:col-span-12">
@@ -6856,7 +6868,7 @@ async function onSubmit(): Promise<void> {
       <div class="col-span-12 md:col-span-12">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_website">Website</label>
-          <input id="fg_website" v-model="form.website" type="url" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['website'] }" @blur="touch('website')" @input="revalidate('website')">
+          <input id="fg_website" v-model="form.website" type="url" class="w-full rounded-md border border-gray-300 bg-white px-2 py-1 text-xs shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['website'] }" @blur="touch('website')" @input="revalidate('website')">
           <p v-if="errors['website']" class="text-xs text-red-600" role="alert">{{ errors['website'] }}</p>
         </div>
       </div>
@@ -6876,7 +6888,7 @@ async function onSubmit(): Promise<void> {
         </div>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <hr class="border-t border-gray-200 dark:border-gray-700">
+        <hr class="border-t border-indigo-500">
       </div>
       <div class="col-span-12 md:col-span-12">
         <div class="grid grid-cols-12 gap-4">
@@ -6889,14 +6901,14 @@ async function onSubmit(): Promise<void> {
           </div>
           <div class="col-span-12 md:col-span-6">
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-semibold" for="fg_zip">ZIP</label>
+              <label class="sr-only" for="fg_zip">ZIP</label>
               <input id="fg_zip" v-model="form.zip" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['zip'] }" @blur="touch('zip')" @input="revalidate('zip')">
               <p v-if="errors['zip']" class="text-xs text-red-600" role="alert">{{ errors['zip'] }}</p>
             </div>
           </div>
         </div>
       </div>
-      <div class="col-span-12 md:col-span-12">
+      <div class="col-span-12 md:col-span-12 account-box">
         <fieldset class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
           <legend class="px-1 text-sm font-semibold text-gray-500 dark:text-gray-400">Account</legend>
           <div class="grid grid-cols-12 gap-4">
@@ -6917,7 +6929,7 @@ async function onSubmit(): Promise<void> {
             <div class="col-span-12 md:col-span-12">
               <div class="flex flex-col gap-1.5">
                 <label class="text-sm font-semibold" for="fg_account_bio">Bio</label>
-                <textarea id="fg_account_bio" v-model="form.account.bio" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="4" :class="{ 'border-red-500 focus:ring-red-200': !!errors['account.bio'] }" @blur="touch('account.bio')" @input="revalidate('account.bio')"></textarea>
+                <textarea id="fg_account_bio" v-model="form.account.bio" class="w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="4" :class="{ 'border-red-500 focus:ring-red-200': !!errors['account.bio'] }" @blur="touch('account.bio')" @input="revalidate('account.bio')"></textarea>
                 <p v-if="errors['account.bio']" class="text-xs text-red-600" role="alert">{{ errors['account.bio'] }}</p>
               </div>
             </div>
@@ -7402,10 +7414,10 @@ async function onSubmit(): Promise<void> {
     @pointerdown.capture="fgPointerDown"
   >
     <div class="fg-grid">
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
-        <h2 class="fg-heading">Kitchen Sink</h2>
+      <div class="fg-cell fg-align-center" style="grid-column: span 12 / span 12">
+        <h2 class="fg-heading fg-tone-primary">Kitchen Sink</h2>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell fg-align-center" style="grid-column: span 12 / span 12">
         <p class="fg-paragraph">Every implemented element appears in this form.</p>
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
@@ -7425,7 +7437,7 @@ async function onSubmit(): Promise<void> {
       <div class="fg-cell" style="grid-column: span 12 / span 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_website">Website</label>
-          <input id="fg_website" v-model="form.website" type="url" class="fg-input" :class="{ 'fg-invalid': !!errors['website'] }" @blur="touch('website')" @input="revalidate('website')">
+          <input id="fg_website" v-model="form.website" type="url" class="fg-input fg-control--sm" :class="{ 'fg-invalid': !!errors['website'] }" @blur="touch('website')" @input="revalidate('website')">
           <p v-if="errors['website']" class="fg-error" role="alert">{{ errors['website'] }}</p>
         </div>
       </div>
@@ -7445,7 +7457,7 @@ async function onSubmit(): Promise<void> {
         </div>
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
-        <hr class="fg-divider">
+        <hr class="fg-divider fg-tone-primary">
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
         <div class="fg-grid">
@@ -7458,14 +7470,14 @@ async function onSubmit(): Promise<void> {
           </div>
           <div class="fg-cell" style="grid-column: span 6 / span 6">
             <div class="fg-field">
-              <label class="fg-label" for="fg_zip">ZIP</label>
+              <label class="fg-sr-only" for="fg_zip">ZIP</label>
               <input id="fg_zip" v-model="form.zip" type="text" class="fg-input" :class="{ 'fg-invalid': !!errors['zip'] }" @blur="touch('zip')" @input="revalidate('zip')">
               <p v-if="errors['zip']" class="fg-error" role="alert">{{ errors['zip'] }}</p>
             </div>
           </div>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell account-box" style="grid-column: span 12 / span 12">
         <fieldset class="fg-group">
           <legend class="fg-group-label">Account</legend>
           <div class="fg-grid">
@@ -7486,7 +7498,7 @@ async function onSubmit(): Promise<void> {
             <div class="fg-cell" style="grid-column: span 12 / span 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_account_bio">Bio</label>
-                <textarea id="fg_account_bio" v-model="form.account.bio" class="fg-textarea" rows="4" :class="{ 'fg-invalid': !!errors['account.bio'] }" @blur="touch('account.bio')" @input="revalidate('account.bio')"></textarea>
+                <textarea id="fg_account_bio" v-model="form.account.bio" class="fg-textarea fg-control--lg" rows="4" :class="{ 'fg-invalid': !!errors['account.bio'] }" @blur="touch('account.bio')" @input="revalidate('account.bio')"></textarea>
                 <p v-if="errors['account.bio']" class="fg-error" role="alert">{{ errors['account.bio'] }}</p>
               </div>
             </div>
@@ -7726,6 +7738,18 @@ async function onSubmit(): Promise<void> {
 .fg-tag-remove { border: none; background: none; padding: 0; cursor: pointer; color: var(--fg-color-muted); font-size: 0.875rem; line-height: 1; }
 .fg-tags-input { flex: 1; min-inline-size: 6rem; border: none; background: none; font: inherit; color: inherit; padding: 0.125rem; }
 .fg-tags-input:focus { outline: none; }
+.fg-control--sm { padding: 0.25rem 0.5rem; font-size: 0.8125rem; }
+.fg-control--lg { padding: 0.75rem 1rem; font-size: 1.0625rem; }
+.fg-tags.fg-control--sm { padding: 0.125rem 0.375rem; font-size: 0.8125rem; }
+.fg-tags.fg-control--lg { padding: 0.5rem 0.75rem; font-size: 1.0625rem; }
+.fg-align-center { text-align: center; }
+.fg-align-end { text-align: end; }
+.fg-tone-muted { color: var(--fg-color-muted); }
+.fg-tone-primary { color: var(--fg-color-primary); }
+.fg-tone-danger { color: var(--fg-color-error); }
+.fg-divider.fg-tone-muted { border-block-start-color: var(--fg-color-border); }
+.fg-divider.fg-tone-primary { border-block-start-color: var(--fg-color-primary); }
+.fg-divider.fg-tone-danger { border-block-start-color: var(--fg-color-error); }
 .fg-sr-only { position: absolute; inline-size: 1px; block-size: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .fg-group { margin: 0; padding: var(--fg-space); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
 .fg-group-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); }

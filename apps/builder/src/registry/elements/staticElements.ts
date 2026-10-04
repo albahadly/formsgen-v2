@@ -2,7 +2,7 @@
 
 import type { ElementNode } from '@formsgen/renderer'
 import { esc } from '../emitters/shared'
-import type { ElementDefinition, EmitCtx } from '../types'
+import { appearanceSection, type ElementDefinition, type EmitCtx } from '../types'
 
 function headingTag(node: ElementNode): string {
   const level = Number(node.props['level'] ?? 2)
@@ -40,6 +40,7 @@ export const headingElement: ElementDefinition = {
       ],
     },
     { title: 'Layout', controls: [{ kind: 'colspan' }] },
+    appearanceSection(['align', 'tone', 'className']),
     { title: 'Conditions', controls: [{ kind: 'conditions' }] },
   ],
   export: {
@@ -66,6 +67,7 @@ export const paragraphElement: ElementDefinition = {
       controls: [{ kind: 'text', prop: 'text', label: 'Text' }],
     },
     { title: 'Layout', controls: [{ kind: 'colspan' }] },
+    appearanceSection(['align', 'tone', 'className']),
     { title: 'Conditions', controls: [{ kind: 'conditions' }] },
   ],
   export: {
@@ -85,6 +87,7 @@ export const dividerElement: ElementDefinition = {
   defaultProps: {},
   propertyPanel: [
     { title: 'Layout', controls: [{ kind: 'colspan' }] },
+    appearanceSection(['tone', 'className']),
     { title: 'Conditions', controls: [{ kind: 'conditions' }] },
   ],
   export: {

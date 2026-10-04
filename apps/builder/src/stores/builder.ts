@@ -16,6 +16,7 @@ import {
   type ColSpan,
   type ConditionGroups,
   type ElementNode,
+  type ElementStyle,
   type FormMeta,
   type FormSchema,
   type Rule,
@@ -148,6 +149,24 @@ export const useBuilderStore = defineStore('builder', {
         delete node.validation
       } else {
         node.validation = rules
+      }
+    },
+
+    /**
+     * Merges appearance options. Defaults (undefined, false, '') are removed
+     * rather than stored, and `style` disappears entirely when nothing is left.
+     */
+    setStyle(id: string, patch: Partial<ElementStyle>): void {
+      const node = findNodeById(this.schema.tree, id)
+      if (!node) return
+      const merged: Record<string, unknown> = { ...node.style, ...patch }
+      for (const [key, value] of Object.entries(merged)) {
+        if (value === undefined || value === false || value === '') delete merged[key]
+      }
+      if (Object.keys(merged).length === 0) {
+        delete node.style
+      } else {
+        node.style = merged as ElementStyle
       }
     },
 

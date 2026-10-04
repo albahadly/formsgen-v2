@@ -430,6 +430,30 @@ describe('Arabic forms (meta.locale "ar") across code targets', () => {
   })
 })
 
+describe('element appearance (style) in every target and framework', () => {
+  // kitchen-sink: website sm, bio lg, zip hideLabel, heading center+primary,
+  // divider primary, account group className "account-box"
+  const expectations: Record<string, string[]> = {
+    vanilla: ['fg-input fg-control--sm', 'fg-textarea fg-control--lg', 'fg-sr-only', 'fg-align-center', 'fg-heading fg-tone-primary', 'fg-divider fg-tone-primary', 'account-box'],
+    tailwind: ['px-2 py-1 text-xs', 'px-4 py-3 text-base', 'sr-only', 'text-center', 'text-indigo-600', 'border-indigo-500', 'account-box'],
+    bootstrap5: ['form-control form-control-sm', 'form-control form-control-lg', 'visually-hidden', 'text-center', 'fw-semibold text-primary', 'border-top border-primary opacity-100', 'account-box'],
+  }
+
+  it.each(['vue-standalone', 'react', 'html', 'blazor'])('%s emits every style in all frameworks', (id) => {
+    for (const framework of frameworks) {
+      const code = generate(id, framework)[0]!.content
+      for (const expected of expectations[framework]!) {
+        expect(code, `${id}/${framework}: ${expected}`).toContain(expected)
+      }
+    }
+  })
+
+  it('a hidden label stays the control\'s label (for= and text intact)', () => {
+    const html = generate('html')[0]!.content
+    expect(html).toContain('<label class="fg-sr-only" for="fg_zip">ZIP</label>')
+  })
+})
+
 describe('blur validation waits for a pointer press to end (no lost clicks)', () => {
   // An error appearing between pointerdown and pointerup reflows the form,
   // so the release lands off the button/checkbox and the click is lost.

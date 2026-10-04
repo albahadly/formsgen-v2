@@ -1,4 +1,4 @@
-import type { ElementDefinition } from '../types'
+import { appearanceSection, type ElementDefinition } from '../types'
 
 export const columnsElement: ElementDefinition = {
   type: 'columns',
@@ -25,6 +25,7 @@ export const columnsElement: ElementDefinition = {
       ],
     },
     { title: 'Layout', controls: [{ kind: 'colspan' }] },
+    appearanceSection(['align', 'className']),
     { title: 'Conditions', controls: [{ kind: 'conditions' }] },
   ],
 }

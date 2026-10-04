@@ -9,8 +9,19 @@ interface Item {
 }
 
 const props = defineProps<{ node: ElementNode; path: string }>()
-const { value, error, label, description, required, fieldId, errorId, describedBy, onBlur } =
-  useField(props)
+const {
+  value,
+  error,
+  label,
+  description,
+  required,
+  fieldId,
+  errorId,
+  describedBy,
+  onBlur,
+  labelClass,
+  sizeClass,
+} = useField(props)
 
 const items = computed<Item[]>(() => {
   const raw = props.node.props['items']
@@ -33,7 +44,7 @@ const size = computed(() => Math.min(Math.max(items.value.length, 2), 6))
     :class="{ 'fg-field--error': error }"
   >
     <label
-      class="fg-label"
+      :class="labelClass"
       :for="fieldId"
     >
       {{ label }}<span
@@ -46,6 +57,7 @@ const size = computed(() => Math.min(Math.max(items.value.length, 2), 6))
       :id="fieldId"
       v-model="picked"
       class="fg-select fg-select--multiple"
+      :class="sizeClass"
       multiple
       :size="size"
       :name="node.name"

@@ -2,6 +2,7 @@
 // import, export round-trips). Dependency-free by design — no zod.
 
 import {
+  CLASS_TOKEN_PATTERN,
   NAME_PATTERN,
   SCHEMA_ID,
   type Condition,
@@ -81,6 +82,36 @@ export function parseFormSchema(input: unknown): ParseResult {
   return { ok: true, schema: input as unknown as FormSchema }
 }
 
+const STYLE_ENUMS: Record<string, readonly string[]> = {
+  size: ['sm', 'lg'],
+  align: ['center', 'end'],
+  tone: ['muted', 'primary', 'danger'],
+}
+
+function validateStyle(style: unknown, path: string, errors: string[]): void {
+  if (style === undefined) return
+  if (!isRecord(style)) {
+    errors.push(`${path}: expected an object`)
+    return
+  }
+  for (const [key, allowed] of Object.entries(STYLE_ENUMS)) {
+    const value = style[key]
+    if (value !== undefined && !allowed.includes(value as string)) {
+      errors.push(`${path}.${key}: expected one of ${allowed.join(', ')}`)
+    }
+  }
+  if (style['hideLabel'] !== undefined && typeof style['hideLabel'] !== 'boolean') {
+    errors.push(`${path}.hideLabel: expected a boolean`)
+  }
+  const className = style['className']
+  if (className !== undefined) {
+    const tokens = typeof className === 'string' ? className.split(/\s+/).filter(Boolean) : null
+    if (!tokens || !tokens.every((token) => CLASS_TOKEN_PATTERN.test(token))) {
+      errors.push(`${path}.className: expected space-separated CSS class names`)
+    }
+  }
+}
+
 function validateNodes(
   nodes: unknown[],
   path: string,
@@ -123,6 +154,7 @@ function validateNodes(
 
     validateRules(raw['validation'], `${p}.validation`, errors)
     validateConditions(raw['conditions'], `${p}.conditions`, errors)
+    validateStyle(raw['style'], `${p}.style`, errors)
 
     const children = raw['children']
     if (children !== undefined) {

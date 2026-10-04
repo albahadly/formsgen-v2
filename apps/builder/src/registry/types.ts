@@ -42,6 +42,8 @@ export type PanelControl =
   | { kind: 'validation' }
   /** Visibility condition builder over other named fields. */
   | { kind: 'conditions' }
+  /** Appearance options (ElementNode.style) offered for this element. */
+  | { kind: 'appearance'; features: AppearanceFeature[] }
   /** 12-column span picker (layout.colSpan). */
   | { kind: 'colspan' }
 
@@ -74,7 +76,20 @@ export interface ElementDefinition {
 }
 
 /** Shared panel sections for value-bearing field elements. */
-export function commonFieldSections(extra: PanelControl[] = []): PanelSection[] {
+/** One appearance option in the panel (maps to an ElementStyle key). */
+export type AppearanceFeature = 'size' | 'hideLabel' | 'align' | 'tone' | 'className'
+
+/** Fields with a sizable control (text-likes, number, textarea, selects, tags). */
+export const FIELD_APPEARANCE: AppearanceFeature[] = ['size', 'hideLabel', 'align', 'className']
+
+export function appearanceSection(features: AppearanceFeature[]): PanelSection {
+  return { title: 'Appearance', controls: [{ kind: 'appearance', features }] }
+}
+
+export function commonFieldSections(
+  extra: PanelControl[] = [],
+  appearance: AppearanceFeature[] = FIELD_APPEARANCE,
+): PanelSection[] {
   return [
     {
       title: 'Properties',
@@ -87,6 +102,7 @@ export function commonFieldSections(extra: PanelControl[] = []): PanelSection[] 
     },
     { title: 'Data', controls: [{ kind: 'name' }] },
     { title: 'Layout', controls: [{ kind: 'colspan' }] },
+    appearanceSection(appearance),
     { title: 'Validation', controls: [{ kind: 'validation' }] },
     { title: 'Conditions', controls: [{ kind: 'conditions' }] },
   ]

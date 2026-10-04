@@ -133,7 +133,10 @@ function onDuplicate(): void {
 <template>
   <div
     class="group relative rounded-md border p-2 transition-colors"
-    :class="selected ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-transparent hover:border-indigo-300'"
+    :class="[
+      selected ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-transparent hover:border-indigo-300',
+      node.style?.align ? `fg-align-${node.style.align}` : '',
+    ]"
     :data-testid="`canvas-node-${node.id}`"
     @click.stop="onSelect"
   >

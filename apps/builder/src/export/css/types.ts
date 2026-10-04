@@ -2,7 +2,7 @@
 // target scaffolds NEVER hardcode a class name — they ask the adapter, so
 // one emitter serves vanilla CSS, Tailwind and Bootstrap 5 alike.
 
-import type { ThemeTokens } from '@formsgen/renderer'
+import type { ControlSize, TextAlign, TextTone, ThemeTokens } from '@formsgen/renderer'
 
 export type CssFrameworkId = 'vanilla' | 'tailwind' | 'bootstrap5'
 
@@ -50,10 +50,23 @@ export interface CellAttrs {
   style?: string
 }
 
+/**
+ * Appearance modifiers (ElementNode.style). `size` applies to control
+ * slots (input, textarea, select, tagsWrap); `tone` to heading, paragraph
+ * and divider. Adapters return a complete class string per variant, so
+ * conflicting utilities are never stacked on one element.
+ */
+export interface SlotMods {
+  size?: ControlSize | undefined
+  tone?: TextTone | undefined
+}
+
 export interface CssFrameworkAdapter {
   id: CssFrameworkId
   label: string
-  classes(slot: Slot): string
+  classes(slot: Slot, mods?: SlotMods): string
+  /** Class aligning an element's text (style.align). */
+  alignClass(align: TextAlign): string
   /** Grid cell carrying a 12-column span. */
   cell(span: number): CellAttrs
   /** Class(es) added to a control while invalid. */
@@ -64,4 +77,14 @@ export interface CssFrameworkAdapter {
   assets(): { links: string[]; scripts: string[] }
   /** One line for generated READMEs naming the framework prerequisite. */
   readmeNote(): string
+}
+
+/** Slots that take `size` / `tone` modifiers. */
+export const SIZED_SLOTS: ReadonlySet<Slot> = new Set<Slot>(['input', 'textarea', 'select', 'tagsWrap'])
+export const TONED_SLOTS: ReadonlySet<Slot> = new Set<Slot>(['heading', 'paragraph', 'divider'])
+
+/** Replaces `from` in a class string; throws if absent (caught by tests). */
+export function swapClasses(base: string, from: string, to: string): string {
+  if (!base.includes(from)) throw new Error(`class swap: "${from}" not found in "${base}"`)
+  return base.replace(from, to)
 }

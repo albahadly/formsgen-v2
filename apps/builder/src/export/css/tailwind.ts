@@ -1,4 +1,4 @@
-import type { CssFrameworkAdapter, Slot } from './types'
+import { swapClasses, type CssFrameworkAdapter, type Slot, type SlotMods } from './types'
 
 // Polished with stock Tailwind, no plugin required (§7a).
 const CLASSES: Record<Slot, string> = {
@@ -49,10 +49,50 @@ const CLASSES: Record<Slot, string> = {
   srOnly: 'sr-only',
 }
 
+// Size and color are swapped in place: two padding or color utilities on
+// one element resolve by stylesheet order, not attribute order.
+const CONTROL_SIZE = {
+  md: 'px-3 py-2 text-sm',
+  sm: 'px-2 py-1 text-xs',
+  lg: 'px-4 py-3 text-base',
+}
+const TAGS_SIZE = { md: 'px-2 py-1.5', sm: 'px-1.5 py-1 text-xs', lg: 'px-3 py-2 text-base' }
+const TONE_TEXT = {
+  muted: 'text-gray-500 dark:text-gray-400',
+  primary: 'text-indigo-600 dark:text-indigo-400',
+  danger: 'text-red-600 dark:text-red-400',
+}
+const TONE_BORDER = {
+  muted: 'border-gray-300 dark:border-gray-600',
+  primary: 'border-indigo-500',
+  danger: 'border-red-500',
+}
+
+function tailwindClasses(slot: Slot, mods?: SlotMods): string {
+  const base = CLASSES[slot]
+  if (mods?.size) {
+    if (slot === 'input' || slot === 'textarea' || slot === 'select') {
+      return swapClasses(base, CONTROL_SIZE.md, CONTROL_SIZE[mods.size])
+    }
+    if (slot === 'tagsWrap') return swapClasses(base, TAGS_SIZE.md, TAGS_SIZE[mods.size])
+  }
+  if (mods?.tone) {
+    if (slot === 'heading') return `${base} ${TONE_TEXT[mods.tone]}`
+    if (slot === 'paragraph') {
+      return swapClasses(base, 'text-gray-600 dark:text-gray-300', TONE_TEXT[mods.tone])
+    }
+    if (slot === 'divider') {
+      return swapClasses(base, 'border-gray-200 dark:border-gray-700', TONE_BORDER[mods.tone])
+    }
+  }
+  return base
+}
+
 export const tailwindAdapter: CssFrameworkAdapter = {
   id: 'tailwind',
   label: 'Tailwind CSS',
-  classes: (slot) => CLASSES[slot],
+  classes: tailwindClasses,
+  alignClass: (align) => `text-${align}`,
   cell: (span) => ({ class: `col-span-12 md:col-span-${span}` }),
   invalidClass: () => 'border-red-500 focus:ring-red-200',
   assets: () => ({

@@ -4,7 +4,18 @@ import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
 
 const props = defineProps<{ node: ElementNode; path: string }>()
-const { value, error, label, description, required, fieldId, errorId, describedBy, onBlur } = useField(props)
+const {
+  value,
+  error,
+  label,
+  description,
+  required,
+  fieldId,
+  errorId,
+  describedBy,
+  onBlur,
+  labelClass,
+} = useField(props)
 
 const min = computed(() => Number(props.node.props['min'] ?? 0))
 const max = computed(() => Number(props.node.props['max'] ?? 100))
@@ -24,7 +35,7 @@ const current = computed({
     :class="{ 'fg-field--error': error }"
   >
     <label
-      class="fg-label"
+      :class="labelClass"
       :for="fieldId"
     >
       {{ label }}<span

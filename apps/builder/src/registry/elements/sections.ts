@@ -5,7 +5,7 @@
 
 import type { ElementNode } from '@formsgen/renderer'
 import { nanoid } from 'nanoid'
-import type { ElementDefinition } from '../types'
+import { appearanceSection, type ElementDefinition } from '../types'
 
 export function createSection(kind: 'tab' | 'step', index: number): ElementNode {
   return {
@@ -26,6 +26,7 @@ const sectionPanel: ElementDefinition['propertyPanel'] = [
 
 const hostPanel: ElementDefinition['propertyPanel'] = [
   { title: 'Layout', controls: [{ kind: 'colspan' }] },
+  appearanceSection(['align', 'className']),
   { title: 'Conditions', controls: [{ kind: 'conditions' }] },
 ]
 
@@ -38,6 +39,7 @@ const stepsPanel: ElementDefinition['propertyPanel'] = [
     ],
   },
   { title: 'Layout', controls: [{ kind: 'colspan' }] },
+  appearanceSection(['align', 'className']),
   { title: 'Conditions', controls: [{ kind: 'conditions' }] },
 ]
 

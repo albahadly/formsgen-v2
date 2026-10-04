@@ -4,8 +4,20 @@ import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
 
 const props = defineProps<{ node: ElementNode; path: string }>()
-const { value, error, label, description, placeholder, required, fieldId, errorId, describedBy, onBlur } =
-  useField(props)
+const {
+  value,
+  error,
+  label,
+  description,
+  placeholder,
+  required,
+  fieldId,
+  errorId,
+  describedBy,
+  onBlur,
+  labelClass,
+  sizeClass,
+} = useField(props)
 
 const text = computed({
   get: () => String(value.value ?? ''),
@@ -22,7 +34,7 @@ const rows = computed(() => Number(props.node.props['rows'] ?? 3))
     :class="{ 'fg-field--error': error }"
   >
     <label
-      class="fg-label"
+      :class="labelClass"
       :for="fieldId"
     >
       {{ label }}<span
@@ -35,6 +47,7 @@ const rows = computed(() => Number(props.node.props['rows'] ?? 3))
       :id="fieldId"
       v-model="text"
       class="fg-textarea"
+      :class="sizeClass"
       :name="node.name"
       :rows="rows"
       :placeholder="placeholder"

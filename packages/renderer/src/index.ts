@@ -38,9 +38,14 @@ export {
 export { FORM_CONTEXT, type FormContext } from './context'
 
 export {
+  CLASS_TOKEN_PATTERN,
   NAME_PATTERN,
   SCHEMA_ID,
   type ColSpan,
+  type ControlSize,
+  type ElementStyle,
+  type TextAlign,
+  type TextTone,
   type Condition,
   type ConditionGroups,
   type ConditionOperator,

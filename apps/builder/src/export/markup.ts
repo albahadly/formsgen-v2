@@ -9,6 +9,7 @@ import {
   joinPath,
   resolveMessages,
   type ElementNode,
+  type ElementStyle,
   type FormSchema,
   type MessageCatalog,
 } from '@formsgen/renderer'
@@ -78,6 +79,25 @@ export function stepButtonLabels(host: RenderedSectionHost): { back: string; nex
   return { back: read('backText', host.messages.back), next: read('nextText', host.messages.next) }
 }
 
+/**
+ * The adapter as seen by one element's emitter: its style.size/tone flow
+ * into control/text slots and style.hideLabel turns the label visually
+ * hidden (still announced), so emitters need no style logic of their own.
+ */
+function withNodeStyle(
+  css: CssFrameworkAdapter,
+  style: ElementStyle | undefined,
+): CssFrameworkAdapter {
+  if (!style || (!style.size && !style.tone && !style.hideLabel)) return css
+  return {
+    ...css,
+    classes: (slot, mods) =>
+      slot === 'label' && style.hideLabel
+        ? css.classes('srOnly')
+        : css.classes(slot, { size: style.size, tone: style.tone, ...mods }),
+  }
+}
+
 function indentBlock(text: string, depth: number): string {
   const pad = '  '.repeat(depth)
   return text
@@ -117,7 +137,14 @@ export function renderTree(schema: FormSchema, options: MarkupOptions): string {
         ? ` style={{ gridColumn: '${cell.style.replace('grid-column: ', '')}' }}`
         : ` style="${cell.style}"`
       : ''
-    const open = `<div ${classAttr}="${cell.class}"${styleAttr}${condAttr}>`
+    const cellClass = [
+      cell.class,
+      node.style?.align ? css.alignClass(node.style.align) : '',
+      node.style?.className ? esc(node.style.className.trim().replace(/\s+/g, ' ')) : '',
+    ]
+      .filter(Boolean)
+      .join(' ')
+    const open = `<div ${classAttr}="${cellClass}"${styleAttr}${condAttr}>`
 
     let inner: string
     if (core.isContainer) {
@@ -170,7 +197,7 @@ export function renderTree(schema: FormSchema, options: MarkupOptions): string {
         const path = node.name ? joinPath(parentPath, node.name) : ''
         const key = pathKey(path)
         inner = emitter(node, {
-          css,
+          css: withNodeStyle(css, node.style),
           path,
           key,
           id: `fg_${key}`,

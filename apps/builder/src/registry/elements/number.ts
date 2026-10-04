@@ -96,7 +96,7 @@ export const rangeElement: ElementDefinition = {
     { kind: 'number', prop: 'min', label: 'Min' },
     { kind: 'number', prop: 'max', label: 'Max' },
     { kind: 'number', prop: 'step', label: 'Step' },
-  ]),
+  ], ['hideLabel', 'align', 'className']),
   export: {
     vue: (node, ctx) =>
       fieldWrap(

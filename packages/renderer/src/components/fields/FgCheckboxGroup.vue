@@ -9,7 +9,18 @@ interface Item {
 }
 
 const props = defineProps<{ node: ElementNode; path: string }>()
-const { value, error, label, description, required, fieldId, errorId, describedBy, onBlur } = useField(props)
+const {
+  value,
+  error,
+  label,
+  description,
+  required,
+  fieldId,
+  errorId,
+  describedBy,
+  onBlur,
+  labelClass,
+} = useField(props)
 
 const items = computed<Item[]>(() => {
   const raw = props.node.props['items']
@@ -29,7 +40,7 @@ const picked = computed({
     class="fg-field"
     :class="{ 'fg-field--error': error }"
   >
-    <legend class="fg-label">
+    <legend :class="labelClass">
       {{ label }}<span
         v-if="required"
         class="fg-required"

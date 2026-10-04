@@ -10,6 +10,33 @@ describe('parseFormSchema', () => {
     expect(result.ok).toBe(true)
   })
 
+  it('validates element style values (ADR-0002) and reports their paths', () => {
+    const input = validSchema() as { tree: Record<string, unknown>[] }
+    input.tree[0]!['style'] = {
+      size: 'xl',
+      align: 'left',
+      tone: 'blue',
+      hideLabel: 'yes',
+      className: 'ok "><script>',
+    }
+    const result = parseFormSchema(input)
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.errors).toEqual([
+      'tree[0].style.size: expected one of sm, lg',
+      'tree[0].style.align: expected one of center, end',
+      'tree[0].style.tone: expected one of muted, primary, danger',
+      'tree[0].style.hideLabel: expected a boolean',
+      'tree[0].style.className: expected space-separated CSS class names',
+    ])
+  })
+
+  it('accepts Tailwind-style custom classes', () => {
+    const input = validSchema() as { tree: Record<string, unknown>[] }
+    input.tree[0]!['style'] = { className: 'md:w-1/2 bg-[#fafafa] !mt-2 hover:shadow-lg' }
+    expect(parseFormSchema(input).ok).toBe(true)
+  })
+
   it('rejects non-objects', () => {
     expect(parseFormSchema(null).ok).toBe(false)
     expect(parseFormSchema('{}').ok).toBe(false)

@@ -1,4 +1,4 @@
-import type { CssFrameworkAdapter, Slot } from './types'
+import { swapClasses, type CssFrameworkAdapter, type Slot, type SlotMods } from './types'
 
 // Proper Bootstrap 5 idioms, not renamed vanilla classes (§7a).
 const CLASSES: Record<Slot, string> = {
@@ -41,10 +41,36 @@ const CLASSES: Record<Slot, string> = {
   srOnly: 'visually-hidden',
 }
 
+// Bootstrap's own size modifiers are designed to be appended.
+const SIZE_CLASS: Partial<Record<Slot, (size: 'sm' | 'lg') => string>> = {
+  input: (size) => `form-control-${size}`,
+  textarea: (size) => `form-control-${size}`,
+  select: (size) => `form-select-${size}`,
+  tagsWrap: (size) => `form-control-${size}`,
+}
+
+const TONE_TEXT = { muted: 'text-body-secondary', primary: 'text-primary', danger: 'text-danger' }
+const TONE_BORDER = { muted: 'border-secondary-subtle', primary: 'border-primary', danger: 'border-danger' }
+
+function bootstrapClasses(slot: Slot, mods?: SlotMods): string {
+  const base = CLASSES[slot]
+  const sized = mods?.size ? SIZE_CLASS[slot]?.(mods.size) : undefined
+  if (sized) return `${base} ${sized}`
+  if (mods?.tone) {
+    // Color utilities are !important — replace the base color, never stack two.
+    if (slot === 'heading') return `${base} ${TONE_TEXT[mods.tone]}`
+    if (slot === 'paragraph') return swapClasses(base, 'text-secondary', TONE_TEXT[mods.tone])
+    // <hr> is drawn at opacity .25 by Bootstrap; a chosen color must show fully.
+    if (slot === 'divider') return `${base} ${TONE_BORDER[mods.tone]} opacity-100`
+  }
+  return base
+}
+
 export const bootstrap5Adapter: CssFrameworkAdapter = {
   id: 'bootstrap5',
   label: 'Bootstrap 5',
-  classes: (slot) => CLASSES[slot],
+  classes: bootstrapClasses,
+  alignClass: (align) => `text-${align}`,
   cell: (span) => ({ class: `col-12 col-md-${span}` }),
   invalidClass: () => 'is-invalid',
   assets: () => ({

@@ -1,4 +1,4 @@
-import type { ElementDefinition } from '../types'
+import { appearanceSection, type ElementDefinition } from '../types'
 
 export const groupElement: ElementDefinition = {
   type: 'group',
@@ -15,6 +15,7 @@ export const groupElement: ElementDefinition = {
     },
     { title: 'Data', controls: [{ kind: 'name' }] },
     { title: 'Layout', controls: [{ kind: 'colspan' }] },
+    appearanceSection(['align', 'className']),
     { title: 'Conditions', controls: [{ kind: 'conditions' }] },
   ],
 }

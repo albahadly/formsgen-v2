@@ -107,9 +107,35 @@ export interface ElementNode {
   validation?: Rule[] | undefined
   conditions?: ConditionGroups | undefined
   layout?: LayoutConfig | undefined
+  /** Appearance (ADR-0002); absent keys mean the default look. */
+  style?: ElementStyle | undefined
   /** Present on containers only. */
   children?: ElementNode[] | undefined
 }
+
+export type ControlSize = 'sm' | 'lg'
+export type TextAlign = 'center' | 'end'
+export type TextTone = 'muted' | 'primary' | 'danger'
+
+/**
+ * Semantic appearance options, translated by every target into its own
+ * idiom (vanilla CSS variables, Tailwind utilities, Bootstrap classes).
+ */
+export interface ElementStyle {
+  /** Field control size; medium when absent. */
+  size?: ControlSize | undefined
+  /** Field label hidden visually but still announced by screen readers. */
+  hideLabel?: boolean | undefined
+  /** Text alignment of the element; start when absent. */
+  align?: TextAlign | undefined
+  /** Text color of headings/paragraphs (line color of a divider). */
+  tone?: TextTone | undefined
+  /** Extra CSS classes on the element's cell (space-separated). */
+  className?: string | undefined
+}
+
+/** Allowed custom class token: no quotes, angle brackets, "@" or "{}". */
+export const CLASS_TOKEN_PATTERN = /^[A-Za-z0-9_:/.[\]%#()!,=*+-]+$/
 
 export interface FormSchema {
   $schema: typeof SCHEMA_ID

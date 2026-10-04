@@ -5,8 +5,20 @@ import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
 
 const props = defineProps<{ node: ElementNode; path: string }>()
-const { value, error, label, description, placeholder, required, fieldId, errorId, describedBy, onBlur } =
-  useField(props)
+const {
+  value,
+  error,
+  label,
+  description,
+  placeholder,
+  required,
+  fieldId,
+  errorId,
+  describedBy,
+  onBlur,
+  labelClass,
+  sizeClass,
+} = useField(props)
 
 const inputType = computed(() => TEXT_INPUT_TYPES[props.node.type] ?? 'text')
 
@@ -24,7 +36,7 @@ const text = computed({
     :class="{ 'fg-field--error': error }"
   >
     <label
-      class="fg-label"
+      :class="labelClass"
       :for="fieldId"
     >
       {{ label }}<span
@@ -37,6 +49,7 @@ const text = computed({
       :id="fieldId"
       v-model="text"
       class="fg-input"
+      :class="sizeClass"
       :type="inputType"
       :name="node.name"
       :placeholder="placeholder"

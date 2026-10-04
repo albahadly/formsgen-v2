@@ -1,0 +1,32 @@
+# ADR-0002 — Additive optional schema fields (element `style`, `meta.submitButton`)
+
+## Context
+
+The README rule requires an ADR, a schema version bump and a migration note for any FormSchema change after phase 2. Phase 13 added `meta.submitButton` without one, and phase 20 needs per-element appearance settings. Both are *optional additions*:
+- every existing `formsgen/v2` document stays valid and renders exactly as before;
+- older renderers ignore keys they don't know (the parser doesn't reject unknown node or meta keys).
+
+Bumping `$schema` to `formsgen/v3` would make every existing document fail `parseFormSchema` (it requires the exact id), forcing a migration for zero semantic change.
+
+## Decision
+
+- **Additive, optional, default-preserving fields do not bump `$schema`.** A field qualifies when it is optional, its absence means exactly the previous behavior, and older consumers can ignore it safely. Each such field gets an entry in this ADR's log below.
+- **Anything else still requires a version bump plus a migration**: removing or renaming a field, changing its meaning, or making it required.
+- The parser validates the *shape* of every additive field when present, so a malformed value is reported rather than silently half-applied.
+
+### Log of additive fields
+
+| Field | Phase | Absent means |
+|---|---|---|
+| `meta.submitButton` `{ text, align, variant, fullWidth, onLastStepOnly }` | 13 (recorded retroactively) | "Submit", start-aligned, primary, natural width, hidden until the last wizard step |
+| `ElementNode.style` `{ size: 'sm'\|'lg', hideLabel, align: 'center'\|'end', tone: 'muted'\|'primary'\|'danger', className }` | 20 | medium size, visible label, start alignment, default color, no extra class |
+
+## Alternatives considered
+
+- **Bump to `formsgen/v3` with an auto-migration.** Rejected: every saved project, export and draft would churn for fields that change nothing when absent.
+- **Store appearance in `props`.** Rejected: `props` is per-element configuration owned by each element definition. Appearance is cross-cutting, so every export target and CSS adapter reads it in one place.
+
+## Consequences
+
+- New optional fields are cheap, but they must be logged here and have their shape validated in `parse.ts`.
+- A document using `style` opened in an older build renders with default appearance, which is graceful degradation.

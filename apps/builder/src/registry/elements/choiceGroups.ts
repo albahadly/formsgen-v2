@@ -48,7 +48,10 @@ export const radioGroupElement: ElementDefinition = {
   icon: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm0-13a5 5 0 1 0 5 5 5 5 0 0 0-5-5z"/></svg>',
   hasValue: true,
   defaultProps: { label: 'Radio Group', items: structuredClone(defaultItems) },
-  propertyPanel: commonFieldSections([{ kind: 'items', prop: 'items', label: 'Options' }]),
+  propertyPanel: commonFieldSections(
+    [{ kind: 'items', prop: 'items', label: 'Options' }],
+    ['hideLabel', 'align', 'className'],
+  ),
   export: {
     vue: (node, ctx) =>
       `<fieldset class="${ctx.css.classes('field')}">\n  ${[
@@ -117,7 +120,10 @@ export const checkboxGroupElement: ElementDefinition = {
   icon: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM9.8 15.6l-3.5-3.5 1.4-1.4 2.1 2.1 5.1-5.1 1.4 1.4z"/></svg>',
   hasValue: true,
   defaultProps: { label: 'Checkbox Group', items: structuredClone(defaultItems) },
-  propertyPanel: commonFieldSections([{ kind: 'items', prop: 'items', label: 'Options' }]),
+  propertyPanel: commonFieldSections(
+    [{ kind: 'items', prop: 'items', label: 'Options' }],
+    ['hideLabel', 'align', 'className'],
+  ),
   export: {
     vue: (node, ctx) =>
       `<fieldset class="${ctx.css.classes('field')}">\n  ${[
