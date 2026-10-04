@@ -7,6 +7,7 @@ import { fileLimits, resolveMessages, type ElementNode } from '@formsgen/rendere
 import { errorsTextFunction, jsTemplate, stepAnnouncements, submittedText } from '../announce'
 import { FILE_HELPERS, RUNTIME_HELPERS, compileConditions } from '../compile'
 import { uploadFields } from '../uploadRuntime'
+import { exportStylesheet, hasDateRange, hasDates, hasRangeSlider } from '../composite'
 import {
   collectExportFields,
   collectExportRepeaters,
@@ -155,7 +156,7 @@ ${indentBlock(r.itemHtml, 3)}
       ...assets.scripts.map((src) => `  <script src="${src}"></script>`),
     ].join('\n')
 
-    const stylesheet = css.stylesheet?.(schema.meta.theme)
+    const stylesheet = exportStylesheet(css, schema)
     const styleTag = stylesheet ? `  <style>\n${indentBlock(stylesheet, 1)}  </style>` : ''
 
     // Bottom actions row: omitted when the wizard embeds the submit.
@@ -176,6 +177,112 @@ ${indentBlock(r.itemHtml, 3)}
 
     // Reset buttons: native form reset (restores the markup defaults) plus
     // chips, errors, touched state and conditional blocks.
+    // Composite fields: slider handles can't cross (fill and value text
+    // follow), a date range's end can't precede its start, and multiple
+    // dates live in fgDates (painted as chips, in calendar order).
+    const hasSlider = hasRangeSlider(schema)
+    const hasRange = hasDateRange(schema)
+    const hasDateList = hasDates(schema)
+    const hasComposite = hasSlider || hasRange || hasDateList
+    function htmlCompositeRuntime(): string {
+      const parts: string[] = []
+      if (hasSlider) {
+        parts.push(`function fgDualPaint(wrap) {
+  var from = wrap.querySelector('[data-fg-part="from"]')
+  var to = wrap.querySelector('[data-fg-part="to"]')
+  var min = Number(from.min)
+  var max = Number(from.max)
+  function pct(n) { return max > min ? ((n - min) / (max - min)) * 100 : 0 }
+  var fill = wrap.querySelector('[data-fg-dual-fill]')
+  fill.style.insetInlineStart = pct(Number(from.value)) + '%'
+  fill.style.insetInlineEnd = (100 - pct(Number(to.value))) + '%'
+  // With both handles together, the one that can still move is on top.
+  from.style.zIndex = from.value === to.value && Number(from.value) > (min + max) / 2 ? '3' : '1'
+  to.style.zIndex = '2'
+  var text = document.querySelector('[data-fg-dual-text="' + wrap.getAttribute('data-fg-dual') + '"]')
+  if (text) text.textContent = from.value + ' \\u2013 ' + to.value
+}
+Array.prototype.forEach.call(document.querySelectorAll('[data-fg-dual]'), function (wrap) {
+  var from = wrap.querySelector('[data-fg-part="from"]')
+  var to = wrap.querySelector('[data-fg-part="to"]')
+  from.addEventListener('input', function () {
+    if (Number(from.value) > Number(to.value)) from.value = to.value
+    fgDualPaint(wrap)
+  })
+  to.addEventListener('input', function () {
+    if (Number(to.value) < Number(from.value)) to.value = from.value
+    fgDualPaint(wrap)
+  })
+  fgDualPaint(wrap)
+})`)
+      }
+      if (hasRange) {
+        parts.push(`function fgRangeMin(from) {
+  var to = document.querySelector('[data-fg-path="' + from.getAttribute('data-fg-path') + '"][data-fg-part="to"]')
+  if (to) to.min = from.value
+}
+Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="daterange"][data-fg-part="from"]'), function (from) {
+  from.addEventListener('input', function () { fgRangeMin(from) })
+  from.addEventListener('change', function () { fgRangeMin(from) })
+})`)
+      }
+      if (hasDateList) {
+        parts.push(`var fgDates = {}
+function fgPaintDates(path) {
+  var chips = document.querySelector('[data-fg-dates-chips="' + path + '"]')
+  chips.textContent = ''
+  chips.hidden = fgDates[path].length === 0
+  fgDates[path].forEach(function (date, index) {
+    var chip = document.createElement('span')
+    chip.className = ${JSON.stringify(css.classes('tag'))}
+    chip.appendChild(document.createTextNode(date + ' '))
+    var remove = document.createElement('button')
+    remove.type = 'button'
+    remove.className = ${JSON.stringify(css.classes('tagRemove'))}
+    remove.setAttribute('aria-label', ${jsTemplate(messages.removeDate, { date: 'date' })})
+    remove.textContent = '\\u00d7'
+    remove.addEventListener('click', function () {
+      fgDates[path].splice(index, 1)
+      fgDatesChanged(path)
+    })
+    chip.appendChild(remove)
+    chips.appendChild(chip)
+  })
+}
+function fgDatesChanged(path) {
+  fgPaintDates(path)
+  touched[path] = true
+  validateField(path)
+  updateConditions()
+}
+Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="dates"]'), function (wrap) {
+  var path = wrap.getAttribute('data-fg-path')
+  var input = wrap.querySelector('[data-fg-dates-input]')
+  fgDates[path] = []
+  function addDraft() {
+    var date = input.value
+    if (/^\\d{4}-\\d{2}-\\d{2}$/.test(date) && fgDates[path].indexOf(date) === -1) {
+      fgDates[path].push(date)
+      fgDates[path].sort()
+    }
+    input.value = ''
+    fgDatesChanged(path)
+  }
+  wrap.querySelector('[data-fg-dates-add]').addEventListener('click', addDraft)
+  input.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') { event.preventDefault(); addDraft() }
+  })
+})`)
+      }
+      return parts.join('\n')
+    }
+    // After form.reset(): repaint what form.reset() can't restore.
+    const compositeReset = [
+      hasSlider ? "\n        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-dual]'), fgDualPaint)" : '',
+      hasRange ? "\n        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind=\"daterange\"][data-fg-part=\"to\"]'), function (to) { to.min = '' })" : '',
+      hasDateList ? "\n        Object.keys(fgDates).forEach(function (path) { fgDates[path] = []; fgPaintDates(path) })" : '',
+    ].join('')
+
     const resetScript = hasResetButton(schema)
       ? `    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-reset]'), function (button) {
       button.addEventListener('click', function () {
@@ -187,7 +294,7 @@ ${indentBlock(r.itemHtml, 3)}
         Object.keys(fgFiles).forEach(function (path) {
           fgFiles[path] = []
           fgPaintFiles(path)
-        })` : ''}
+        })` : ''}${compositeReset}
         Object.keys(touched).forEach(function (path) { delete touched[path] })
         Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })${hasRepeaters ? `
         Object.keys(FG_REPEATERS).forEach(function (path) {
@@ -439,6 +546,14 @@ Object.keys(FG_REPEATERS).forEach(function (path) {
       if (kind === 'multiselect') {
         return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }
+      if (kind === 'range2' || kind === 'daterange') {
+        var parts = {}
+        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-path="' + path + '"][data-fg-part]'), function (input) {
+          parts[input.getAttribute('data-fg-part')] = kind === 'range2' ? Number(input.value) : input.value
+        })
+        return { from: parts.from, to: parts.to }
+      }
+      if (kind === 'dates') return (fgDates[path] || []).slice()
       if (kind === 'tags') return (fgTags[path] || []).slice()${hasUploads ? `
       if (kind === 'files') return (fgFiles[path] || []).slice()` : ''}
       if (kind === 'checks') {
@@ -554,7 +669,7 @@ ${indentBlock(repeaterRuntime(), 2)}
       })
     })
 
-${hasUploads ? indentBlock(htmlUploadRuntime(), 2) + '\n\n' : ''}    // Polite aria-live region; cleared first so repeated text re-announces.
+${hasUploads ? indentBlock(htmlUploadRuntime(), 2) + '\n\n' : ''}${hasComposite ? indentBlock(htmlCompositeRuntime(), 2) + '\n\n' : ''}    // Polite aria-live region; cleared first so repeated text re-announces.
     function fgAnnounce(message) {
       var live = document.getElementById('fg-live')
       if (!live) return

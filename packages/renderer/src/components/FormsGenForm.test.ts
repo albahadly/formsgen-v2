@@ -27,6 +27,8 @@ async function fillValidForm(wrapper: ReturnType<typeof mountForm>) {
   await wrapper.get('input[name="shipping_city"]').setValue('Muscat') // step 1
   await wrapper.get('input[name="terms"]').setValue(true)
   await wrapper.get('#fg-ks-ref-name-0').setValue('Dana') // repeater item 1
+  await wrapper.get('#fg-ks-stay').setValue('2026-11-01') // date range
+  await wrapper.get('#fg-ks-stay-to').setValue('2026-11-04')
   const upload = wrapper.get('#fg-ks-attachments').element as HTMLInputElement
   Object.defineProperty(upload, 'files', { value: [attachment], configurable: true })
   upload.dispatchEvent(new Event('change'))
@@ -99,6 +101,9 @@ describe('FormsGenForm', () => {
       appointment: '',
       brand_color: '#000000',
       volume: 0,
+      budget: { from: 200, to: 600 },
+      stay: { from: '2026-11-01', to: '2026-11-04' },
+      days: [],
       source: 'kitchen-sink',
       references: [{ name: 'Dana', may_contact: false }],
       attachments: [attachment],

@@ -6,6 +6,7 @@ import { resolveMessages } from '@formsgen/renderer'
 import { errorsTextFunction, stepAnnouncementsLiteral, submittedText } from '../announce'
 import { FILE_HELPERS_TS, RUNTIME_HELPERS_TS } from '../compile'
 import { uploadFields, vueUploadRuntime } from '../uploadRuntime'
+import { ADD_DATE_TS, DUAL_RANGE_HELPERS_TS, exportStylesheet, hasRangeSlider } from '../composite'
 import { compileConditions } from '../compile'
 import {
   collectExportFields,
@@ -212,6 +213,41 @@ function fgRemoveTag(path: string, index: number): void {
 }`
         : ''
 
+    // Composite fields: slider handles, and the multiple-dates draft store.
+    const datesFields = fields.filter((f) => f.node.type === 'dates')
+    const compositeLogic = [
+      hasRangeSlider(schema)
+        ? `${DUAL_RANGE_HELPERS_TS}
+function fgDualSet(v: FgRangeValue, side: 'from' | 'to', event: Event): void {
+  const input = event.target as HTMLInputElement
+  const next = fgDualClamp(v, side, Number(input.value))
+  v.from = next.from
+  v.to = next.to
+  input.value = String(next[side])
+}`
+        : '',
+      datesFields.length > 0
+        ? `${ADD_DATE_TS}
+const fgDateDrafts = reactive<Record<string, string>>({ ${datesFields.map((f) => `'${f.path}': ''`).join(', ')} })
+const fgDateFields: Record<string, { get: () => string[]; set: (v: string[]) => void }> = {
+${datesFields.map((f) => `  '${f.path}': { get: () => form.${f.path}, set: (v) => { form.${f.path} = v } },`).join('\n')}
+}
+function fgAddDate(path: string): void {
+  const field = fgDateFields[path]!
+  field.set(fgWithDate(field.get(), fgDateDrafts[path] ?? ''))
+  fgDateDrafts[path] = ''
+  touch(path)
+}
+function fgRemoveDate(path: string, index: number): void {
+  const field = fgDateFields[path]!
+  field.set(field.get().filter((_, i) => i !== index))
+  touch(path)
+}`
+        : '',
+    ]
+      .filter(Boolean)
+      .join('\n')
+
     // Repeating sections: item factories, limits, per-item validators, and
     // add/remove (focus the new item / the item that moved up; announce).
     const fmtMax = (max: number): string => (Number.isFinite(max) ? String(max) : 'Number.POSITIVE_INFINITY')
@@ -331,7 +367,7 @@ async function fgRemoveItem(path: string, index: number): Promise<void> {
   Object.assign(form, ${indentBlock(toJsLiteral(defaultsObject(schema)), 1).trimStart()})
   for (const key of Object.keys(errors)) delete errors[key]
   touched.clear()
-  result.value = null${tagsFields.length > 0 ? `\n  for (const key of Object.keys(tagDrafts)) tagDrafts[key] = ''` : ''}
+  result.value = null${tagsFields.length > 0 ? `\n  for (const key of Object.keys(tagDrafts)) tagDrafts[key] = ''` : ''}${datesFields.length > 0 ? `\n  for (const key of Object.keys(fgDateDrafts)) fgDateDrafts[key] = ''` : ''}
   fgAnnounce(${JSON.stringify(messages.formReset)})
 }`
       : ''
@@ -436,7 +472,7 @@ function validateAll(): boolean {
   }
   return ok
 }
-${sectionState ? `\n${sectionState}\n` : ''}${sectionPaths ? `\n${sectionPaths}\n` : ''}${stepLogic ? `\n${stepLogic}\n` : ''}${jumpLogic ? `\n${jumpLogic}\n` : ''}${tagsLogic ? `\n${tagsLogic}\n` : ''}${repeaterLogic ? `\n${repeaterLogic}\n` : ''}${resetLogic ? `\n${resetLogic}\n` : ''}
+${sectionState ? `\n${sectionState}\n` : ''}${sectionPaths ? `\n${sectionPaths}\n` : ''}${stepLogic ? `\n${stepLogic}\n` : ''}${jumpLogic ? `\n${jumpLogic}\n` : ''}${tagsLogic ? `\n${tagsLogic}\n` : ''}${compositeLogic ? `\n${compositeLogic}\n` : ''}${repeaterLogic ? `\n${repeaterLogic}\n` : ''}${resetLogic ? `\n${resetLogic}\n` : ''}
 function buildPayload(): Record<string, unknown> {
   return ${indentBlock(payloadExpr(schema, accessor, undefined, items), 1).trimStart()}
 }
@@ -453,7 +489,7 @@ async function onSubmit(): Promise<void> {
 ${submitBlock}}
 </script>`
 
-    const stylesheet = css.stylesheet?.(schema.meta.theme)
+    const stylesheet = exportStylesheet(css, schema)
     const styleBlock = stylesheet ? `\n\n<style scoped>\n${stylesheet}</style>` : ''
 
     // Bottom actions row: omitted when the wizard embeds the submit.

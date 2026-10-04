@@ -7,6 +7,7 @@
 import {
   BOOLEAN_TYPES,
   FILE_TYPES,
+  OBJECT_VALUE_TYPES,
   findParent,
   getCoreElement,
   isRepeater,
@@ -46,7 +47,7 @@ const PRESENCE_OPS: ConditionOperator[] = ['not-empty', 'empty']
 
 const NUMBER_TYPES = new Set(['number', 'range'])
 const OPTION_TYPES = new Set(['select', 'radiogroup'])
-const LIST_TYPES = new Set(['multiselect', 'checkboxgroup', 'tags'])
+const LIST_TYPES = new Set(['multiselect', 'checkboxgroup', 'tags', 'dates'])
 
 function optionsOf(node: ElementNode): ConditionOption[] {
   const items = node.props['items']
@@ -102,8 +103,9 @@ export function operatorsFor(type: string): ConditionOperator[] {
   if (NUMBER_TYPES.has(type)) return NUMBER_OPS
   if (OPTION_TYPES.has(type)) return OPTION_OPS
   if (LIST_TYPES.has(type)) return LIST_OPS
-  // Uploads: only "a file was chosen" / "no file" make sense.
-  if (FILE_TYPES.has(type)) return PRESENCE_OPS
+  // Uploads and composite values: only presence makes sense (a date range
+  // is empty until both ends are set).
+  if (FILE_TYPES.has(type) || OBJECT_VALUE_TYPES.has(type)) return PRESENCE_OPS
   return TEXT_OPS
 }
 

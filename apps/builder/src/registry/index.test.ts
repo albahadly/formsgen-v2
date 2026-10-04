@@ -12,6 +12,8 @@ describe('element registry', () => {
       'color',
       'columns',
       'date',
+      'daterange',
+      'dates',
       'datetime',
       'divider',
       'email',
@@ -31,6 +33,7 @@ describe('element registry', () => {
       'quote',
       'radiogroup',
       'range',
+      'rangeslider',
       'repeater',
       'search',
       'select',
@@ -67,7 +70,7 @@ describe('element registry', () => {
       'paragraph',
       'quote',
     ])
-    expect(listElements('fields')).toHaveLength(25)
+    expect(listElements('fields')).toHaveLength(28)
   })
 
   it('every definition matches its core semantics in the renderer', () => {

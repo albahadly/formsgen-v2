@@ -4,6 +4,7 @@
 // validation and payload).
 
 import {
+  DATE_RANGE_TYPE,
   FILE_TYPES,
   MESSAGES,
   fileLimits,
@@ -103,9 +104,17 @@ export function fileCheckExpr(node: ElementNode, messages: MessageCatalog): stri
   return `fgFileProblem(v, ${JSON.stringify(limits.accept)}, ${limits.maxSizeMb}, ${limits.maxFiles}, ${JSON.stringify(m)})`
 }
 
-/** Fields that need a validator: rules, or upload limits to check. */
+/** Built-in check after "required": upload limits, date range order. */
+export function builtinCheckExpr(node: ElementNode, messages: MessageCatalog): string | undefined {
+  if (node.type === DATE_RANGE_TYPE) {
+    return `(v.from !== '' && v.to !== '' && v.to < v.from ? ${JSON.stringify(messages.dateOrder)} : null)`
+  }
+  return fileCheckExpr(node, messages)
+}
+
+/** Fields that need a validator: rules, or a built-in check. */
 export function needsValidator(node: ElementNode): boolean {
-  return (node.validation?.length ?? 0) > 0 || FILE_TYPES.has(node.type)
+  return (node.validation?.length ?? 0) > 0 || FILE_TYPES.has(node.type) || node.type === DATE_RANGE_TYPE
 }
 
 /** Object literal mapping data paths to validator functions. */
@@ -125,7 +134,7 @@ export function validatorsLiteral(
         f.node.validation ?? [],
         accessor(f.path),
         accessor,
-        fileCheckExpr(f.node, messages),
+        builtinCheckExpr(f.node, messages),
       )
       return `  '${f.path}': function (${args}) {\n  ${guard}${body}\n  },`
     })

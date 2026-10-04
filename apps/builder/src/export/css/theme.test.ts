@@ -182,7 +182,10 @@ describe('themed exports', () => {
     const ctx = { schema: schema(THEME), css: getCssAdapter('tailwind') }
     expect(getTarget('react')!.readme!(ctx)).toContain('.css`')
     expect(getTarget('blazor')!.readme!(ctx)).toContain('.razor.css')
-    const plain = { schema: schema(), css: getCssAdapter('tailwind') }
+    // Unthemed and without a two-handle slider (whose rules ship as a file): none.
+    const unthemed = schema()
+    unthemed.tree = unthemed.tree.filter((n) => n.type !== 'rangeslider')
+    const plain = { schema: unthemed, css: getCssAdapter('tailwind') }
     expect(getTarget('blazor')!.readme!(plain)).not.toContain('.razor.css')
   })
 

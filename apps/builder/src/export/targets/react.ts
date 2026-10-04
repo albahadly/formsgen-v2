@@ -6,6 +6,7 @@ import { resolveMessages } from '@formsgen/renderer'
 import { errorsTextFunction, stepAnnouncementsLiteral, submittedText } from '../announce'
 import { FILE_HELPERS_TS, RUNTIME_HELPERS_TS } from '../compile'
 import { reactUploadHandlers, reactUploadModule, uploadFields } from '../uploadRuntime'
+import { ADD_DATE_TS, DUAL_RANGE_HELPERS_TS, exportStylesheet, hasDates, hasRangeSlider } from '../composite'
 import {
   collectExportRepeaters,
   itemValidatorsLiteral,
@@ -225,6 +226,35 @@ ${indentBlock(reactItemMarkup(r.itemHtml, r.path), 4)}
   }`
       : ''
 
+    // Composite fields: handlers mark the field touched first, so setField
+    // validates the NEW value (touch() would read the previous render's).
+    const hasSlider = hasRangeSlider(schema)
+    const hasDateList = hasDates(schema)
+    const compositeModule = [hasSlider ? DUAL_RANGE_HELPERS_TS : '', hasDateList ? ADD_DATE_TS : ''].filter(Boolean).join('\n')
+    const compositeState = hasDateList ? `  const [dateDrafts, setDateDrafts] = useState<Record<string, string>>({})` : ''
+    const compositeHandlers = [
+      hasSlider
+        ? `  function fgDualChange(path: string, current: FgRangeValue, side: 'from' | 'to', n: number): void {
+    touched.current.add(path)
+    setField(path, fgDualClamp(current, side, n))
+  }`
+        : '',
+      hasDateList
+        ? `  function fgAddDate(path: string, current: string[]): void {
+    touched.current.add(path)
+    setField(path, fgWithDate(current, dateDrafts[path] ?? ''))
+    setDateDrafts((d) => ({ ...d, [path]: '' }))
+  }
+
+  function fgRemoveDate(path: string, current: string[], index: number): void {
+    touched.current.add(path)
+    setField(path, current.filter((_, i) => i !== index))
+  }`
+        : '',
+    ]
+      .filter(Boolean)
+      .join('\n\n')
+
     const fmtMax = (max: number): string => (Number.isFinite(max) ? String(max) : 'Number.POSITIVE_INFINITY')
     const repeaterModule = hasRepeaters
       ? `const FG_ITEM_DEFAULTS: Record<string, () => Record<string, unknown>> = {
@@ -373,7 +403,7 @@ function fgShiftKey(key: string, path: string, removed: number): string | null {
     setForm(INITIAL)
     setErrors({})
     touched.current.clear()${hasRepeaters ? '\n    fgKeys.current = {}' : ''}
-    setResult(null)${hasTags ? '\n    setTagDrafts({})' : ''}
+    setResult(null)${hasTags ? '\n    setTagDrafts({})' : ''}${hasDateList ? '\n    setDateDrafts({})' : ''}
     fgAnnounce(${JSON.stringify(messages.formReset)})
   }`
       : ''
@@ -387,7 +417,7 @@ function fgShiftKey(key: string, path: string, removed: number): string | null {
     }).catch((error) => console.error('Submit failed', error))\n`
       : ''
 
-    const stylesheet = css.stylesheet?.(schema.meta.theme)
+    const stylesheet = exportStylesheet(css, schema)
     const cssImport = stylesheet ? `import './${name}.css'\n` : ''
 
     // Bottom actions row: omitted when the wizard embeds the submit.
@@ -424,7 +454,7 @@ const validators: Record<string, (data: FormData) => string | null> = ${validato
 function buildPayload(data: FormData): Record<string, unknown> {
   return ${indentBlock(payloadExpr(schema, dataAccessor, (key) => `fgVisible_${key}(data)`, dataItems), 1).trimStart()}
 }
-${repeaterModule ? `\n${repeaterModule}\n` : ''}${hasUploads ? `\n${reactUploadModule(fields, messages)}\n` : ''}${sectionPathsConsts ? `\n${sectionPathsConsts}\n` : ''}${stepAnnounceConsts ? `${stepAnnounceConsts}\n` : ''}
+${repeaterModule ? `\n${repeaterModule}\n` : ''}${compositeModule ? `\n${compositeModule}\n` : ''}${hasUploads ? `\n${reactUploadModule(fields, messages)}\n` : ''}${sectionPathsConsts ? `\n${sectionPathsConsts}\n` : ''}${stepAnnounceConsts ? `${stepAnnounceConsts}\n` : ''}
 ${errorsTextFunction(messages, true)}
 
 export default function ${name}({
@@ -437,7 +467,7 @@ export default function ${name}({
   const [result, setResult] = useState<Record<string, unknown> | null>(null)
   const touched = useRef(new Set<string>())
   const [fgAnnouncement, setFgAnnouncement] = useState('')
-${sectionHooks ? `${sectionHooks}\n` : ''}${tagsState ? `${tagsState}\n` : ''}${repeaterHooks ? `${repeaterHooks}\n` : ''}
+${sectionHooks ? `${sectionHooks}\n` : ''}${tagsState ? `${tagsState}\n` : ''}${compositeState ? `${compositeState}\n` : ''}${repeaterHooks ? `${repeaterHooks}\n` : ''}
   // Polite aria-live region; cleared first so repeated text re-announces.
   function fgAnnounce(message: string): void {
     setFgAnnouncement('')
@@ -510,7 +540,7 @@ ${stepHandlers ? `\n${stepHandlers}\n` : ''}
     touched.current.add(path)
     validateField(path, form)
   }
-${tagsHandlers ? `\n${tagsHandlers}\n` : ''}${hasUploads ? `\n${reactUploadHandlers(fields)}\n` : ''}${repeaterHandlers ? `\n${repeaterHandlers}\n` : ''}${resetHandler ? `\n${resetHandler}\n` : ''}
+${tagsHandlers ? `\n${tagsHandlers}\n` : ''}${compositeHandlers ? `\n${compositeHandlers}\n` : ''}${hasUploads ? `\n${reactUploadHandlers(fields)}\n` : ''}${repeaterHandlers ? `\n${repeaterHandlers}\n` : ''}${resetHandler ? `\n${resetHandler}\n` : ''}
   function handleSubmit(event: React.FormEvent): void {
     event.preventDefault()
     const nextErrors: Record<string, string> = {}
@@ -559,7 +589,7 @@ and the submit payload are compiled into the component.
 
 ## Install
 
-1. Copy \`${name}.tsx\`${ctx.css.stylesheet?.(ctx.schema.meta.theme) ? ` and \`${name}.css\`` : ''} into any React + TypeScript project
+1. Copy \`${name}.tsx\`${exportStylesheet(ctx.css, ctx.schema) ? ` and \`${name}.css\`` : ''} into any React + TypeScript project
    (e.g. \`npm create vite@latest -- --template react-ts\`).
 2. Use it:
 

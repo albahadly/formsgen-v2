@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { KNOWN_RULE_NAMES, type ElementNode, type Rule, type RuleName } from '@formsgen/renderer'
+import { KNOWN_RULE_NAMES, OBJECT_VALUE_TYPES, type ElementNode, type Rule, type RuleName } from '@formsgen/renderer'
 import { computed, ref } from 'vue'
 import { t } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'
@@ -11,8 +11,11 @@ const pendingRule = ref('')
 
 const rules = computed<Rule[]>(() => props.node.validation ?? [])
 
+// Object values ({ from, to }) have no length or format: only "required".
 const available = computed(() =>
-  [...KNOWN_RULE_NAMES].filter((name) => !rules.value.some((r) => r.rule === name)),
+  [...KNOWN_RULE_NAMES]
+    .filter((name) => !OBJECT_VALUE_TYPES.has(props.node.type) || name === 'required')
+    .filter((name) => !rules.value.some((r) => r.rule === name)),
 )
 
 function write(next: Rule[]): void {

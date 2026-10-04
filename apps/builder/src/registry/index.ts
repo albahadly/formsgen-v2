@@ -6,6 +6,7 @@ import { columnsElement } from './elements/columns'
 import { groupElement } from './elements/group'
 import { hiddenElement } from './elements/hidden'
 import { fileElement, imageUploadElement } from './elements/upload'
+import { dateRangeElement, datesElement, rangeSliderElement } from './elements/composite'
 import { repeaterElement } from './elements/repeater'
 import { numberElement, rangeElement } from './elements/number'
 import { multiSelectElement, selectElement } from './elements/select'
@@ -90,6 +91,9 @@ for (const def of [
   toggleElement,
   checkboxGroupElement,
   rangeElement,
+  rangeSliderElement,
+  dateRangeElement,
+  datesElement,
   fileElement,
   imageUploadElement,
   hiddenElement,

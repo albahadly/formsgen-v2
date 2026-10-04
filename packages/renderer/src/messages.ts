@@ -72,6 +72,18 @@ export interface MessageCatalog {
   tooManyFiles: string
   /** {name} — accessible name of a chosen file's remove button */
   removeFile: string
+  /** Accessible names of a range slider's two handles. */
+  rangeFrom: string
+  rangeTo: string
+  /** Accessible names of a date range's two inputs. */
+  dateFrom: string
+  dateTo: string
+  /** A date range whose end is before its start. */
+  dateOrder: string
+  /** Text of the multiple-dates field's add button. */
+  addDate: string
+  /** {date} — accessible name of a chosen date's remove button */
+  removeDate: string
 }
 
 const en: MessageCatalog = {
@@ -110,6 +122,13 @@ const en: MessageCatalog = {
   fileType: '{name} is not an accepted file type',
   tooManyFiles: 'Choose at most {n} files',
   removeFile: 'Remove {name}',
+  rangeFrom: 'Minimum',
+  rangeTo: 'Maximum',
+  dateFrom: 'Start date',
+  dateTo: 'End date',
+  dateOrder: 'The end date can’t be before the start date',
+  addDate: 'Add date',
+  removeDate: 'Remove {date}',
 }
 
 const ar: MessageCatalog = {
@@ -151,6 +170,13 @@ const ar: MessageCatalog = {
   fileType: '{name} ليس من أنواع الملفات المقبولة',
   tooManyFiles: 'اختر {n} ملفات على الأكثر',
   removeFile: 'إزالة {name}',
+  rangeFrom: 'الحد الأدنى',
+  rangeTo: 'الحد الأقصى',
+  dateFrom: 'تاريخ البداية',
+  dateTo: 'تاريخ النهاية',
+  dateOrder: 'لا يمكن أن يكون تاريخ النهاية قبل تاريخ البداية',
+  addDate: 'إضافة تاريخ',
+  removeDate: 'إزالة {date}',
 }
 
 export const MESSAGES: Readonly<Record<'en' | 'ar', MessageCatalog>> = { en, ar }

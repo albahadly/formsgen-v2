@@ -82,6 +82,10 @@ const CLASSES: Record<Slot, string> = {
   fileName: 'min-w-0 flex-1 truncate',
   fileSize: 'text-xs text-gray-500 dark:text-gray-400',
   fileRemove: 'px-1.5 text-lg leading-none text-gray-500 hover:text-red-600',
+  pair: 'flex items-center gap-2',
+  chipList: 'mt-2 flex flex-wrap gap-1.5',
+  pairButton:
+    'shrink-0 whitespace-nowrap rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50',
   colorInput:
     'h-10 w-16 cursor-pointer rounded-md border border-gray-300 bg-white p-1 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800',
 }

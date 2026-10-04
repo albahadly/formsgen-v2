@@ -68,6 +68,9 @@ const CLASSES: Record<Slot, string> = {
   fileName: 'flex-grow-1 text-truncate',
   fileSize: 'text-body-secondary small',
   fileRemove: 'btn btn-sm btn-link link-danger p-0 text-decoration-none fs-5 lh-1',
+  pair: 'd-flex align-items-center gap-2',
+  chipList: 'd-flex flex-wrap gap-1 mt-2',
+  pairButton: 'btn btn-outline-secondary flex-shrink-0 text-nowrap',
 }
 
 // Bootstrap's own size modifiers are designed to be appended.

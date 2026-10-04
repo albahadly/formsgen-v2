@@ -54,6 +54,8 @@ export type CsFieldKind =
   | 'list' // checkboxgroup / tags (List<string>)
   | 'array' // multiselect (string[], as InputSelect multiple binds arrays)
   | 'files' // file / image upload (List<FgUpload>, buffered when picked)
+  | 'range2' // two-handle range slider (FgRange: From/To doubles)
+  | 'daterange' // date range (FgDateRange: From/To ISO strings)
 
 export function csFieldKind(type: string): CsFieldKind {
   switch (type) {
@@ -66,7 +68,12 @@ export function csFieldKind(type: string): CsFieldKind {
       return 'numberValue'
     case 'checkboxgroup':
     case 'tags':
+    case 'dates':
       return 'list'
+    case 'rangeslider':
+      return 'range2'
+    case 'daterange':
+      return 'daterange'
     case 'multiselect':
       return 'array'
     case 'file':
@@ -86,7 +93,9 @@ export function csAttributes(field: ExportField, kind: CsFieldKind): string[] | 
   const rules = field.node.validation ?? []
   if (rules.length === 0) return []
   if (field.conditionChain.length > 0) return null
-  if (kind === 'bool' || kind === 'list' || kind === 'array' || kind === 'files') return null // Validate() handles these
+  if (kind === 'bool' || kind === 'list' || kind === 'array' || kind === 'files' || kind === 'range2' || kind === 'daterange') {
+    return null // Validate() handles these
+  }
   const numeric = kind === 'number' || kind === 'numberValue'
   // [Range] is not AllowMultiple: a numeric field with more than one of
   // min/max/between must validate in Validate() to keep both messages.
@@ -206,8 +215,13 @@ export function csValidateStatements(
   messages: MessageCatalog = MESSAGES.en,
 ): string[] {
   const rules = field.node.validation ?? []
-  const fileChecks = kind === 'files' ? csFileChecks(field.node, csSelfAccessor(field.key), messages) : []
-  if (rules.length === 0 && fileChecks.length === 0) return []
+  const builtinChecks =
+    kind === 'files'
+      ? csFileChecks(field.node, csSelfAccessor(field.key), messages)
+      : kind === 'daterange'
+        ? csDateOrderCheck(csSelfAccessor(field.key), messages)
+        : []
+  if (rules.length === 0 && builtinChecks.length === 0) return []
   const member = csSelfAccessor(field.key)
   const lines: string[] = []
   const visible =
@@ -222,11 +236,33 @@ export function csValidateStatements(
   const required = rules.filter((r) => r.rule === 'required')
   const checks = [
     ...csRuleChecks(required, kind, member, csSelfAccessor).map(ruleLine),
-    ...fileChecks,
+    ...builtinChecks,
     ...csRuleChecks(rules.filter((r) => r.rule !== 'required'), kind, member, csSelfAccessor).map(ruleLine),
   ]
   lines.push(`    ${guardOpen}${checks.join('\n    ')}${guardClose}`)
   return lines
+}
+
+/** C# test (true = empty) for a member of the given kind. */
+function csEmptyExpr(kind: CsFieldKind, member: string): string {
+  switch (kind) {
+    case 'bool':
+      return `!${member}`
+    case 'number':
+      return `!${member}.HasValue`
+    case 'numberValue':
+    case 'range2':
+      return 'false'
+    case 'list':
+    case 'files':
+      return `${member}.Count == 0`
+    case 'array':
+      return `${member}.Length == 0`
+    case 'daterange':
+      return `(string.IsNullOrWhiteSpace(${member}.From) || string.IsNullOrWhiteSpace(${member}.To))`
+    default:
+      return `string.IsNullOrWhiteSpace(${member})`
+  }
 }
 
 /**
@@ -240,18 +276,7 @@ export function csRuleChecks(
   member: string,
   sameAs: (key: string) => string,
 ): { test: string; message: string }[] {
-  const emptyExpr =
-    kind === 'bool'
-      ? `!${member}`
-      : kind === 'number'
-        ? `!${member}.HasValue`
-        : kind === 'numberValue'
-          ? 'false'
-          : kind === 'list' || kind === 'files'
-            ? `${member}.Count == 0`
-            : kind === 'array'
-              ? `${member}.Length == 0`
-              : `string.IsNullOrWhiteSpace(${member})`
+  const emptyExpr = csEmptyExpr(kind, member)
   const sizeExpr =
     kind === 'number'
       ? `${member}!.Value`
@@ -300,6 +325,13 @@ export function csRuleChecks(
     }
   }
   return checks
+}
+
+/** Validate() line rejecting a date range whose end is before its start. */
+export function csDateOrderCheck(member: string, messages: MessageCatalog): string[] {
+  return [
+    `    if (!string.IsNullOrWhiteSpace(${member}.From) && !string.IsNullOrWhiteSpace(${member}.To) && string.CompareOrdinal(${member}.To, ${member}.From) < 0) yield return new ValidationResult(${csStr(messages.dateOrder)}, new[] { nameof(${member}) });`,
+  ]
 }
 
 /** Validate() lines checking an upload's count, then each file's type and size. */

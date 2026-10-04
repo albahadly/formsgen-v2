@@ -248,6 +248,48 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
           </div>
         </div>
         <div class="col-12 col-md-12">
+          <div class="d-flex flex-column gap-1">
+            <label class="form-label fw-semibold mb-0" for="fg_budget">Budget</label>
+            <div class="fg-dual">
+              <div class="fg-dual-track"><div class="fg-dual-fill" style="@FgDualFill(Model.Budget, 0, 1000)"></div></div>
+              <input @key='$"From{Model.Budget.Version}"' @ref='fgDualRefs["fg_budget"]' id="fg_budget" type="range" min="0" max="1000" step="50" value="@FgNum(Model.Budget.ShownFrom)" aria-label="Budget: Minimum" style="z-index: @(FgDualFromOnTop(Model.Budget, 0, 1000) ? 3 : 1)" @oninput='e => FgDualSet(Model.Budget, true, e, "fg_budget")' />
+              <input @key='$"To{Model.Budget.Version}"' @ref='fgDualRefs["fg_budget_to"]' id="fg_budget_to" type="range" min="0" max="1000" step="50" value="@FgNum(Model.Budget.ShownTo)" aria-label="Budget: Maximum" style="z-index: 2" @oninput='e => FgDualSet(Model.Budget, false, e, "fg_budget_to")' />
+            </div>
+            <p class="form-text mt-0">@FgNum(Model.Budget.From) – @FgNum(Model.Budget.To)</p>
+            <ValidationMessage For="@(() => Model.Budget)" class="invalid-feedback d-block mt-0" />
+          </div>
+        </div>
+        <div class="col-12 col-md-12">
+          <div class="d-flex flex-column gap-1">
+            <label class="form-label fw-semibold mb-0" for="fg_stay">Stay<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+            <div class="d-flex align-items-center gap-2">
+              <input id="fg_stay" type="date" class="form-control" aria-label="Stay: Start date" value="@Model.Stay.From" @onchange='e => FgSetDate(Model.Stay, true, e, "Stay")' />
+              <span aria-hidden="true">–</span>
+              <input id="fg_stay_to" type="date" class="form-control" min="@Model.Stay.From" aria-label="Stay: End date" value="@Model.Stay.To" @onchange='e => FgSetDate(Model.Stay, false, e, "Stay")' />
+            </div>
+            <ValidationMessage For="@(() => Model.Stay)" class="invalid-feedback d-block mt-0" />
+          </div>
+        </div>
+        <div class="col-12 col-md-12">
+          <div class="d-flex flex-column gap-1">
+            <label class="form-label fw-semibold mb-0" for="fg_days">Available days</label>
+            <div class="d-flex align-items-center gap-2">
+              <input id="fg_days" type="date" class="form-control" value='@fgDateDrafts["Days"]' @onchange='e => fgDateDrafts["Days"] = Convert.ToString(e.Value) ?? ""' />
+              <button type="button" class="btn btn-outline-secondary flex-shrink-0 text-nowrap" @onclick='() => FgAddDate(Model.Days, "Days")'>Add date</button>
+            </div>
+            @if (Model.Days.Count > 0)
+            {
+                <div class="d-flex flex-wrap gap-1 mt-2">
+                    @foreach (var date in Model.Days.ToList())
+                    {
+                        <span @key="date" class="badge rounded-pill text-bg-secondary d-inline-flex align-items-center gap-1">@date <button type="button" class="border-0 bg-transparent p-0 ms-1 text-white" aria-label='@FgRemoveDateLabel(date)' @onclick='() => FgRemoveDate(Model.Days, date, "Days")'>&times;</button></span>
+                    }
+                </div>
+            }
+            <ValidationMessage For="@(() => Model.Days)" class="invalid-feedback d-block mt-0" />
+          </div>
+        </div>
+        <div class="col-12 col-md-12">
           <fieldset class="border rounded p-3 bg-body-tertiary" data-fg-repeater="references">
             <legend class="fw-semibold text-secondary small px-1">References</legend>
             <div class="d-flex flex-column gap-3">
@@ -567,6 +609,9 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
             "Appointment" => Model.Appointment,
             "BrandColor" => Model.BrandColor,
             "Volume" => Model.Volume,
+            "Budget" => Model.Budget,
+            "Stay" => Model.Stay,
+            "Days" => Model.Days,
             "Source" => Model.Source,
             "Attachments" => Model.Attachments,
             "AttachmentsNote" => Model.AttachmentsNote,
@@ -666,6 +711,9 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         "Appointment",
         "BrandColor",
         "Volume",
+        "Budget",
+        "Stay",
+        "Days",
         "Source",
         "Attachments",
         "AttachmentsNote",
@@ -961,10 +1009,115 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         if (fgFileInputs.TryGetValue(member, out var input) && input.Element is ElementReference element) await element.FocusAsync();
     }
 
+    // The two inputs render the Shown values and are re-created (a new
+    // Version in their @key) only when a value is corrected (a handle
+    // pushed past the other) or reset: re-rendering a live range input's
+    // value would fight the user's drag or key presses.
+    public sealed class FgRange
+    {
+        private static int fgVersions;
+
+        public FgRange(double from, double to)
+        {
+            From = from;
+            To = to;
+            Redraw();
+        }
+
+        public double From { get; set; }
+        public double To { get; set; }
+        public double ShownFrom { get; private set; }
+        public double ShownTo { get; private set; }
+        public int Version { get; private set; }
+
+        public void Redraw()
+        {
+            ShownFrom = From;
+            ShownTo = To;
+            Version = System.Threading.Interlocked.Increment(ref fgVersions);
+        }
+    }
+
+    private readonly Dictionary<string, ElementReference> fgDualRefs = new();
+    private string? fgFocusDual;
+
+    private static string FgNum(double value) => value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    private static string FgDualFill(FgRange range, double min, double max)
+    {
+        double Pct(double n) => max > min ? (n - min) / (max - min) * 100 : 0;
+        return $"inset-inline-start: {FgNum(Pct(range.From))}%; inset-inline-end: {FgNum(100 - Pct(range.To))}%";
+    }
+
+    // With both handles together, the one that can still move is on top.
+    private static bool FgDualFromOnTop(FgRange range, double min, double max) =>
+        range.From == range.To && range.From > (min + max) / 2;
+
+    // Handles can't cross: a value past the other handle stops at it (and
+    // the input is redrawn there, keeping focus).
+    private void FgDualSet(FgRange range, bool from, ChangeEventArgs e, string id)
+    {
+        var text = Convert.ToString(e.Value, System.Globalization.CultureInfo.InvariantCulture);
+        if (!double.TryParse(text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var n)) return;
+        var crossed = from ? n > range.To : n < range.From;
+        if (from) range.From = Math.Min(n, range.To);
+        else range.To = Math.Max(n, range.From);
+        if (!crossed) return;
+        range.Redraw();
+        fgFocusDual = id;
+    }
+
+    private async Task FgFocusDual()
+    {
+        if (fgFocusDual == null) return;
+        var id = fgFocusDual;
+        fgFocusDual = null;
+        if (fgDualRefs.TryGetValue(id, out var input)) await input.FocusAsync();
+    }
+
+    public sealed class FgDateRange
+    {
+        public string From { get; set; } = "";
+        public string To { get; set; } = "";
+    }
+
+    private void FgSetDate(FgDateRange range, bool from, ChangeEventArgs e, string member)
+    {
+        var value = Convert.ToString(e.Value) ?? "";
+        if (from) range.From = value;
+        else range.To = value;
+        FgChanged(member);
+    }
+
+    private void FgChanged(string member) => fgEdit.NotifyFieldChanged(new FieldIdentifier(Model, member));
+
+    private readonly Dictionary<string, string> fgDateDrafts = new() { ["Days"] = "" };
+
+    private void FgAddDate(List<string> list, string member)
+    {
+        var date = fgDateDrafts.TryGetValue(member, out var draft) ? draft ?? "" : "";
+        if (System.Text.RegularExpressions.Regex.IsMatch(date, @"^\\d{4}-\\d{2}-\\d{2}$") && !list.Contains(date))
+        {
+            list.Add(date);
+            list.Sort(string.CompareOrdinal);
+        }
+        fgDateDrafts[member] = "";
+        FgChanged(member);
+    }
+
+    private void FgRemoveDate(List<string> list, string date, string member)
+    {
+        list.Remove(date);
+        FgChanged(member);
+    }
+
+    private static string FgRemoveDateLabel(string date) => "Remove {date}".Replace("{date}", date);
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await FgFocusRepeaters();
         await FgFocusUploads();
+        await FgFocusDual();
     }
 
     private async Task FgReset()
@@ -975,6 +1128,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         fgDeferredFields.Clear();
         ResultJson = null;
         foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";
+        foreach (var key in fgDateDrafts.Keys.ToList()) fgDateDrafts[key] = "";
         await FgAnnounce("The form was reset.");
     }
 
@@ -983,6 +1137,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         null => true,
         string text => string.IsNullOrWhiteSpace(text),
         bool on => !on,
+        FgDateRange range => string.IsNullOrWhiteSpace(range.From) || string.IsNullOrWhiteSpace(range.To),
         System.Collections.ICollection list => list.Count == 0,
         _ => false,
     };
@@ -1030,6 +1185,9 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         payload["appointment"] = Model.Appointment;
         payload["brand_color"] = Model.BrandColor;
         payload["volume"] = Model.Volume;
+        payload["budget"] = new Dictionary<string, object?> { ["from"] = Model.Budget.From, ["to"] = Model.Budget.To };
+        payload["stay"] = new Dictionary<string, object?> { ["from"] = Model.Stay.From, ["to"] = Model.Stay.To };
+        payload["days"] = Model.Days;
         payload["source"] = Model.Source;
         var list1 = new List<Dictionary<string, object?>>();
         foreach (var item in Model.References)
@@ -1111,6 +1269,12 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
 
         public double Volume { get; set; } = 0;
 
+        public FgRange Budget { get; set; } = new(200, 600);
+
+        public FgDateRange Stay { get; set; } = new();
+
+        public List<string> Days { get; set; } = new();
+
         public string Source { get; set; } = "kitchen-sink";
 
         public List<FgUpload> Attachments { get; set; } = new();
@@ -1145,6 +1309,9 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         if (!(!Seats.HasValue) && (Seats!.Value < 1)) yield return new ValidationResult("Must be at least 1", new[] { nameof(Seats) });
         if (!(!Seats.HasValue) && (Seats!.Value > 50)) yield return new ValidationResult("Must be at most 50", new[] { nameof(Seats) });
         if (!(Topics.Count == 0) && (Topics.Count > 5)) yield return new ValidationResult("At most 5 topics", new[] { nameof(Topics) });
+        if ((string.IsNullOrWhiteSpace(Stay.From) || string.IsNullOrWhiteSpace(Stay.To))) yield return new ValidationResult("This field is required", new[] { nameof(Stay) });
+        if (!string.IsNullOrWhiteSpace(Stay.From) && !string.IsNullOrWhiteSpace(Stay.To) && string.CompareOrdinal(Stay.To, Stay.From) < 0) yield return new ValidationResult("The end date can’t be before the start date", new[] { nameof(Stay) });
+        if (!(Days.Count == 0) && (Days.Count > 3)) yield return new ValidationResult("Must be at most 3", new[] { nameof(Days) });
         if (Attachments.Count == 0) yield return new ValidationResult("This field is required", new[] { nameof(Attachments) });
         if (Attachments.Count > 3) yield return new ValidationResult("Choose at most 3 files", new[] { nameof(Attachments) });
         foreach (var file in Attachments)
@@ -1419,6 +1586,48 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
             <label class="text-sm font-semibold" for="fg_volume">Volume</label>
             <input id="fg_volume" type="range" @bind="Model.Volume" @bind:event="oninput" class="w-full accent-indigo-600" min="0" max="10" step="1" aria-orientation="vertical" style="writing-mode: vertical-lr; direction: rtl; align-self: flex-start; width: auto; height: 10rem" />
             <ValidationMessage For="@(() => Model.Volume)" class="text-xs text-red-600" />
+          </div>
+        </div>
+        <div class="col-span-12 md:col-span-12">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-semibold" for="fg_budget">Budget</label>
+            <div class="fg-dual">
+              <div class="fg-dual-track"><div class="fg-dual-fill" style="@FgDualFill(Model.Budget, 0, 1000)"></div></div>
+              <input @key='$"From{Model.Budget.Version}"' @ref='fgDualRefs["fg_budget"]' id="fg_budget" type="range" min="0" max="1000" step="50" value="@FgNum(Model.Budget.ShownFrom)" aria-label="Budget: Minimum" style="z-index: @(FgDualFromOnTop(Model.Budget, 0, 1000) ? 3 : 1)" @oninput='e => FgDualSet(Model.Budget, true, e, "fg_budget")' />
+              <input @key='$"To{Model.Budget.Version}"' @ref='fgDualRefs["fg_budget_to"]' id="fg_budget_to" type="range" min="0" max="1000" step="50" value="@FgNum(Model.Budget.ShownTo)" aria-label="Budget: Maximum" style="z-index: 2" @oninput='e => FgDualSet(Model.Budget, false, e, "fg_budget_to")' />
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400">@FgNum(Model.Budget.From) – @FgNum(Model.Budget.To)</p>
+            <ValidationMessage For="@(() => Model.Budget)" class="text-xs text-red-600" />
+          </div>
+        </div>
+        <div class="col-span-12 md:col-span-12">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-semibold" for="fg_stay">Stay<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+            <div class="flex items-center gap-2">
+              <input id="fg_stay" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" aria-label="Stay: Start date" value="@Model.Stay.From" @onchange='e => FgSetDate(Model.Stay, true, e, "Stay")' />
+              <span aria-hidden="true">–</span>
+              <input id="fg_stay_to" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" min="@Model.Stay.From" aria-label="Stay: End date" value="@Model.Stay.To" @onchange='e => FgSetDate(Model.Stay, false, e, "Stay")' />
+            </div>
+            <ValidationMessage For="@(() => Model.Stay)" class="text-xs text-red-600" />
+          </div>
+        </div>
+        <div class="col-span-12 md:col-span-12">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-semibold" for="fg_days">Available days</label>
+            <div class="flex items-center gap-2">
+              <input id="fg_days" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" value='@fgDateDrafts["Days"]' @onchange='e => fgDateDrafts["Days"] = Convert.ToString(e.Value) ?? ""' />
+              <button type="button" class="shrink-0 whitespace-nowrap rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" @onclick='() => FgAddDate(Model.Days, "Days")'>Add date</button>
+            </div>
+            @if (Model.Days.Count > 0)
+            {
+                <div class="mt-2 flex flex-wrap gap-1.5">
+                    @foreach (var date in Model.Days.ToList())
+                    {
+                        <span @key="date" class="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700">@date <button type="button" class="text-gray-500 hover:text-red-600" aria-label='@FgRemoveDateLabel(date)' @onclick='() => FgRemoveDate(Model.Days, date, "Days")'>&times;</button></span>
+                    }
+                </div>
+            }
+            <ValidationMessage For="@(() => Model.Days)" class="text-xs text-red-600" />
           </div>
         </div>
         <div class="col-span-12 md:col-span-12">
@@ -1741,6 +1950,9 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
             "Appointment" => Model.Appointment,
             "BrandColor" => Model.BrandColor,
             "Volume" => Model.Volume,
+            "Budget" => Model.Budget,
+            "Stay" => Model.Stay,
+            "Days" => Model.Days,
             "Source" => Model.Source,
             "Attachments" => Model.Attachments,
             "AttachmentsNote" => Model.AttachmentsNote,
@@ -1840,6 +2052,9 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         "Appointment",
         "BrandColor",
         "Volume",
+        "Budget",
+        "Stay",
+        "Days",
         "Source",
         "Attachments",
         "AttachmentsNote",
@@ -2135,10 +2350,115 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         if (fgFileInputs.TryGetValue(member, out var input) && input.Element is ElementReference element) await element.FocusAsync();
     }
 
+    // The two inputs render the Shown values and are re-created (a new
+    // Version in their @key) only when a value is corrected (a handle
+    // pushed past the other) or reset: re-rendering a live range input's
+    // value would fight the user's drag or key presses.
+    public sealed class FgRange
+    {
+        private static int fgVersions;
+
+        public FgRange(double from, double to)
+        {
+            From = from;
+            To = to;
+            Redraw();
+        }
+
+        public double From { get; set; }
+        public double To { get; set; }
+        public double ShownFrom { get; private set; }
+        public double ShownTo { get; private set; }
+        public int Version { get; private set; }
+
+        public void Redraw()
+        {
+            ShownFrom = From;
+            ShownTo = To;
+            Version = System.Threading.Interlocked.Increment(ref fgVersions);
+        }
+    }
+
+    private readonly Dictionary<string, ElementReference> fgDualRefs = new();
+    private string? fgFocusDual;
+
+    private static string FgNum(double value) => value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    private static string FgDualFill(FgRange range, double min, double max)
+    {
+        double Pct(double n) => max > min ? (n - min) / (max - min) * 100 : 0;
+        return $"inset-inline-start: {FgNum(Pct(range.From))}%; inset-inline-end: {FgNum(100 - Pct(range.To))}%";
+    }
+
+    // With both handles together, the one that can still move is on top.
+    private static bool FgDualFromOnTop(FgRange range, double min, double max) =>
+        range.From == range.To && range.From > (min + max) / 2;
+
+    // Handles can't cross: a value past the other handle stops at it (and
+    // the input is redrawn there, keeping focus).
+    private void FgDualSet(FgRange range, bool from, ChangeEventArgs e, string id)
+    {
+        var text = Convert.ToString(e.Value, System.Globalization.CultureInfo.InvariantCulture);
+        if (!double.TryParse(text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var n)) return;
+        var crossed = from ? n > range.To : n < range.From;
+        if (from) range.From = Math.Min(n, range.To);
+        else range.To = Math.Max(n, range.From);
+        if (!crossed) return;
+        range.Redraw();
+        fgFocusDual = id;
+    }
+
+    private async Task FgFocusDual()
+    {
+        if (fgFocusDual == null) return;
+        var id = fgFocusDual;
+        fgFocusDual = null;
+        if (fgDualRefs.TryGetValue(id, out var input)) await input.FocusAsync();
+    }
+
+    public sealed class FgDateRange
+    {
+        public string From { get; set; } = "";
+        public string To { get; set; } = "";
+    }
+
+    private void FgSetDate(FgDateRange range, bool from, ChangeEventArgs e, string member)
+    {
+        var value = Convert.ToString(e.Value) ?? "";
+        if (from) range.From = value;
+        else range.To = value;
+        FgChanged(member);
+    }
+
+    private void FgChanged(string member) => fgEdit.NotifyFieldChanged(new FieldIdentifier(Model, member));
+
+    private readonly Dictionary<string, string> fgDateDrafts = new() { ["Days"] = "" };
+
+    private void FgAddDate(List<string> list, string member)
+    {
+        var date = fgDateDrafts.TryGetValue(member, out var draft) ? draft ?? "" : "";
+        if (System.Text.RegularExpressions.Regex.IsMatch(date, @"^\\d{4}-\\d{2}-\\d{2}$") && !list.Contains(date))
+        {
+            list.Add(date);
+            list.Sort(string.CompareOrdinal);
+        }
+        fgDateDrafts[member] = "";
+        FgChanged(member);
+    }
+
+    private void FgRemoveDate(List<string> list, string date, string member)
+    {
+        list.Remove(date);
+        FgChanged(member);
+    }
+
+    private static string FgRemoveDateLabel(string date) => "Remove {date}".Replace("{date}", date);
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await FgFocusRepeaters();
         await FgFocusUploads();
+        await FgFocusDual();
     }
 
     private async Task FgReset()
@@ -2149,6 +2469,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         fgDeferredFields.Clear();
         ResultJson = null;
         foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";
+        foreach (var key in fgDateDrafts.Keys.ToList()) fgDateDrafts[key] = "";
         await FgAnnounce("The form was reset.");
     }
 
@@ -2157,6 +2478,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         null => true,
         string text => string.IsNullOrWhiteSpace(text),
         bool on => !on,
+        FgDateRange range => string.IsNullOrWhiteSpace(range.From) || string.IsNullOrWhiteSpace(range.To),
         System.Collections.ICollection list => list.Count == 0,
         _ => false,
     };
@@ -2204,6 +2526,9 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         payload["appointment"] = Model.Appointment;
         payload["brand_color"] = Model.BrandColor;
         payload["volume"] = Model.Volume;
+        payload["budget"] = new Dictionary<string, object?> { ["from"] = Model.Budget.From, ["to"] = Model.Budget.To };
+        payload["stay"] = new Dictionary<string, object?> { ["from"] = Model.Stay.From, ["to"] = Model.Stay.To };
+        payload["days"] = Model.Days;
         payload["source"] = Model.Source;
         var list1 = new List<Dictionary<string, object?>>();
         foreach (var item in Model.References)
@@ -2285,6 +2610,12 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
 
         public double Volume { get; set; } = 0;
 
+        public FgRange Budget { get; set; } = new(200, 600);
+
+        public FgDateRange Stay { get; set; } = new();
+
+        public List<string> Days { get; set; } = new();
+
         public string Source { get; set; } = "kitchen-sink";
 
         public List<FgUpload> Attachments { get; set; } = new();
@@ -2319,6 +2650,9 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         if (!(!Seats.HasValue) && (Seats!.Value < 1)) yield return new ValidationResult("Must be at least 1", new[] { nameof(Seats) });
         if (!(!Seats.HasValue) && (Seats!.Value > 50)) yield return new ValidationResult("Must be at most 50", new[] { nameof(Seats) });
         if (!(Topics.Count == 0) && (Topics.Count > 5)) yield return new ValidationResult("At most 5 topics", new[] { nameof(Topics) });
+        if ((string.IsNullOrWhiteSpace(Stay.From) || string.IsNullOrWhiteSpace(Stay.To))) yield return new ValidationResult("This field is required", new[] { nameof(Stay) });
+        if (!string.IsNullOrWhiteSpace(Stay.From) && !string.IsNullOrWhiteSpace(Stay.To) && string.CompareOrdinal(Stay.To, Stay.From) < 0) yield return new ValidationResult("The end date can’t be before the start date", new[] { nameof(Stay) });
+        if (!(Days.Count == 0) && (Days.Count > 3)) yield return new ValidationResult("Must be at most 3", new[] { nameof(Days) });
         if (Attachments.Count == 0) yield return new ValidationResult("This field is required", new[] { nameof(Attachments) });
         if (Attachments.Count > 3) yield return new ValidationResult("Choose at most 3 files", new[] { nameof(Attachments) });
         foreach (var file in Attachments)
@@ -2593,6 +2927,48 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             <label class="fg-label" for="fg_volume">Volume</label>
             <input id="fg_volume" type="range" @bind="Model.Volume" @bind:event="oninput" class="fg-range" min="0" max="10" step="1" aria-orientation="vertical" style="writing-mode: vertical-lr; direction: rtl; align-self: flex-start; width: auto; height: 10rem" />
             <ValidationMessage For="@(() => Model.Volume)" class="fg-error" />
+          </div>
+        </div>
+        <div class="fg-cell" style="grid-column: span 12 / span 12">
+          <div class="fg-field">
+            <label class="fg-label" for="fg_budget">Budget</label>
+            <div class="fg-dual">
+              <div class="fg-dual-track"><div class="fg-dual-fill" style="@FgDualFill(Model.Budget, 0, 1000)"></div></div>
+              <input @key='$"From{Model.Budget.Version}"' @ref='fgDualRefs["fg_budget"]' id="fg_budget" type="range" min="0" max="1000" step="50" value="@FgNum(Model.Budget.ShownFrom)" aria-label="Budget: Minimum" style="z-index: @(FgDualFromOnTop(Model.Budget, 0, 1000) ? 3 : 1)" @oninput='e => FgDualSet(Model.Budget, true, e, "fg_budget")' />
+              <input @key='$"To{Model.Budget.Version}"' @ref='fgDualRefs["fg_budget_to"]' id="fg_budget_to" type="range" min="0" max="1000" step="50" value="@FgNum(Model.Budget.ShownTo)" aria-label="Budget: Maximum" style="z-index: 2" @oninput='e => FgDualSet(Model.Budget, false, e, "fg_budget_to")' />
+            </div>
+            <p class="fg-description">@FgNum(Model.Budget.From) – @FgNum(Model.Budget.To)</p>
+            <ValidationMessage For="@(() => Model.Budget)" class="fg-error" />
+          </div>
+        </div>
+        <div class="fg-cell" style="grid-column: span 12 / span 12">
+          <div class="fg-field">
+            <label class="fg-label" for="fg_stay">Stay<span class="fg-required" aria-hidden="true">*</span></label>
+            <div class="fg-pair">
+              <input id="fg_stay" type="date" class="fg-input" aria-label="Stay: Start date" value="@Model.Stay.From" @onchange='e => FgSetDate(Model.Stay, true, e, "Stay")' />
+              <span aria-hidden="true">–</span>
+              <input id="fg_stay_to" type="date" class="fg-input" min="@Model.Stay.From" aria-label="Stay: End date" value="@Model.Stay.To" @onchange='e => FgSetDate(Model.Stay, false, e, "Stay")' />
+            </div>
+            <ValidationMessage For="@(() => Model.Stay)" class="fg-error" />
+          </div>
+        </div>
+        <div class="fg-cell" style="grid-column: span 12 / span 12">
+          <div class="fg-field">
+            <label class="fg-label" for="fg_days">Available days</label>
+            <div class="fg-pair">
+              <input id="fg_days" type="date" class="fg-input" value='@fgDateDrafts["Days"]' @onchange='e => fgDateDrafts["Days"] = Convert.ToString(e.Value) ?? ""' />
+              <button type="button" class="fg-button fg-button--secondary fg-pair-button" @onclick='() => FgAddDate(Model.Days, "Days")'>Add date</button>
+            </div>
+            @if (Model.Days.Count > 0)
+            {
+                <div class="fg-chips">
+                    @foreach (var date in Model.Days.ToList())
+                    {
+                        <span @key="date" class="fg-tag">@date <button type="button" class="fg-tag-remove" aria-label='@FgRemoveDateLabel(date)' @onclick='() => FgRemoveDate(Model.Days, date, "Days")'>&times;</button></span>
+                    }
+                </div>
+            }
+            <ValidationMessage For="@(() => Model.Days)" class="fg-error" />
           </div>
         </div>
         <div class="fg-cell" style="grid-column: span 12 / span 12">
@@ -2915,6 +3291,9 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             "Appointment" => Model.Appointment,
             "BrandColor" => Model.BrandColor,
             "Volume" => Model.Volume,
+            "Budget" => Model.Budget,
+            "Stay" => Model.Stay,
+            "Days" => Model.Days,
             "Source" => Model.Source,
             "Attachments" => Model.Attachments,
             "AttachmentsNote" => Model.AttachmentsNote,
@@ -3014,6 +3393,9 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         "Appointment",
         "BrandColor",
         "Volume",
+        "Budget",
+        "Stay",
+        "Days",
         "Source",
         "Attachments",
         "AttachmentsNote",
@@ -3309,10 +3691,115 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         if (fgFileInputs.TryGetValue(member, out var input) && input.Element is ElementReference element) await element.FocusAsync();
     }
 
+    // The two inputs render the Shown values and are re-created (a new
+    // Version in their @key) only when a value is corrected (a handle
+    // pushed past the other) or reset: re-rendering a live range input's
+    // value would fight the user's drag or key presses.
+    public sealed class FgRange
+    {
+        private static int fgVersions;
+
+        public FgRange(double from, double to)
+        {
+            From = from;
+            To = to;
+            Redraw();
+        }
+
+        public double From { get; set; }
+        public double To { get; set; }
+        public double ShownFrom { get; private set; }
+        public double ShownTo { get; private set; }
+        public int Version { get; private set; }
+
+        public void Redraw()
+        {
+            ShownFrom = From;
+            ShownTo = To;
+            Version = System.Threading.Interlocked.Increment(ref fgVersions);
+        }
+    }
+
+    private readonly Dictionary<string, ElementReference> fgDualRefs = new();
+    private string? fgFocusDual;
+
+    private static string FgNum(double value) => value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    private static string FgDualFill(FgRange range, double min, double max)
+    {
+        double Pct(double n) => max > min ? (n - min) / (max - min) * 100 : 0;
+        return $"inset-inline-start: {FgNum(Pct(range.From))}%; inset-inline-end: {FgNum(100 - Pct(range.To))}%";
+    }
+
+    // With both handles together, the one that can still move is on top.
+    private static bool FgDualFromOnTop(FgRange range, double min, double max) =>
+        range.From == range.To && range.From > (min + max) / 2;
+
+    // Handles can't cross: a value past the other handle stops at it (and
+    // the input is redrawn there, keeping focus).
+    private void FgDualSet(FgRange range, bool from, ChangeEventArgs e, string id)
+    {
+        var text = Convert.ToString(e.Value, System.Globalization.CultureInfo.InvariantCulture);
+        if (!double.TryParse(text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var n)) return;
+        var crossed = from ? n > range.To : n < range.From;
+        if (from) range.From = Math.Min(n, range.To);
+        else range.To = Math.Max(n, range.From);
+        if (!crossed) return;
+        range.Redraw();
+        fgFocusDual = id;
+    }
+
+    private async Task FgFocusDual()
+    {
+        if (fgFocusDual == null) return;
+        var id = fgFocusDual;
+        fgFocusDual = null;
+        if (fgDualRefs.TryGetValue(id, out var input)) await input.FocusAsync();
+    }
+
+    public sealed class FgDateRange
+    {
+        public string From { get; set; } = "";
+        public string To { get; set; } = "";
+    }
+
+    private void FgSetDate(FgDateRange range, bool from, ChangeEventArgs e, string member)
+    {
+        var value = Convert.ToString(e.Value) ?? "";
+        if (from) range.From = value;
+        else range.To = value;
+        FgChanged(member);
+    }
+
+    private void FgChanged(string member) => fgEdit.NotifyFieldChanged(new FieldIdentifier(Model, member));
+
+    private readonly Dictionary<string, string> fgDateDrafts = new() { ["Days"] = "" };
+
+    private void FgAddDate(List<string> list, string member)
+    {
+        var date = fgDateDrafts.TryGetValue(member, out var draft) ? draft ?? "" : "";
+        if (System.Text.RegularExpressions.Regex.IsMatch(date, @"^\\d{4}-\\d{2}-\\d{2}$") && !list.Contains(date))
+        {
+            list.Add(date);
+            list.Sort(string.CompareOrdinal);
+        }
+        fgDateDrafts[member] = "";
+        FgChanged(member);
+    }
+
+    private void FgRemoveDate(List<string> list, string date, string member)
+    {
+        list.Remove(date);
+        FgChanged(member);
+    }
+
+    private static string FgRemoveDateLabel(string date) => "Remove {date}".Replace("{date}", date);
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await FgFocusRepeaters();
         await FgFocusUploads();
+        await FgFocusDual();
     }
 
     private async Task FgReset()
@@ -3323,6 +3810,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         fgDeferredFields.Clear();
         ResultJson = null;
         foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";
+        foreach (var key in fgDateDrafts.Keys.ToList()) fgDateDrafts[key] = "";
         await FgAnnounce("The form was reset.");
     }
 
@@ -3331,6 +3819,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         null => true,
         string text => string.IsNullOrWhiteSpace(text),
         bool on => !on,
+        FgDateRange range => string.IsNullOrWhiteSpace(range.From) || string.IsNullOrWhiteSpace(range.To),
         System.Collections.ICollection list => list.Count == 0,
         _ => false,
     };
@@ -3378,6 +3867,9 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         payload["appointment"] = Model.Appointment;
         payload["brand_color"] = Model.BrandColor;
         payload["volume"] = Model.Volume;
+        payload["budget"] = new Dictionary<string, object?> { ["from"] = Model.Budget.From, ["to"] = Model.Budget.To };
+        payload["stay"] = new Dictionary<string, object?> { ["from"] = Model.Stay.From, ["to"] = Model.Stay.To };
+        payload["days"] = Model.Days;
         payload["source"] = Model.Source;
         var list1 = new List<Dictionary<string, object?>>();
         foreach (var item in Model.References)
@@ -3459,6 +3951,12 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
 
         public double Volume { get; set; } = 0;
 
+        public FgRange Budget { get; set; } = new(200, 600);
+
+        public FgDateRange Stay { get; set; } = new();
+
+        public List<string> Days { get; set; } = new();
+
         public string Source { get; set; } = "kitchen-sink";
 
         public List<FgUpload> Attachments { get; set; } = new();
@@ -3493,6 +3991,9 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         if (!(!Seats.HasValue) && (Seats!.Value < 1)) yield return new ValidationResult("Must be at least 1", new[] { nameof(Seats) });
         if (!(!Seats.HasValue) && (Seats!.Value > 50)) yield return new ValidationResult("Must be at most 50", new[] { nameof(Seats) });
         if (!(Topics.Count == 0) && (Topics.Count > 5)) yield return new ValidationResult("At most 5 topics", new[] { nameof(Topics) });
+        if ((string.IsNullOrWhiteSpace(Stay.From) || string.IsNullOrWhiteSpace(Stay.To))) yield return new ValidationResult("This field is required", new[] { nameof(Stay) });
+        if (!string.IsNullOrWhiteSpace(Stay.From) && !string.IsNullOrWhiteSpace(Stay.To) && string.CompareOrdinal(Stay.To, Stay.From) < 0) yield return new ValidationResult("The end date can’t be before the start date", new[] { nameof(Stay) });
+        if (!(Days.Count == 0) && (Days.Count > 3)) yield return new ValidationResult("Must be at most 3", new[] { nameof(Days) });
         if (Attachments.Count == 0) yield return new ValidationResult("This field is required", new[] { nameof(Attachments) });
         if (Attachments.Count > 3) yield return new ValidationResult("Choose at most 3 files", new[] { nameof(Attachments) });
         foreach (var file in Attachments)
@@ -3522,6 +4023,20 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Kitchen Sink</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <style>
+  /* Two-handle range slider */
+  .fg-dual { position: relative; height: 1.5rem; margin-block: 0.25rem; }
+  .fg-dual-track { position: absolute; inset-inline: 0; top: 50%; height: 0.375rem; transform: translateY(-50%); border-radius: 999px; background: var(--fg-color-border, var(--bs-border-color, #d1d5db)); }
+  .fg-dual-fill { position: absolute; top: 0; bottom: 0; border-radius: inherit; background: var(--fg-color-primary, var(--bs-primary, #4f46e5)); }
+  .fg-dual input[type='range'] { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; background: none; pointer-events: none; -webkit-appearance: none; appearance: none; }
+  .fg-dual input[type='range']::-webkit-slider-runnable-track { height: 1.5rem; background: none; border: none; }
+  .fg-dual input[type='range']::-moz-range-track { background: none; border: none; }
+  .fg-dual input[type='range']::-webkit-slider-thumb { -webkit-appearance: none; pointer-events: auto; width: 1.125rem; height: 1.125rem; margin-top: 0.1875rem; border-radius: 50%; background: var(--fg-color-primary, var(--bs-primary, #4f46e5)); border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25); cursor: pointer; }
+  .fg-dual input[type='range']::-moz-range-thumb { pointer-events: auto; width: 1.125rem; height: 1.125rem; border-radius: 50%; background: var(--fg-color-primary, var(--bs-primary, #4f46e5)); border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25); cursor: pointer; }
+  .fg-dual input[type='range']:focus-visible { outline: none; }
+  .fg-dual input[type='range']:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+  .fg-dual input[type='range']:focus-visible::-moz-range-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+  </style>
 </head>
 <body>
   <form id="fg-form" class="container py-4" novalidate>
@@ -3739,6 +4254,40 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
           <p id="fg_err_volume" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
         </div>
       </div>
+      <div class="col-12 col-md-12">
+        <div class="d-flex flex-column gap-1">
+          <label class="form-label fw-semibold mb-0" for="fg_budget">Budget</label>
+          <div class="fg-dual" data-fg-dual="budget">
+            <div class="fg-dual-track"><div class="fg-dual-fill" data-fg-dual-fill></div></div>
+            <input id="fg_budget" type="range" min="0" max="1000" step="50" value="200" data-fg-path="budget" data-fg-kind="range2" data-fg-part="from" aria-label="Budget: Minimum">
+            <input id="fg_budget_to" type="range" min="0" max="1000" step="50" value="600" data-fg-path="budget" data-fg-kind="range2" data-fg-part="to" aria-label="Budget: Maximum">
+          </div>
+          <p class="form-text mt-0" data-fg-dual-text="budget">200 – 600</p>
+          <p id="fg_err_budget" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="d-flex flex-column gap-1">
+          <label class="form-label fw-semibold mb-0" for="fg_stay">Stay<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+          <div class="d-flex align-items-center gap-2">
+            <input id="fg_stay" type="date" class="form-control" data-fg-path="stay" data-fg-kind="daterange" data-fg-part="from" aria-label="Stay: Start date">
+            <span aria-hidden="true">–</span>
+            <input id="fg_stay_to" type="date" class="form-control" data-fg-path="stay" data-fg-kind="daterange" data-fg-part="to" aria-label="Stay: End date">
+          </div>
+          <p id="fg_err_stay" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="d-flex flex-column gap-1">
+          <label class="form-label fw-semibold mb-0" for="fg_days">Available days</label>
+          <div class="d-flex align-items-center gap-2" data-fg-path="days" data-fg-kind="dates">
+            <input id="fg_days" type="date" class="form-control" data-fg-dates-input="days">
+            <button type="button" class="btn btn-outline-secondary flex-shrink-0 text-nowrap" data-fg-dates-add="days">Add date</button>
+          </div>
+          <div class="d-flex flex-wrap gap-1 mt-2" data-fg-dates-chips="days" hidden></div>
+          <p id="fg_err_days" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+        </div>
+      </div>
       <input id="fg_source" type="hidden" value="kitchen-sink" data-fg-path="source" data-fg-kind="text">
       <div class="col-12 col-md-12">
         <fieldset class="border rounded p-3 bg-body-tertiary" data-fg-repeater="references">
@@ -3930,6 +4479,10 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       if (v === null || v === undefined) return true
       if (typeof v === 'string') return v.trim() === ''
       if (Array.isArray(v)) return v.length === 0
+      // Composite values ({ from, to }) are empty while any part is.
+      if (typeof v === 'object' && Object.getPrototypeOf(v) === Object.prototype) {
+        return Object.keys(v).some((k) => fgIsEmpty(v[k]))
+      }
       return false
     }
     // Empty, or an unchecked checkbox/toggle (takes any type, so typed targets
@@ -4007,6 +4560,14 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       if (kind === 'multiselect') {
         return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }
+      if (kind === 'range2' || kind === 'daterange') {
+        var parts = {}
+        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-path="' + path + '"][data-fg-part]'), function (input) {
+          parts[input.getAttribute('data-fg-part')] = kind === 'range2' ? Number(input.value) : input.value
+        })
+        return { from: parts.from, to: parts.to }
+      }
+      if (kind === 'dates') return (fgDates[path] || []).slice()
       if (kind === 'tags') return (fgTags[path] || []).slice()
       if (kind === 'files') return (fgFiles[path] || []).slice()
       if (kind === 'checks') {
@@ -4087,6 +4648,17 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       'topics': function () {
       const v = fgGet("topics")
       if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
+      return null
+      },
+      'stay': function () {
+      const v = fgGet("stay")
+      if (fgIsBlank(v)) return "This field is required"
+      { const problem = (v.from !== '' && v.to !== '' && v.to < v.from ? "The end date can’t be before the start date" : null); if (problem) return problem }
+      return null
+      },
+      'days': function () {
+      const v = fgGet("days")
+      if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 3)) return "Must be at most 3"
       return null
       },
       'attachments': function () {
@@ -4409,6 +4981,89 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       })
     })
 
+    function fgDualPaint(wrap) {
+      var from = wrap.querySelector('[data-fg-part="from"]')
+      var to = wrap.querySelector('[data-fg-part="to"]')
+      var min = Number(from.min)
+      var max = Number(from.max)
+      function pct(n) { return max > min ? ((n - min) / (max - min)) * 100 : 0 }
+      var fill = wrap.querySelector('[data-fg-dual-fill]')
+      fill.style.insetInlineStart = pct(Number(from.value)) + '%'
+      fill.style.insetInlineEnd = (100 - pct(Number(to.value))) + '%'
+      // With both handles together, the one that can still move is on top.
+      from.style.zIndex = from.value === to.value && Number(from.value) > (min + max) / 2 ? '3' : '1'
+      to.style.zIndex = '2'
+      var text = document.querySelector('[data-fg-dual-text="' + wrap.getAttribute('data-fg-dual') + '"]')
+      if (text) text.textContent = from.value + ' \\u2013 ' + to.value
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-dual]'), function (wrap) {
+      var from = wrap.querySelector('[data-fg-part="from"]')
+      var to = wrap.querySelector('[data-fg-part="to"]')
+      from.addEventListener('input', function () {
+        if (Number(from.value) > Number(to.value)) from.value = to.value
+        fgDualPaint(wrap)
+      })
+      to.addEventListener('input', function () {
+        if (Number(to.value) < Number(from.value)) to.value = from.value
+        fgDualPaint(wrap)
+      })
+      fgDualPaint(wrap)
+    })
+    function fgRangeMin(from) {
+      var to = document.querySelector('[data-fg-path="' + from.getAttribute('data-fg-path') + '"][data-fg-part="to"]')
+      if (to) to.min = from.value
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="daterange"][data-fg-part="from"]'), function (from) {
+      from.addEventListener('input', function () { fgRangeMin(from) })
+      from.addEventListener('change', function () { fgRangeMin(from) })
+    })
+    var fgDates = {}
+    function fgPaintDates(path) {
+      var chips = document.querySelector('[data-fg-dates-chips="' + path + '"]')
+      chips.textContent = ''
+      chips.hidden = fgDates[path].length === 0
+      fgDates[path].forEach(function (date, index) {
+        var chip = document.createElement('span')
+        chip.className = "badge rounded-pill text-bg-secondary d-inline-flex align-items-center gap-1"
+        chip.appendChild(document.createTextNode(date + ' '))
+        var remove = document.createElement('button')
+        remove.type = 'button'
+        remove.className = "border-0 bg-transparent p-0 ms-1 text-white"
+        remove.setAttribute('aria-label', 'Remove ' + (date))
+        remove.textContent = '\\u00d7'
+        remove.addEventListener('click', function () {
+          fgDates[path].splice(index, 1)
+          fgDatesChanged(path)
+        })
+        chip.appendChild(remove)
+        chips.appendChild(chip)
+      })
+    }
+    function fgDatesChanged(path) {
+      fgPaintDates(path)
+      touched[path] = true
+      validateField(path)
+      updateConditions()
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="dates"]'), function (wrap) {
+      var path = wrap.getAttribute('data-fg-path')
+      var input = wrap.querySelector('[data-fg-dates-input]')
+      fgDates[path] = []
+      function addDraft() {
+        var date = input.value
+        if (/^\\d{4}-\\d{2}-\\d{2}$/.test(date) && fgDates[path].indexOf(date) === -1) {
+          fgDates[path].push(date)
+          fgDates[path].sort()
+        }
+        input.value = ''
+        fgDatesChanged(path)
+      }
+      wrap.querySelector('[data-fg-dates-add]').addEventListener('click', addDraft)
+      input.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') { event.preventDefault(); addDraft() }
+      })
+    })
+
     // Polite aria-live region; cleared first so repeated text re-announces.
     function fgAnnounce(message) {
       var live = document.getElementById('fg-live')
@@ -4516,6 +5171,9 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         "appointment": fgGet("appointment"),
         "brand_color": fgGet("brand_color"),
         "volume": fgGet("volume"),
+        "budget": fgGet("budget"),
+        "stay": fgGet("stay"),
+        "days": fgGet("days"),
         "source": fgGet("source"),
         "references": fgItemIndexes("references").map(function (i) { return ({ "name": fgGet("references." + i + ".name"), "may_contact": fgGet("references." + i + ".may_contact"), ...((fgGet("references." + i + ".may_contact") === true) ? { "email": fgGet("references." + i + ".email") } : {}) }) }),
         "attachments": fgGet("attachments"),
@@ -4585,6 +5243,9 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
           fgFiles[path] = []
           fgPaintFiles(path)
         })
+        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-dual]'), fgDualPaint)
+        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="daterange"][data-fg-part="to"]'), function (to) { to.min = '' })
+        Object.keys(fgDates).forEach(function (path) { fgDates[path] = []; fgPaintDates(path) })
         Object.keys(touched).forEach(function (path) { delete touched[path] })
         Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })
         Object.keys(FG_REPEATERS).forEach(function (path) {
@@ -4641,6 +5302,20 @@ exports[`html target > snapshot (tailwind) 1`] = `
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Kitchen Sink</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+  /* Two-handle range slider */
+  .fg-dual { position: relative; height: 1.5rem; margin-block: 0.25rem; }
+  .fg-dual-track { position: absolute; inset-inline: 0; top: 50%; height: 0.375rem; transform: translateY(-50%); border-radius: 999px; background: var(--fg-color-border, var(--bs-border-color, #d1d5db)); }
+  .fg-dual-fill { position: absolute; top: 0; bottom: 0; border-radius: inherit; background: var(--fg-color-primary, var(--bs-primary, #4f46e5)); }
+  .fg-dual input[type='range'] { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; background: none; pointer-events: none; -webkit-appearance: none; appearance: none; }
+  .fg-dual input[type='range']::-webkit-slider-runnable-track { height: 1.5rem; background: none; border: none; }
+  .fg-dual input[type='range']::-moz-range-track { background: none; border: none; }
+  .fg-dual input[type='range']::-webkit-slider-thumb { -webkit-appearance: none; pointer-events: auto; width: 1.125rem; height: 1.125rem; margin-top: 0.1875rem; border-radius: 50%; background: var(--fg-color-primary, var(--bs-primary, #4f46e5)); border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25); cursor: pointer; }
+  .fg-dual input[type='range']::-moz-range-thumb { pointer-events: auto; width: 1.125rem; height: 1.125rem; border-radius: 50%; background: var(--fg-color-primary, var(--bs-primary, #4f46e5)); border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25); cursor: pointer; }
+  .fg-dual input[type='range']:focus-visible { outline: none; }
+  .fg-dual input[type='range']:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+  .fg-dual input[type='range']:focus-visible::-moz-range-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+  </style>
 </head>
 <body>
   <form id="fg-form" class="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" novalidate>
@@ -4866,6 +5541,40 @@ exports[`html target > snapshot (tailwind) 1`] = `
           <p id="fg_err_volume" class="text-xs text-red-600" role="alert" hidden></p>
         </div>
       </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_budget">Budget</label>
+          <div class="fg-dual" data-fg-dual="budget">
+            <div class="fg-dual-track"><div class="fg-dual-fill" data-fg-dual-fill></div></div>
+            <input id="fg_budget" type="range" min="0" max="1000" step="50" value="200" data-fg-path="budget" data-fg-kind="range2" data-fg-part="from" aria-label="Budget: Minimum">
+            <input id="fg_budget_to" type="range" min="0" max="1000" step="50" value="600" data-fg-path="budget" data-fg-kind="range2" data-fg-part="to" aria-label="Budget: Maximum">
+          </div>
+          <p class="text-xs text-gray-500 dark:text-gray-400" data-fg-dual-text="budget">200 – 600</p>
+          <p id="fg_err_budget" class="text-xs text-red-600" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_stay">Stay<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+          <div class="flex items-center gap-2">
+            <input id="fg_stay" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="stay" data-fg-kind="daterange" data-fg-part="from" aria-label="Stay: Start date">
+            <span aria-hidden="true">–</span>
+            <input id="fg_stay_to" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="stay" data-fg-kind="daterange" data-fg-part="to" aria-label="Stay: End date">
+          </div>
+          <p id="fg_err_stay" class="text-xs text-red-600" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_days">Available days</label>
+          <div class="flex items-center gap-2" data-fg-path="days" data-fg-kind="dates">
+            <input id="fg_days" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-dates-input="days">
+            <button type="button" class="shrink-0 whitespace-nowrap rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-dates-add="days">Add date</button>
+          </div>
+          <div class="mt-2 flex flex-wrap gap-1.5" data-fg-dates-chips="days" hidden></div>
+          <p id="fg_err_days" class="text-xs text-red-600" role="alert" hidden></p>
+        </div>
+      </div>
       <input id="fg_source" type="hidden" value="kitchen-sink" data-fg-path="source" data-fg-kind="text">
       <div class="col-span-12 md:col-span-12">
         <fieldset class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50" data-fg-repeater="references">
@@ -5057,6 +5766,10 @@ exports[`html target > snapshot (tailwind) 1`] = `
       if (v === null || v === undefined) return true
       if (typeof v === 'string') return v.trim() === ''
       if (Array.isArray(v)) return v.length === 0
+      // Composite values ({ from, to }) are empty while any part is.
+      if (typeof v === 'object' && Object.getPrototypeOf(v) === Object.prototype) {
+        return Object.keys(v).some((k) => fgIsEmpty(v[k]))
+      }
       return false
     }
     // Empty, or an unchecked checkbox/toggle (takes any type, so typed targets
@@ -5134,6 +5847,14 @@ exports[`html target > snapshot (tailwind) 1`] = `
       if (kind === 'multiselect') {
         return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }
+      if (kind === 'range2' || kind === 'daterange') {
+        var parts = {}
+        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-path="' + path + '"][data-fg-part]'), function (input) {
+          parts[input.getAttribute('data-fg-part')] = kind === 'range2' ? Number(input.value) : input.value
+        })
+        return { from: parts.from, to: parts.to }
+      }
+      if (kind === 'dates') return (fgDates[path] || []).slice()
       if (kind === 'tags') return (fgTags[path] || []).slice()
       if (kind === 'files') return (fgFiles[path] || []).slice()
       if (kind === 'checks') {
@@ -5214,6 +5935,17 @@ exports[`html target > snapshot (tailwind) 1`] = `
       'topics': function () {
       const v = fgGet("topics")
       if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
+      return null
+      },
+      'stay': function () {
+      const v = fgGet("stay")
+      if (fgIsBlank(v)) return "This field is required"
+      { const problem = (v.from !== '' && v.to !== '' && v.to < v.from ? "The end date can’t be before the start date" : null); if (problem) return problem }
+      return null
+      },
+      'days': function () {
+      const v = fgGet("days")
+      if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 3)) return "Must be at most 3"
       return null
       },
       'attachments': function () {
@@ -5536,6 +6268,89 @@ exports[`html target > snapshot (tailwind) 1`] = `
       })
     })
 
+    function fgDualPaint(wrap) {
+      var from = wrap.querySelector('[data-fg-part="from"]')
+      var to = wrap.querySelector('[data-fg-part="to"]')
+      var min = Number(from.min)
+      var max = Number(from.max)
+      function pct(n) { return max > min ? ((n - min) / (max - min)) * 100 : 0 }
+      var fill = wrap.querySelector('[data-fg-dual-fill]')
+      fill.style.insetInlineStart = pct(Number(from.value)) + '%'
+      fill.style.insetInlineEnd = (100 - pct(Number(to.value))) + '%'
+      // With both handles together, the one that can still move is on top.
+      from.style.zIndex = from.value === to.value && Number(from.value) > (min + max) / 2 ? '3' : '1'
+      to.style.zIndex = '2'
+      var text = document.querySelector('[data-fg-dual-text="' + wrap.getAttribute('data-fg-dual') + '"]')
+      if (text) text.textContent = from.value + ' \\u2013 ' + to.value
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-dual]'), function (wrap) {
+      var from = wrap.querySelector('[data-fg-part="from"]')
+      var to = wrap.querySelector('[data-fg-part="to"]')
+      from.addEventListener('input', function () {
+        if (Number(from.value) > Number(to.value)) from.value = to.value
+        fgDualPaint(wrap)
+      })
+      to.addEventListener('input', function () {
+        if (Number(to.value) < Number(from.value)) to.value = from.value
+        fgDualPaint(wrap)
+      })
+      fgDualPaint(wrap)
+    })
+    function fgRangeMin(from) {
+      var to = document.querySelector('[data-fg-path="' + from.getAttribute('data-fg-path') + '"][data-fg-part="to"]')
+      if (to) to.min = from.value
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="daterange"][data-fg-part="from"]'), function (from) {
+      from.addEventListener('input', function () { fgRangeMin(from) })
+      from.addEventListener('change', function () { fgRangeMin(from) })
+    })
+    var fgDates = {}
+    function fgPaintDates(path) {
+      var chips = document.querySelector('[data-fg-dates-chips="' + path + '"]')
+      chips.textContent = ''
+      chips.hidden = fgDates[path].length === 0
+      fgDates[path].forEach(function (date, index) {
+        var chip = document.createElement('span')
+        chip.className = "inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700"
+        chip.appendChild(document.createTextNode(date + ' '))
+        var remove = document.createElement('button')
+        remove.type = 'button'
+        remove.className = "text-gray-500 hover:text-red-600"
+        remove.setAttribute('aria-label', 'Remove ' + (date))
+        remove.textContent = '\\u00d7'
+        remove.addEventListener('click', function () {
+          fgDates[path].splice(index, 1)
+          fgDatesChanged(path)
+        })
+        chip.appendChild(remove)
+        chips.appendChild(chip)
+      })
+    }
+    function fgDatesChanged(path) {
+      fgPaintDates(path)
+      touched[path] = true
+      validateField(path)
+      updateConditions()
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="dates"]'), function (wrap) {
+      var path = wrap.getAttribute('data-fg-path')
+      var input = wrap.querySelector('[data-fg-dates-input]')
+      fgDates[path] = []
+      function addDraft() {
+        var date = input.value
+        if (/^\\d{4}-\\d{2}-\\d{2}$/.test(date) && fgDates[path].indexOf(date) === -1) {
+          fgDates[path].push(date)
+          fgDates[path].sort()
+        }
+        input.value = ''
+        fgDatesChanged(path)
+      }
+      wrap.querySelector('[data-fg-dates-add]').addEventListener('click', addDraft)
+      input.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') { event.preventDefault(); addDraft() }
+      })
+    })
+
     // Polite aria-live region; cleared first so repeated text re-announces.
     function fgAnnounce(message) {
       var live = document.getElementById('fg-live')
@@ -5643,6 +6458,9 @@ exports[`html target > snapshot (tailwind) 1`] = `
         "appointment": fgGet("appointment"),
         "brand_color": fgGet("brand_color"),
         "volume": fgGet("volume"),
+        "budget": fgGet("budget"),
+        "stay": fgGet("stay"),
+        "days": fgGet("days"),
         "source": fgGet("source"),
         "references": fgItemIndexes("references").map(function (i) { return ({ "name": fgGet("references." + i + ".name"), "may_contact": fgGet("references." + i + ".may_contact"), ...((fgGet("references." + i + ".may_contact") === true) ? { "email": fgGet("references." + i + ".email") } : {}) }) }),
         "attachments": fgGet("attachments"),
@@ -5712,6 +6530,9 @@ exports[`html target > snapshot (tailwind) 1`] = `
           fgFiles[path] = []
           fgPaintFiles(path)
         })
+        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-dual]'), fgDualPaint)
+        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="daterange"][data-fg-part="to"]'), function (to) { to.min = '' })
+        Object.keys(fgDates).forEach(function (path) { fgDates[path] = []; fgPaintDates(path) })
         Object.keys(touched).forEach(function (path) { delete touched[path] })
         Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })
         Object.keys(FG_REPEATERS).forEach(function (path) {
@@ -5889,6 +6710,23 @@ exports[`html target > snapshot (vanilla) 1`] = `
   .fg-file-size { color: var(--fg-color-muted); font-size: 0.8125rem; }
   .fg-file-remove { padding: 0 0.375rem; font-size: 1.125rem; line-height: 1; color: var(--fg-color-muted); background: none; border: none; cursor: pointer; }
   .fg-file-remove:hover { color: var(--fg-color-error); }
+  /* Composite fields (two-handle slider, date range, multiple dates).
+     Framework-neutral: the exports embed the slider rules as they are. */
+  .fg-dual { position: relative; height: 1.5rem; margin-block: 0.25rem; }
+  .fg-dual-track { position: absolute; inset-inline: 0; top: 50%; height: 0.375rem; transform: translateY(-50%); border-radius: 999px; background: var(--fg-color-border, var(--bs-border-color, #d1d5db)); }
+  .fg-dual-fill { position: absolute; top: 0; bottom: 0; border-radius: inherit; background: var(--fg-color-primary, var(--bs-primary, #4f46e5)); }
+  .fg-dual input[type='range'] { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; background: none; pointer-events: none; -webkit-appearance: none; appearance: none; }
+  .fg-dual input[type='range']::-webkit-slider-runnable-track { height: 1.5rem; background: none; border: none; }
+  .fg-dual input[type='range']::-moz-range-track { background: none; border: none; }
+  .fg-dual input[type='range']::-webkit-slider-thumb { -webkit-appearance: none; pointer-events: auto; width: 1.125rem; height: 1.125rem; margin-top: 0.1875rem; border-radius: 50%; background: var(--fg-color-primary, var(--bs-primary, #4f46e5)); border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25); cursor: pointer; }
+  .fg-dual input[type='range']::-moz-range-thumb { pointer-events: auto; width: 1.125rem; height: 1.125rem; border-radius: 50%; background: var(--fg-color-primary, var(--bs-primary, #4f46e5)); border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25); cursor: pointer; }
+  .fg-dual input[type='range']:focus-visible { outline: none; }
+  .fg-dual input[type='range']:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+  .fg-dual input[type='range']:focus-visible::-moz-range-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+  .fg-pair { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+  .fg-pair > .fg-input { flex: 1 1 10rem; inline-size: auto; }
+  .fg-pair-button { flex: none; white-space: nowrap; }
+  .fg-chips { display: flex; flex-wrap: wrap; gap: 0.375rem; margin-block-start: 0.5rem; }
   @media (prefers-color-scheme: dark) {
     .fg-form:not([data-fg-theme='light']) {
       --fg-color-bg: #0f172a; --fg-color-surface: #1e293b; --fg-color-text: #e2e8f0;
@@ -6123,6 +6961,40 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <p id="fg_err_volume" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-field">
+          <label class="fg-label" for="fg_budget">Budget</label>
+          <div class="fg-dual" data-fg-dual="budget">
+            <div class="fg-dual-track"><div class="fg-dual-fill" data-fg-dual-fill></div></div>
+            <input id="fg_budget" type="range" min="0" max="1000" step="50" value="200" data-fg-path="budget" data-fg-kind="range2" data-fg-part="from" aria-label="Budget: Minimum">
+            <input id="fg_budget_to" type="range" min="0" max="1000" step="50" value="600" data-fg-path="budget" data-fg-kind="range2" data-fg-part="to" aria-label="Budget: Maximum">
+          </div>
+          <p class="fg-description" data-fg-dual-text="budget">200 – 600</p>
+          <p id="fg_err_budget" class="fg-error" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-field">
+          <label class="fg-label" for="fg_stay">Stay<span class="fg-required" aria-hidden="true">*</span></label>
+          <div class="fg-pair">
+            <input id="fg_stay" type="date" class="fg-input" data-fg-path="stay" data-fg-kind="daterange" data-fg-part="from" aria-label="Stay: Start date">
+            <span aria-hidden="true">–</span>
+            <input id="fg_stay_to" type="date" class="fg-input" data-fg-path="stay" data-fg-kind="daterange" data-fg-part="to" aria-label="Stay: End date">
+          </div>
+          <p id="fg_err_stay" class="fg-error" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-field">
+          <label class="fg-label" for="fg_days">Available days</label>
+          <div class="fg-pair" data-fg-path="days" data-fg-kind="dates">
+            <input id="fg_days" type="date" class="fg-input" data-fg-dates-input="days">
+            <button type="button" class="fg-button fg-button--secondary fg-pair-button" data-fg-dates-add="days">Add date</button>
+          </div>
+          <div class="fg-chips" data-fg-dates-chips="days" hidden></div>
+          <p id="fg_err_days" class="fg-error" role="alert" hidden></p>
+        </div>
+      </div>
       <input id="fg_source" type="hidden" value="kitchen-sink" data-fg-path="source" data-fg-kind="text">
       <div class="fg-cell" style="grid-column: span 12 / span 12">
         <fieldset class="fg-group" data-fg-repeater="references">
@@ -6314,6 +7186,10 @@ exports[`html target > snapshot (vanilla) 1`] = `
       if (v === null || v === undefined) return true
       if (typeof v === 'string') return v.trim() === ''
       if (Array.isArray(v)) return v.length === 0
+      // Composite values ({ from, to }) are empty while any part is.
+      if (typeof v === 'object' && Object.getPrototypeOf(v) === Object.prototype) {
+        return Object.keys(v).some((k) => fgIsEmpty(v[k]))
+      }
       return false
     }
     // Empty, or an unchecked checkbox/toggle (takes any type, so typed targets
@@ -6391,6 +7267,14 @@ exports[`html target > snapshot (vanilla) 1`] = `
       if (kind === 'multiselect') {
         return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }
+      if (kind === 'range2' || kind === 'daterange') {
+        var parts = {}
+        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-path="' + path + '"][data-fg-part]'), function (input) {
+          parts[input.getAttribute('data-fg-part')] = kind === 'range2' ? Number(input.value) : input.value
+        })
+        return { from: parts.from, to: parts.to }
+      }
+      if (kind === 'dates') return (fgDates[path] || []).slice()
       if (kind === 'tags') return (fgTags[path] || []).slice()
       if (kind === 'files') return (fgFiles[path] || []).slice()
       if (kind === 'checks') {
@@ -6471,6 +7355,17 @@ exports[`html target > snapshot (vanilla) 1`] = `
       'topics': function () {
       const v = fgGet("topics")
       if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
+      return null
+      },
+      'stay': function () {
+      const v = fgGet("stay")
+      if (fgIsBlank(v)) return "This field is required"
+      { const problem = (v.from !== '' && v.to !== '' && v.to < v.from ? "The end date can’t be before the start date" : null); if (problem) return problem }
+      return null
+      },
+      'days': function () {
+      const v = fgGet("days")
+      if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 3)) return "Must be at most 3"
       return null
       },
       'attachments': function () {
@@ -6793,6 +7688,89 @@ exports[`html target > snapshot (vanilla) 1`] = `
       })
     })
 
+    function fgDualPaint(wrap) {
+      var from = wrap.querySelector('[data-fg-part="from"]')
+      var to = wrap.querySelector('[data-fg-part="to"]')
+      var min = Number(from.min)
+      var max = Number(from.max)
+      function pct(n) { return max > min ? ((n - min) / (max - min)) * 100 : 0 }
+      var fill = wrap.querySelector('[data-fg-dual-fill]')
+      fill.style.insetInlineStart = pct(Number(from.value)) + '%'
+      fill.style.insetInlineEnd = (100 - pct(Number(to.value))) + '%'
+      // With both handles together, the one that can still move is on top.
+      from.style.zIndex = from.value === to.value && Number(from.value) > (min + max) / 2 ? '3' : '1'
+      to.style.zIndex = '2'
+      var text = document.querySelector('[data-fg-dual-text="' + wrap.getAttribute('data-fg-dual') + '"]')
+      if (text) text.textContent = from.value + ' \\u2013 ' + to.value
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-dual]'), function (wrap) {
+      var from = wrap.querySelector('[data-fg-part="from"]')
+      var to = wrap.querySelector('[data-fg-part="to"]')
+      from.addEventListener('input', function () {
+        if (Number(from.value) > Number(to.value)) from.value = to.value
+        fgDualPaint(wrap)
+      })
+      to.addEventListener('input', function () {
+        if (Number(to.value) < Number(from.value)) to.value = from.value
+        fgDualPaint(wrap)
+      })
+      fgDualPaint(wrap)
+    })
+    function fgRangeMin(from) {
+      var to = document.querySelector('[data-fg-path="' + from.getAttribute('data-fg-path') + '"][data-fg-part="to"]')
+      if (to) to.min = from.value
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="daterange"][data-fg-part="from"]'), function (from) {
+      from.addEventListener('input', function () { fgRangeMin(from) })
+      from.addEventListener('change', function () { fgRangeMin(from) })
+    })
+    var fgDates = {}
+    function fgPaintDates(path) {
+      var chips = document.querySelector('[data-fg-dates-chips="' + path + '"]')
+      chips.textContent = ''
+      chips.hidden = fgDates[path].length === 0
+      fgDates[path].forEach(function (date, index) {
+        var chip = document.createElement('span')
+        chip.className = "fg-tag"
+        chip.appendChild(document.createTextNode(date + ' '))
+        var remove = document.createElement('button')
+        remove.type = 'button'
+        remove.className = "fg-tag-remove"
+        remove.setAttribute('aria-label', 'Remove ' + (date))
+        remove.textContent = '\\u00d7'
+        remove.addEventListener('click', function () {
+          fgDates[path].splice(index, 1)
+          fgDatesChanged(path)
+        })
+        chip.appendChild(remove)
+        chips.appendChild(chip)
+      })
+    }
+    function fgDatesChanged(path) {
+      fgPaintDates(path)
+      touched[path] = true
+      validateField(path)
+      updateConditions()
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="dates"]'), function (wrap) {
+      var path = wrap.getAttribute('data-fg-path')
+      var input = wrap.querySelector('[data-fg-dates-input]')
+      fgDates[path] = []
+      function addDraft() {
+        var date = input.value
+        if (/^\\d{4}-\\d{2}-\\d{2}$/.test(date) && fgDates[path].indexOf(date) === -1) {
+          fgDates[path].push(date)
+          fgDates[path].sort()
+        }
+        input.value = ''
+        fgDatesChanged(path)
+      }
+      wrap.querySelector('[data-fg-dates-add]').addEventListener('click', addDraft)
+      input.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') { event.preventDefault(); addDraft() }
+      })
+    })
+
     // Polite aria-live region; cleared first so repeated text re-announces.
     function fgAnnounce(message) {
       var live = document.getElementById('fg-live')
@@ -6900,6 +7878,9 @@ exports[`html target > snapshot (vanilla) 1`] = `
         "appointment": fgGet("appointment"),
         "brand_color": fgGet("brand_color"),
         "volume": fgGet("volume"),
+        "budget": fgGet("budget"),
+        "stay": fgGet("stay"),
+        "days": fgGet("days"),
         "source": fgGet("source"),
         "references": fgItemIndexes("references").map(function (i) { return ({ "name": fgGet("references." + i + ".name"), "may_contact": fgGet("references." + i + ".may_contact"), ...((fgGet("references." + i + ".may_contact") === true) ? { "email": fgGet("references." + i + ".email") } : {}) }) }),
         "attachments": fgGet("attachments"),
@@ -6969,6 +7950,9 @@ exports[`html target > snapshot (vanilla) 1`] = `
           fgFiles[path] = []
           fgPaintFiles(path)
         })
+        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-dual]'), fgDualPaint)
+        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="daterange"][data-fg-part="to"]'), function (to) { to.min = '' })
+        Object.keys(fgDates).forEach(function (path) { fgDates[path] = []; fgPaintDates(path) })
         Object.keys(touched).forEach(function (path) { delete touched[path] })
         Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })
         Object.keys(FG_REPEATERS).forEach(function (path) {
@@ -7020,11 +8004,16 @@ exports[`html target > snapshot (vanilla) 1`] = `
 exports[`react target > snapshot (bootstrap5) 1`] = `
 "// Generated by FormsGen — no runtime dependencies beyond React.
 import React, { useEffect, useRef, useState } from 'react'
+import './KitchenSinkForm.css'
 
 function fgIsEmpty(v: unknown): boolean {
   if (v === null || v === undefined) return true
   if (typeof v === 'string') return v.trim() === ''
   if (Array.isArray(v)) return v.length === 0
+  // Composite values ({ from, to }) are empty while any part is.
+  if (typeof v === 'object' && Object.getPrototypeOf(v) === Object.prototype) {
+    return Object.keys(v).some((k) => fgIsEmpty((v as Record<string, unknown>)[k]))
+  }
   return false
 }
 // Empty, or an unchecked checkbox/toggle (takes any type, so typed targets
@@ -7108,6 +8097,9 @@ type FormData = {
   appointment: string
   brand_color: string
   volume: number
+  budget: { from: number; to: number }
+  stay: { from: string; to: string }
+  days: string[]
   source: string
   attachments: File[]
   attachments_note: string
@@ -7152,6 +8144,15 @@ const INITIAL: FormData = {
   appointment: "",
   brand_color: "#000000",
   volume: 0,
+  budget: {
+    from: 200,
+    to: 600
+  },
+  stay: {
+    from: "",
+    to: ""
+  },
+  days: [],
   source: "kitchen-sink",
   attachments: [],
   attachments_note: "",
@@ -7236,6 +8237,17 @@ const validators: Record<string, (data: FormData) => string | null> = {
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
   return null
   },
+  'stay': function (data: FormData) {
+  const v = data.stay
+  if (fgIsBlank(v)) return "This field is required"
+  { const problem = (v.from !== '' && v.to !== '' && v.to < v.from ? "The end date can’t be before the start date" : null); if (problem) return problem }
+  return null
+  },
+  'days': function (data: FormData) {
+  const v = data.days
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 3)) return "Must be at most 3"
+  return null
+  },
   'attachments': function (data: FormData) {
   const v = data.attachments
   if (fgIsBlank(v)) return "This field is required"
@@ -7285,6 +8297,9 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "appointment": data.appointment,
     "brand_color": data.brand_color,
     "volume": data.volume,
+    "budget": data.budget,
+    "stay": data.stay,
+    "days": data.days,
     "source": data.source,
     "references": data.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}) })),
     "attachments": data.attachments,
@@ -7386,6 +8401,22 @@ function fgShiftKey(key: string, path: string, removed: number): string | null {
   return index > removed ? \`\${path}.\${index - 1}\${dot === -1 ? '' : rest.slice(dot)}\` : key
 }
 
+type FgRangeValue = { from: number; to: number }
+function fgDualClamp(v: FgRangeValue, side: 'from' | 'to', n: number): FgRangeValue {
+  return side === 'from' ? { from: Math.min(n, v.to), to: v.to } : { from: v.from, to: Math.max(n, v.from) }
+}
+function fgDualFill(v: FgRangeValue, min: number, max: number): { insetInlineStart: string; insetInlineEnd: string } {
+  const pct = (n: number): number => (max > min ? ((n - min) / (max - min)) * 100 : 0)
+  return { insetInlineStart: pct(v.from) + '%', insetInlineEnd: 100 - pct(v.to) + '%' }
+}
+// With both handles together, the one that can still move is on top.
+function fgDualFromOnTop(v: FgRangeValue, min: number, max: number): boolean {
+  return v.from === v.to && v.from > (min + max) / 2
+}
+function fgWithDate(list: string[], date: string): string[] {
+  return /^\\d{4}-\\d{2}-\\d{2}$/.test(date) && !list.includes(date) ? [...list, date].sort() : list
+}
+
 const fgThumbs = new WeakMap<File, string>()
 function fgThumb(file: File): string {
   let url = fgThumbs.get(file)
@@ -7436,6 +8467,7 @@ export default function KitchenSinkForm({
   const [fgSec_ks_social_tabs, setFgSec_ks_social_tabs] = useState(0)
   const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)
   const [tagDrafts, setTagDrafts] = useState<Record<string, string>>({})
+  const [dateDrafts, setDateDrafts] = useState<Record<string, string>>({})
   const fgRoot = useRef<HTMLFormElement>(null)
   // Stable React keys per item (the form object is cloned on every edit).
   const fgKeys = useRef<Record<string, number[]>>({})
@@ -7543,6 +8575,22 @@ export default function KitchenSinkForm({
     setField(path, current.filter((_, i) => i !== index))
   }
 
+  function fgDualChange(path: string, current: FgRangeValue, side: 'from' | 'to', n: number): void {
+    touched.current.add(path)
+    setField(path, fgDualClamp(current, side, n))
+  }
+
+  function fgAddDate(path: string, current: string[]): void {
+    touched.current.add(path)
+    setField(path, fgWithDate(current, dateDrafts[path] ?? ''))
+    setDateDrafts((d) => ({ ...d, [path]: '' }))
+  }
+
+  function fgRemoveDate(path: string, current: string[], index: number): void {
+    touched.current.add(path)
+    setField(path, current.filter((_, i) => i !== index))
+  }
+
   function fgPickFiles(path: string, input: HTMLInputElement): void {
     const picked = Array.from(input.files ?? [])
     input.value = ''
@@ -7620,6 +8668,7 @@ export default function KitchenSinkForm({
     fgKeys.current = {}
     setResult(null)
     setTagDrafts({})
+    setDateDrafts({})
     fgAnnounce("The form was reset.")
   }
 
@@ -7890,6 +8939,46 @@ export default function KitchenSinkForm({
           </div>
         </div>
         <div className="col-12 col-md-12">
+          <div className="d-flex flex-column gap-1">
+            <label className="form-label fw-semibold mb-0" htmlFor="fg_budget">Budget</label>
+            <div className="fg-dual">
+              <div className="fg-dual-track"><div className="fg-dual-fill" style={fgDualFill(form.budget, 0, 1000)}></div></div>
+              <input id="fg_budget" type="range" min="0" max="1000" step="50" value={form.budget.from} aria-label="Budget: Minimum" style={{ zIndex: fgDualFromOnTop(form.budget, 0, 1000) ? 3 : 1 }} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgDualChange('budget', form.budget, 'from', Number(e.target.value))} />
+              <input id="fg_budget_to" type="range" min="0" max="1000" step="50" value={form.budget.to} aria-label="Budget: Maximum" style={{ zIndex: 2 }} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgDualChange('budget', form.budget, 'to', Number(e.target.value))} />
+            </div>
+            <p className="form-text mt-0">{form.budget.from} – {form.budget.to}</p>
+            {errors['budget'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['budget']}</p>}
+          </div>
+        </div>
+        <div className="col-12 col-md-12">
+          <div className="d-flex flex-column gap-1">
+            <label className="form-label fw-semibold mb-0" htmlFor="fg_stay">Stay<span className="text-danger ms-1" aria-hidden="true">*</span></label>
+            <div className="d-flex align-items-center gap-2">
+              <input id="fg_stay" type="date" value={form.stay.from} className={errors['stay'] ? "form-control is-invalid" : "form-control"} aria-label="Stay: Start date" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('stay', { ...form.stay, from: e.target.value })} onBlur={() => touch('stay')} />
+              <span aria-hidden="true">–</span>
+              <input id="fg_stay_to" type="date" value={form.stay.to} className={errors['stay'] ? "form-control is-invalid" : "form-control"} min={form.stay.from || undefined} aria-label="Stay: End date" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('stay', { ...form.stay, to: e.target.value })} onBlur={() => touch('stay')} />
+            </div>
+            {errors['stay'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['stay']}</p>}
+          </div>
+        </div>
+        <div className="col-12 col-md-12">
+          <div className="d-flex flex-column gap-1">
+            <label className="form-label fw-semibold mb-0" htmlFor="fg_days">Available days</label>
+            <div className="d-flex align-items-center gap-2">
+              <input id="fg_days" type="date" value={dateDrafts['days'] ?? ''} className={errors['days'] ? "form-control is-invalid" : "form-control"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDateDrafts((d) => ({ ...d, 'days': e.target.value }))} onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); fgAddDate('days', form.days) } }} />
+              <button type="button" className="btn btn-outline-secondary flex-shrink-0 text-nowrap" onClick={() => fgAddDate('days', form.days)}>Add date</button>
+            </div>
+            {form.days.length > 0 && (
+              <div className="d-flex flex-wrap gap-1 mt-2">
+                {form.days.map((date, index) => (
+                  <span key={date} className="badge rounded-pill text-bg-secondary d-inline-flex align-items-center gap-1">{date} <button type="button" className="border-0 bg-transparent p-0 ms-1 text-white" aria-label={'Remove ' + (date)} onClick={() => fgRemoveDate('days', form.days, index)}>×</button></span>
+                ))}
+              </div>
+            )}
+            {errors['days'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['days']}</p>}
+          </div>
+        </div>
+        <div className="col-12 col-md-12">
           <fieldset className="border rounded p-3 bg-body-tertiary" data-fg-repeater="references">
             <legend className="fw-semibold text-secondary small px-1">References</legend>
             <div className="d-flex flex-column gap-3">
@@ -8099,11 +9188,16 @@ export default function KitchenSinkForm({
 exports[`react target > snapshot (tailwind) 1`] = `
 "// Generated by FormsGen — no runtime dependencies beyond React.
 import React, { useEffect, useRef, useState } from 'react'
+import './KitchenSinkForm.css'
 
 function fgIsEmpty(v: unknown): boolean {
   if (v === null || v === undefined) return true
   if (typeof v === 'string') return v.trim() === ''
   if (Array.isArray(v)) return v.length === 0
+  // Composite values ({ from, to }) are empty while any part is.
+  if (typeof v === 'object' && Object.getPrototypeOf(v) === Object.prototype) {
+    return Object.keys(v).some((k) => fgIsEmpty((v as Record<string, unknown>)[k]))
+  }
   return false
 }
 // Empty, or an unchecked checkbox/toggle (takes any type, so typed targets
@@ -8187,6 +9281,9 @@ type FormData = {
   appointment: string
   brand_color: string
   volume: number
+  budget: { from: number; to: number }
+  stay: { from: string; to: string }
+  days: string[]
   source: string
   attachments: File[]
   attachments_note: string
@@ -8231,6 +9328,15 @@ const INITIAL: FormData = {
   appointment: "",
   brand_color: "#000000",
   volume: 0,
+  budget: {
+    from: 200,
+    to: 600
+  },
+  stay: {
+    from: "",
+    to: ""
+  },
+  days: [],
   source: "kitchen-sink",
   attachments: [],
   attachments_note: "",
@@ -8315,6 +9421,17 @@ const validators: Record<string, (data: FormData) => string | null> = {
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
   return null
   },
+  'stay': function (data: FormData) {
+  const v = data.stay
+  if (fgIsBlank(v)) return "This field is required"
+  { const problem = (v.from !== '' && v.to !== '' && v.to < v.from ? "The end date can’t be before the start date" : null); if (problem) return problem }
+  return null
+  },
+  'days': function (data: FormData) {
+  const v = data.days
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 3)) return "Must be at most 3"
+  return null
+  },
   'attachments': function (data: FormData) {
   const v = data.attachments
   if (fgIsBlank(v)) return "This field is required"
@@ -8364,6 +9481,9 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "appointment": data.appointment,
     "brand_color": data.brand_color,
     "volume": data.volume,
+    "budget": data.budget,
+    "stay": data.stay,
+    "days": data.days,
     "source": data.source,
     "references": data.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}) })),
     "attachments": data.attachments,
@@ -8465,6 +9585,22 @@ function fgShiftKey(key: string, path: string, removed: number): string | null {
   return index > removed ? \`\${path}.\${index - 1}\${dot === -1 ? '' : rest.slice(dot)}\` : key
 }
 
+type FgRangeValue = { from: number; to: number }
+function fgDualClamp(v: FgRangeValue, side: 'from' | 'to', n: number): FgRangeValue {
+  return side === 'from' ? { from: Math.min(n, v.to), to: v.to } : { from: v.from, to: Math.max(n, v.from) }
+}
+function fgDualFill(v: FgRangeValue, min: number, max: number): { insetInlineStart: string; insetInlineEnd: string } {
+  const pct = (n: number): number => (max > min ? ((n - min) / (max - min)) * 100 : 0)
+  return { insetInlineStart: pct(v.from) + '%', insetInlineEnd: 100 - pct(v.to) + '%' }
+}
+// With both handles together, the one that can still move is on top.
+function fgDualFromOnTop(v: FgRangeValue, min: number, max: number): boolean {
+  return v.from === v.to && v.from > (min + max) / 2
+}
+function fgWithDate(list: string[], date: string): string[] {
+  return /^\\d{4}-\\d{2}-\\d{2}$/.test(date) && !list.includes(date) ? [...list, date].sort() : list
+}
+
 const fgThumbs = new WeakMap<File, string>()
 function fgThumb(file: File): string {
   let url = fgThumbs.get(file)
@@ -8515,6 +9651,7 @@ export default function KitchenSinkForm({
   const [fgSec_ks_social_tabs, setFgSec_ks_social_tabs] = useState(0)
   const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)
   const [tagDrafts, setTagDrafts] = useState<Record<string, string>>({})
+  const [dateDrafts, setDateDrafts] = useState<Record<string, string>>({})
   const fgRoot = useRef<HTMLFormElement>(null)
   // Stable React keys per item (the form object is cloned on every edit).
   const fgKeys = useRef<Record<string, number[]>>({})
@@ -8622,6 +9759,22 @@ export default function KitchenSinkForm({
     setField(path, current.filter((_, i) => i !== index))
   }
 
+  function fgDualChange(path: string, current: FgRangeValue, side: 'from' | 'to', n: number): void {
+    touched.current.add(path)
+    setField(path, fgDualClamp(current, side, n))
+  }
+
+  function fgAddDate(path: string, current: string[]): void {
+    touched.current.add(path)
+    setField(path, fgWithDate(current, dateDrafts[path] ?? ''))
+    setDateDrafts((d) => ({ ...d, [path]: '' }))
+  }
+
+  function fgRemoveDate(path: string, current: string[], index: number): void {
+    touched.current.add(path)
+    setField(path, current.filter((_, i) => i !== index))
+  }
+
   function fgPickFiles(path: string, input: HTMLInputElement): void {
     const picked = Array.from(input.files ?? [])
     input.value = ''
@@ -8699,6 +9852,7 @@ export default function KitchenSinkForm({
     fgKeys.current = {}
     setResult(null)
     setTagDrafts({})
+    setDateDrafts({})
     fgAnnounce("The form was reset.")
   }
 
@@ -8977,6 +10131,46 @@ export default function KitchenSinkForm({
           </div>
         </div>
         <div className="col-span-12 md:col-span-12">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold" htmlFor="fg_budget">Budget</label>
+            <div className="fg-dual">
+              <div className="fg-dual-track"><div className="fg-dual-fill" style={fgDualFill(form.budget, 0, 1000)}></div></div>
+              <input id="fg_budget" type="range" min="0" max="1000" step="50" value={form.budget.from} aria-label="Budget: Minimum" style={{ zIndex: fgDualFromOnTop(form.budget, 0, 1000) ? 3 : 1 }} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgDualChange('budget', form.budget, 'from', Number(e.target.value))} />
+              <input id="fg_budget_to" type="range" min="0" max="1000" step="50" value={form.budget.to} aria-label="Budget: Maximum" style={{ zIndex: 2 }} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgDualChange('budget', form.budget, 'to', Number(e.target.value))} />
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{form.budget.from} – {form.budget.to}</p>
+            {errors['budget'] && <p className="text-xs text-red-600" role="alert">{errors['budget']}</p>}
+          </div>
+        </div>
+        <div className="col-span-12 md:col-span-12">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold" htmlFor="fg_stay">Stay<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+            <div className="flex items-center gap-2">
+              <input id="fg_stay" type="date" value={form.stay.from} className={errors['stay'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} aria-label="Stay: Start date" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('stay', { ...form.stay, from: e.target.value })} onBlur={() => touch('stay')} />
+              <span aria-hidden="true">–</span>
+              <input id="fg_stay_to" type="date" value={form.stay.to} className={errors['stay'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} min={form.stay.from || undefined} aria-label="Stay: End date" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('stay', { ...form.stay, to: e.target.value })} onBlur={() => touch('stay')} />
+            </div>
+            {errors['stay'] && <p className="text-xs text-red-600" role="alert">{errors['stay']}</p>}
+          </div>
+        </div>
+        <div className="col-span-12 md:col-span-12">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold" htmlFor="fg_days">Available days</label>
+            <div className="flex items-center gap-2">
+              <input id="fg_days" type="date" value={dateDrafts['days'] ?? ''} className={errors['days'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDateDrafts((d) => ({ ...d, 'days': e.target.value }))} onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); fgAddDate('days', form.days) } }} />
+              <button type="button" className="shrink-0 whitespace-nowrap rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" onClick={() => fgAddDate('days', form.days)}>Add date</button>
+            </div>
+            {form.days.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {form.days.map((date, index) => (
+                  <span key={date} className="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700">{date} <button type="button" className="text-gray-500 hover:text-red-600" aria-label={'Remove ' + (date)} onClick={() => fgRemoveDate('days', form.days, index)}>×</button></span>
+                ))}
+              </div>
+            )}
+            {errors['days'] && <p className="text-xs text-red-600" role="alert">{errors['days']}</p>}
+          </div>
+        </div>
+        <div className="col-span-12 md:col-span-12">
           <fieldset className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50" data-fg-repeater="references">
             <legend className="px-1 text-sm font-semibold text-gray-500 dark:text-gray-400">References</legend>
             <div className="flex flex-col gap-4">
@@ -9192,6 +10386,10 @@ function fgIsEmpty(v: unknown): boolean {
   if (v === null || v === undefined) return true
   if (typeof v === 'string') return v.trim() === ''
   if (Array.isArray(v)) return v.length === 0
+  // Composite values ({ from, to }) are empty while any part is.
+  if (typeof v === 'object' && Object.getPrototypeOf(v) === Object.prototype) {
+    return Object.keys(v).some((k) => fgIsEmpty((v as Record<string, unknown>)[k]))
+  }
   return false
 }
 // Empty, or an unchecked checkbox/toggle (takes any type, so typed targets
@@ -9275,6 +10473,9 @@ type FormData = {
   appointment: string
   brand_color: string
   volume: number
+  budget: { from: number; to: number }
+  stay: { from: string; to: string }
+  days: string[]
   source: string
   attachments: File[]
   attachments_note: string
@@ -9319,6 +10520,15 @@ const INITIAL: FormData = {
   appointment: "",
   brand_color: "#000000",
   volume: 0,
+  budget: {
+    from: 200,
+    to: 600
+  },
+  stay: {
+    from: "",
+    to: ""
+  },
+  days: [],
   source: "kitchen-sink",
   attachments: [],
   attachments_note: "",
@@ -9403,6 +10613,17 @@ const validators: Record<string, (data: FormData) => string | null> = {
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
   return null
   },
+  'stay': function (data: FormData) {
+  const v = data.stay
+  if (fgIsBlank(v)) return "This field is required"
+  { const problem = (v.from !== '' && v.to !== '' && v.to < v.from ? "The end date can’t be before the start date" : null); if (problem) return problem }
+  return null
+  },
+  'days': function (data: FormData) {
+  const v = data.days
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 3)) return "Must be at most 3"
+  return null
+  },
   'attachments': function (data: FormData) {
   const v = data.attachments
   if (fgIsBlank(v)) return "This field is required"
@@ -9452,6 +10673,9 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "appointment": data.appointment,
     "brand_color": data.brand_color,
     "volume": data.volume,
+    "budget": data.budget,
+    "stay": data.stay,
+    "days": data.days,
     "source": data.source,
     "references": data.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}) })),
     "attachments": data.attachments,
@@ -9553,6 +10777,22 @@ function fgShiftKey(key: string, path: string, removed: number): string | null {
   return index > removed ? \`\${path}.\${index - 1}\${dot === -1 ? '' : rest.slice(dot)}\` : key
 }
 
+type FgRangeValue = { from: number; to: number }
+function fgDualClamp(v: FgRangeValue, side: 'from' | 'to', n: number): FgRangeValue {
+  return side === 'from' ? { from: Math.min(n, v.to), to: v.to } : { from: v.from, to: Math.max(n, v.from) }
+}
+function fgDualFill(v: FgRangeValue, min: number, max: number): { insetInlineStart: string; insetInlineEnd: string } {
+  const pct = (n: number): number => (max > min ? ((n - min) / (max - min)) * 100 : 0)
+  return { insetInlineStart: pct(v.from) + '%', insetInlineEnd: 100 - pct(v.to) + '%' }
+}
+// With both handles together, the one that can still move is on top.
+function fgDualFromOnTop(v: FgRangeValue, min: number, max: number): boolean {
+  return v.from === v.to && v.from > (min + max) / 2
+}
+function fgWithDate(list: string[], date: string): string[] {
+  return /^\\d{4}-\\d{2}-\\d{2}$/.test(date) && !list.includes(date) ? [...list, date].sort() : list
+}
+
 const fgThumbs = new WeakMap<File, string>()
 function fgThumb(file: File): string {
   let url = fgThumbs.get(file)
@@ -9603,6 +10843,7 @@ export default function KitchenSinkForm({
   const [fgSec_ks_social_tabs, setFgSec_ks_social_tabs] = useState(0)
   const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)
   const [tagDrafts, setTagDrafts] = useState<Record<string, string>>({})
+  const [dateDrafts, setDateDrafts] = useState<Record<string, string>>({})
   const fgRoot = useRef<HTMLFormElement>(null)
   // Stable React keys per item (the form object is cloned on every edit).
   const fgKeys = useRef<Record<string, number[]>>({})
@@ -9710,6 +10951,22 @@ export default function KitchenSinkForm({
     setField(path, current.filter((_, i) => i !== index))
   }
 
+  function fgDualChange(path: string, current: FgRangeValue, side: 'from' | 'to', n: number): void {
+    touched.current.add(path)
+    setField(path, fgDualClamp(current, side, n))
+  }
+
+  function fgAddDate(path: string, current: string[]): void {
+    touched.current.add(path)
+    setField(path, fgWithDate(current, dateDrafts[path] ?? ''))
+    setDateDrafts((d) => ({ ...d, [path]: '' }))
+  }
+
+  function fgRemoveDate(path: string, current: string[], index: number): void {
+    touched.current.add(path)
+    setField(path, current.filter((_, i) => i !== index))
+  }
+
   function fgPickFiles(path: string, input: HTMLInputElement): void {
     const picked = Array.from(input.files ?? [])
     input.value = ''
@@ -9787,6 +11044,7 @@ export default function KitchenSinkForm({
     fgKeys.current = {}
     setResult(null)
     setTagDrafts({})
+    setDateDrafts({})
     fgAnnounce("The form was reset.")
   }
 
@@ -10065,6 +11323,46 @@ export default function KitchenSinkForm({
           </div>
         </div>
         <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+          <div className="fg-field">
+            <label className="fg-label" htmlFor="fg_budget">Budget</label>
+            <div className="fg-dual">
+              <div className="fg-dual-track"><div className="fg-dual-fill" style={fgDualFill(form.budget, 0, 1000)}></div></div>
+              <input id="fg_budget" type="range" min="0" max="1000" step="50" value={form.budget.from} aria-label="Budget: Minimum" style={{ zIndex: fgDualFromOnTop(form.budget, 0, 1000) ? 3 : 1 }} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgDualChange('budget', form.budget, 'from', Number(e.target.value))} />
+              <input id="fg_budget_to" type="range" min="0" max="1000" step="50" value={form.budget.to} aria-label="Budget: Maximum" style={{ zIndex: 2 }} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgDualChange('budget', form.budget, 'to', Number(e.target.value))} />
+            </div>
+            <p className="fg-description">{form.budget.from} – {form.budget.to}</p>
+            {errors['budget'] && <p className="fg-error" role="alert">{errors['budget']}</p>}
+          </div>
+        </div>
+        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+          <div className="fg-field">
+            <label className="fg-label" htmlFor="fg_stay">Stay<span className="fg-required" aria-hidden="true">*</span></label>
+            <div className="fg-pair">
+              <input id="fg_stay" type="date" value={form.stay.from} className={errors['stay'] ? "fg-input fg-invalid" : "fg-input"} aria-label="Stay: Start date" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('stay', { ...form.stay, from: e.target.value })} onBlur={() => touch('stay')} />
+              <span aria-hidden="true">–</span>
+              <input id="fg_stay_to" type="date" value={form.stay.to} className={errors['stay'] ? "fg-input fg-invalid" : "fg-input"} min={form.stay.from || undefined} aria-label="Stay: End date" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('stay', { ...form.stay, to: e.target.value })} onBlur={() => touch('stay')} />
+            </div>
+            {errors['stay'] && <p className="fg-error" role="alert">{errors['stay']}</p>}
+          </div>
+        </div>
+        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+          <div className="fg-field">
+            <label className="fg-label" htmlFor="fg_days">Available days</label>
+            <div className="fg-pair">
+              <input id="fg_days" type="date" value={dateDrafts['days'] ?? ''} className={errors['days'] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDateDrafts((d) => ({ ...d, 'days': e.target.value }))} onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); fgAddDate('days', form.days) } }} />
+              <button type="button" className="fg-button fg-button--secondary fg-pair-button" onClick={() => fgAddDate('days', form.days)}>Add date</button>
+            </div>
+            {form.days.length > 0 && (
+              <div className="fg-chips">
+                {form.days.map((date, index) => (
+                  <span key={date} className="fg-tag">{date} <button type="button" className="fg-tag-remove" aria-label={'Remove ' + (date)} onClick={() => fgRemoveDate('days', form.days, index)}>×</button></span>
+                ))}
+              </div>
+            )}
+            {errors['days'] && <p className="fg-error" role="alert">{errors['days']}</p>}
+          </div>
+        </div>
+        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
           <fieldset className="fg-group" data-fg-repeater="references">
             <legend className="fg-group-label">References</legend>
             <div className="fg-repeater-items">
@@ -10303,6 +11601,9 @@ type FormData = {
   appointment: string
   brand_color: string
   volume: number
+  budget: { from: number; to: number }
+  stay: { from: string; to: string }
+  days: string[]
   source: string
   attachments: File[]
   attachments_note: string
@@ -10347,6 +11648,15 @@ const form = reactive<FormData>({
   appointment: "",
   brand_color: "#000000",
   volume: 0,
+  budget: {
+    from: 200,
+    to: 600
+  },
+  stay: {
+    from: "",
+    to: ""
+  },
+  days: [],
   source: "kitchen-sink",
   attachments: [],
   attachments_note: "",
@@ -10388,6 +11698,10 @@ function fgIsEmpty(v: unknown): boolean {
   if (v === null || v === undefined) return true
   if (typeof v === 'string') return v.trim() === ''
   if (Array.isArray(v)) return v.length === 0
+  // Composite values ({ from, to }) are empty while any part is.
+  if (typeof v === 'object' && Object.getPrototypeOf(v) === Object.prototype) {
+    return Object.keys(v).some((k) => fgIsEmpty((v as Record<string, unknown>)[k]))
+  }
   return false
 }
 // Empty, or an unchecked checkbox/toggle (takes any type, so typed targets
@@ -10556,6 +11870,17 @@ const validators: Record<string, () => string | null> = {
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
   return null
   },
+  'stay': function () {
+  const v = form.stay
+  if (fgIsBlank(v)) return "This field is required"
+  { const problem = (v.from !== '' && v.to !== '' && v.to < v.from ? "The end date can’t be before the start date" : null); if (problem) return problem }
+  return null
+  },
+  'days': function () {
+  const v = form.days
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 3)) return "Must be at most 3"
+  return null
+  },
   'attachments': function () {
   const v = form.attachments
   if (fgIsBlank(v)) return "This field is required"
@@ -10683,6 +12008,44 @@ function fgRemoveTag(path: string, index: number): void {
   const field = tagFields[path]!
   field.set(field.get().filter((_, i) => i !== index))
   revalidate(path)
+}
+
+type FgRangeValue = { from: number; to: number }
+function fgDualClamp(v: FgRangeValue, side: 'from' | 'to', n: number): FgRangeValue {
+  return side === 'from' ? { from: Math.min(n, v.to), to: v.to } : { from: v.from, to: Math.max(n, v.from) }
+}
+function fgDualFill(v: FgRangeValue, min: number, max: number): { insetInlineStart: string; insetInlineEnd: string } {
+  const pct = (n: number): number => (max > min ? ((n - min) / (max - min)) * 100 : 0)
+  return { insetInlineStart: pct(v.from) + '%', insetInlineEnd: 100 - pct(v.to) + '%' }
+}
+// With both handles together, the one that can still move is on top.
+function fgDualFromOnTop(v: FgRangeValue, min: number, max: number): boolean {
+  return v.from === v.to && v.from > (min + max) / 2
+}
+function fgDualSet(v: FgRangeValue, side: 'from' | 'to', event: Event): void {
+  const input = event.target as HTMLInputElement
+  const next = fgDualClamp(v, side, Number(input.value))
+  v.from = next.from
+  v.to = next.to
+  input.value = String(next[side])
+}
+function fgWithDate(list: string[], date: string): string[] {
+  return /^\\d{4}-\\d{2}-\\d{2}$/.test(date) && !list.includes(date) ? [...list, date].sort() : list
+}
+const fgDateDrafts = reactive<Record<string, string>>({ 'days': '' })
+const fgDateFields: Record<string, { get: () => string[]; set: (v: string[]) => void }> = {
+  'days': { get: () => form.days, set: (v) => { form.days = v } },
+}
+function fgAddDate(path: string): void {
+  const field = fgDateFields[path]!
+  field.set(fgWithDate(field.get(), fgDateDrafts[path] ?? ''))
+  fgDateDrafts[path] = ''
+  touch(path)
+}
+function fgRemoveDate(path: string, index: number): void {
+  const field = fgDateFields[path]!
+  field.set(field.get().filter((_, i) => i !== index))
+  touch(path)
 }
 
 const fgRoot = ref<HTMLElement | null>(null)
@@ -10826,6 +12189,15 @@ function fgReset(): void {
     appointment: "",
     brand_color: "#000000",
     volume: 0,
+    budget: {
+      from: 200,
+      to: 600
+    },
+    stay: {
+      from: "",
+      to: ""
+    },
+    days: [],
     source: "kitchen-sink",
     attachments: [],
     attachments_note: "",
@@ -10848,6 +12220,7 @@ function fgReset(): void {
   touched.clear()
   result.value = null
   for (const key of Object.keys(tagDrafts)) tagDrafts[key] = ''
+  for (const key of Object.keys(fgDateDrafts)) fgDateDrafts[key] = ''
   fgAnnounce("The form was reset.")
 }
 
@@ -10877,6 +12250,9 @@ function buildPayload(): Record<string, unknown> {
     "appointment": form.appointment,
     "brand_color": form.brand_color,
     "volume": form.volume,
+    "budget": form.budget,
+    "stay": form.stay,
+    "days": form.days,
     "source": form.source,
     "references": form.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}) })),
     "attachments": form.attachments,
@@ -11139,6 +12515,42 @@ async function onSubmit(): Promise<void> {
         </div>
       </div>
       <div class="col-12 col-md-12">
+        <div class="d-flex flex-column gap-1">
+          <label class="form-label fw-semibold mb-0" for="fg_budget">Budget</label>
+          <div class="fg-dual">
+            <div class="fg-dual-track"><div class="fg-dual-fill" :style="fgDualFill(form.budget, 0, 1000)"></div></div>
+            <input id="fg_budget" type="range" min="0" max="1000" step="50" :value="form.budget.from" aria-label="Budget: Minimum" :style="{ zIndex: fgDualFromOnTop(form.budget, 0, 1000) ? 3 : 1 }" @input="fgDualSet(form.budget, 'from', $event)" @change="touch('budget')">
+            <input id="fg_budget_to" type="range" min="0" max="1000" step="50" :value="form.budget.to" aria-label="Budget: Maximum" :style="{ zIndex: 2 }" @input="fgDualSet(form.budget, 'to', $event)" @change="touch('budget')">
+          </div>
+          <p class="form-text mt-0">{{ form.budget.from }} – {{ form.budget.to }}</p>
+          <p v-if="errors['budget']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['budget'] }}</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="d-flex flex-column gap-1">
+          <label class="form-label fw-semibold mb-0" for="fg_stay">Stay<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+          <div class="d-flex align-items-center gap-2">
+            <input id="fg_stay" v-model="form.stay.from" type="date" class="form-control" :class="{ 'is-invalid': !!errors['stay'] }" aria-label="Stay: Start date" @blur="touch('stay')" @change="revalidate('stay')">
+            <span aria-hidden="true">–</span>
+            <input id="fg_stay_to" v-model="form.stay.to" type="date" class="form-control" :class="{ 'is-invalid': !!errors['stay'] }" :min="form.stay.from || undefined" aria-label="Stay: End date" @blur="touch('stay')" @change="revalidate('stay')">
+          </div>
+          <p v-if="errors['stay']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['stay'] }}</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="d-flex flex-column gap-1">
+          <label class="form-label fw-semibold mb-0" for="fg_days">Available days</label>
+          <div class="d-flex align-items-center gap-2">
+            <input id="fg_days" v-model="fgDateDrafts['days']" type="date" class="form-control" :class="{ 'is-invalid': !!errors['days'] }" @keydown.enter.prevent="fgAddDate('days')">
+            <button type="button" class="btn btn-outline-secondary flex-shrink-0 text-nowrap" @click="fgAddDate('days')">Add date</button>
+          </div>
+          <div v-if="form.days.length" class="d-flex flex-wrap gap-1 mt-2">
+            <span v-for="(date, index) in form.days" :key="date" class="badge rounded-pill text-bg-secondary d-inline-flex align-items-center gap-1">{{ date }} <button type="button" class="border-0 bg-transparent p-0 ms-1 text-white" :aria-label="'Remove ' + (date)" @click="fgRemoveDate('days', index)">×</button></span>
+          </div>
+          <p v-if="errors['days']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['days'] }}</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
         <fieldset class="border rounded p-3 bg-body-tertiary" data-fg-repeater="references">
           <legend class="fw-semibold text-secondary small px-1">References</legend>
           <div class="d-flex flex-column gap-3">
@@ -11327,6 +12739,21 @@ async function onSubmit(): Promise<void> {
     <pre v-if="result" class="mt-3 p-3 bg-dark text-success rounded small overflow-auto">{{ JSON.stringify(result, fgFileJson, 2) }}</pre>
   </form>
 </template>
+
+<style scoped>
+/* Two-handle range slider */
+.fg-dual { position: relative; height: 1.5rem; margin-block: 0.25rem; }
+.fg-dual-track { position: absolute; inset-inline: 0; top: 50%; height: 0.375rem; transform: translateY(-50%); border-radius: 999px; background: var(--fg-color-border, var(--bs-border-color, #d1d5db)); }
+.fg-dual-fill { position: absolute; top: 0; bottom: 0; border-radius: inherit; background: var(--fg-color-primary, var(--bs-primary, #4f46e5)); }
+.fg-dual input[type='range'] { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; background: none; pointer-events: none; -webkit-appearance: none; appearance: none; }
+.fg-dual input[type='range']::-webkit-slider-runnable-track { height: 1.5rem; background: none; border: none; }
+.fg-dual input[type='range']::-moz-range-track { background: none; border: none; }
+.fg-dual input[type='range']::-webkit-slider-thumb { -webkit-appearance: none; pointer-events: auto; width: 1.125rem; height: 1.125rem; margin-top: 0.1875rem; border-radius: 50%; background: var(--fg-color-primary, var(--bs-primary, #4f46e5)); border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25); cursor: pointer; }
+.fg-dual input[type='range']::-moz-range-thumb { pointer-events: auto; width: 1.125rem; height: 1.125rem; border-radius: 50%; background: var(--fg-color-primary, var(--bs-primary, #4f46e5)); border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25); cursor: pointer; }
+.fg-dual input[type='range']:focus-visible { outline: none; }
+.fg-dual input[type='range']:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+.fg-dual input[type='range']:focus-visible::-moz-range-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+</style>
 "
 `;
 
@@ -11362,6 +12789,9 @@ type FormData = {
   appointment: string
   brand_color: string
   volume: number
+  budget: { from: number; to: number }
+  stay: { from: string; to: string }
+  days: string[]
   source: string
   attachments: File[]
   attachments_note: string
@@ -11406,6 +12836,15 @@ const form = reactive<FormData>({
   appointment: "",
   brand_color: "#000000",
   volume: 0,
+  budget: {
+    from: 200,
+    to: 600
+  },
+  stay: {
+    from: "",
+    to: ""
+  },
+  days: [],
   source: "kitchen-sink",
   attachments: [],
   attachments_note: "",
@@ -11447,6 +12886,10 @@ function fgIsEmpty(v: unknown): boolean {
   if (v === null || v === undefined) return true
   if (typeof v === 'string') return v.trim() === ''
   if (Array.isArray(v)) return v.length === 0
+  // Composite values ({ from, to }) are empty while any part is.
+  if (typeof v === 'object' && Object.getPrototypeOf(v) === Object.prototype) {
+    return Object.keys(v).some((k) => fgIsEmpty((v as Record<string, unknown>)[k]))
+  }
   return false
 }
 // Empty, or an unchecked checkbox/toggle (takes any type, so typed targets
@@ -11615,6 +13058,17 @@ const validators: Record<string, () => string | null> = {
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
   return null
   },
+  'stay': function () {
+  const v = form.stay
+  if (fgIsBlank(v)) return "This field is required"
+  { const problem = (v.from !== '' && v.to !== '' && v.to < v.from ? "The end date can’t be before the start date" : null); if (problem) return problem }
+  return null
+  },
+  'days': function () {
+  const v = form.days
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 3)) return "Must be at most 3"
+  return null
+  },
   'attachments': function () {
   const v = form.attachments
   if (fgIsBlank(v)) return "This field is required"
@@ -11742,6 +13196,44 @@ function fgRemoveTag(path: string, index: number): void {
   const field = tagFields[path]!
   field.set(field.get().filter((_, i) => i !== index))
   revalidate(path)
+}
+
+type FgRangeValue = { from: number; to: number }
+function fgDualClamp(v: FgRangeValue, side: 'from' | 'to', n: number): FgRangeValue {
+  return side === 'from' ? { from: Math.min(n, v.to), to: v.to } : { from: v.from, to: Math.max(n, v.from) }
+}
+function fgDualFill(v: FgRangeValue, min: number, max: number): { insetInlineStart: string; insetInlineEnd: string } {
+  const pct = (n: number): number => (max > min ? ((n - min) / (max - min)) * 100 : 0)
+  return { insetInlineStart: pct(v.from) + '%', insetInlineEnd: 100 - pct(v.to) + '%' }
+}
+// With both handles together, the one that can still move is on top.
+function fgDualFromOnTop(v: FgRangeValue, min: number, max: number): boolean {
+  return v.from === v.to && v.from > (min + max) / 2
+}
+function fgDualSet(v: FgRangeValue, side: 'from' | 'to', event: Event): void {
+  const input = event.target as HTMLInputElement
+  const next = fgDualClamp(v, side, Number(input.value))
+  v.from = next.from
+  v.to = next.to
+  input.value = String(next[side])
+}
+function fgWithDate(list: string[], date: string): string[] {
+  return /^\\d{4}-\\d{2}-\\d{2}$/.test(date) && !list.includes(date) ? [...list, date].sort() : list
+}
+const fgDateDrafts = reactive<Record<string, string>>({ 'days': '' })
+const fgDateFields: Record<string, { get: () => string[]; set: (v: string[]) => void }> = {
+  'days': { get: () => form.days, set: (v) => { form.days = v } },
+}
+function fgAddDate(path: string): void {
+  const field = fgDateFields[path]!
+  field.set(fgWithDate(field.get(), fgDateDrafts[path] ?? ''))
+  fgDateDrafts[path] = ''
+  touch(path)
+}
+function fgRemoveDate(path: string, index: number): void {
+  const field = fgDateFields[path]!
+  field.set(field.get().filter((_, i) => i !== index))
+  touch(path)
 }
 
 const fgRoot = ref<HTMLElement | null>(null)
@@ -11885,6 +13377,15 @@ function fgReset(): void {
     appointment: "",
     brand_color: "#000000",
     volume: 0,
+    budget: {
+      from: 200,
+      to: 600
+    },
+    stay: {
+      from: "",
+      to: ""
+    },
+    days: [],
     source: "kitchen-sink",
     attachments: [],
     attachments_note: "",
@@ -11907,6 +13408,7 @@ function fgReset(): void {
   touched.clear()
   result.value = null
   for (const key of Object.keys(tagDrafts)) tagDrafts[key] = ''
+  for (const key of Object.keys(fgDateDrafts)) fgDateDrafts[key] = ''
   fgAnnounce("The form was reset.")
 }
 
@@ -11936,6 +13438,9 @@ function buildPayload(): Record<string, unknown> {
     "appointment": form.appointment,
     "brand_color": form.brand_color,
     "volume": form.volume,
+    "budget": form.budget,
+    "stay": form.stay,
+    "days": form.days,
     "source": form.source,
     "references": form.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}) })),
     "attachments": form.attachments,
@@ -12206,6 +13711,42 @@ async function onSubmit(): Promise<void> {
         </div>
       </div>
       <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_budget">Budget</label>
+          <div class="fg-dual">
+            <div class="fg-dual-track"><div class="fg-dual-fill" :style="fgDualFill(form.budget, 0, 1000)"></div></div>
+            <input id="fg_budget" type="range" min="0" max="1000" step="50" :value="form.budget.from" aria-label="Budget: Minimum" :style="{ zIndex: fgDualFromOnTop(form.budget, 0, 1000) ? 3 : 1 }" @input="fgDualSet(form.budget, 'from', $event)" @change="touch('budget')">
+            <input id="fg_budget_to" type="range" min="0" max="1000" step="50" :value="form.budget.to" aria-label="Budget: Maximum" :style="{ zIndex: 2 }" @input="fgDualSet(form.budget, 'to', $event)" @change="touch('budget')">
+          </div>
+          <p class="text-xs text-gray-500 dark:text-gray-400">{{ form.budget.from }} – {{ form.budget.to }}</p>
+          <p v-if="errors['budget']" class="text-xs text-red-600" role="alert">{{ errors['budget'] }}</p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_stay">Stay<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+          <div class="flex items-center gap-2">
+            <input id="fg_stay" v-model="form.stay.from" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['stay'] }" aria-label="Stay: Start date" @blur="touch('stay')" @change="revalidate('stay')">
+            <span aria-hidden="true">–</span>
+            <input id="fg_stay_to" v-model="form.stay.to" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['stay'] }" :min="form.stay.from || undefined" aria-label="Stay: End date" @blur="touch('stay')" @change="revalidate('stay')">
+          </div>
+          <p v-if="errors['stay']" class="text-xs text-red-600" role="alert">{{ errors['stay'] }}</p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_days">Available days</label>
+          <div class="flex items-center gap-2">
+            <input id="fg_days" v-model="fgDateDrafts['days']" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['days'] }" @keydown.enter.prevent="fgAddDate('days')">
+            <button type="button" class="shrink-0 whitespace-nowrap rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" @click="fgAddDate('days')">Add date</button>
+          </div>
+          <div v-if="form.days.length" class="mt-2 flex flex-wrap gap-1.5">
+            <span v-for="(date, index) in form.days" :key="date" class="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700">{{ date }} <button type="button" class="text-gray-500 hover:text-red-600" :aria-label="'Remove ' + (date)" @click="fgRemoveDate('days', index)">×</button></span>
+          </div>
+          <p v-if="errors['days']" class="text-xs text-red-600" role="alert">{{ errors['days'] }}</p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
         <fieldset class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50" data-fg-repeater="references">
           <legend class="px-1 text-sm font-semibold text-gray-500 dark:text-gray-400">References</legend>
           <div class="flex flex-col gap-4">
@@ -12394,6 +13935,21 @@ async function onSubmit(): Promise<void> {
     <pre v-if="result" class="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300">{{ JSON.stringify(result, fgFileJson, 2) }}</pre>
   </form>
 </template>
+
+<style scoped>
+/* Two-handle range slider */
+.fg-dual { position: relative; height: 1.5rem; margin-block: 0.25rem; }
+.fg-dual-track { position: absolute; inset-inline: 0; top: 50%; height: 0.375rem; transform: translateY(-50%); border-radius: 999px; background: var(--fg-color-border, var(--bs-border-color, #d1d5db)); }
+.fg-dual-fill { position: absolute; top: 0; bottom: 0; border-radius: inherit; background: var(--fg-color-primary, var(--bs-primary, #4f46e5)); }
+.fg-dual input[type='range'] { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; background: none; pointer-events: none; -webkit-appearance: none; appearance: none; }
+.fg-dual input[type='range']::-webkit-slider-runnable-track { height: 1.5rem; background: none; border: none; }
+.fg-dual input[type='range']::-moz-range-track { background: none; border: none; }
+.fg-dual input[type='range']::-webkit-slider-thumb { -webkit-appearance: none; pointer-events: auto; width: 1.125rem; height: 1.125rem; margin-top: 0.1875rem; border-radius: 50%; background: var(--fg-color-primary, var(--bs-primary, #4f46e5)); border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25); cursor: pointer; }
+.fg-dual input[type='range']::-moz-range-thumb { pointer-events: auto; width: 1.125rem; height: 1.125rem; border-radius: 50%; background: var(--fg-color-primary, var(--bs-primary, #4f46e5)); border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25); cursor: pointer; }
+.fg-dual input[type='range']:focus-visible { outline: none; }
+.fg-dual input[type='range']:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+.fg-dual input[type='range']:focus-visible::-moz-range-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+</style>
 "
 `;
 
@@ -12429,6 +13985,9 @@ type FormData = {
   appointment: string
   brand_color: string
   volume: number
+  budget: { from: number; to: number }
+  stay: { from: string; to: string }
+  days: string[]
   source: string
   attachments: File[]
   attachments_note: string
@@ -12473,6 +14032,15 @@ const form = reactive<FormData>({
   appointment: "",
   brand_color: "#000000",
   volume: 0,
+  budget: {
+    from: 200,
+    to: 600
+  },
+  stay: {
+    from: "",
+    to: ""
+  },
+  days: [],
   source: "kitchen-sink",
   attachments: [],
   attachments_note: "",
@@ -12514,6 +14082,10 @@ function fgIsEmpty(v: unknown): boolean {
   if (v === null || v === undefined) return true
   if (typeof v === 'string') return v.trim() === ''
   if (Array.isArray(v)) return v.length === 0
+  // Composite values ({ from, to }) are empty while any part is.
+  if (typeof v === 'object' && Object.getPrototypeOf(v) === Object.prototype) {
+    return Object.keys(v).some((k) => fgIsEmpty((v as Record<string, unknown>)[k]))
+  }
   return false
 }
 // Empty, or an unchecked checkbox/toggle (takes any type, so typed targets
@@ -12682,6 +14254,17 @@ const validators: Record<string, () => string | null> = {
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "At most 5 topics"
   return null
   },
+  'stay': function () {
+  const v = form.stay
+  if (fgIsBlank(v)) return "This field is required"
+  { const problem = (v.from !== '' && v.to !== '' && v.to < v.from ? "The end date can’t be before the start date" : null); if (problem) return problem }
+  return null
+  },
+  'days': function () {
+  const v = form.days
+  if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 3)) return "Must be at most 3"
+  return null
+  },
   'attachments': function () {
   const v = form.attachments
   if (fgIsBlank(v)) return "This field is required"
@@ -12809,6 +14392,44 @@ function fgRemoveTag(path: string, index: number): void {
   const field = tagFields[path]!
   field.set(field.get().filter((_, i) => i !== index))
   revalidate(path)
+}
+
+type FgRangeValue = { from: number; to: number }
+function fgDualClamp(v: FgRangeValue, side: 'from' | 'to', n: number): FgRangeValue {
+  return side === 'from' ? { from: Math.min(n, v.to), to: v.to } : { from: v.from, to: Math.max(n, v.from) }
+}
+function fgDualFill(v: FgRangeValue, min: number, max: number): { insetInlineStart: string; insetInlineEnd: string } {
+  const pct = (n: number): number => (max > min ? ((n - min) / (max - min)) * 100 : 0)
+  return { insetInlineStart: pct(v.from) + '%', insetInlineEnd: 100 - pct(v.to) + '%' }
+}
+// With both handles together, the one that can still move is on top.
+function fgDualFromOnTop(v: FgRangeValue, min: number, max: number): boolean {
+  return v.from === v.to && v.from > (min + max) / 2
+}
+function fgDualSet(v: FgRangeValue, side: 'from' | 'to', event: Event): void {
+  const input = event.target as HTMLInputElement
+  const next = fgDualClamp(v, side, Number(input.value))
+  v.from = next.from
+  v.to = next.to
+  input.value = String(next[side])
+}
+function fgWithDate(list: string[], date: string): string[] {
+  return /^\\d{4}-\\d{2}-\\d{2}$/.test(date) && !list.includes(date) ? [...list, date].sort() : list
+}
+const fgDateDrafts = reactive<Record<string, string>>({ 'days': '' })
+const fgDateFields: Record<string, { get: () => string[]; set: (v: string[]) => void }> = {
+  'days': { get: () => form.days, set: (v) => { form.days = v } },
+}
+function fgAddDate(path: string): void {
+  const field = fgDateFields[path]!
+  field.set(fgWithDate(field.get(), fgDateDrafts[path] ?? ''))
+  fgDateDrafts[path] = ''
+  touch(path)
+}
+function fgRemoveDate(path: string, index: number): void {
+  const field = fgDateFields[path]!
+  field.set(field.get().filter((_, i) => i !== index))
+  touch(path)
 }
 
 const fgRoot = ref<HTMLElement | null>(null)
@@ -12952,6 +14573,15 @@ function fgReset(): void {
     appointment: "",
     brand_color: "#000000",
     volume: 0,
+    budget: {
+      from: 200,
+      to: 600
+    },
+    stay: {
+      from: "",
+      to: ""
+    },
+    days: [],
     source: "kitchen-sink",
     attachments: [],
     attachments_note: "",
@@ -12974,6 +14604,7 @@ function fgReset(): void {
   touched.clear()
   result.value = null
   for (const key of Object.keys(tagDrafts)) tagDrafts[key] = ''
+  for (const key of Object.keys(fgDateDrafts)) fgDateDrafts[key] = ''
   fgAnnounce("The form was reset.")
 }
 
@@ -13003,6 +14634,9 @@ function buildPayload(): Record<string, unknown> {
     "appointment": form.appointment,
     "brand_color": form.brand_color,
     "volume": form.volume,
+    "budget": form.budget,
+    "stay": form.stay,
+    "days": form.days,
     "source": form.source,
     "references": form.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}) })),
     "attachments": form.attachments,
@@ -13270,6 +14904,42 @@ async function onSubmit(): Promise<void> {
           <input id="fg_volume" v-model.number="form.volume" type="range" class="fg-range" min="0" max="10" step="1" aria-orientation="vertical" style="writing-mode: vertical-lr; direction: rtl; align-self: flex-start; width: auto; height: 10rem" @change="touch('volume')">
           <p class="fg-description">{{ form.volume }}</p>
           <p v-if="errors['volume']" class="fg-error" role="alert">{{ errors['volume'] }}</p>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-field">
+          <label class="fg-label" for="fg_budget">Budget</label>
+          <div class="fg-dual">
+            <div class="fg-dual-track"><div class="fg-dual-fill" :style="fgDualFill(form.budget, 0, 1000)"></div></div>
+            <input id="fg_budget" type="range" min="0" max="1000" step="50" :value="form.budget.from" aria-label="Budget: Minimum" :style="{ zIndex: fgDualFromOnTop(form.budget, 0, 1000) ? 3 : 1 }" @input="fgDualSet(form.budget, 'from', $event)" @change="touch('budget')">
+            <input id="fg_budget_to" type="range" min="0" max="1000" step="50" :value="form.budget.to" aria-label="Budget: Maximum" :style="{ zIndex: 2 }" @input="fgDualSet(form.budget, 'to', $event)" @change="touch('budget')">
+          </div>
+          <p class="fg-description">{{ form.budget.from }} – {{ form.budget.to }}</p>
+          <p v-if="errors['budget']" class="fg-error" role="alert">{{ errors['budget'] }}</p>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-field">
+          <label class="fg-label" for="fg_stay">Stay<span class="fg-required" aria-hidden="true">*</span></label>
+          <div class="fg-pair">
+            <input id="fg_stay" v-model="form.stay.from" type="date" class="fg-input" :class="{ 'fg-invalid': !!errors['stay'] }" aria-label="Stay: Start date" @blur="touch('stay')" @change="revalidate('stay')">
+            <span aria-hidden="true">–</span>
+            <input id="fg_stay_to" v-model="form.stay.to" type="date" class="fg-input" :class="{ 'fg-invalid': !!errors['stay'] }" :min="form.stay.from || undefined" aria-label="Stay: End date" @blur="touch('stay')" @change="revalidate('stay')">
+          </div>
+          <p v-if="errors['stay']" class="fg-error" role="alert">{{ errors['stay'] }}</p>
+        </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-field">
+          <label class="fg-label" for="fg_days">Available days</label>
+          <div class="fg-pair">
+            <input id="fg_days" v-model="fgDateDrafts['days']" type="date" class="fg-input" :class="{ 'fg-invalid': !!errors['days'] }" @keydown.enter.prevent="fgAddDate('days')">
+            <button type="button" class="fg-button fg-button--secondary fg-pair-button" @click="fgAddDate('days')">Add date</button>
+          </div>
+          <div v-if="form.days.length" class="fg-chips">
+            <span v-for="(date, index) in form.days" :key="date" class="fg-tag">{{ date }} <button type="button" class="fg-tag-remove" :aria-label="'Remove ' + (date)" @click="fgRemoveDate('days', index)">×</button></span>
+          </div>
+          <p v-if="errors['days']" class="fg-error" role="alert">{{ errors['days'] }}</p>
         </div>
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
@@ -13584,6 +15254,23 @@ fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
 .fg-file-size { color: var(--fg-color-muted); font-size: 0.8125rem; }
 .fg-file-remove { padding: 0 0.375rem; font-size: 1.125rem; line-height: 1; color: var(--fg-color-muted); background: none; border: none; cursor: pointer; }
 .fg-file-remove:hover { color: var(--fg-color-error); }
+/* Composite fields (two-handle slider, date range, multiple dates).
+   Framework-neutral: the exports embed the slider rules as they are. */
+.fg-dual { position: relative; height: 1.5rem; margin-block: 0.25rem; }
+.fg-dual-track { position: absolute; inset-inline: 0; top: 50%; height: 0.375rem; transform: translateY(-50%); border-radius: 999px; background: var(--fg-color-border, var(--bs-border-color, #d1d5db)); }
+.fg-dual-fill { position: absolute; top: 0; bottom: 0; border-radius: inherit; background: var(--fg-color-primary, var(--bs-primary, #4f46e5)); }
+.fg-dual input[type='range'] { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; background: none; pointer-events: none; -webkit-appearance: none; appearance: none; }
+.fg-dual input[type='range']::-webkit-slider-runnable-track { height: 1.5rem; background: none; border: none; }
+.fg-dual input[type='range']::-moz-range-track { background: none; border: none; }
+.fg-dual input[type='range']::-webkit-slider-thumb { -webkit-appearance: none; pointer-events: auto; width: 1.125rem; height: 1.125rem; margin-top: 0.1875rem; border-radius: 50%; background: var(--fg-color-primary, var(--bs-primary, #4f46e5)); border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25); cursor: pointer; }
+.fg-dual input[type='range']::-moz-range-thumb { pointer-events: auto; width: 1.125rem; height: 1.125rem; border-radius: 50%; background: var(--fg-color-primary, var(--bs-primary, #4f46e5)); border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25); cursor: pointer; }
+.fg-dual input[type='range']:focus-visible { outline: none; }
+.fg-dual input[type='range']:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+.fg-dual input[type='range']:focus-visible::-moz-range-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+.fg-pair { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.fg-pair > .fg-input { flex: 1 1 10rem; inline-size: auto; }
+.fg-pair-button { flex: none; white-space: nowrap; }
+.fg-chips { display: flex; flex-wrap: wrap; gap: 0.375rem; margin-block-start: 0.5rem; }
 @media (prefers-color-scheme: dark) {
   .fg-form:not([data-fg-theme='light']) {
     --fg-color-bg: #0f172a; --fg-color-surface: #1e293b; --fg-color-text: #e2e8f0;

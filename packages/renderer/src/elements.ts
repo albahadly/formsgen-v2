@@ -3,6 +3,7 @@
 // default value is. Builder-side authoring metadata (icons, palette labels,
 // property panels) lives in the builder's registry (see ADR-0001).
 
+import { rangeSliderDefault } from './composite'
 import type { ElementNode } from './schema'
 
 export interface CoreElementMeta {
@@ -78,6 +79,10 @@ export const coreElements: Record<string, CoreElementMeta> = {
   checkbox: meta('checkbox', true, false, () => false),
   checkboxgroup: meta('checkboxgroup', true, false, () => []),
   range: meta('range', true, false, (node) => Number(node.props['min'] ?? 0)),
+  // Composite values (see composite.ts).
+  rangeslider: meta('rangeslider', true, false, rangeSliderDefault),
+  daterange: meta('daterange', true, false, () => ({ from: '', to: '' })),
+  dates: meta('dates', true, false, () => []),
   heading: meta('heading', false, false, () => undefined),
   paragraph: meta('paragraph', false, false, () => undefined),
   divider: meta('divider', false, false, () => undefined),

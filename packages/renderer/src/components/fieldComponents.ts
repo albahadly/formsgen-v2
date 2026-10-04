@@ -6,10 +6,13 @@ import { TEXT_INPUT_TYPES } from '../elements'
 import FgCheckbox from './fields/FgCheckbox.vue'
 import FgFile from './fields/FgFile.vue'
 import FgCheckboxGroup from './fields/FgCheckboxGroup.vue'
+import FgDateRange from './fields/FgDateRange.vue'
+import FgDates from './fields/FgDates.vue'
 import FgMultiSelect from './fields/FgMultiSelect.vue'
 import FgNumber from './fields/FgNumber.vue'
 import FgRadioGroup from './fields/FgRadioGroup.vue'
 import FgRange from './fields/FgRange.vue'
+import FgRangeSlider from './fields/FgRangeSlider.vue'
 import FgSelect from './fields/FgSelect.vue'
 import FgTags from './fields/FgTags.vue'
 import FgText from './fields/FgText.vue'
@@ -27,6 +30,9 @@ export const FIELD_COMPONENTS: Readonly<Record<string, Component>> = {
   toggle: FgCheckbox,
   checkboxgroup: FgCheckboxGroup,
   range: FgRange,
+  rangeslider: FgRangeSlider,
+  daterange: FgDateRange,
+  dates: FgDates,
   file: FgFile,
   imageupload: FgFile,
 }

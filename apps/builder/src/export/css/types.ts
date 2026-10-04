@@ -72,6 +72,12 @@ export type Slot =
   | 'fileName'
   | 'fileSize'
   | 'fileRemove'
+  /** Row of two controls (date range, add-a-date). */
+  | 'pair'
+  /** Wrapping list of chips under a field (multiple dates). */
+  | 'chipList'
+  /** A secondary button inside a pair row that never shrinks (Add date). */
+  | 'pairButton'
 
 export interface CellAttrs {
   class: string

@@ -296,6 +296,11 @@ export function tailwindThemeCss(theme: ThemeTokens | undefined): string | undef
   const scheme = themeColorScheme(t)
   if (scheme) root.push(`color-scheme: ${scheme};`)
   let css = rule(`.${THEMED_CLASS}.${THEMED_CLASS}`, root)
+  // The two-handle slider's CSS is framework-neutral: it reads these.
+  css += rule(`.${THEMED_CLASS} .fg-dual`, [
+    ...(t['color-primary'] ? [`--fg-color-primary: ${t['color-primary']};`] : []),
+    ...(t['color-border'] ? [`--fg-color-border: ${t['color-border']};`] : []),
+  ])
   // Resets first: a token rule of equal specificity that follows wins.
   if (pinsLightScheme(t)) {
     for (const [className, [property, value]] of Object.entries(TAILWIND_DARK_RESETS)) {

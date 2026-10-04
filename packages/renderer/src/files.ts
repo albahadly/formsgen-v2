@@ -4,6 +4,7 @@
 // (a `data` part with the JSON answers, then one part per file named by
 // the field's data path).
 
+import { DATE_RANGE_TYPE, dateOrderProblem } from './composite'
 import { fill, type MessageCatalog } from './messages'
 import { evaluateRules, type FieldLookup } from './rules'
 import type { ElementNode } from './schema'
@@ -143,8 +144,8 @@ export function toSubmission(
 }
 
 /**
- * A field's first error: "required" first, then file size/type/count
- * problems (upload fields), then the remaining rules.
+ * A field's first error: "required" first, then the field's built-in
+ * check (upload size/type/count, date range order), then the other rules.
  */
 export function firstFieldError(
   node: ElementNode,
@@ -156,6 +157,10 @@ export function firstFieldError(
   if (violations[0]?.rule === 'required') return violations[0].message
   if (FILE_TYPES.has(node.type)) {
     const problem = fileProblem(value, fileLimits(node), messages)
+    if (problem) return problem
+  }
+  if (node.type === DATE_RANGE_TYPE) {
+    const problem = dateOrderProblem(value, messages)
     if (problem) return problem
   }
   return violations[0]?.message ?? null

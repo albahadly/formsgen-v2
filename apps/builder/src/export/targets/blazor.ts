@@ -7,6 +7,7 @@
 import {
   FILE_TYPES,
   getCoreElement,
+  rangeSliderDefault,
   isRepeater,
   joinPath,
   resolveMessages,
@@ -38,6 +39,7 @@ import {
   resolveSubmitButton,
 } from '../structure'
 import { scopeForBlazor } from '../css/blazorScope'
+import { exportStylesheet, hasDateRange, hasRangeSlider } from '../composite'
 import { formRootClass, pinnedSchemeAttr } from '../css/themeBridge'
 import { componentName, type ExportTarget } from './types'
 
@@ -187,6 +189,10 @@ ${indentBlock(item, 3)}
               ? 'List<string>'
               : kind === 'files'
                 ? 'List<FgUpload>'
+                : kind === 'range2'
+                  ? 'FgRange'
+                  : kind === 'daterange'
+                    ? 'FgDateRange'
                 : kind === 'array'
                 ? 'string[]'
                 : 'string'
@@ -200,7 +206,12 @@ ${indentBlock(item, 3)}
           return ` = ${Number(def ?? node.props['min'] ?? 0)};`
         case 'list':
         case 'files':
+        case 'daterange':
           return ' = new();'
+        case 'range2': {
+          const initial = rangeSliderDefault(node)
+          return ` = new(${initial.from}, ${initial.to});`
+        }
         case 'array':
           return ' = Array.Empty<string>();'
         default:
@@ -245,7 +256,7 @@ ${r.fields
       .flatMap((field) => {
         const kind = csFieldKind(field.node.type)
         const needsValidate =
-          ((field.node.validation?.length ?? 0) > 0 || kind === 'files') &&
+          ((field.node.validation?.length ?? 0) > 0 || kind === 'files' || kind === 'daterange') &&
           (field.conditionChain.length > 0 || csAttributes(field, kind) === null)
         return needsValidate ? csValidateStatements(field, kind, messages) : []
       })
@@ -313,7 +324,9 @@ ${r.fields
               ? `string.IsNullOrEmpty(${member}) ? null : ${member}`
               : FILE_TYPES.has(node.type)
                 ? `FgFilesPart(parts, ${csStr(path)}, ${member})`
-                : member
+                : node.type === 'rangeslider' || node.type === 'daterange'
+                  ? `new Dictionary<string, object?> { ["from"] = ${member}.From, ["to"] = ${member}.To }`
+                  : member
           const assign = `${dict}[${csStr(node.name)}] = ${value};`
           if (field && field.conditionChain.length > 0) {
             const visible = field.conditionChain
@@ -614,7 +627,7 @@ ${fields.map((f) => `        ${csStr(pascalMember(f.key))},`).join('\n')}
         Model = new();
         FgInitEdit();${hasRepeaters ? '\n        fgItemRefs.Clear();' : ''}
         fgDeferredFields.Clear();
-        ResultJson = null;${tagsKeys.length ? '\n        foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";' : ''}
+        ResultJson = null;${tagsKeys.length ? '\n        foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";' : ''}${fields.some((f) => f.node.type === 'dates') ? '\n        foreach (var key in fgDateDrafts.Keys.ToList()) fgDateDrafts[key] = "";' : ''}
         await FgAnnounce(${csStr(messages.formReset)});
     }
 `
@@ -869,16 +882,140 @@ ${schema.meta.submit?.url ? `
 ` : ''}`
       : ''
 
+    // Composite fields: the slider's From/To class and handle helpers, the
+    // date range class, and the multiple-dates draft store.
+    const hasSlider = hasRangeSlider(schema)
+    const hasRange = hasDateRange(schema)
+    const dateMembers = fields.filter((f) => f.node.type === 'dates').map((f) => pascalMember(f.key))
+    const compositeBlock = [
+      hasSlider
+        ? `
+    // The two inputs render the Shown values and are re-created (a new
+    // Version in their @key) only when a value is corrected (a handle
+    // pushed past the other) or reset: re-rendering a live range input's
+    // value would fight the user's drag or key presses.
+    public sealed class FgRange
+    {
+        private static int fgVersions;
+
+        public FgRange(double from, double to)
+        {
+            From = from;
+            To = to;
+            Redraw();
+        }
+
+        public double From { get; set; }
+        public double To { get; set; }
+        public double ShownFrom { get; private set; }
+        public double ShownTo { get; private set; }
+        public int Version { get; private set; }
+
+        public void Redraw()
+        {
+            ShownFrom = From;
+            ShownTo = To;
+            Version = System.Threading.Interlocked.Increment(ref fgVersions);
+        }
+    }
+
+    private readonly Dictionary<string, ElementReference> fgDualRefs = new();
+    private string? fgFocusDual;
+
+    private static string FgNum(double value) => value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    private static string FgDualFill(FgRange range, double min, double max)
+    {
+        double Pct(double n) => max > min ? (n - min) / (max - min) * 100 : 0;
+        return $"inset-inline-start: {FgNum(Pct(range.From))}%; inset-inline-end: {FgNum(100 - Pct(range.To))}%";
+    }
+
+    // With both handles together, the one that can still move is on top.
+    private static bool FgDualFromOnTop(FgRange range, double min, double max) =>
+        range.From == range.To && range.From > (min + max) / 2;
+
+    // Handles can't cross: a value past the other handle stops at it (and
+    // the input is redrawn there, keeping focus).
+    private void FgDualSet(FgRange range, bool from, ChangeEventArgs e, string id)
+    {
+        var text = Convert.ToString(e.Value, System.Globalization.CultureInfo.InvariantCulture);
+        if (!double.TryParse(text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var n)) return;
+        var crossed = from ? n > range.To : n < range.From;
+        if (from) range.From = Math.Min(n, range.To);
+        else range.To = Math.Max(n, range.From);
+        if (!crossed) return;
+        range.Redraw();
+        fgFocusDual = id;
+    }
+
+    private async Task FgFocusDual()
+    {
+        if (fgFocusDual == null) return;
+        var id = fgFocusDual;
+        fgFocusDual = null;
+        if (fgDualRefs.TryGetValue(id, out var input)) await input.FocusAsync();
+    }
+`
+        : '',
+      hasRange
+        ? `
+    public sealed class FgDateRange
+    {
+        public string From { get; set; } = "";
+        public string To { get; set; } = "";
+    }
+
+    private void FgSetDate(FgDateRange range, bool from, ChangeEventArgs e, string member)
+    {
+        var value = Convert.ToString(e.Value) ?? "";
+        if (from) range.From = value;
+        else range.To = value;
+        FgChanged(member);
+    }
+`
+        : '',
+      hasRange || dateMembers.length
+        ? `
+    private void FgChanged(string member) => fgEdit.NotifyFieldChanged(new FieldIdentifier(Model, member));
+`
+        : '',
+      dateMembers.length
+        ? `
+    private readonly Dictionary<string, string> fgDateDrafts = new() { ${dateMembers.map((m) => `[${csStr(m)}] = ""`).join(', ')} };
+
+    private void FgAddDate(List<string> list, string member)
+    {
+        var date = fgDateDrafts.TryGetValue(member, out var draft) ? draft ?? "" : "";
+        if (System.Text.RegularExpressions.Regex.IsMatch(date, @"^\\d{4}-\\d{2}-\\d{2}$") && !list.Contains(date))
+        {
+            list.Add(date);
+            list.Sort(string.CompareOrdinal);
+        }
+        fgDateDrafts[member] = "";
+        FgChanged(member);
+    }
+
+    private void FgRemoveDate(List<string> list, string date, string member)
+    {
+        list.Remove(date);
+        FgChanged(member);
+    }
+
+    private static string FgRemoveDateLabel(string date) => ${csStr(messages.removeDate)}.Replace("{date}", date);
+`
+        : '',
+    ].join('')
+
     const afterRenderBlock =
-      hasRepeaters || hasUploads
+      hasRepeaters || hasUploads || hasSlider
         ? `
     protected override async Task OnAfterRenderAsync(bool firstRender)
-    {${hasRepeaters ? '\n        await FgFocusRepeaters();' : ''}${hasUploads ? '\n        await FgFocusUploads();' : ''}
+    {${hasRepeaters ? '\n        await FgFocusRepeaters();' : ''}${hasUploads ? '\n        await FgFocusUploads();' : ''}${hasSlider ? '\n        await FgFocusDual();' : ''}
     }
 `
         : ''
 
-    const helperBlocks = `${editContextBlock}${announceBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}${repeaterBlock}${uploadBlock}${afterRenderBlock}${resetBlock}`
+    const helperBlocks = `${editContextBlock}${announceBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}${repeaterBlock}${uploadBlock}${compositeBlock}${afterRenderBlock}${resetBlock}`
 
     const formBinding = 'EditContext="fgEdit" OnSubmit="FgSubmit"'
     const extraUsings = '@using System.Linq\n@using Microsoft.AspNetCore.Components.Forms\n'
@@ -965,7 +1102,8 @@ ${itemClasses}}
     {
         null => true,
         string text => string.IsNullOrWhiteSpace(text),
-        bool on => !on,
+        bool on => !on,${hasDateRange(schema) ? `
+        FgDateRange range => string.IsNullOrWhiteSpace(range.From) || string.IsNullOrWhiteSpace(range.To),` : ''}
         System.Collections.ICollection list => list.Count == 0,
         _ => false,
     };`,
@@ -987,7 +1125,7 @@ ${itemClasses}}
     ].filter(Boolean)
     const razor = draft.replace(STATIC_HELPERS, staticHelpers.length ? `\n${staticHelpers.join('\n\n')}\n` : '')
 
-    const stylesheet = css.stylesheet?.(schema.meta.theme)
+    const stylesheet = exportStylesheet(css, schema)
     const files: { path: string; language: 'xml' | 'css'; content: string }[] = [
       { path: `${name}.razor`, language: 'xml', content: razor },
     ]
@@ -1013,7 +1151,7 @@ typed text when the input commits (blur or Enter — note Enter inside an
 
 1. Create or open a Blazor app (\`dotnet new blazor\`); works in both
    Server and WebAssembly render modes.
-2. Copy \`${name}.razor\`${ctx.css.stylesheet?.(ctx.schema.meta.theme) ? ` and \`${name}.razor.css\` (scoped styles, picked up automatically by the build)` : ''} into your \`Components\`/\`Pages\` folder.
+2. Copy \`${name}.razor\`${exportStylesheet(ctx.css, ctx.schema) ? ` and \`${name}.razor.css\` (scoped styles, picked up automatically by the build)` : ''} into your \`Components\`/\`Pages\` folder.
 3. Use it: \`<${name} />\`${ctx.schema.meta.submit?.url ? `\n4. The component POSTs to \`${ctx.schema.meta.submit.url}\` on valid submit — register \`HttpClient\` in DI (WASM templates do by default).` : ''}
 
 ${ctx.css.id === 'bootstrap5' ? 'Bootstrap 5 classes are used — the default Blazor templates already ship Bootstrap, so it works out of the box.' : ctx.css.readmeNote()}

@@ -23,6 +23,13 @@ const frameworks: CssFrameworkId[] = ['vanilla', 'tailwind', 'bootstrap5']
 const generate = (targetId: string, framework: CssFrameworkId = 'vanilla') =>
   getTarget(targetId)!.generate({ schema: fixture(), css: getCssAdapter(framework) })
 
+/** The fixture without its two-handle slider, whose rules ship as a stylesheet in every framework. */
+const generateNoSlider = (targetId: string, framework: CssFrameworkId) => {
+  const schema = fixture()
+  schema.tree = schema.tree.filter((n) => n.type !== 'rangeslider')
+  return getTarget(targetId)!.generate({ schema, css: getCssAdapter(framework) })
+}
+
 describe('export target registry', () => {
   it('registers the six targets', () => {
     expect(listTargets().map((t) => t.id)).toEqual([
@@ -85,7 +92,7 @@ describe('vue-standalone target', () => {
   })
 
   it('uses framework idioms, never vanilla classes, in bootstrap mode', () => {
-    const [file] = generate('vue-standalone', 'bootstrap5')
+    const [file] = generateNoSlider('vue-standalone', 'bootstrap5')
     expect(file!.content).toContain('form-control')
     expect(file!.content).toContain('is-invalid')
     expect(file!.content).not.toContain('fg-input')
@@ -122,7 +129,7 @@ describe('react target', () => {
     expect(files).toHaveLength(2)
     expect(files[1]!.path).toBe('KitchenSinkForm.css')
     expect(files[0]!.content).toContain("import './KitchenSinkForm.css'")
-    const tailwind = generate('react', 'tailwind')
+    const tailwind = generateNoSlider('react', 'tailwind')
     expect(tailwind).toHaveLength(1)
     expect(tailwind[0]!.content).toContain('className=')
   })
@@ -584,7 +591,7 @@ describe('html target', () => {
   })
 
   it('references CDN assets for tailwind instead of embedding CSS', () => {
-    const [file] = generate('html', 'tailwind')
+    const [file] = generateNoSlider('html', 'tailwind')
     expect(file!.content).toContain('cdn.tailwindcss.com')
     expect(file!.content).not.toContain('<style>')
   })

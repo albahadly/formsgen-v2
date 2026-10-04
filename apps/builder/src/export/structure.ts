@@ -383,6 +383,9 @@ const FIELD_TS_TYPES: Record<string, string> = {
   range: 'number',
   file: 'File[]',
   imageupload: 'File[]',
+  rangeslider: '{ from: number; to: number }',
+  daterange: '{ from: string; to: string }',
+  dates: 'string[]',
 }
 
 /** TS type literal for the form data shape, derived from the SCHEMA (Vue, React). */

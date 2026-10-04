@@ -226,6 +226,26 @@
       "props": { "label": "Volume", "min": 0, "max": 10, "step": 1, "orientation": "vertical" }
     },
     {
+      "id": "ks-budget",
+      "type": "rangeslider",
+      "name": "budget",
+      "props": { "label": "Budget", "min": 0, "max": 1000, "step": 50, "defaultFrom": 200, "defaultTo": 600 }
+    },
+    {
+      "id": "ks-stay",
+      "type": "daterange",
+      "name": "stay",
+      "props": { "label": "Stay" },
+      "validation": [{ "rule": "required" }]
+    },
+    {
+      "id": "ks-days",
+      "type": "dates",
+      "name": "days",
+      "props": { "label": "Available days" },
+      "validation": [{ "rule": "max", "value": 3 }]
+    },
+    {
       "id": "ks-source",
       "type": "hidden",
       "name": "source",

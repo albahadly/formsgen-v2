@@ -78,6 +78,8 @@ describe('operators and value kinds follow the field type', () => {
     expect(operatorsFor('multiselect')).toEqual(['contains', 'empty', 'not-empty'])
     expect(operatorsFor('file')).toEqual(['not-empty', 'empty'])
     expect(operatorsFor('imageupload')).toEqual(['not-empty', 'empty'])
+    expect(operatorsFor('daterange')).toEqual(['not-empty', 'empty'])
+    expect(operatorsFor('dates')).toEqual(['contains', 'empty', 'not-empty'])
   })
 
   it('stores values with the runtime type the renderer compares with ===', () => {

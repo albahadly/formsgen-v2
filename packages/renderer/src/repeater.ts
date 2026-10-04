@@ -3,7 +3,7 @@
 // paths carry the index (`people.0.name`), while conditions and same-as
 // rules name sibling fields by the template path (`people.name`) — they
 // resolve to the SAME item. v1 children: value fields and static elements
-// (no nested containers, no tags).
+// (no nested containers, tags, uploads or composite-value fields).
 
 import { getCoreElement } from './elements'
 import type { ElementNode } from './schema'
@@ -11,7 +11,14 @@ import type { ElementNode } from './schema'
 export const REPEATER_TYPE = 'repeater'
 
 /** Element types a repeater may not contain (besides containers). */
-export const REPEATER_EXCLUDED_TYPES: ReadonlySet<string> = new Set(['tags', 'file', 'imageupload'])
+export const REPEATER_EXCLUDED_TYPES: ReadonlySet<string> = new Set([
+  'tags',
+  'file',
+  'imageupload',
+  'rangeslider',
+  'daterange',
+  'dates',
+])
 
 export function isRepeater(node: ElementNode | undefined | null): boolean {
   return node?.type === REPEATER_TYPE

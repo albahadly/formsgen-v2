@@ -105,6 +105,18 @@ export {
   type FileLimits,
 } from './files'
 export { default as FgButton } from './components/fields/FgButton.vue'
+export {
+  DATES_TYPE,
+  DATE_RANGE_TYPE,
+  OBJECT_VALUE_TYPES,
+  RANGE_SLIDER_TYPE,
+  addDate,
+  dateOrderProblem,
+  rangeBounds,
+  rangePercent,
+  rangeSliderDefault,
+  type RangeBounds,
+} from './composite'
 
 export {
   buildDefaultData,

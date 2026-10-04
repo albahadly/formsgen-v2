@@ -17,6 +17,10 @@ function runtimeHelpers(ts: boolean): string {
   if (v === null || v === undefined) return true
   if (typeof v === 'string') return v.trim() === ''
   if (Array.isArray(v)) return v.length === 0
+  // Composite values ({ from, to }) are empty while any part is.
+  if (typeof v === 'object' && Object.getPrototypeOf(v) === Object.prototype) {
+    return Object.keys(v).some((k) => fgIsEmpty(${ts ? '(v as Record<string, unknown>)' : 'v'}[k]))
+  }
   return false
 }
 // Empty, or an unchecked checkbox/toggle (takes any type, so typed targets
