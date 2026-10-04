@@ -139,8 +139,17 @@ export const multiSelectElement: ElementDefinition = {
         ],
         ctx,
       ),
-    // Blazor multi-binding needs a custom component; deferred like
-    // checkboxgroup (the walker emits an "unsupported" comment).
+    // string[] model property — InputSelect binds arrays natively (.NET 6+).
+    blazor: (node, ctx) =>
+      fieldWrap(
+        [
+          labelFor(node, ctx),
+          `<InputSelect id="${ctx.id}" multiple @bind-Value="Model.${pascalMember(ctx.key)}" class="${ctx.css.classes('select')}">\n    ${multiOptionTags(node)}\n  </InputSelect>`,
+          descriptionFor(node, ctx),
+          blazorValidationMessage(ctx),
+        ],
+        ctx,
+      ),
   },
 }
 

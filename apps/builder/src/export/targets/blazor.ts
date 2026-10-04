@@ -46,9 +46,11 @@ export const blazorTarget: ExportTarget = {
     const embeddedHost = sb.gatingHosts.length === 1 ? sb.gatingHosts[0]! : null
     const submitButton = `<button class="${css.classes(sb.secondary ? 'buttonSecondary' : 'submitButton')}"${sb.buttonStyle ? ` style="${sb.buttonStyle}"` : ''} type="submit">${sb.text}</button>`
 
-    // Tabs/steps: int state fields + @if-rendered panels. Per-step
-    // validation is NOT gated here — EditForm validates on final submit
-    // (DataAnnotations is submit-scoped; see the generated README).
+    const stepsHosts = hosts.filter((h) => h.kind === 'steps')
+    const memberOf = (path: string): string => pascalMember(pathKey(path))
+
+    // Tabs/steps: int state fields + @if-rendered panels. Steps gate Next
+    // behind per-step validation (FgNext_* via an explicit EditContext).
     const renderSections = (host: RenderedSectionHost): string => {
       const state = `fgSec_${host.key}`
       const panels = host.sections
@@ -77,7 +79,7 @@ export const blazorTarget: ExportTarget = {
         embeddedHost?.key === host.key
           ? `\n    @if (${state} == ${last})\n    {\n        ${submitButton}\n    }`
           : ''
-      return `<div>\n  <ol class="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div class="${css.classes('stepActions')}">\n    @if (${state} > 0)\n    {\n        <button type="button" class="${css.classes('buttonSecondary')}" @onclick="() => ${state}--">${labels.back}</button>\n    }\n    @if (${state} < ${last})\n    {\n        <button type="button" class="${css.classes('submitButton')}" @onclick="() => ${state}++">${labels.next}</button>\n    }${embeddedSubmit}\n  </div>\n</div>`
+      return `<div>\n  <ol class="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div class="${css.classes('stepActions')}">\n    @if (${state} > 0)\n    {\n        <button type="button" class="${css.classes('buttonSecondary')}" @onclick="() => ${state}--">${labels.back}</button>\n    }\n    @if (${state} < ${last})\n    {\n        <button type="button" class="${css.classes('submitButton')}" @onclick="FgNext_${host.key}">${labels.next}</button>\n    }${embeddedSubmit}\n  </div>\n</div>`
     }
 
     const sectionFields = hosts
@@ -105,7 +107,9 @@ export const blazorTarget: ExportTarget = {
             ? 'double'
             : kind === 'list'
               ? 'List<string>'
-              : 'string'
+              : kind === 'array'
+                ? 'string[]'
+                : 'string'
     const csInit = (kind: CsFieldKind, def: unknown, node: ElementNode): string => {
       switch (kind) {
         case 'bool':
@@ -116,6 +120,8 @@ export const blazorTarget: ExportTarget = {
           return ` = ${Number(def ?? node.props['min'] ?? 0)};`
         case 'list':
           return ' = new();'
+        case 'array':
+          return ' = Array.Empty<string>();'
         default:
           return ` = ${typeof def === 'string' ? csStr(def) : '""'};`
       }
@@ -192,6 +198,161 @@ export const blazorTarget: ExportTarget = {
     }
     buildPayload(schema.tree, '', 'payload')
 
+    // --- generated @code helpers ------------------------------------------
+    // EditContext machinery exists when any tabs/steps host needs per-step
+    // gating or the invalid-submit jump; FgToggle/FgAddTag only when the
+    // matching field types are present.
+    const hasEditContext = hosts.length > 0
+    const tagsKeys = fields.filter((f) => f.node.type === 'tags').map((f) => f.key)
+    const hasToggle = fields.some((f) => f.node.type === 'checkboxgroup')
+
+    const editContextBlock = hasEditContext
+      ? `
+    private EditContext fgEdit = default!;
+    private ValidationMessageStore fgMessages = default!;
+
+    protected override void OnInitialized()
+    {
+        fgEdit = new EditContext(Model);
+        fgMessages = new ValidationMessageStore(fgEdit);
+        // Submit-time validation repaints everything; drop stale step messages.
+        fgEdit.OnValidationRequested += (_, _) => fgMessages.Clear();
+    }
+`
+      : ''
+
+    const validateMembersBlock = stepsHosts.length
+      ? `
+    private bool FgValidateMembers((string Name, object? Value)[] members)
+    {
+        var ok = true;
+        foreach (var (name, value) in members)
+        {
+            var field = new FieldIdentifier(Model, name);
+            fgMessages.Clear(field);
+            var results = new List<ValidationResult>();
+            var context = new ValidationContext(Model) { MemberName = name };
+            if (!Validator.TryValidateProperty(value, context, results)) ok = false;
+            foreach (var result in results) fgMessages.Add(field, result.ErrorMessage ?? "Invalid");
+        }
+        foreach (var result in ((IValidatableObject)Model).Validate(new ValidationContext(Model)))
+        {
+            foreach (var name in result.MemberNames)
+            {
+                if (!Array.Exists(members, m => m.Name == name)) continue;
+                fgMessages.Add(new FieldIdentifier(Model, name), result.ErrorMessage ?? "Invalid");
+                ok = false;
+            }
+        }
+        fgEdit.NotifyValidationStateChanged();
+        return ok;
+    }
+`
+      : ''
+
+    const nextBlocks = stepsHosts
+      .map((host) => {
+        const arms = host.sections
+          .map((s) =>
+            s.paths.length
+              ? `            ${s.index} => new (string Name, object? Value)[] { ${s.paths
+                  .map((p) => `(nameof(${name}Model.${memberOf(p)}), Model.${memberOf(p)})`)
+                  .join(', ')} },`
+              : `            ${s.index} => Array.Empty<(string Name, object? Value)>(),`,
+          )
+          .join('\n')
+        return `
+    private void FgNext_${host.key}()
+    {
+        var members = fgSec_${host.key} switch
+        {
+${arms}
+            _ => Array.Empty<(string Name, object? Value)>(),
+        };
+        if (FgValidateMembers(members) && fgSec_${host.key} < ${host.sections.length - 1}) fgSec_${host.key}++;
+    }
+`
+      })
+      .join('')
+
+    const jumpBlock = hasEditContext
+      ? `
+${hosts
+  .map(
+    (host) => `    private static readonly string[][] fgSecMembers_${host.key} =
+    {
+${host.sections
+  .map((s) =>
+    s.paths.length
+      ? `        new[] { ${s.paths.map((p) => csStr(memberOf(p))).join(', ')} },`
+      : '        Array.Empty<string>(),',
+  )
+  .join('\n')}
+    };
+`,
+  )
+  .join('\n')}
+    private bool FgHasMessages(string[] members)
+    {
+        foreach (var name in members)
+        {
+            if (fgEdit.GetValidationMessages(new FieldIdentifier(Model, name)).Any()) return true;
+        }
+        return false;
+    }
+
+    private void FgJumpToError()
+    {
+${hosts
+  .map(
+    (host) => `        if (!FgHasMessages(fgSecMembers_${host.key}[fgSec_${host.key}]))
+        {
+            for (var i = 0; i < fgSecMembers_${host.key}.Length; i++)
+            {
+                if (FgHasMessages(fgSecMembers_${host.key}[i])) { fgSec_${host.key} = i; break; }
+            }
+        }`,
+  )
+  .join('\n')}
+    }
+`
+      : ''
+
+    const toggleBlock = hasToggle
+      ? `
+    private static void FgToggle(List<string> list, string value, ChangeEventArgs e)
+    {
+        var on = e.Value is bool b && b;
+        if (on) { if (!list.Contains(value)) list.Add(value); }
+        else { list.Remove(value); }
+    }
+`
+      : ''
+
+    const tagsBlock = tagsKeys.length
+      ? `
+    private readonly Dictionary<string, string> fgTagDrafts = new() { ${tagsKeys
+        .map((k) => `[${csStr(k)}] = ""`)
+        .join(', ')} };
+
+    private void FgAddTag(List<string> list, string key)
+    {
+        var draft = (fgTagDrafts.TryGetValue(key, out var value) ? value : "").Trim();
+        if (draft.Length > 0 && !list.Contains(draft)) list.Add(draft);
+        fgTagDrafts[key] = "";
+    }
+`
+      : ''
+
+    const helperBlocks = `${editContextBlock}${validateMembersBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}`
+
+    const formBinding = hasEditContext
+      ? 'EditContext="fgEdit" OnValidSubmit="HandleValidSubmit" OnInvalidSubmit="FgJumpToError"'
+      : 'Model="Model" OnValidSubmit="HandleValidSubmit"'
+    const extraUsings = hasEditContext
+      ? '@using System.Linq\n@using Microsoft.AspNetCore.Components.Forms\n'
+      : ''
+
     const submitUrl = schema.meta.submit?.url
     const httpInject = submitUrl ? '@inject HttpClient Http\n' : ''
     const submitCall = submitUrl
@@ -215,8 +376,8 @@ export const blazorTarget: ExportTarget = {
     const razor = `@* Generated by FormsGen (.NET 8). *@
 @using System.ComponentModel.DataAnnotations
 @using System.Text.Json
-${submitUrl ? '@using System.Net.Http.Json\n' : ''}${httpInject}
-<EditForm Model="Model" OnValidSubmit="HandleValidSubmit" class="${css.classes('form')}" dir="${schema.meta.dir}">
+${extraUsings}${submitUrl ? '@using System.Net.Http.Json\n' : ''}${httpInject}
+<EditForm ${formBinding} class="${css.classes('form')}" dir="${schema.meta.dir}">
     <DataAnnotationsValidator />
     <div class="${css.classes('grid')}">
 ${indentBlock(markup, 2)}
@@ -230,7 +391,7 @@ ${indentBlock(markup, 2)}
 @code {
     private ${name}Model Model { get; set; } = new();
     private string? ResultJson { get; set; }
-${sectionFields ? `\n${sectionFields}\n` : ''}
+${sectionFields ? `\n${sectionFields}\n` : ''}${helperBlocks}
     private ${submitUrl ? 'async Task' : 'void'} HandleValidSubmit()
     {
         var payload = BuildPayload();
@@ -273,6 +434,10 @@ A single Razor component: \`EditForm\` + \`DataAnnotationsValidator\`, a
 generated model class (attributes where a rule maps 1:1, plus
 \`IValidatableObject\` for conditional fields and required checkboxes),
 and a payload builder that excludes hidden fields and nests named groups.
+Steps wizards validate the current step before Next advances, and a failed
+submit jumps to the first tab/step holding an error. Tags fields add the
+typed text when the input commits (blur or Enter — note Enter inside an
+\`EditForm\` can also trigger submit, which is standard Blazor behavior).
 
 ## Install
 

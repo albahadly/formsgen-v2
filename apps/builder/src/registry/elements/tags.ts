@@ -1,15 +1,17 @@
 // Tags (chips) input: free-text multi-value, string[] data. The chip
 // add/remove logic lives in each target's scaffold (fgAddTag/fgRemoveTag
 // plus a per-field draft store); emitters only produce markup wired to
-// those conventional names. Blazor is deferred (chips need per-field
-// component state; the walker emits an "unsupported" comment).
+// those conventional names. Blazor binds the draft input to the generated
+// fgTagDrafts dictionary and adds via @bind:after (commit on blur/Enter).
 
 import type { ElementNode } from '@formsgen/renderer'
 import {
+  blazorValidationMessage,
   descriptionFor,
   fieldWrap,
   htmlError,
   labelFor,
+  pascalMember,
   placeholderAttr,
   reactDescription,
   reactError,
@@ -58,6 +60,19 @@ export const tagsElement: ElementDefinition = {
         ],
         ctx,
       ),
+    blazor: (node, ctx) => {
+      const member = `Model.${pascalMember(ctx.key)}`
+      const idx = `fgIdx_${ctx.key}`
+      return fieldWrap(
+        [
+          labelFor(node, ctx),
+          `<div class="${ctx.css.classes('tagsWrap')}">\n    @for (var i = 0; i < ${member}.Count; i++)\n    {\n        var ${idx} = i;\n        <span class="${ctx.css.classes('tag')}">@${member}[${idx}] <button type="button" class="${ctx.css.classes('tagRemove')}" aria-label="Remove @${member}[${idx}]" @onclick="() => ${member}.RemoveAt(${idx})">&times;</button></span>\n    }\n    <input id="${ctx.id}" type="text" class="${ctx.css.classes('tagsInput')}"${placeholderAttr(node)} @bind='fgTagDrafts[${JSON.stringify(ctx.key)}]' @bind:after='() => FgAddTag(${member}, ${JSON.stringify(ctx.key)})'>\n  </div>`,
+          descriptionFor(node, ctx),
+          blazorValidationMessage(ctx),
+        ],
+        ctx,
+      )
+    },
   },
 }
 

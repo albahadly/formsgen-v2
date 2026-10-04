@@ -4,6 +4,7 @@
 
 import type { ElementNode } from '@formsgen/renderer'
 import {
+  blazorValidationMessage,
   descriptionFor,
   esc,
   htmlError,
@@ -160,7 +161,22 @@ export const checkboxGroupElement: ElementDefinition = {
         ],
         ctx,
       ),
-    // Blazor has no built-in multi-checkbox binding; deferred (the walker
-    // emits an "unsupported" comment in the generated file).
+    // Blazor has no built-in multi-checkbox binding — plain inputs call the
+    // generated FgToggle(list, value, e) helper (single-quoted attributes
+    // so the C# string literals survive).
+    blazor: (node, ctx) =>
+      `<fieldset class="${ctx.css.classes('field')}">\n  ${[
+        legend(node, ctx),
+        `<div class="${ctx.css.classes('options')}">\n${items(node)
+          .map(
+            (item) =>
+              `    <label class="${ctx.css.classes('option')}">\n      <input type="checkbox" class="${ctx.css.classes('checkbox')}" checked='@Model.${pascalMember(ctx.key)}.Contains(${JSON.stringify(item.value)})' @onchange='e => FgToggle(Model.${pascalMember(ctx.key)}, ${JSON.stringify(item.value)}, e)' />\n      <span>${esc(item.label)}</span>\n    </label>`,
+          )
+          .join('\n')}\n  </div>`,
+        descriptionFor(node, ctx),
+        blazorValidationMessage(ctx),
+      ]
+        .filter(Boolean)
+        .join('\n  ')}\n</fieldset>`,
   },
 }

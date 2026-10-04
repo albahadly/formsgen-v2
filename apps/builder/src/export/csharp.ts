@@ -59,7 +59,8 @@ export type CsFieldKind =
   | 'bool' // checkbox
   | 'number' // number (double?)
   | 'numberValue' // range (double, always has a value)
-  | 'list' // checkboxgroup / multiselect / tags (List<string>)
+  | 'list' // checkboxgroup / tags (List<string>)
+  | 'array' // multiselect (string[], as InputSelect multiple binds arrays)
 
 export function csFieldKind(type: string): CsFieldKind {
   switch (type) {
@@ -70,9 +71,10 @@ export function csFieldKind(type: string): CsFieldKind {
     case 'range':
       return 'numberValue'
     case 'checkboxgroup':
-    case 'multiselect':
     case 'tags':
       return 'list'
+    case 'multiselect':
+      return 'array'
     default:
       return 'string'
   }
@@ -87,8 +89,16 @@ export function csAttributes(field: ExportField, kind: CsFieldKind): string[] | 
   const rules = field.node.validation ?? []
   if (rules.length === 0) return []
   if (field.conditionChain.length > 0) return null
-  if (kind === 'bool' || kind === 'list') return null // Validate() handles these
+  if (kind === 'bool' || kind === 'list' || kind === 'array') return null // Validate() handles these
   const numeric = kind === 'number' || kind === 'numberValue'
+  // [Range] is not AllowMultiple: a numeric field with more than one of
+  // min/max/between must validate in Validate() to keep both messages.
+  if (
+    numeric &&
+    rules.filter((r) => r.rule === 'min' || r.rule === 'max' || r.rule === 'between').length > 1
+  ) {
+    return null
+  }
   const attrs: string[] = []
   for (const rule of rules) {
     const msg = `ErrorMessage = ${csStr(ruleMessage(rule))}`
@@ -203,7 +213,9 @@ export function csValidateStatements(field: ExportField, kind: CsFieldKind): str
           ? 'false'
           : kind === 'list'
             ? `${member}.Count == 0`
-            : `string.IsNullOrWhiteSpace(${member})`
+            : kind === 'array'
+              ? `${member}.Length == 0`
+              : `string.IsNullOrWhiteSpace(${member})`
   const sizeExpr =
     kind === 'number'
       ? `${member}!.Value`

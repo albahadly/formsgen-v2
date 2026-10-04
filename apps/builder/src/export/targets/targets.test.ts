@@ -129,7 +129,8 @@ describe('blazor target', () => {
   it('generates EditForm, flat model with attributes, and C# conditions', () => {
     const [file] = generate('blazor', 'bootstrap5')
     const code = file!.content
-    expect(code).toContain('<EditForm Model="Model"')
+    // kitchen-sink has section hosts, so the form binds the explicit EditContext
+    expect(code).toContain('<EditForm EditContext="fgEdit"')
     expect(code).toContain('<DataAnnotationsValidator />')
     expect(code).toContain('[Required(ErrorMessage = "This field is required")]')
     expect(code).toContain('[EmailAddress(')
@@ -186,7 +187,7 @@ describe('tabs/steps across code targets', () => {
     const code = file!.content
     expect(code).toContain('private int fgSec_ks_wizard = 0;')
     expect(code).toContain('@if (fgSec_ks_wizard == 0)')
-    expect(code).toContain('@onclick="() => fgSec_ks_wizard++"')
+    expect(code).toContain('@onclick="FgNext_ks_wizard"')
   })
 
   it('submit replaces Next inside the single wizard in every target', () => {
@@ -292,6 +293,48 @@ describe('tags + submit error jump across code targets', () => {
   it('blazor models tags as List<string>', () => {
     const [file] = generate('blazor')
     expect(file!.content).toContain('public List<string> Topics { get; set; }')
+  })
+})
+
+describe('blazor parity: multi-value controls, step gating, error jump', () => {
+  const code = (): string => generate('blazor')[0]!.content
+
+  it('multiselect binds string[] via InputSelect multiple', () => {
+    expect(code()).toContain('public string[] Channels { get; set; } = Array.Empty<string>();')
+    expect(code()).toContain('<InputSelect id="fg_channels" multiple @bind-Value="Model.Channels"')
+  })
+
+  it('checkboxgroup renders FgToggle-wired checkboxes', () => {
+    const c = code()
+    expect(c).toContain(`@onchange='e => FgToggle(Model.Interests, "news", e)'`)
+    expect(c).toContain('private static void FgToggle(List<string> list, string value, ChangeEventArgs e)')
+  })
+
+  it('tags renders chips bound to fgTagDrafts with @bind:after', () => {
+    const c = code()
+    expect(c).toContain(`@bind='fgTagDrafts["topics"]' @bind:after='() => FgAddTag(Model.Topics, "topics")'`)
+    expect(c).toContain('@onclick="() => Model.Topics.RemoveAt(fgIdx_topics)"')
+    expect(c).toContain('private readonly Dictionary<string, string> fgTagDrafts = new() { ["topics"] = "" };')
+  })
+
+  it('no element renders an unsupported-emitter comment anymore', () => {
+    expect(code()).not.toContain('has no blazor emitter yet')
+  })
+
+  it('steps gate Next behind per-step validation via an EditContext', () => {
+    const c = code()
+    expect(c).toContain('<EditForm EditContext="fgEdit" OnValidSubmit="HandleValidSubmit" OnInvalidSubmit="FgJumpToError"')
+    expect(c).toContain('private void FgNext_ks_wizard()')
+    expect(c).toContain('(nameof(KitchenSinkFormModel.ShippingCity), Model.ShippingCity)')
+    expect(c).toContain('Validator.TryValidateProperty(value, context, results)')
+    expect(c).toContain('new ValidationMessageStore(fgEdit)')
+  })
+
+  it('invalid submit jumps each host to its first erroring section', () => {
+    const c = code()
+    expect(c).toContain('private static readonly string[][] fgSecMembers_ks_wizard =')
+    expect(c).toContain('fgSecMembers_ks_social_tabs[fgSec_ks_social_tabs]')
+    expect(c).toContain('private void FgJumpToError()')
   })
 })
 
