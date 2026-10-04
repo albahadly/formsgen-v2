@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, ref, watch } from 'vue'
+import { computed, inject, onBeforeUnmount, ref, watch } from 'vue'
 import { isVisible } from '../conditions'
 import { FORM_CONTEXT } from '../context'
 import { getCoreElement } from '../elements'
@@ -148,6 +148,16 @@ function buttonText(prop: string, fallback: string): string {
 }
 const backText = computed(() => buttonText('backText', 'Back'))
 const nextText = computed(() => buttonText('nextText', 'Next'))
+
+// Steps wizards gate the form's submit button until their last step.
+// A hidden wizard (conditions) never holds the button hostage.
+if (props.node.type === 'steps') {
+  formCtx.registerStepsHost?.(
+    props.node.id,
+    () => !visible.value || activeIndex.value >= sections.value.length - 1,
+  )
+  onBeforeUnmount(() => formCtx.unregisterStepsHost?.(props.node.id))
+}
 </script>
 
 <template>

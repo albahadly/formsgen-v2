@@ -94,6 +94,10 @@ watch(
   { deep: true },
 )
 
+// Steps wizards register an "at end?" probe; the submit button hides
+// until every registered wizard sits on its last step (configurable).
+const stepsHosts = reactive(new Map<string, () => boolean>())
+
 const context: FormContext = {
   getValue: (path) => getValueByPath(data, path),
   setValue: (path, value) => setValueByPath(data, path, value),
@@ -104,8 +108,40 @@ const context: FormContext = {
   },
   isSubmitted: () => submitted.value,
   submitCount: () => submitAttempts.value,
+  registerStepsHost: (id, atEnd) => {
+    stepsHosts.set(id, atEnd)
+  },
+  unregisterStepsHost: (id) => {
+    stepsHosts.delete(id)
+  },
 }
 provide(FORM_CONTEXT, context)
+
+// ---- submit button configuration (meta.submitButton) ----
+const submitCfg = computed(() => props.schema.meta.submitButton)
+const submitText = computed(() => {
+  const text = submitCfg.value?.text
+  return typeof text === 'string' && text !== '' ? text : 'Submit'
+})
+const submitClass = computed(() =>
+  submitCfg.value?.variant === 'secondary'
+    ? 'fg-button fg-button--secondary'
+    : 'fg-button fg-button--primary',
+)
+const actionsStyle = computed<Record<string, string>>(() => {
+  const align = submitCfg.value?.align
+  return align && align !== 'start' ? { textAlign: align } : {}
+})
+const submitStyle = computed<Record<string, string>>(() =>
+  submitCfg.value?.fullWidth ? { width: '100%' } : {},
+)
+const submitVisible = computed(() => {
+  if (submitCfg.value?.onLastStepOnly === false) return true
+  for (const atEnd of stepsHosts.values()) {
+    if (!atEnd()) return false
+  }
+  return true
+})
 
 function onSubmit(): void {
   submitted.value = true
@@ -134,13 +170,18 @@ function onSubmit(): void {
         :default-span="12"
       />
     </div>
-    <div class="fg-actions">
+    <div
+      class="fg-actions"
+      :style="actionsStyle"
+    >
       <slot name="actions">
         <button
-          class="fg-button fg-button--primary"
+          v-if="submitVisible"
+          :class="submitClass"
+          :style="submitStyle"
           type="submit"
         >
-          Submit
+          {{ submitText }}
         </button>
       </slot>
     </div>

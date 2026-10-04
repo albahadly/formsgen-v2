@@ -10,7 +10,12 @@ import {
   visibilityFunctions,
 } from '../logic'
 import { renderTree, stepButtonLabels, type RenderedSectionHost } from '../markup'
-import { collectSectionHosts, defaultsObject, toJsLiteral } from '../structure'
+import {
+  collectSectionHosts,
+  defaultsObject,
+  resolveSubmitButton,
+  toJsLiteral,
+} from '../structure'
 import { componentName, type ExportTarget } from './types'
 
 function indentBlock(text: string, depth: number): string {
@@ -210,6 +215,14 @@ ${submitBlock}}
     const stylesheet = css.stylesheet?.(schema.meta.theme)
     const styleBlock = stylesheet ? `\n\n<style scoped>\n${stylesheet}</style>` : ''
 
+    // Submit button: configurable text/placement/style, hidden until every
+    // steps wizard reaches its last step (meta.submitButton).
+    const sb = resolveSubmitButton(schema, hosts)
+    const submitGate = sb.gatingHosts.length
+      ? ` v-if="${sb.gatingHosts.map((h) => `fgSec_${h.key} === ${h.sections.length - 1}`).join(' && ')}"`
+      : ''
+    const submitButton = `<button${submitGate} class="${css.classes(sb.secondary ? 'buttonSecondary' : 'submitButton')}"${sb.buttonStyle ? ` style="${sb.buttonStyle}"` : ''} type="submit">${sb.text}</button>`
+
     const template = `<template>
   <form
     class="${css.classes('form')}"
@@ -220,8 +233,8 @@ ${submitBlock}}
     <div class="${css.classes('grid')}">
 ${indentBlock(markup, 3)}
     </div>
-    <div class="${css.classes('actions')}">
-      <button class="${css.classes('submitButton')}" type="submit">Submit</button>
+    <div class="${css.classes('actions')}"${sb.actionsStyle ? ` style="${sb.actionsStyle}"` : ''}>
+      ${submitButton}
     </div>
     <pre v-if="result" class="${css.classes('payload')}">{{ JSON.stringify(result, null, 2) }}</pre>
   </form>

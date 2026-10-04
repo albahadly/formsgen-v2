@@ -184,3 +184,38 @@ export function collectSectionHosts(schema: FormSchema): SectionHostInfo[] {
   walk(schema.tree, '')
   return hosts
 }
+
+/** meta.submitButton resolved to generation-ready values (text escaped). */
+export interface ResolvedSubmitButton {
+  text: string
+  align: 'start' | 'center' | 'end'
+  secondary: boolean
+  fullWidth: boolean
+  /** Steps hosts that must sit on their last step before submit shows. */
+  gatingHosts: SectionHostInfo[]
+  /** Inline style for the actions container ('' when default). */
+  actionsStyle: string
+  /** Inline style for the button itself ('' when default). */
+  buttonStyle: string
+}
+
+export function resolveSubmitButton(
+  schema: FormSchema,
+  hosts: SectionHostInfo[],
+): ResolvedSubmitButton {
+  const cfg = schema.meta.submitButton ?? {}
+  const align = cfg.align === 'center' || cfg.align === 'end' ? cfg.align : 'start'
+  const fullWidth = cfg.fullWidth === true
+  return {
+    text: escapeHtml(typeof cfg.text === 'string' && cfg.text !== '' ? cfg.text : 'Submit'),
+    align,
+    secondary: cfg.variant === 'secondary',
+    fullWidth,
+    gatingHosts:
+      cfg.onLastStepOnly === false
+        ? []
+        : hosts.filter((h) => h.kind === 'steps' && h.sections.length > 1),
+    actionsStyle: align !== 'start' ? `text-align: ${align}` : '',
+    buttonStyle: fullWidth ? 'width: 100%' : '',
+  }
+}

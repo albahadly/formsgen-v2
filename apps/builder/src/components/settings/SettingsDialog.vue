@@ -62,6 +62,44 @@ const submitMethod = computed({
     }),
 })
 
+// ---- submit button (meta.submitButton) ----
+function patchSubmitButton(patch: Record<string, unknown>): void {
+  const merged = { ...builder.schema.meta.submitButton, ...patch }
+  for (const key of Object.keys(merged) as (keyof typeof merged)[]) {
+    if (merged[key] === undefined) delete merged[key]
+  }
+  builder.updateMeta({
+    submitButton: Object.keys(merged).length > 0 ? merged : undefined,
+  })
+}
+
+const submitText = computed({
+  get: () => builder.schema.meta.submitButton?.text ?? '',
+  set: (v: string) => patchSubmitButton({ text: v || undefined }),
+})
+
+const submitAlign = computed({
+  get: () => builder.schema.meta.submitButton?.align ?? 'start',
+  set: (v: 'start' | 'center' | 'end') =>
+    patchSubmitButton({ align: v === 'start' ? undefined : v }),
+})
+
+const submitVariant = computed({
+  get: () => builder.schema.meta.submitButton?.variant ?? 'primary',
+  set: (v: 'primary' | 'secondary') =>
+    patchSubmitButton({ variant: v === 'primary' ? undefined : v }),
+})
+
+const submitFullWidth = computed({
+  get: () => builder.schema.meta.submitButton?.fullWidth === true,
+  set: (v: boolean) => patchSubmitButton({ fullWidth: v || undefined }),
+})
+
+const submitOnLastStepOnly = computed({
+  get: () => builder.schema.meta.submitButton?.onLastStepOnly !== false,
+  set: (v: boolean) => patchSubmitButton({ onLastStepOnly: v ? undefined : false }),
+})
+
 const primaryColor = computed({
   get: () => builder.schema.meta.theme?.['color-primary'] ?? '#4f46e5',
   set: (v: string) => builder.setThemeToken('color-primary', v),
@@ -183,6 +221,65 @@ function onKeydown(event: KeyboardEvent): void {
               <option value="PUT">PUT</option>
             </select>
           </label>
+        </div>
+
+        <div class="flex flex-col gap-3 border-t border-gray-100 pt-3">
+          <span class="text-xs font-semibold text-gray-700">{{ t('settings.submitButton') }}</span>
+          <div class="grid grid-cols-3 gap-3">
+            <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
+              {{ t('settings.submitText') }}
+              <input
+                v-model="submitText"
+                type="text"
+                placeholder="Submit"
+                class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal"
+                data-testid="settings-submit-text"
+              >
+            </label>
+            <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
+              {{ t('settings.submitAlign') }}
+              <select
+                v-model="submitAlign"
+                class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal"
+                data-testid="settings-submit-align"
+              >
+                <option value="start">{{ t('settings.alignStart') }}</option>
+                <option value="center">{{ t('settings.alignCenter') }}</option>
+                <option value="end">{{ t('settings.alignEnd') }}</option>
+              </select>
+            </label>
+            <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
+              {{ t('settings.submitVariant') }}
+              <select
+                v-model="submitVariant"
+                class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal"
+                data-testid="settings-submit-variant"
+              >
+                <option value="primary">{{ t('settings.variantPrimary') }}</option>
+                <option value="secondary">{{ t('settings.variantSecondary') }}</option>
+              </select>
+            </label>
+          </div>
+          <div class="flex gap-4">
+            <label class="inline-flex items-center gap-2 text-xs font-medium text-gray-600">
+              <input
+                v-model="submitFullWidth"
+                type="checkbox"
+                class="h-3.5 w-3.5 accent-indigo-600"
+                data-testid="settings-submit-full-width"
+              >
+              {{ t('settings.submitFullWidth') }}
+            </label>
+            <label class="inline-flex items-center gap-2 text-xs font-medium text-gray-600">
+              <input
+                v-model="submitOnLastStepOnly"
+                type="checkbox"
+                class="h-3.5 w-3.5 accent-indigo-600"
+                data-testid="settings-submit-last-step"
+              >
+              {{ t('settings.submitLastStepOnly') }}
+            </label>
+          </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3 border-t border-gray-100 pt-3">

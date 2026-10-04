@@ -258,7 +258,10 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         </div>
     </div>
     <div class="mt-3">
-        <button class="btn btn-primary" type="submit">Submit</button>
+        @if (fgSec_ks_wizard == 1)
+        {
+            <button class="btn btn-primary" type="submit">Submit</button>
+        }
     </div>
     @if (ResultJson is not null)
     {
@@ -644,7 +647,10 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         </div>
     </div>
     <div class="mt-4">
-        <button class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" type="submit">Submit</button>
+        @if (fgSec_ks_wizard == 1)
+        {
+            <button class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" type="submit">Submit</button>
+        }
     </div>
     @if (ResultJson is not null)
     {
@@ -1030,7 +1036,10 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         </div>
     </div>
     <div class="fg-actions">
-        <button class="fg-button fg-button--primary" type="submit">Submit</button>
+        @if (fgSec_ks_wizard == 1)
+        {
+            <button class="fg-button fg-button--primary" type="submit">Submit</button>
+        }
     </div>
     @if (ResultJson is not null)
     {
@@ -1431,7 +1440,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       </div>
     </div>
     <div class="mt-3">
-      <button class="btn btn-primary" type="submit">Submit</button>
+      <button class="btn btn-primary" data-fg-submit type="submit" hidden>Submit</button>
     </div>
     <pre id="fg-result" class="mt-3 p-3 bg-dark text-success rounded small overflow-auto" hidden></pre>
   </form>
@@ -1645,7 +1654,18 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
     })
 
     var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"nav-link active","tabBase":"nav-link","stepActive":"d-inline-flex align-items-center gap-2 fw-semibold text-body","stepBase":"d-inline-flex align-items-center gap-2","stepPaths":[["twitter"],["github"]]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"nav-link active","tabBase":"nav-link","stepActive":"d-inline-flex align-items-center gap-2 fw-semibold text-body","stepBase":"d-inline-flex align-items-center gap-2","stepPaths":[["shipping_city"],["order_notes"]]}]
+    var FG_SUBMIT_GATE = ["ks_wizard"]
     var fgSecState = {}
+    function fgUpdateSubmit() {
+      var btn = document.querySelector('[data-fg-submit]')
+      if (!btn || FG_SUBMIT_GATE.length === 0) return
+      var ready = FG_SUBMIT_GATE.every(function (key) {
+        var meta = null
+        FG_SECTIONS.forEach(function (m) { if (m.key === key) meta = m })
+        return !meta || (fgSecState[key] || 0) >= meta.count - 1
+      })
+      btn.hidden = !ready
+    }
     function fgSetSec(meta, index) {
       fgSecState[meta.key] = index
       var panels = document.querySelectorAll('[data-fg-sec-panel]')
@@ -1671,6 +1691,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       var nextBtn = document.querySelector('[data-fg-step-next="' + meta.key + '"]')
       if (back) back.hidden = index === 0
       if (nextBtn) nextBtn.hidden = index >= meta.count - 1
+      fgUpdateSubmit()
     }
     FG_SECTIONS.forEach(function (meta) {
       fgSecState[meta.key] = 0
@@ -2050,7 +2071,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
       </div>
     </div>
     <div class="mt-4">
-      <button class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" type="submit">Submit</button>
+      <button class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" data-fg-submit type="submit" hidden>Submit</button>
     </div>
     <pre id="fg-result" class="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300" hidden></pre>
   </form>
@@ -2264,7 +2285,18 @@ exports[`html target > snapshot (tailwind) 1`] = `
     })
 
     var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600","tabBase":"-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700","stepActive":"flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100","stepBase":"flex items-center gap-2","stepPaths":[["twitter"],["github"]]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600","tabBase":"-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700","stepActive":"flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100","stepBase":"flex items-center gap-2","stepPaths":[["shipping_city"],["order_notes"]]}]
+    var FG_SUBMIT_GATE = ["ks_wizard"]
     var fgSecState = {}
+    function fgUpdateSubmit() {
+      var btn = document.querySelector('[data-fg-submit]')
+      if (!btn || FG_SUBMIT_GATE.length === 0) return
+      var ready = FG_SUBMIT_GATE.every(function (key) {
+        var meta = null
+        FG_SECTIONS.forEach(function (m) { if (m.key === key) meta = m })
+        return !meta || (fgSecState[key] || 0) >= meta.count - 1
+      })
+      btn.hidden = !ready
+    }
     function fgSetSec(meta, index) {
       fgSecState[meta.key] = index
       var panels = document.querySelectorAll('[data-fg-sec-panel]')
@@ -2290,6 +2322,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
       var nextBtn = document.querySelector('[data-fg-step-next="' + meta.key + '"]')
       if (back) back.hidden = index === 0
       if (nextBtn) nextBtn.hidden = index >= meta.count - 1
+      fgUpdateSubmit()
     }
     FG_SECTIONS.forEach(function (meta) {
       fgSecState[meta.key] = 0
@@ -2739,7 +2772,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
       </div>
     </div>
     <div class="fg-actions">
-      <button class="fg-button fg-button--primary" type="submit">Submit</button>
+      <button class="fg-button fg-button--primary" data-fg-submit type="submit" hidden>Submit</button>
     </div>
     <pre id="fg-result" class="fg-payload" hidden></pre>
   </form>
@@ -2953,7 +2986,18 @@ exports[`html target > snapshot (vanilla) 1`] = `
     })
 
     var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"fg-tab-button fg-tab-button--active","tabBase":"fg-tab-button","stepActive":"fg-step-item fg-step-item--active","stepBase":"fg-step-item","stepPaths":[["twitter"],["github"]]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"fg-tab-button fg-tab-button--active","tabBase":"fg-tab-button","stepActive":"fg-step-item fg-step-item--active","stepBase":"fg-step-item","stepPaths":[["shipping_city"],["order_notes"]]}]
+    var FG_SUBMIT_GATE = ["ks_wizard"]
     var fgSecState = {}
+    function fgUpdateSubmit() {
+      var btn = document.querySelector('[data-fg-submit]')
+      if (!btn || FG_SUBMIT_GATE.length === 0) return
+      var ready = FG_SUBMIT_GATE.every(function (key) {
+        var meta = null
+        FG_SECTIONS.forEach(function (m) { if (m.key === key) meta = m })
+        return !meta || (fgSecState[key] || 0) >= meta.count - 1
+      })
+      btn.hidden = !ready
+    }
     function fgSetSec(meta, index) {
       fgSecState[meta.key] = index
       var panels = document.querySelectorAll('[data-fg-sec-panel]')
@@ -2979,6 +3023,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
       var nextBtn = document.querySelector('[data-fg-step-next="' + meta.key + '"]')
       if (back) back.hidden = index === 0
       if (nextBtn) nextBtn.hidden = index >= meta.count - 1
+      fgUpdateSubmit()
     }
     FG_SECTIONS.forEach(function (meta) {
       fgSecState[meta.key] = 0
@@ -3637,7 +3682,7 @@ export default function KitchenSinkForm({
         </div>
       </div>
       <div className="mt-3">
-        <button className="btn btn-primary" type="submit">Submit</button>
+        {fgSec_ks_wizard === 1 && <button className="btn btn-primary" type="submit">Submit</button>}
       </div>
       {result && <pre className="mt-3 p-3 bg-dark text-success rounded small overflow-auto">{JSON.stringify(result, null, 2)}</pre>}
     </form>
@@ -4198,7 +4243,7 @@ export default function KitchenSinkForm({
         </div>
       </div>
       <div className="mt-4">
-        <button className="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" type="submit">Submit</button>
+        {fgSec_ks_wizard === 1 && <button className="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" type="submit">Submit</button>}
       </div>
       {result && <pre className="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300">{JSON.stringify(result, null, 2)}</pre>}
     </form>
@@ -4760,7 +4805,7 @@ export default function KitchenSinkForm({
         </div>
       </div>
       <div className="fg-actions">
-        <button className="fg-button fg-button--primary" type="submit">Submit</button>
+        {fgSec_ks_wizard === 1 && <button className="fg-button fg-button--primary" type="submit">Submit</button>}
       </div>
       {result && <pre className="fg-payload">{JSON.stringify(result, null, 2)}</pre>}
     </form>
@@ -5278,7 +5323,7 @@ async function onSubmit(): Promise<void> {
       </div>
     </div>
     <div class="mt-3">
-      <button class="btn btn-primary" type="submit">Submit</button>
+      <button v-if="fgSec_ks_wizard === 1" class="btn btn-primary" type="submit">Submit</button>
     </div>
     <pre v-if="result" class="mt-3 p-3 bg-dark text-success rounded small overflow-auto">{{ JSON.stringify(result, null, 2) }}</pre>
   </form>
@@ -5795,7 +5840,7 @@ async function onSubmit(): Promise<void> {
       </div>
     </div>
     <div class="mt-4">
-      <button class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" type="submit">Submit</button>
+      <button v-if="fgSec_ks_wizard === 1" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" type="submit">Submit</button>
     </div>
     <pre v-if="result" class="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300">{{ JSON.stringify(result, null, 2) }}</pre>
   </form>
@@ -6312,7 +6357,7 @@ async function onSubmit(): Promise<void> {
       </div>
     </div>
     <div class="fg-actions">
-      <button class="fg-button fg-button--primary" type="submit">Submit</button>
+      <button v-if="fgSec_ks_wizard === 1" class="fg-button fg-button--primary" type="submit">Submit</button>
     </div>
     <pre v-if="result" class="fg-payload">{{ JSON.stringify(result, null, 2) }}</pre>
   </form>

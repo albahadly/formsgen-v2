@@ -12,6 +12,13 @@ export interface FormContext {
   isSubmitted(): boolean
   /** Number of submit attempts; sections use it to jump to errors. */
   submitCount(): number
+  /**
+   * Steps wizards register an "am I on my last step (or hidden)" probe so
+   * the form can gate its submit button. Optional: design-mode contexts
+   * may omit both.
+   */
+  registerStepsHost?(id: string, atEnd: () => boolean): void
+  unregisterStepsHost?(id: string): void
 }
 
 export const FORM_CONTEXT: InjectionKey<FormContext> = Symbol('formsgen-form')

@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
+import { nextTick } from 'vue'
 import kitchenSink from '../../../../fixtures/kitchen-sink.formsgen.json'
 import { parseFormSchema } from '../parse'
 import type { FormSchema } from '../schema'
@@ -215,6 +216,43 @@ describe('FormsGenForm', () => {
     await next.trigger('click')
     const labels = wrapper.findAll('.fg-step-actions button').map((b) => b.text())
     expect(labels).toContain('السابق')
+  })
+
+  it('submit button hides until the steps wizard reaches its last step', async () => {
+    const wrapper = mountForm()
+    // wizard registration lands one tick after mount
+    await nextTick()
+    expect(wrapper.find('.fg-actions button[type="submit"]').exists()).toBe(false)
+    await wrapper.get('input[name="shipping_city"]').setValue('Muscat')
+    const next = wrapper
+      .findAll('.fg-step-actions button')
+      .find((b) => b.text() === 'Next')!
+    await next.trigger('click')
+    expect(wrapper.find('.fg-actions button[type="submit"]').exists()).toBe(true)
+    // going Back hides it again
+    const back = wrapper
+      .findAll('.fg-step-actions button')
+      .find((b) => b.text() === 'Back')!
+    await back.trigger('click')
+    expect(wrapper.find('.fg-actions button[type="submit"]').exists()).toBe(false)
+  })
+
+  it('meta.submitButton configures text, style, placement and gating', () => {
+    const schema = fixtureSchema()
+    schema.meta.submitButton = {
+      text: 'إرسال',
+      align: 'center',
+      variant: 'secondary',
+      fullWidth: true,
+      onLastStepOnly: false,
+    }
+    const wrapper = mount(FormsGenForm, { props: { schema } })
+    // onLastStepOnly: false -> visible despite the wizard on step 1
+    const button = wrapper.get('.fg-actions button[type="submit"]')
+    expect(button.text()).toBe('إرسال')
+    expect(button.classes()).toContain('fg-button--secondary')
+    expect(button.attributes('style')).toContain('width: 100%')
+    expect(wrapper.get('.fg-actions').attributes('style')).toContain('text-align: center')
   })
 
   it('tab headers show an error dot after a failed submit', async () => {

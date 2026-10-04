@@ -50,6 +50,8 @@ export {
   type LayoutConfig,
   type Rule,
   type RuleName,
+  type SubmitAlign,
+  type SubmitButtonConfig,
   type SubmitConfig,
   type ThemeTokens,
 } from './schema'

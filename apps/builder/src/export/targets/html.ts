@@ -12,7 +12,7 @@ import {
   visibilityFunctions,
 } from '../logic'
 import { renderTree, stepButtonLabels, type RenderedSectionHost } from '../markup'
-import { collectSectionHosts } from '../structure'
+import { collectSectionHosts, resolveSubmitButton } from '../structure'
 import { esc } from '@/registry/emitters/shared'
 import type { ExportTarget } from './types'
 
@@ -88,6 +88,10 @@ export const htmlTarget: ExportTarget = {
 
     const stylesheet = css.stylesheet?.(schema.meta.theme)
     const styleTag = stylesheet ? `  <style>\n${indentBlock(stylesheet, 1)}  </style>` : ''
+
+    // Submit button: configurable text/placement/style, hidden until every
+    // steps wizard reaches its last step (meta.submitButton).
+    const sb = resolveSubmitButton(schema, hosts)
 
     const submitUrl = schema.meta.submit?.url
     const submitBlock = submitUrl
@@ -226,7 +230,18 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
     })
 
     var FG_SECTIONS = ${JSON.stringify(sectionsMeta)}
+    var FG_SUBMIT_GATE = ${JSON.stringify(sb.gatingHosts.map((h) => h.key))}
     var fgSecState = {}
+    function fgUpdateSubmit() {
+      var btn = document.querySelector('[data-fg-submit]')
+      if (!btn || FG_SUBMIT_GATE.length === 0) return
+      var ready = FG_SUBMIT_GATE.every(function (key) {
+        var meta = null
+        FG_SECTIONS.forEach(function (m) { if (m.key === key) meta = m })
+        return !meta || (fgSecState[key] || 0) >= meta.count - 1
+      })
+      btn.hidden = !ready
+    }
     function fgSetSec(meta, index) {
       fgSecState[meta.key] = index
       var panels = document.querySelectorAll('[data-fg-sec-panel]')
@@ -252,6 +267,7 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
       var nextBtn = document.querySelector('[data-fg-step-next="' + meta.key + '"]')
       if (back) back.hidden = index === 0
       if (nextBtn) nextBtn.hidden = index >= meta.count - 1
+      fgUpdateSubmit()
     }
     FG_SECTIONS.forEach(function (meta) {
       fgSecState[meta.key] = 0
@@ -340,8 +356,8 @@ ${headAssets}${headAssets && styleTag ? '\n' : ''}${styleTag}
     <div class="${css.classes('grid')}">
 ${indentBlock(markup, 3)}
     </div>
-    <div class="${css.classes('actions')}">
-      <button class="${css.classes('submitButton')}" type="submit">Submit</button>
+    <div class="${css.classes('actions')}"${sb.actionsStyle ? ` style="${sb.actionsStyle}"` : ''}>
+      <button class="${css.classes(sb.secondary ? 'buttonSecondary' : 'submitButton')}"${sb.buttonStyle ? ` style="${sb.buttonStyle}"` : ''} data-fg-submit type="submit"${sb.gatingHosts.length ? ' hidden' : ''}>${sb.text}</button>
     </div>
     <pre id="fg-result" class="${css.classes('payload')}" hidden></pre>
   </form>

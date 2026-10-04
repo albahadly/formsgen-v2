@@ -189,6 +189,47 @@ describe('tabs/steps across code targets', () => {
     expect(code).toContain('@onclick="() => fgSec_ks_wizard++"')
   })
 
+  it('submit button is gated behind the wizard last step in every target', () => {
+    // kitchen-sink has the ks-wizard steps host -> gating is the default
+    const vue = generate('vue-standalone')[0]!.content
+    expect(vue).toContain('v-if="fgSec_ks_wizard === 1"')
+    const react = generate('react')[0]!.content
+    expect(react).toContain('{fgSec_ks_wizard === 1 && <button')
+    const html = generate('html')[0]!.content
+    expect(html).toContain('data-fg-submit type="submit" hidden')
+    expect(html).toContain('var FG_SUBMIT_GATE = ["ks_wizard"]')
+    const blazor = generate('blazor')[0]!.content
+    expect(blazor).toContain('@if (fgSec_ks_wizard == 1)')
+  })
+
+  it('meta.submitButton configures text, style, placement and gating', () => {
+    const raw = JSON.parse(JSON.stringify(kitchenSink)) as Record<string, unknown>
+    ;(raw['meta'] as Record<string, unknown>)['submitButton'] = {
+      text: 'إرسال <&>',
+      align: 'center',
+      variant: 'secondary',
+      fullWidth: true,
+      onLastStepOnly: false,
+    }
+    const parsed = parseFormSchema(raw)
+    if (!parsed.ok) throw new Error(parsed.errors.join('\n'))
+    for (const targetId of ['vue-standalone', 'react', 'html', 'blazor']) {
+      const code = getTarget(targetId)!.generate({
+        schema: parsed.schema,
+        css: getCssAdapter('vanilla'),
+      })[0]!.content
+      expect(code, targetId).toContain('إرسال &lt;&amp;&gt;')
+      expect(code, targetId).toContain('fg-button--secondary')
+      expect(code, targetId).toContain(
+        targetId === 'react' ? "textAlign: 'center'" : 'text-align: center',
+      )
+      expect(code, targetId).toContain(targetId === 'react' ? "width: '100%'" : 'width: 100%')
+      // onLastStepOnly: false -> no gating despite the wizard
+      if (targetId === 'vue-standalone') expect(code).not.toContain('v-if="fgSec_ks_wizard === 1"')
+      if (targetId === 'html') expect(code).toContain('var FG_SUBMIT_GATE = []')
+    }
+  })
+
   it('steps hosts honor custom backText/nextText in every target', () => {
     interface RawNode {
       id: string

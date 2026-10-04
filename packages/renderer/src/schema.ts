@@ -15,6 +15,25 @@ export interface SubmitConfig {
   headers?: Record<string, string> | undefined
 }
 
+export type SubmitAlign = 'start' | 'center' | 'end'
+
+/** Appearance and placement of the form's submit button. */
+export interface SubmitButtonConfig {
+  /** Button label; defaults to "Submit". */
+  text?: string | undefined
+  /** Horizontal placement inside the actions row; defaults to "start". */
+  align?: SubmitAlign | undefined
+  /** Visual style; defaults to "primary". */
+  variant?: 'primary' | 'secondary' | undefined
+  /** Stretch the button to the full form width. */
+  fullWidth?: boolean | undefined
+  /**
+   * When the form contains a steps wizard, show the submit button only
+   * once every wizard sits on its last step. Defaults to true.
+   */
+  onLastStepOnly?: boolean | undefined
+}
+
 export interface FormMeta {
   /** Machine name (slug) of the form. */
   name: string
@@ -23,6 +42,7 @@ export interface FormMeta {
   locale: string
   dir: 'ltr' | 'rtl'
   submit?: SubmitConfig | undefined
+  submitButton?: SubmitButtonConfig | undefined
   theme?: ThemeTokens | undefined
 }
 
