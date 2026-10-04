@@ -1,4 +1,29 @@
+import {
+  descriptionFor,
+  esc,
+  fieldWrap,
+  htmlDataAttrs,
+  htmlError,
+  labelFor,
+  vueError,
+  vueEvents,
+  vueInvalid,
+} from '../emitters/shared'
 import { commonFieldSections, type ElementDefinition } from '../types'
+
+interface Item {
+  value: string
+  label: string
+}
+
+function optionTags(node: { props: Record<string, unknown> }): string {
+  const items = Array.isArray(node.props['items']) ? (node.props['items'] as Item[]) : []
+  const placeholder = esc(String(node.props['placeholder'] ?? '—'))
+  return [
+    `<option value="" disabled>${placeholder}</option>`,
+    ...items.map((i) => `<option value="${esc(i.value)}">${esc(i.label)}</option>`),
+  ].join('\n    ')
+}
 
 export const selectElement: ElementDefinition = {
   type: 'select',
@@ -16,4 +41,26 @@ export const selectElement: ElementDefinition = {
     ],
   },
   propertyPanel: commonFieldSections([{ kind: 'items', prop: 'items', label: 'Options' }]),
+  export: {
+    vue: (node, ctx) =>
+      fieldWrap(
+        [
+          labelFor(node, ctx),
+          `<select id="${ctx.id}" v-model="form.${ctx.path}" class="${ctx.css.classes('select')}"${vueInvalid(ctx)}${vueEvents(ctx, true)}>\n    ${optionTags(node)}\n  </select>`,
+          descriptionFor(node, ctx),
+          vueError(ctx),
+        ],
+        ctx,
+      ),
+    html: (node, ctx) =>
+      fieldWrap(
+        [
+          labelFor(node, ctx),
+          `<select id="${ctx.id}" class="${ctx.css.classes('select')}"${htmlDataAttrs(ctx, 'select')}>\n    ${optionTags(node)}\n  </select>`,
+          descriptionFor(node, ctx),
+          htmlError(ctx),
+        ],
+        ctx,
+      ),
+  },
 }

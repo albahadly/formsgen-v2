@@ -4,7 +4,13 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import WorkArea from '@/components/canvas/WorkArea.vue'
 import PalettePanel from '@/components/palette/PalettePanel.vue'
 import PropertiesPanel from '@/components/panel/PropertiesPanel.vue'
+import { defineAsyncComponent } from 'vue'
 import SettingsDialog from '@/components/settings/SettingsDialog.vue'
+
+// Lazy: pulls in jszip + highlight.js only when first opened.
+const ExportDialog = defineAsyncComponent(
+  () => import('@/components/export/ExportDialog.vue'),
+)
 import AppToolbar from '@/components/toolbar/AppToolbar.vue'
 import TreePanel from '@/components/tree/TreePanel.vue'
 import { clearDraft, readDraft, startAutosave } from '@/composables/persistence'
@@ -125,6 +131,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     </div>
 
     <SettingsDialog />
+    <ExportDialog />
 
     <div
       v-if="notice"

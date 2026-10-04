@@ -4,11 +4,13 @@ import { ref } from 'vue'
 import { t } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'
 import { useHistoryStore } from '@/stores/history'
+import { useUiStore } from '@/stores/ui'
 
 const emit = defineEmits<{ notice: [message: string] }>()
 
 const builder = useBuilderStore()
 const history = useHistoryStore()
+const ui = useUiStore()
 const fileInput = ref<HTMLInputElement | null>(null)
 
 function saveProject(): void {
@@ -82,6 +84,14 @@ async function onFileChosen(event: Event): Promise<void> {
       @click="saveProject"
     >
       {{ t('toolbar.save') }}
+    </button>
+    <button
+      type="button"
+      class="rounded bg-indigo-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-indigo-500"
+      data-testid="toolbar-export"
+      @click="ui.openExport()"
+    >
+      {{ t('toolbar.export') }}
     </button>
     <input
       ref="fileInput"

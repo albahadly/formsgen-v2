@@ -1,3 +1,14 @@
+import {
+  descriptionFor,
+  fieldWrap,
+  htmlDataAttrs,
+  htmlError,
+  labelFor,
+  placeholderAttr,
+  vueError,
+  vueEvents,
+  vueInvalid,
+} from '../emitters/shared'
 import { commonFieldSections, type ElementDefinition } from '../types'
 
 export const textElement: ElementDefinition = {
@@ -9,4 +20,26 @@ export const textElement: ElementDefinition = {
   hasValue: true,
   defaultProps: { label: 'Text Input', placeholder: '' },
   propertyPanel: commonFieldSections(),
+  export: {
+    vue: (node, ctx) =>
+      fieldWrap(
+        [
+          labelFor(node, ctx),
+          `<input id="${ctx.id}" v-model="form.${ctx.path}" type="text" class="${ctx.css.classes('input')}"${vueInvalid(ctx)}${placeholderAttr(node)}${vueEvents(ctx)}>`,
+          descriptionFor(node, ctx),
+          vueError(ctx),
+        ],
+        ctx,
+      ),
+    html: (node, ctx) =>
+      fieldWrap(
+        [
+          labelFor(node, ctx),
+          `<input id="${ctx.id}" type="text" class="${ctx.css.classes('input')}"${htmlDataAttrs(ctx, 'text')}${placeholderAttr(node)}>`,
+          descriptionFor(node, ctx),
+          htmlError(ctx),
+        ],
+        ctx,
+      ),
+  },
 }

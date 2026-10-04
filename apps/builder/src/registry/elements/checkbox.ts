@@ -1,4 +1,21 @@
-import { commonFieldSections, type ElementDefinition } from '../types'
+import {
+  descriptionFor,
+  esc,
+  fieldWrap,
+  htmlDataAttrs,
+  htmlError,
+  vueError,
+} from '../emitters/shared'
+import { commonFieldSections, type ElementDefinition, type EmitCtx } from '../types'
+import type { ElementNode } from '@formsgen/renderer'
+
+function checkboxLabel(node: ElementNode, ctx: EmitCtx): string {
+  const text = esc(String(node.props['label'] ?? ''))
+  const req = ctx.required
+    ? `<span class="${ctx.css.classes('required')}" aria-hidden="true">*</span>`
+    : ''
+  return `<label class="${ctx.css.classes('checkboxLabel')}" for="${ctx.id}">${text}${req}</label>`
+}
 
 export const checkboxElement: ElementDefinition = {
   type: 'checkbox',
@@ -11,4 +28,24 @@ export const checkboxElement: ElementDefinition = {
   propertyPanel: commonFieldSections([
     { kind: 'toggle', prop: 'default', label: 'Checked by default' },
   ]),
+  export: {
+    vue: (node, ctx) =>
+      fieldWrap(
+        [
+          `<div class="${ctx.css.classes('checkboxWrap')}">\n    <input id="${ctx.id}" v-model="form.${ctx.path}" type="checkbox" class="${ctx.css.classes('checkbox')}" @change="touch('${ctx.path}')">\n    ${checkboxLabel(node, ctx)}\n  </div>`,
+          descriptionFor(node, ctx),
+          vueError(ctx),
+        ],
+        ctx,
+      ),
+    html: (node, ctx) =>
+      fieldWrap(
+        [
+          `<div class="${ctx.css.classes('checkboxWrap')}">\n    <input id="${ctx.id}" type="checkbox" class="${ctx.css.classes('checkbox')}"${htmlDataAttrs(ctx, 'checkbox')}${node.props['default'] === true ? ' checked' : ''}>\n    ${checkboxLabel(node, ctx)}\n  </div>`,
+          descriptionFor(node, ctx),
+          htmlError(ctx),
+        ],
+        ctx,
+      ),
+  },
 }

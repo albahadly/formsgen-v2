@@ -3,9 +3,28 @@
 // per element type in ./elements; nothing about a type is hardcoded in the
 // palette, canvas, or properties panel.
 
-import type { Rule } from '@formsgen/renderer'
+import type { ElementNode, Rule } from '@formsgen/renderer'
+import type { CssFrameworkAdapter } from '@/export/css/types'
 
 export type ElementCategory = 'fields' | 'static' | 'structure'
+
+/** Context handed to an element's export emitter (REBUILD_PROMPT §3). */
+export interface EmitCtx {
+  css: CssFrameworkAdapter
+  /** Data path, e.g. "account.username". */
+  path: string
+  /** Identifier-safe key, e.g. "account_username". */
+  key: string
+  /** DOM id for the control. */
+  id: string
+  required: boolean
+}
+
+/** Emits the element's field markup for one target language. */
+export type ElementEmitter = (node: ElementNode, ctx: EmitCtx) => string
+
+/** Target languages with per-element markup (containers are structural). */
+export type EmitterLang = 'vue' | 'html'
 
 /** Declarative properties-panel controls, rendered by ~8 shared components. */
 export type PanelControl =
@@ -42,8 +61,12 @@ export interface ElementDefinition {
   defaultProps: Record<string, unknown>
   defaultValidation?: Rule[]
   propertyPanel: PanelSection[]
-  // Extended in later phases (per REBUILD_PROMPT.md):
-  //   phase 8+ — export: Record<TargetId, ElementEmitter>
+  /**
+   * Per-target-language markup emitters for value elements (phase 8+).
+   * Containers are rendered structurally by the target scaffolds. A type
+   * missing a language is reported as unsupported in the generated code.
+   */
+  export?: Partial<Record<EmitterLang, ElementEmitter>>
 }
 
 /** Shared panel sections for value-bearing field elements. */

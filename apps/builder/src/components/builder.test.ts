@@ -1,5 +1,5 @@
 // Integration-style tests across the three panels, mounted via App.
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 import App from '../App.vue'
@@ -132,6 +132,7 @@ describe('palette → canvas → properties workflow', () => {
     await wrapper.get('[data-testid="palette-item-checkbox"]').trigger('click')
     store.setName(store.schema.tree[0]!.id, 'accept_terms')
     await wrapper.get('[data-testid="view-code"]').trigger('click')
+    await flushPromises()
     expect(wrapper.get('[data-testid="code-json"]').text()).toContain('accept_terms')
   })
 

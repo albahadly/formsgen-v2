@@ -18,6 +18,7 @@ export const useUiStore = defineStore('ui', {
     device: 'desktop' as Device,
     previewTheme: 'light' as PreviewTheme,
     showSettings: false,
+    showExport: false,
   }),
   getters: {
     deviceWidth: (state) => DEVICE_WIDTHS[state.device],
@@ -37,6 +38,12 @@ export const useUiStore = defineStore('ui', {
     },
     closeSettings(): void {
       this.showSettings = false
+    },
+    openExport(): void {
+      this.showExport = true
+    },
+    closeExport(): void {
+      this.showExport = false
     },
   },
 })
