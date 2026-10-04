@@ -66,6 +66,13 @@ const CLASSES: Record<Slot, string> = {
   quoteCite: 'mt-1.5 text-sm text-gray-500 dark:text-gray-400',
   buttonDanger:
     'rounded-md bg-red-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-300',
+  repeaterItems: 'flex flex-col gap-4',
+  repeaterItem: 'min-w-0 rounded-lg border border-gray-300 p-4 dark:border-gray-600',
+  repeaterItemLabel: 'px-1 text-sm font-semibold',
+  repeaterItemActions: 'mt-3 flex justify-end',
+  repeaterRemove: 'text-sm text-red-600 underline hover:text-red-700 dark:text-red-400',
+  repeaterAdd:
+    'mt-4 rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50',
   colorInput:
     'h-10 w-16 cursor-pointer rounded-md border border-gray-300 bg-white p-1 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800',
 }

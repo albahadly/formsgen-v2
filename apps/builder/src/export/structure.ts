@@ -4,6 +4,9 @@
 
 import {
   SECTION_CONTAINERS,
+  isRepeater,
+  repeaterItemDefaults,
+  repeaterLimits,
   defaultRuleMessage,
   fill,
   getCoreElement,
@@ -34,16 +37,7 @@ export function pathKey(path: string): string {
  * filled in, so every code generator emits the form's language.
  */
 export function collectExportFields(schema: FormSchema): ExportField[] {
-  const messages = resolveMessages(schema.meta.locale)
-  const localize = (node: ElementNode): ElementNode =>
-    node.validation?.length
-      ? {
-          ...node,
-          validation: node.validation.map((rule) =>
-            rule.message ? rule : { ...rule, message: defaultRuleMessage(rule, messages) },
-          ),
-        }
-      : node
+  const localize = localizer(schema)
   const fields: ExportField[] = []
   const walk = (
     nodes: ElementNode[],
@@ -54,7 +48,10 @@ export function collectExportFields(schema: FormSchema): ExportField[] {
       const chain = node.conditions?.length ? [...inherited, node.conditions] : inherited
       const core = getCoreElement(node.type)
       if (!core) continue
-      if (core.isContainer) {
+      if (isRepeater(node)) {
+        // Item fields have per-item paths: see collectExportRepeaters.
+        continue
+      } else if (core.isContainer) {
         const childPath = node.name ? joinPath(parentPath, node.name) : parentPath
         walk(node.children ?? [], childPath, chain)
       } else if (core.hasValue && node.name) {
@@ -65,6 +62,94 @@ export function collectExportFields(schema: FormSchema): ExportField[] {
   }
   walk(schema.tree, '', [])
   return fields
+}
+
+/** Rules without a custom message get the localized default for meta.locale. */
+function localizer(schema: FormSchema): (node: ElementNode) => ElementNode {
+  const messages = resolveMessages(schema.meta.locale)
+  return (node) =>
+    node.validation?.length
+      ? {
+          ...node,
+          validation: node.validation.map((rule) =>
+            rule.message ? rule : { ...rule, message: defaultRuleMessage(rule, messages) },
+          ),
+        }
+      : node
+}
+
+// ---- repeatable sections ----
+
+/** One field inside a repeater item. */
+export interface ExportItemField {
+  node: ElementNode
+  /** The field's name inside the item object. */
+  name: string
+  /** Template path used by conditions (`people.name`). */
+  templatePath: string
+  /** Identifier-safe key of the template path (`people_name`). */
+  key: string
+}
+
+export interface ExportRepeater {
+  node: ElementNode
+  /** Data path of the item array, e.g. "people" or "account.people". */
+  path: string
+  /** Identifier-safe key, e.g. "account_people". */
+  key: string
+  /** Own + inherited condition groups of the repeater itself. */
+  conditionChain: ConditionGroups[]
+  fields: ExportItemField[]
+  /** Static (valueless) children are rendered but carry no data. */
+  limits: { min: number; max: number; initial: number }
+  itemDefaults: Record<string, unknown>
+  /** Item label template with {n} (localized fallback applied). */
+  itemLabel: string
+  addText: string
+}
+
+/** Every repeater in the schema with its item fields (rules localized). */
+export function collectExportRepeaters(schema: FormSchema): ExportRepeater[] {
+  const localize = localizer(schema)
+  const messages = resolveMessages(schema.meta.locale)
+  const repeaters: ExportRepeater[] = []
+  const walk = (nodes: ElementNode[], parentPath: string, inherited: ConditionGroups[]): void => {
+    for (const node of nodes) {
+      const chain = node.conditions?.length ? [...inherited, node.conditions] : inherited
+      const core = getCoreElement(node.type)
+      if (!core) continue
+      if (isRepeater(node)) {
+        if (!node.name) continue
+        const path = joinPath(parentPath, node.name)
+        const fields: ExportItemField[] = []
+        for (const child of node.children ?? []) {
+          const childCore = getCoreElement(child.type)
+          if (!childCore?.hasValue || childCore.isContainer || !child.name) continue
+          const templatePath = joinPath(path, child.name)
+          fields.push({ node: localize(child), name: child.name, templatePath, key: pathKey(templatePath) })
+        }
+        const addText = node.props['addText']
+        repeaters.push({
+          node,
+          path,
+          key: pathKey(path),
+          conditionChain: chain,
+          fields,
+          limits: repeaterLimits(node),
+          itemDefaults: repeaterItemDefaults(node),
+          itemLabel:
+            typeof node.props['itemLabel'] === 'string' && node.props['itemLabel'] !== ''
+              ? (node.props['itemLabel'] as string)
+              : messages.item,
+          addText: typeof addText === 'string' && addText !== '' ? addText : messages.addItem,
+        })
+      } else if (core.isContainer) {
+        walk(node.children ?? [], node.name ? joinPath(parentPath, node.name) : parentPath, chain)
+      }
+    }
+  }
+  walk(schema.tree, '', [])
+  return repeaters
 }
 
 /** Default value for one field node (mirrors renderer semantics). */
@@ -83,6 +168,16 @@ export function defaultsObject(schema: FormSchema): Record<string, unknown> {
       target = (target[segment] ??= {}) as Record<string, unknown>
     }
     target[segments[segments.length - 1] as string] = fieldDefault(field.node) ?? null
+  }
+  for (const repeater of collectExportRepeaters(schema)) {
+    const segments = repeater.path.split('.')
+    let target = out
+    for (const segment of segments.slice(0, -1)) {
+      target = (target[segment] ??= {}) as Record<string, unknown>
+    }
+    target[segments[segments.length - 1] as string] = Array.from({ length: repeater.limits.initial }, () =>
+      structuredClone(repeater.itemDefaults),
+    )
   }
   return out
 }
@@ -135,6 +230,8 @@ export interface SectionInfo {
   index: number
   /** Data paths of value fields inside this section (conditions aside). */
   paths: string[]
+  /** Repeaters inside this section: their item fields count too. */
+  repeaters: string[]
 }
 
 export interface SectionHostInfo {
@@ -156,10 +253,27 @@ export function subtreeFieldPaths(nodes: ElementNode[], basePath: string): strin
     for (const child of children) {
       const core = getCoreElement(child.type)
       if (!core) continue
+      if (isRepeater(child)) continue
       if (core.isContainer) {
         walk(child.children ?? [], child.name ? joinPath(base, child.name) : base)
       } else if (core.hasValue && child.name) {
         paths.push(joinPath(base, child.name))
+      }
+    }
+  }
+  walk(nodes, basePath)
+  return paths
+}
+
+/** Data paths of the repeaters in a subtree (their item fields are dynamic). */
+export function subtreeRepeaterPaths(nodes: ElementNode[], basePath: string): string[] {
+  const paths: string[] = []
+  const walk = (children: ElementNode[], base: string): void => {
+    for (const child of children) {
+      if (isRepeater(child)) {
+        if (child.name) paths.push(joinPath(base, child.name))
+      } else if (getCoreElement(child.type)?.isContainer) {
+        walk(child.children ?? [], child.name ? joinPath(base, child.name) : base)
       }
     }
   }
@@ -188,6 +302,7 @@ export function collectSectionHosts(schema: FormSchema): SectionHostInfo[] {
                 ? (section.props['label'] as string)
                 : fill(sectionType === 'tab' ? messages.tab : messages.step, { n: index + 1 }),
             paths: subtreeFieldPaths(section.children ?? [], childPath),
+            repeaters: subtreeRepeaterPaths(section.children ?? [], childPath),
           }))
         hosts.push({
           node,
@@ -283,13 +398,28 @@ export function formDataType(schema: FormSchema): string {
     target[segments[segments.length - 1] as string] =
       FIELD_TS_TYPES[field.node.type] ?? 'string'
   }
+  const repeaterTypes = new Map<string, TypeTree>()
+  for (const repeater of collectExportRepeaters(schema)) {
+    const segments = repeater.path.split('.')
+    let target = root
+    for (const segment of segments.slice(0, -1)) {
+      target = (target[segment] ??= {}) as TypeTree
+    }
+    const item: TypeTree = {}
+    for (const field of repeater.fields) item[field.name] = FIELD_TS_TYPES[field.node.type] ?? 'string'
+    const marker = `__repeater_${repeater.key}`
+    target[segments[segments.length - 1] as string] = marker
+    repeaterTypes.set(marker, item)
+  }
   const render = (tree: TypeTree, indent: number): string => {
     const pad = '  '.repeat(indent)
     const padIn = '  '.repeat(indent + 1)
     const body = Object.entries(tree)
       .map(
         ([k, v]) =>
-          `${padIn}${/^[A-Za-z_$][\w$]*$/.test(k) ? k : JSON.stringify(k)}: ${typeof v === 'string' ? v : render(v, indent + 1)}`,
+          `${padIn}${/^[A-Za-z_$][\w$]*$/.test(k) ? k : JSON.stringify(k)}: ${
+            typeof v !== 'string' ? render(v, indent + 1) : repeaterTypes.has(v) ? `Array<${render(repeaterTypes.get(v)!, indent + 1)}>` : v
+          }`,
       )
       .join('\n')
     return `{\n${body}\n${pad}}`

@@ -237,7 +237,7 @@ export const TAILWIND_THEMED: Record<string, Record<string, string[]>> = {
     'background-color': ['bg-gray-300', 'dark:bg-gray-600'],
   },
   'color-error': {
-    color: ['text-red-600', 'dark:text-red-400', 'hover:text-red-600'],
+    color: ['text-red-600', 'dark:text-red-400', 'hover:text-red-600', 'hover:text-red-700'],
     'border-color': ['border-red-500'],
     'background-color': ['bg-red-600'],
   },

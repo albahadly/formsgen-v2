@@ -5,13 +5,24 @@
 import { resolveMessages } from '@formsgen/renderer'
 import { errorsTextFunction, stepAnnouncementsLiteral, submittedText } from '../announce'
 import { RUNTIME_HELPERS_TS } from '../compile'
+import { compileConditions } from '../compile'
 import {
   collectExportFields,
+  collectExportRepeaters,
+  itemValidatorsLiteral,
   payloadExpr,
+  scopedAccessor,
   validatorsLiteral,
   visibilityFunctions,
+  type ItemAccess,
 } from '../logic'
-import { renderTree, stepButtonLabels, type RenderedSectionHost } from '../markup'
+import {
+  renderTree,
+  stepButtonLabels,
+  type RenderedRepeater,
+  type RenderedSectionHost,
+} from '../markup'
+import { repeaterLegend, vueItemMarkup } from '../repeaterMarkup'
 import {
   collectSectionHosts,
   defaultsObject,
@@ -42,6 +53,11 @@ export const vueStandaloneTarget: ExportTarget = {
     const fields = collectExportFields(schema)
     const hosts = collectSectionHosts(schema)
     const messages = resolveMessages(schema.meta.locale)
+    const repeaters = collectExportRepeaters(schema)
+    const items: ItemAccess = {
+      map: (path, body) => `form.${path}.map((item) => ${body})`,
+      read: (template, path) => `item.${template.slice(path.length + 1)}`,
+    }
 
     // Submit button: configurable text/placement/style (meta.submitButton).
     // With exactly ONE gating wizard, the submit replaces Next on its last
@@ -82,6 +98,26 @@ export const vueStandaloneTarget: ExportTarget = {
       return `<div>\n  <ol class="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div class="${css.classes('stepActions')}">\n    <button v-if="${state} > 0" type="button" class="${css.classes('buttonSecondary')}" @click="fgGo_${host.key}(${state} - 1)">${labels.back}</button>\n    <button v-if="${state} < ${last}" type="button" class="${css.classes('submitButton')}" @click="fgNext_${host.key}()">${labels.next}</button>${embeddedSubmit}\n  </div>\n</div>`
     }
 
+    // Repeating sections: v-for over the item array; the item template's
+    // fields bind to `item`, their paths/ids carry the index `i`.
+    const renderRepeater = (r: RenderedRepeater): string => {
+      const list = `form.${r.path}`
+      const remove = r.limits.min > 0 ? ` v-if="${list}.length > ${r.limits.min}"` : ''
+      const add = Number.isFinite(r.limits.max) ? ` v-if="${list}.length < ${r.limits.max}"` : ''
+      return `<fieldset class="${css.classes('group')}" data-fg-repeater="${r.path}">${repeaterLegend(css, r, 'class')}
+  <div class="${css.classes('repeaterItems')}">
+    <fieldset v-for="(item, i) in ${list}" :key="fgKeyOf(item)" class="${css.classes('repeaterItem')}" data-fg-item tabindex="-1">
+      <legend class="${css.classes('repeaterItemLabel')}">{{ fgItemLabel('${r.path}', i) }}</legend>
+${indentBlock(vueItemMarkup(r.itemHtml, r.path), 3)}
+      <div${remove} class="${css.classes('repeaterItemActions')}">
+        <button type="button" class="${css.classes('repeaterRemove')}" :aria-label="fgRemoveLabel('${r.path}', i)" @click="fgRemoveItem('${r.path}', i)">${r.messages.removeItem}</button>
+      </div>
+    </fieldset>
+  </div>
+  <button${add} type="button" class="${css.classes('repeaterAdd')}" data-fg-add="${r.path}" @click="fgAddItem('${r.path}')">${r.addText}</button>
+</fieldset>`
+    }
+
     const markup = renderTree(schema, {
       lang: 'vue',
       css,
@@ -89,17 +125,30 @@ export const vueStandaloneTarget: ExportTarget = {
       // Single-quoted so JSON string literals inside stay intact.
       conditionAttr: (_node, expr) => ` v-if='${expr.replace(/'/g, '&#39;')}'`,
       renderSections,
+      renderRepeater,
+      itemOptions: (path) => ({ accessor: scopedAccessor(accessor, items, path) }),
     })
 
     // Section state + per-step validation gates + submit error jump.
     const sectionState = hosts
       .map((host) => `const fgSec_${host.key} = ref(0)`)
       .join('\n')
+    // A section holding a repeater also gates on its items' fields (dynamic).
+    const dynamicHost = (host: (typeof hosts)[number]): boolean => host.sections.some((s) => s.repeaters.length > 0)
+    const secPaths = (host: (typeof hosts)[number]): string =>
+      dynamicHost(host) ? `fgSecPaths_${host.key}()` : `fgSecPaths_${host.key}`
     const sectionPaths = hosts
-      .map(
-        (host) =>
-          `const fgSecPaths_${host.key} = [${host.sections.map((s) => `[${s.paths.map((p) => JSON.stringify(p)).join(', ')}]`).join(', ')}]`,
-      )
+      .map((host) => {
+        const lists = host.sections
+          .map(
+            (s) =>
+              `[${[...s.paths.map((p) => JSON.stringify(p)), ...s.repeaters.map((r) => `...fgItemPaths('${r}')`)].join(', ')}]`,
+          )
+          .join(', ')
+        return dynamicHost(host)
+          ? `const fgSecPaths_${host.key} = (): string[][] => [${lists}]`
+          : `const fgSecPaths_${host.key} = [${lists}]`
+      })
       .join('\n')
     const stepLogic = hosts
       .filter((host) => host.kind === 'steps')
@@ -111,7 +160,7 @@ function fgGo_${host.key}(index: number): void {
 }
 function fgNext_${host.key}(): void {
   let ok = true
-  for (const path of fgSecPaths_${host.key}[fgSec_${host.key}.value] ?? []) {
+  for (const path of ${secPaths(host)}[fgSec_${host.key}.value] ?? []) {
     touch(path)
     if (errors[path]) ok = false
   }
@@ -124,8 +173,8 @@ function fgNext_${host.key}(): void {
         ? `function fgJumpToError(): void {
 ${hosts
   .map(
-    (host) => `  if (!(fgSecPaths_${host.key}[fgSec_${host.key}.value] ?? []).some((p) => errors[p])) {
-    const target = fgSecPaths_${host.key}.findIndex((paths) => paths.some((p) => errors[p]))
+    (host) => `  if (!(${secPaths(host)}[fgSec_${host.key}.value] ?? []).some((p) => errors[p])) {
+    const target = ${secPaths(host)}.findIndex((paths) => paths.some((p) => errors[p]))
     if (target !== -1) fgSec_${host.key}.value = target
   }`,
   )
@@ -162,6 +211,119 @@ function fgRemoveTag(path: string, index: number): void {
 }`
         : ''
 
+    // Repeating sections: item factories, limits, per-item validators, and
+    // add/remove (focus the new item / the item that moved up; announce).
+    const fmtMax = (max: number): string => (Number.isFinite(max) ? String(max) : 'Number.POSITIVE_INFINITY')
+    const repeaterLogic =
+      repeaters.length > 0
+        ? `const fgRoot = ref<HTMLElement | null>(null)
+const fgItemDefaults: Record<string, () => Record<string, unknown>> = {
+${repeaters.map((r) => `  '${r.path}': () => (${indentBlock(toJsLiteral(r.itemDefaults), 1).trimStart()}),`).join('\n')}
+}
+const fgItemLimits: Record<string, { min: number; max: number }> = {
+${repeaters.map((r) => `  '${r.path}': { min: ${r.limits.min}, max: ${fmtMax(r.limits.max)} },`).join('\n')}
+}
+const fgItemLabels: Record<string, string> = {
+${repeaters.map((r) => `  '${r.path}': ${JSON.stringify(r.itemLabel)},`).join('\n')}
+}
+const fgRepeaterVisible: Record<string, () => boolean> = {
+${repeaters
+  .map(
+    (r) =>
+      `  '${r.path}': () => ${r.conditionChain.length ? r.conditionChain.map((g) => `(${compileConditions(g, accessor)})`).join(' && ') : 'true'},`,
+  )
+  .join('\n')}
+}
+const fgItemValidators: Record<string, Record<string, (item: Record<string, unknown>) => string | null>> = ${itemValidatorsLiteral(
+            repeaters,
+            accessor,
+            { ...items, read: (template, path) => `item[${JSON.stringify(template.slice(path.length + 1))}]` },
+            () => 'item: Record<string, unknown>',
+          )}
+
+function fgList(path: string): Record<string, unknown>[] {
+  return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form) as Record<string, unknown>[]
+}
+function fgItemLabel(path: string, index: number): string {
+  return (fgItemLabels[path] ?? '').split('{n}').join(String(index + 1))
+}
+function fgRemoveLabel(path: string, index: number): string {
+  return ${JSON.stringify(messages.removeItemLabel)}.split('{label}').join(fgItemLabel(path, index))
+}
+/** Validator for an item field path like "people.2.name". */
+function fgItemValidator(path: string): (() => string | null) | undefined {
+  const match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
+  if (!match) return undefined
+  const validate = fgItemValidators[match[1]!]?.[match[3]!]
+  const item = fgList(match[1]!)[Number(match[2])]
+  return validate && item ? () => validate(item) : undefined
+}
+/** Every item field path of a repeater (for validation and step gates). */
+function fgItemPaths(path: string): string[] {
+  if (!fgRepeaterVisible[path]?.()) return []
+  const fields = Object.keys(fgItemValidators[path] ?? {})
+  return fgList(path).flatMap((_, i) => fields.map((field) => \`\${path}.\${i}.\${field}\`))
+}
+const fgItemKeys = new WeakMap<object, number>()
+let fgNextItemKey = 0
+function fgKeyOf(item: object): number {
+  const raw = toRaw(item)
+  let key = fgItemKeys.get(raw)
+  if (key === undefined) {
+    key = fgNextItemKey++
+    fgItemKeys.set(raw, key)
+  }
+  return key
+}
+function fgItemElements(path: string): HTMLElement[] {
+  const repeater = fgRoot.value?.querySelector(\`[data-fg-repeater="\${path}"]\`)
+  return Array.from(repeater?.querySelectorAll<HTMLElement>(':scope > div > [data-fg-item]') ?? [])
+}
+/** A removed item's errors/touched state go; later items' move up one. */
+function fgShiftItems(path: string, removed: number): void {
+  const pattern = new RegExp('^' + path.replace(/\\./g, '\\\\.') + '\\\\.(\\\\d+)(\\\\..*)$')
+  const move = (key: string): string | null => {
+    const match = pattern.exec(key)
+    if (!match) return key
+    const index = Number(match[1])
+    if (index === removed) return null
+    return index > removed ? \`\${path}.\${index - 1}\${match[2]}\` : key
+  }
+  const nextTouched = [...touched].map(move).filter((k): k is string => k !== null)
+  touched.clear()
+  nextTouched.forEach((k) => touched.add(k))
+  const nextErrors: Record<string, string> = {}
+  for (const [key, message] of Object.entries(errors)) {
+    const target = move(key)
+    if (target !== null) nextErrors[target] = message
+  }
+  for (const key of Object.keys(errors)) delete errors[key]
+  Object.assign(errors, nextErrors)
+}
+async function fgAddItem(path: string): Promise<void> {
+  const list = fgList(path)
+  if (list.length >= (fgItemLimits[path]?.max ?? Number.POSITIVE_INFINITY)) return
+  list.push(fgItemDefaults[path]!())
+  await nextTick()
+  const item = fgItemElements(path)[list.length - 1]
+  const control = item?.querySelector<HTMLElement>('input:not([type=hidden]), select, textarea')
+  ;(control ?? item)?.focus()
+  fgAnnounce(${JSON.stringify(messages.itemAdded)}.split('{label}').join(fgItemLabel(path, list.length - 1)))
+}
+async function fgRemoveItem(path: string, index: number): Promise<void> {
+  const list = fgList(path)
+  if (list.length <= (fgItemLimits[path]?.min ?? 0)) return
+  const label = fgItemLabel(path, index)
+  fgShiftItems(path, index)
+  list.splice(index, 1)
+  await nextTick()
+  const remaining = fgItemElements(path)
+  const target = remaining[Math.min(index, remaining.length - 1)]
+  ;(target ?? fgRoot.value?.querySelector<HTMLElement>(\`[data-fg-add="\${path}"]\`))?.focus()
+  fgAnnounce(${JSON.stringify(messages.itemRemoved)}.split('{label}').join(label))
+}`
+        : ''
+
     // Reset buttons: back to the defaults, no errors, announced.
     const resetLogic = hasResetButton(schema)
       ? `function fgReset(): void {
@@ -188,7 +350,7 @@ function fgRemoveTag(path: string, index: number): void {
 
     const script = `<script setup lang="ts">
 // Generated by FormsGen — no runtime dependencies beyond Vue.
-import { nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, reactive, ref${repeaters.length ? ', toRaw' : ''} } from 'vue'
 
 const emit = defineEmits<{ submit: [data: Record<string, unknown>] }>()
 
@@ -217,7 +379,7 @@ ${visibilityFunctions(fields, accessor)}
 const validators: Record<string, () => string | null> = ${validatorsLiteral(fields, accessor)}
 
 function runValidator(path: string): void {
-  const validate = validators[path]
+  const validate = validators[path]${repeaters.length ? ' ?? fgItemValidator(path)' : ''}
   if (!validate) return
   const message = validate()
   if (message) errors[path] = message
@@ -266,16 +428,16 @@ function revalidate(path: string): void {
 
 function validateAll(): boolean {
   let ok = true
-  for (const path of Object.keys(validators)) {
+  for (const path of [...Object.keys(validators)${repeaters.length ? ', ...Object.keys(fgItemValidators).flatMap(fgItemPaths)' : ''}]) {
     touched.add(path)
     runValidator(path)
     if (errors[path]) ok = false
   }
   return ok
 }
-${sectionState ? `\n${sectionState}\n` : ''}${sectionPaths ? `\n${sectionPaths}\n` : ''}${stepLogic ? `\n${stepLogic}\n` : ''}${jumpLogic ? `\n${jumpLogic}\n` : ''}${tagsLogic ? `\n${tagsLogic}\n` : ''}${resetLogic ? `\n${resetLogic}\n` : ''}
+${sectionState ? `\n${sectionState}\n` : ''}${sectionPaths ? `\n${sectionPaths}\n` : ''}${stepLogic ? `\n${stepLogic}\n` : ''}${jumpLogic ? `\n${jumpLogic}\n` : ''}${tagsLogic ? `\n${tagsLogic}\n` : ''}${repeaterLogic ? `\n${repeaterLogic}\n` : ''}${resetLogic ? `\n${resetLogic}\n` : ''}
 function buildPayload(): Record<string, unknown> {
-  return ${indentBlock(payloadExpr(schema, accessor), 1).trimStart()}
+  return ${indentBlock(payloadExpr(schema, accessor, undefined, items), 1).trimStart()}
 }
 
 async function onSubmit(): Promise<void> {
@@ -305,7 +467,7 @@ ${submitBlock}}
     </div>`
 
     const template = `<template>
-  <form
+  <form${repeaters.length ? '\n    ref="fgRoot"' : ''}
     class="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme).replace(' ', '\n    ')}
     dir="${schema.meta.dir}"
     novalidate

@@ -28,5 +28,6 @@ Read the latest handoff before starting any phase (Phase Standard, REBUILD_PROMP
 | 21 | Theme options in Settings (all exports) | ✅ Complete | [phase-21-theme-settings.md](./phase-21-theme-settings.md) |
 | 22 | Theme palettes, muted & surface colors, color-scheme | ✅ Complete | [phase-22-theme-palettes.md](./phase-22-theme-palettes.md) |
 | 23 | More elements: toggle, hidden, date-time/month/week/color/search, choice blocks & buttons, vertical slider, image/link/quote, reset/link buttons | ✅ Complete | [phase-23-element-catalog.md](./phase-23-element-catalog.md) |
+| 24 | Repeatable sections (repeater) in renderer, builder and every export | ✅ Complete | [phase-24-repeatable-sections.md](./phase-24-repeatable-sections.md) |
 
-**All 11 planned phases are complete**, plus 10b and 12–23 from the backlog. Remaining backlog: npm publish of `@formsgen/renderer` (parked by user); see the "Not done" list in [phase-16-arabic-messages.md](./phase-16-arabic-messages.md).
+**All 11 planned phases are complete**, plus 10b and 12–24 from the backlog. Remaining backlog: npm publish of `@formsgen/renderer` (parked by user); see the "Not done" list in [phase-16-arabic-messages.md](./phase-16-arabic-messages.md).

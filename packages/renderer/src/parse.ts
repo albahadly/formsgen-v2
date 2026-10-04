@@ -2,6 +2,7 @@
 // import, export round-trips). Dependency-free by design — no zod.
 
 import { isSafeUrl } from './elements'
+import { REPEATER_TYPE, allowedInRepeater } from './repeater'
 import {
   CLASS_TOKEN_PATTERN,
   NAME_PATTERN,
@@ -137,6 +138,7 @@ function validateNodes(
   path: string,
   seenIds: Set<string>,
   errors: string[],
+  inRepeater = false,
 ): void {
   const siblingNames = new Set<string>()
   nodes.forEach((raw, i) => {
@@ -180,6 +182,14 @@ function validateNodes(
       }
     }
 
+    const type = raw['type']
+    if (inRepeater && isNonEmptyString(type) && !allowedInRepeater(type)) {
+      errors.push(`${p}.type: "${type}" cannot be placed inside a repeater`)
+    }
+    if (type === REPEATER_TYPE && name === undefined) {
+      errors.push(`${p}.name: a repeater needs a name (its items are stored under it)`)
+    }
+
     validateRules(raw['validation'], `${p}.validation`, errors)
     validateConditions(raw['conditions'], `${p}.conditions`, errors)
     validateStyle(raw['style'], `${p}.style`, errors)
@@ -189,7 +199,7 @@ function validateNodes(
       if (!Array.isArray(children)) {
         errors.push(`${p}.children: expected an array`)
       } else {
-        validateNodes(children, `${p}.children`, seenIds, errors)
+        validateNodes(children, `${p}.children`, seenIds, errors, type === REPEATER_TYPE)
       }
     }
   })

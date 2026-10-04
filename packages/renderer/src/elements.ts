@@ -84,6 +84,9 @@ export const coreElements: Record<string, CoreElementMeta> = {
   button: meta('button', false, false, () => undefined),
   group: meta('group', false, true, () => undefined),
   columns: meta('columns', false, true, () => undefined),
+  // A repeater is a container whose value is an array of item objects
+  // (one per item, built from its children); see repeater.ts.
+  repeater: meta('repeater', true, true, () => []),
   tabs: meta('tabs', false, true, () => undefined),
   tab: meta('tab', false, true, () => undefined),
   steps: meta('steps', false, true, () => undefined),

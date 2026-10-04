@@ -6,7 +6,9 @@ import {
   NAME_PATTERN,
   SCHEMA_ID,
   SECTION_CONTAINERS,
+  REPEATER_TYPE,
   SECTION_TYPES,
+  allowedInRepeater,
   THEME_TOKEN_PATTERN,
   collectNames,
   findNodeById,
@@ -370,13 +372,15 @@ export const MAX_NESTING_DEPTH = 5
 /**
  * Type-level containment rules: tabs/steps hosts accept ONLY their section
  * type, section nodes live ONLY in their host, and nothing else nests a
- * section. `parentType === null` means the root list.
+ * section, and repeaters take leaf elements only (no containers, no tags).
+ * `parentType === null` means the root list.
  */
 export function acceptsChildType(parentType: string | null, childType: string): boolean {
   const requiredHost = SECTION_TYPES[childType]
   if (requiredHost) return parentType === requiredHost
   const sectionOnly = parentType ? SECTION_CONTAINERS[parentType] : undefined
   if (sectionOnly) return false // host takes only its section type (handled above)
+  if (parentType === REPEATER_TYPE) return allowedInRepeater(childType)
   return true
 }
 

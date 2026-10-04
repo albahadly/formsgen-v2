@@ -252,6 +252,10 @@ function onDuplicate(): void {
       <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
         {{ tOr(`element.${node.type}.label`, definition?.label ?? node.type) }}
         <span v-if="node.props.label"> — {{ node.props.label }}</span>
+        <span
+          v-if="node.type === 'repeater'"
+          class="ms-1 font-normal normal-case tracking-normal"
+        >· {{ t('canvas.repeaterHint') }}</span>
       </p>
       <draggable
         v-model="list"

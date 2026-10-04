@@ -168,7 +168,7 @@ describe('vanilla theme', () => {
 describe('themed exports', () => {
   it.each([
     ['html', '<form id="fg-form" class="container py-4 fg-themed" data-fg-theme="light" novalidate>'],
-    ['react', '<form className="container py-4 fg-themed" data-fg-theme="light" dir="ltr"'],
+    ['react', '<form ref={fgRoot} className="container py-4 fg-themed" data-fg-theme="light" dir="ltr"'],
     ['vue-standalone', 'class="container py-4 fg-themed"\n    data-fg-theme="light"\n    dir="ltr"'],
     ['blazor', '<div class="container py-4 fg-themed" data-fg-theme="light" @onpointerdown='],
   ])('%s marks the form root and ships the bridge', (target, root) => {

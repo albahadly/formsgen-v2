@@ -224,6 +224,54 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
           </div>
         </div>
         <div class="col-12 col-md-12">
+          <fieldset class="border rounded p-3 bg-body-tertiary" data-fg-repeater="references">
+            <legend class="fw-semibold text-secondary small px-1">References</legend>
+            <div class="d-flex flex-column gap-3">
+              @foreach (var (item, i) in Model.References.Select((x, n) => (x, n)).ToList())
+              {
+                  <fieldset @key="item" class="border rounded p-3" data-fg-item tabindex="-1" @ref="fgItemRefs[item]">
+                      <legend class="float-none w-auto px-1 fs-6 fw-semibold mb-0">@FgItemLabel("references", i)</legend>
+                      <div class="row g-3">
+                        <div class="col-12 col-md-12">
+                          <div class="d-flex flex-column gap-1">
+                            <label class="form-label fw-semibold mb-0" for="@($"fg_references_{i}_name")">Name<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+                            <InputText id="@($"fg_references_{i}_name")" @bind-Value="item.Name" class="form-control" />
+                            <ValidationMessage For="@(() => item.Name)" class="invalid-feedback d-block mt-0" />
+                          </div>
+                        </div>
+                        <div class="col-12 col-md-12">
+                          <div class="d-flex flex-column gap-1">
+                            <div class="form-check">
+                              <InputCheckbox id="@($"fg_references_{i}_may_contact")" @bind-Value="item.MayContact" class="form-check-input" />
+                              <label class="form-check-label" for="@($"fg_references_{i}_may_contact")">May we contact them?</label>
+                            </div>
+                            <ValidationMessage For="@(() => item.MayContact)" class="invalid-feedback d-block mt-0" />
+                          </div>
+                        </div>
+                        @if ((Equals(item.MayContact, true)))
+                        {
+                            <div class="col-12 col-md-12">
+                              <div class="d-flex flex-column gap-1">
+                                <label class="form-label fw-semibold mb-0" for="@($"fg_references_{i}_email")">Their email</label>
+                                <InputText id="@($"fg_references_{i}_email")" type="email" @bind-Value="item.Email" class="form-control" />
+                                <ValidationMessage For="@(() => item.Email)" class="invalid-feedback d-block mt-0" />
+                              </div>
+                            </div>
+                        }
+                      </div>
+                      <div class="mt-2 d-flex justify-content-end">
+                          <button type="button" class="btn btn-link link-danger p-0" aria-label='@FgRemoveLabel("references", i)' @onclick='() => FgRemoveItem(Model.References, "references", i, 0, fgItemFields_references)'>Remove</button>
+                      </div>
+                  </fieldset>
+              }
+            </div>
+            @if (Model.References.Count < 3)
+            {
+                <button type="button" class="btn btn-outline-secondary mt-3" data-fg-add="references" @ref="fgAddRef_references" @onclick='() => FgAddItem(Model.References, "references", 3)'>Add reference</button>
+            }
+          </fieldset>
+        </div>
+        <div class="col-12 col-md-12">
           <figure class="mb-0">
             <blockquote class="blockquote">
               <p>Forms are conversations.</p>
@@ -393,7 +441,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         fgEdit = new EditContext(Model);
         fgMessages = new ValidationMessageStore(fgEdit);
         fgEdit.OnValidationRequested += (_, _) => FgValidateAll();
-        fgEdit.OnFieldChanged += (_, e) => FgFieldChanged(e.FieldIdentifier.FieldName);
+        fgEdit.OnFieldChanged += (_, e) => FgFieldChanged(e.FieldIdentifier);
     }
 
     private void FgPointerDown(PointerEventArgs _)
@@ -420,6 +468,12 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
 
     private void FgFlushDeferred()
     {
+        if (fgDeferredItemFields.Count > 0)
+        {
+            var items = fgDeferredItemFields.ToArray();
+            fgDeferredItemFields.Clear();
+            foreach (var field in items) FgValidateItemField(field);
+        }
         if (fgDeferredFields.Count == 0) return;
         var names = fgDeferredFields.ToArray();
         fgDeferredFields.Clear();
@@ -431,6 +485,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         fgDeferredFields.Clear();
         fgMessages.Clear();
         FgValidateMembers(fgAllMembers);
+        FgValidateRepeater_references();
     }
 
     private object? FgValue(string name) => name switch
@@ -565,7 +620,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
     private async Task FgOnInvalidSubmit(EditContext context)
     {
         FgJumpToError();
-        var count = fgAllMembers.Count(m => context.GetValidationMessages(new FieldIdentifier(Model, m)).Any());
+        var count = fgAllMembers.Count(m => context.GetValidationMessages(new FieldIdentifier(Model, m)).Any()) + FgItemErrorCount();
         await FgAnnounce(FgErrorsText(count));
     }
 
@@ -647,10 +702,141 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         fgTagDrafts[key] = "";
     }
 
+    private static readonly string[] fgItemFields_references = { "Name", "Email" };
+    private ElementReference fgAddRef_references;
+
+    private bool FgRepeaterHasErrors_references() =>
+        Model.References.Any(item => fgItemFields_references.Any(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any()));
+
+    private bool FgValidateRepeater_references()
+    {
+        var ok = true;
+        foreach (var item in Model.References)
+        {
+            foreach (var name in fgItemFields_references) ok &= FgValidateItemField(new FieldIdentifier(item, name), false);
+        }
+        fgEdit.NotifyValidationStateChanged();
+        return ok;
+    }
+
+    private readonly HashSet<FieldIdentifier> fgDeferredItemFields = new();
+    private readonly Dictionary<object, ElementReference> fgItemRefs = new();
+    private object? fgFocusItem;
+    private string? fgFocusAdd;
+
+    private void FgFieldChanged(FieldIdentifier field)
+    {
+        if (ReferenceEquals(field.Model, Model))
+        {
+            FgFieldChanged(field.FieldName);
+            return;
+        }
+        if (fgPressing)
+        {
+            fgDeferredItemFields.Add(field);
+            return;
+        }
+        FgValidateItemField(field);
+    }
+
+    /** First rule violation of an item field (null when valid or hidden). */
+    private string? FgItemError(object model, string name)
+    {
+        switch (model)
+        {
+            case FgReferencesItem item:
+                switch (name)
+                {
+                    case "Name":
+                    {
+                        if (string.IsNullOrWhiteSpace(item.Name)) return "This field is required";
+                        return null;
+                    }
+                    case "Email":
+                    {
+                        if (!((Equals(item.MayContact, true)))) return null;
+                        if (!(string.IsNullOrWhiteSpace(item.Email)) && (!System.Text.RegularExpressions.Regex.IsMatch(item.Email, @"^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"))) return "Must be a valid email address";
+                        return null;
+                    }
+                }
+                break;
+        }
+        return null;
+    }
+
+    private bool FgValidateItemField(FieldIdentifier field, bool notify = true)
+    {
+        fgMessages.Clear(field);
+        var error = FgItemError(field.Model, field.FieldName);
+        if (error != null) fgMessages.Add(field, error);
+        if (notify) fgEdit.NotifyValidationStateChanged();
+        return error == null;
+    }
+
+    private int FgItemErrorCount()
+    {
+        var count = 0;
+        foreach (var item in Model.References) count += fgItemFields_references.Count(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any());
+        return count;
+    }
+
+    private static string FgItemLabel(string path, int index) => (path switch
+    {
+        "references" => "Reference {n}",
+        _ => "{n}",
+    }).Replace("{n}", (index + 1).ToString());
+
+    private static string FgRemoveLabel(string path, int index) =>
+        "Remove {label}".Replace("{label}", FgItemLabel(path, index));
+
+    private async Task FgAddItem<T>(List<T> list, string path, int max) where T : class, new()
+    {
+        if (list.Count >= max) return;
+        var item = new T();
+        list.Add(item);
+        fgFocusItem = item;
+        await FgAnnounce("{label} added".Replace("{label}", FgItemLabel(path, list.Count - 1)));
+    }
+
+    private async Task FgRemoveItem<T>(List<T> list, string path, int index, int min, string[] fields) where T : class
+    {
+        if (list.Count <= min || index >= list.Count) return;
+        var label = FgItemLabel(path, index);
+        var item = list[index];
+        foreach (var name in fields) fgMessages.Clear(new FieldIdentifier(item, name));
+        fgItemRefs.Remove(item);
+        list.RemoveAt(index);
+        fgEdit.NotifyValidationStateChanged();
+        if (list.Count > 0) fgFocusItem = list[Math.Min(index, list.Count - 1)];
+        else fgFocusAdd = path;
+        await FgAnnounce("{label} removed".Replace("{label}", label));
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (fgFocusItem != null && fgItemRefs.TryGetValue(fgFocusItem, out var itemRef))
+        {
+            fgFocusItem = null;
+            await itemRef.FocusAsync();
+        }
+        else if (fgFocusAdd != null)
+        {
+            var path = fgFocusAdd;
+            fgFocusAdd = null;
+            var addRef = path switch
+            {
+                "references" => fgAddRef_references,
+                _ => default,
+            };
+            if (addRef.Context != null) await addRef.FocusAsync();
+        }
+    }
+
     private async Task FgReset()
     {
         Model = new();
         FgInitEdit();
+        fgItemRefs.Clear();
         fgDeferredFields.Clear();
         ResultJson = null;
         foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";
@@ -691,6 +877,16 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         payload["brand_color"] = Model.BrandColor;
         payload["volume"] = Model.Volume;
         payload["source"] = Model.Source;
+        var list1 = new List<Dictionary<string, object?>>();
+        foreach (var item in Model.References)
+        {
+            var item1 = new Dictionary<string, object?>();
+            item1["name"] = item.Name;
+            item1["may_contact"] = item.MayContact;
+            if ((Equals(item.MayContact, true))) item1["email"] = item.Email;
+            list1.Add(item1);
+        }
+        payload["references"] = list1;
         payload["contact_method"] = string.IsNullOrEmpty(Model.ContactMethod) ? null : Model.ContactMethod;
         if (((Equals(Model.ContactMethod, "phone")))) payload["contact_phone"] = Model.ContactPhone;
         if (((Equals(Model.ContactMethod, "other")))) payload["contact_other"] = Model.ContactOther;
@@ -779,6 +975,8 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
 
         public bool Terms { get; set; }
 
+        public List<FgReferencesItem> References { get; set; } = new() { new(), };
+
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
         if (!(string.IsNullOrWhiteSpace(Website)) && (!Uri.TryCreate(Website, UriKind.Absolute, out _))) yield return new ValidationResult("Must be a valid URL", new[] { nameof(Website) });
@@ -787,6 +985,13 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         if (!(Topics.Count == 0) && (Topics.Count > 5)) yield return new ValidationResult("At most 5 topics", new[] { nameof(Topics) });
         if (!Terms) yield return new ValidationResult("This field is required", new[] { nameof(Terms) });
         }
+    }
+
+    public class FgReferencesItem
+    {
+        public string Name { get; set; } = "";
+        public bool MayContact { get; set; }
+        public string Email { get; set; } = "";
     }
 }
 "
@@ -1024,6 +1229,54 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
           </div>
         </div>
         <div class="col-span-12 md:col-span-12">
+          <fieldset class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50" data-fg-repeater="references">
+            <legend class="px-1 text-sm font-semibold text-gray-500 dark:text-gray-400">References</legend>
+            <div class="flex flex-col gap-4">
+              @foreach (var (item, i) in Model.References.Select((x, n) => (x, n)).ToList())
+              {
+                  <fieldset @key="item" class="min-w-0 rounded-lg border border-gray-300 p-4 dark:border-gray-600" data-fg-item tabindex="-1" @ref="fgItemRefs[item]">
+                      <legend class="px-1 text-sm font-semibold">@FgItemLabel("references", i)</legend>
+                      <div class="grid grid-cols-12 gap-4">
+                        <div class="col-span-12 md:col-span-12">
+                          <div class="flex flex-col gap-1.5">
+                            <label class="text-sm font-semibold" for="@($"fg_references_{i}_name")">Name<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+                            <InputText id="@($"fg_references_{i}_name")" @bind-Value="item.Name" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
+                            <ValidationMessage For="@(() => item.Name)" class="text-xs text-red-600" />
+                          </div>
+                        </div>
+                        <div class="col-span-12 md:col-span-12">
+                          <div class="flex flex-col gap-1.5">
+                            <div class="flex items-center gap-2">
+                              <InputCheckbox id="@($"fg_references_{i}_may_contact")" @bind-Value="item.MayContact" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" />
+                              <label class="inline-flex items-center gap-2 text-sm" for="@($"fg_references_{i}_may_contact")">May we contact them?</label>
+                            </div>
+                            <ValidationMessage For="@(() => item.MayContact)" class="text-xs text-red-600" />
+                          </div>
+                        </div>
+                        @if ((Equals(item.MayContact, true)))
+                        {
+                            <div class="col-span-12 md:col-span-12">
+                              <div class="flex flex-col gap-1.5">
+                                <label class="text-sm font-semibold" for="@($"fg_references_{i}_email")">Their email</label>
+                                <InputText id="@($"fg_references_{i}_email")" type="email" @bind-Value="item.Email" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
+                                <ValidationMessage For="@(() => item.Email)" class="text-xs text-red-600" />
+                              </div>
+                            </div>
+                        }
+                      </div>
+                      <div class="mt-3 flex justify-end">
+                          <button type="button" class="text-sm text-red-600 underline hover:text-red-700 dark:text-red-400" aria-label='@FgRemoveLabel("references", i)' @onclick='() => FgRemoveItem(Model.References, "references", i, 0, fgItemFields_references)'>Remove</button>
+                      </div>
+                  </fieldset>
+              }
+            </div>
+            @if (Model.References.Count < 3)
+            {
+                <button type="button" class="mt-4 rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-add="references" @ref="fgAddRef_references" @onclick='() => FgAddItem(Model.References, "references", 3)'>Add reference</button>
+            }
+          </fieldset>
+        </div>
+        <div class="col-span-12 md:col-span-12">
           <figure class="border-s-4 border-gray-300 ps-4 dark:border-gray-600">
             <blockquote class="text-base italic">
               <p>Forms are conversations.</p>
@@ -1193,7 +1446,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         fgEdit = new EditContext(Model);
         fgMessages = new ValidationMessageStore(fgEdit);
         fgEdit.OnValidationRequested += (_, _) => FgValidateAll();
-        fgEdit.OnFieldChanged += (_, e) => FgFieldChanged(e.FieldIdentifier.FieldName);
+        fgEdit.OnFieldChanged += (_, e) => FgFieldChanged(e.FieldIdentifier);
     }
 
     private void FgPointerDown(PointerEventArgs _)
@@ -1220,6 +1473,12 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
 
     private void FgFlushDeferred()
     {
+        if (fgDeferredItemFields.Count > 0)
+        {
+            var items = fgDeferredItemFields.ToArray();
+            fgDeferredItemFields.Clear();
+            foreach (var field in items) FgValidateItemField(field);
+        }
         if (fgDeferredFields.Count == 0) return;
         var names = fgDeferredFields.ToArray();
         fgDeferredFields.Clear();
@@ -1231,6 +1490,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         fgDeferredFields.Clear();
         fgMessages.Clear();
         FgValidateMembers(fgAllMembers);
+        FgValidateRepeater_references();
     }
 
     private object? FgValue(string name) => name switch
@@ -1365,7 +1625,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
     private async Task FgOnInvalidSubmit(EditContext context)
     {
         FgJumpToError();
-        var count = fgAllMembers.Count(m => context.GetValidationMessages(new FieldIdentifier(Model, m)).Any());
+        var count = fgAllMembers.Count(m => context.GetValidationMessages(new FieldIdentifier(Model, m)).Any()) + FgItemErrorCount();
         await FgAnnounce(FgErrorsText(count));
     }
 
@@ -1447,10 +1707,141 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         fgTagDrafts[key] = "";
     }
 
+    private static readonly string[] fgItemFields_references = { "Name", "Email" };
+    private ElementReference fgAddRef_references;
+
+    private bool FgRepeaterHasErrors_references() =>
+        Model.References.Any(item => fgItemFields_references.Any(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any()));
+
+    private bool FgValidateRepeater_references()
+    {
+        var ok = true;
+        foreach (var item in Model.References)
+        {
+            foreach (var name in fgItemFields_references) ok &= FgValidateItemField(new FieldIdentifier(item, name), false);
+        }
+        fgEdit.NotifyValidationStateChanged();
+        return ok;
+    }
+
+    private readonly HashSet<FieldIdentifier> fgDeferredItemFields = new();
+    private readonly Dictionary<object, ElementReference> fgItemRefs = new();
+    private object? fgFocusItem;
+    private string? fgFocusAdd;
+
+    private void FgFieldChanged(FieldIdentifier field)
+    {
+        if (ReferenceEquals(field.Model, Model))
+        {
+            FgFieldChanged(field.FieldName);
+            return;
+        }
+        if (fgPressing)
+        {
+            fgDeferredItemFields.Add(field);
+            return;
+        }
+        FgValidateItemField(field);
+    }
+
+    /** First rule violation of an item field (null when valid or hidden). */
+    private string? FgItemError(object model, string name)
+    {
+        switch (model)
+        {
+            case FgReferencesItem item:
+                switch (name)
+                {
+                    case "Name":
+                    {
+                        if (string.IsNullOrWhiteSpace(item.Name)) return "This field is required";
+                        return null;
+                    }
+                    case "Email":
+                    {
+                        if (!((Equals(item.MayContact, true)))) return null;
+                        if (!(string.IsNullOrWhiteSpace(item.Email)) && (!System.Text.RegularExpressions.Regex.IsMatch(item.Email, @"^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"))) return "Must be a valid email address";
+                        return null;
+                    }
+                }
+                break;
+        }
+        return null;
+    }
+
+    private bool FgValidateItemField(FieldIdentifier field, bool notify = true)
+    {
+        fgMessages.Clear(field);
+        var error = FgItemError(field.Model, field.FieldName);
+        if (error != null) fgMessages.Add(field, error);
+        if (notify) fgEdit.NotifyValidationStateChanged();
+        return error == null;
+    }
+
+    private int FgItemErrorCount()
+    {
+        var count = 0;
+        foreach (var item in Model.References) count += fgItemFields_references.Count(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any());
+        return count;
+    }
+
+    private static string FgItemLabel(string path, int index) => (path switch
+    {
+        "references" => "Reference {n}",
+        _ => "{n}",
+    }).Replace("{n}", (index + 1).ToString());
+
+    private static string FgRemoveLabel(string path, int index) =>
+        "Remove {label}".Replace("{label}", FgItemLabel(path, index));
+
+    private async Task FgAddItem<T>(List<T> list, string path, int max) where T : class, new()
+    {
+        if (list.Count >= max) return;
+        var item = new T();
+        list.Add(item);
+        fgFocusItem = item;
+        await FgAnnounce("{label} added".Replace("{label}", FgItemLabel(path, list.Count - 1)));
+    }
+
+    private async Task FgRemoveItem<T>(List<T> list, string path, int index, int min, string[] fields) where T : class
+    {
+        if (list.Count <= min || index >= list.Count) return;
+        var label = FgItemLabel(path, index);
+        var item = list[index];
+        foreach (var name in fields) fgMessages.Clear(new FieldIdentifier(item, name));
+        fgItemRefs.Remove(item);
+        list.RemoveAt(index);
+        fgEdit.NotifyValidationStateChanged();
+        if (list.Count > 0) fgFocusItem = list[Math.Min(index, list.Count - 1)];
+        else fgFocusAdd = path;
+        await FgAnnounce("{label} removed".Replace("{label}", label));
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (fgFocusItem != null && fgItemRefs.TryGetValue(fgFocusItem, out var itemRef))
+        {
+            fgFocusItem = null;
+            await itemRef.FocusAsync();
+        }
+        else if (fgFocusAdd != null)
+        {
+            var path = fgFocusAdd;
+            fgFocusAdd = null;
+            var addRef = path switch
+            {
+                "references" => fgAddRef_references,
+                _ => default,
+            };
+            if (addRef.Context != null) await addRef.FocusAsync();
+        }
+    }
+
     private async Task FgReset()
     {
         Model = new();
         FgInitEdit();
+        fgItemRefs.Clear();
         fgDeferredFields.Clear();
         ResultJson = null;
         foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";
@@ -1491,6 +1882,16 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         payload["brand_color"] = Model.BrandColor;
         payload["volume"] = Model.Volume;
         payload["source"] = Model.Source;
+        var list1 = new List<Dictionary<string, object?>>();
+        foreach (var item in Model.References)
+        {
+            var item1 = new Dictionary<string, object?>();
+            item1["name"] = item.Name;
+            item1["may_contact"] = item.MayContact;
+            if ((Equals(item.MayContact, true))) item1["email"] = item.Email;
+            list1.Add(item1);
+        }
+        payload["references"] = list1;
         payload["contact_method"] = string.IsNullOrEmpty(Model.ContactMethod) ? null : Model.ContactMethod;
         if (((Equals(Model.ContactMethod, "phone")))) payload["contact_phone"] = Model.ContactPhone;
         if (((Equals(Model.ContactMethod, "other")))) payload["contact_other"] = Model.ContactOther;
@@ -1579,6 +1980,8 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
 
         public bool Terms { get; set; }
 
+        public List<FgReferencesItem> References { get; set; } = new() { new(), };
+
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
         if (!(string.IsNullOrWhiteSpace(Website)) && (!Uri.TryCreate(Website, UriKind.Absolute, out _))) yield return new ValidationResult("Must be a valid URL", new[] { nameof(Website) });
@@ -1587,6 +1990,13 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         if (!(Topics.Count == 0) && (Topics.Count > 5)) yield return new ValidationResult("At most 5 topics", new[] { nameof(Topics) });
         if (!Terms) yield return new ValidationResult("This field is required", new[] { nameof(Terms) });
         }
+    }
+
+    public class FgReferencesItem
+    {
+        public string Name { get; set; } = "";
+        public bool MayContact { get; set; }
+        public string Email { get; set; } = "";
     }
 }
 "
@@ -1824,6 +2234,54 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
           </div>
         </div>
         <div class="fg-cell" style="grid-column: span 12 / span 12">
+          <fieldset class="fg-group" data-fg-repeater="references">
+            <legend class="fg-group-label">References</legend>
+            <div class="fg-repeater-items">
+              @foreach (var (item, i) in Model.References.Select((x, n) => (x, n)).ToList())
+              {
+                  <fieldset @key="item" class="fg-repeater-item" data-fg-item tabindex="-1" @ref="fgItemRefs[item]">
+                      <legend class="fg-repeater-item-label">@FgItemLabel("references", i)</legend>
+                      <div class="fg-grid">
+                        <div class="fg-cell" style="grid-column: span 12 / span 12">
+                          <div class="fg-field">
+                            <label class="fg-label" for="@($"fg_references_{i}_name")">Name<span class="fg-required" aria-hidden="true">*</span></label>
+                            <InputText id="@($"fg_references_{i}_name")" @bind-Value="item.Name" class="fg-input" />
+                            <ValidationMessage For="@(() => item.Name)" class="fg-error" />
+                          </div>
+                        </div>
+                        <div class="fg-cell" style="grid-column: span 12 / span 12">
+                          <div class="fg-field">
+                            <div class="fg-checkbox-row">
+                              <InputCheckbox id="@($"fg_references_{i}_may_contact")" @bind-Value="item.MayContact" class="fg-checkbox" />
+                              <label class="fg-checkbox-label" for="@($"fg_references_{i}_may_contact")">May we contact them?</label>
+                            </div>
+                            <ValidationMessage For="@(() => item.MayContact)" class="fg-error" />
+                          </div>
+                        </div>
+                        @if ((Equals(item.MayContact, true)))
+                        {
+                            <div class="fg-cell" style="grid-column: span 12 / span 12">
+                              <div class="fg-field">
+                                <label class="fg-label" for="@($"fg_references_{i}_email")">Their email</label>
+                                <InputText id="@($"fg_references_{i}_email")" type="email" @bind-Value="item.Email" class="fg-input" />
+                                <ValidationMessage For="@(() => item.Email)" class="fg-error" />
+                              </div>
+                            </div>
+                        }
+                      </div>
+                      <div class="fg-repeater-item-actions">
+                          <button type="button" class="fg-repeater-remove" aria-label='@FgRemoveLabel("references", i)' @onclick='() => FgRemoveItem(Model.References, "references", i, 0, fgItemFields_references)'>Remove</button>
+                      </div>
+                  </fieldset>
+              }
+            </div>
+            @if (Model.References.Count < 3)
+            {
+                <button type="button" class="fg-button fg-button--secondary fg-repeater-add" data-fg-add="references" @ref="fgAddRef_references" @onclick='() => FgAddItem(Model.References, "references", 3)'>Add reference</button>
+            }
+          </fieldset>
+        </div>
+        <div class="fg-cell" style="grid-column: span 12 / span 12">
           <figure class="fg-quote">
             <blockquote class="fg-quote-text">
               <p>Forms are conversations.</p>
@@ -1993,7 +2451,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         fgEdit = new EditContext(Model);
         fgMessages = new ValidationMessageStore(fgEdit);
         fgEdit.OnValidationRequested += (_, _) => FgValidateAll();
-        fgEdit.OnFieldChanged += (_, e) => FgFieldChanged(e.FieldIdentifier.FieldName);
+        fgEdit.OnFieldChanged += (_, e) => FgFieldChanged(e.FieldIdentifier);
     }
 
     private void FgPointerDown(PointerEventArgs _)
@@ -2020,6 +2478,12 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
 
     private void FgFlushDeferred()
     {
+        if (fgDeferredItemFields.Count > 0)
+        {
+            var items = fgDeferredItemFields.ToArray();
+            fgDeferredItemFields.Clear();
+            foreach (var field in items) FgValidateItemField(field);
+        }
         if (fgDeferredFields.Count == 0) return;
         var names = fgDeferredFields.ToArray();
         fgDeferredFields.Clear();
@@ -2031,6 +2495,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         fgDeferredFields.Clear();
         fgMessages.Clear();
         FgValidateMembers(fgAllMembers);
+        FgValidateRepeater_references();
     }
 
     private object? FgValue(string name) => name switch
@@ -2165,7 +2630,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
     private async Task FgOnInvalidSubmit(EditContext context)
     {
         FgJumpToError();
-        var count = fgAllMembers.Count(m => context.GetValidationMessages(new FieldIdentifier(Model, m)).Any());
+        var count = fgAllMembers.Count(m => context.GetValidationMessages(new FieldIdentifier(Model, m)).Any()) + FgItemErrorCount();
         await FgAnnounce(FgErrorsText(count));
     }
 
@@ -2247,10 +2712,141 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         fgTagDrafts[key] = "";
     }
 
+    private static readonly string[] fgItemFields_references = { "Name", "Email" };
+    private ElementReference fgAddRef_references;
+
+    private bool FgRepeaterHasErrors_references() =>
+        Model.References.Any(item => fgItemFields_references.Any(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any()));
+
+    private bool FgValidateRepeater_references()
+    {
+        var ok = true;
+        foreach (var item in Model.References)
+        {
+            foreach (var name in fgItemFields_references) ok &= FgValidateItemField(new FieldIdentifier(item, name), false);
+        }
+        fgEdit.NotifyValidationStateChanged();
+        return ok;
+    }
+
+    private readonly HashSet<FieldIdentifier> fgDeferredItemFields = new();
+    private readonly Dictionary<object, ElementReference> fgItemRefs = new();
+    private object? fgFocusItem;
+    private string? fgFocusAdd;
+
+    private void FgFieldChanged(FieldIdentifier field)
+    {
+        if (ReferenceEquals(field.Model, Model))
+        {
+            FgFieldChanged(field.FieldName);
+            return;
+        }
+        if (fgPressing)
+        {
+            fgDeferredItemFields.Add(field);
+            return;
+        }
+        FgValidateItemField(field);
+    }
+
+    /** First rule violation of an item field (null when valid or hidden). */
+    private string? FgItemError(object model, string name)
+    {
+        switch (model)
+        {
+            case FgReferencesItem item:
+                switch (name)
+                {
+                    case "Name":
+                    {
+                        if (string.IsNullOrWhiteSpace(item.Name)) return "This field is required";
+                        return null;
+                    }
+                    case "Email":
+                    {
+                        if (!((Equals(item.MayContact, true)))) return null;
+                        if (!(string.IsNullOrWhiteSpace(item.Email)) && (!System.Text.RegularExpressions.Regex.IsMatch(item.Email, @"^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"))) return "Must be a valid email address";
+                        return null;
+                    }
+                }
+                break;
+        }
+        return null;
+    }
+
+    private bool FgValidateItemField(FieldIdentifier field, bool notify = true)
+    {
+        fgMessages.Clear(field);
+        var error = FgItemError(field.Model, field.FieldName);
+        if (error != null) fgMessages.Add(field, error);
+        if (notify) fgEdit.NotifyValidationStateChanged();
+        return error == null;
+    }
+
+    private int FgItemErrorCount()
+    {
+        var count = 0;
+        foreach (var item in Model.References) count += fgItemFields_references.Count(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any());
+        return count;
+    }
+
+    private static string FgItemLabel(string path, int index) => (path switch
+    {
+        "references" => "Reference {n}",
+        _ => "{n}",
+    }).Replace("{n}", (index + 1).ToString());
+
+    private static string FgRemoveLabel(string path, int index) =>
+        "Remove {label}".Replace("{label}", FgItemLabel(path, index));
+
+    private async Task FgAddItem<T>(List<T> list, string path, int max) where T : class, new()
+    {
+        if (list.Count >= max) return;
+        var item = new T();
+        list.Add(item);
+        fgFocusItem = item;
+        await FgAnnounce("{label} added".Replace("{label}", FgItemLabel(path, list.Count - 1)));
+    }
+
+    private async Task FgRemoveItem<T>(List<T> list, string path, int index, int min, string[] fields) where T : class
+    {
+        if (list.Count <= min || index >= list.Count) return;
+        var label = FgItemLabel(path, index);
+        var item = list[index];
+        foreach (var name in fields) fgMessages.Clear(new FieldIdentifier(item, name));
+        fgItemRefs.Remove(item);
+        list.RemoveAt(index);
+        fgEdit.NotifyValidationStateChanged();
+        if (list.Count > 0) fgFocusItem = list[Math.Min(index, list.Count - 1)];
+        else fgFocusAdd = path;
+        await FgAnnounce("{label} removed".Replace("{label}", label));
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (fgFocusItem != null && fgItemRefs.TryGetValue(fgFocusItem, out var itemRef))
+        {
+            fgFocusItem = null;
+            await itemRef.FocusAsync();
+        }
+        else if (fgFocusAdd != null)
+        {
+            var path = fgFocusAdd;
+            fgFocusAdd = null;
+            var addRef = path switch
+            {
+                "references" => fgAddRef_references,
+                _ => default,
+            };
+            if (addRef.Context != null) await addRef.FocusAsync();
+        }
+    }
+
     private async Task FgReset()
     {
         Model = new();
         FgInitEdit();
+        fgItemRefs.Clear();
         fgDeferredFields.Clear();
         ResultJson = null;
         foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";
@@ -2291,6 +2887,16 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         payload["brand_color"] = Model.BrandColor;
         payload["volume"] = Model.Volume;
         payload["source"] = Model.Source;
+        var list1 = new List<Dictionary<string, object?>>();
+        foreach (var item in Model.References)
+        {
+            var item1 = new Dictionary<string, object?>();
+            item1["name"] = item.Name;
+            item1["may_contact"] = item.MayContact;
+            if ((Equals(item.MayContact, true))) item1["email"] = item.Email;
+            list1.Add(item1);
+        }
+        payload["references"] = list1;
         payload["contact_method"] = string.IsNullOrEmpty(Model.ContactMethod) ? null : Model.ContactMethod;
         if (((Equals(Model.ContactMethod, "phone")))) payload["contact_phone"] = Model.ContactPhone;
         if (((Equals(Model.ContactMethod, "other")))) payload["contact_other"] = Model.ContactOther;
@@ -2379,6 +2985,8 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
 
         public bool Terms { get; set; }
 
+        public List<FgReferencesItem> References { get; set; } = new() { new(), };
+
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
         if (!(string.IsNullOrWhiteSpace(Website)) && (!Uri.TryCreate(Website, UriKind.Absolute, out _))) yield return new ValidationResult("Must be a valid URL", new[] { nameof(Website) });
@@ -2387,6 +2995,13 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         if (!(Topics.Count == 0) && (Topics.Count > 5)) yield return new ValidationResult("At most 5 topics", new[] { nameof(Topics) });
         if (!Terms) yield return new ValidationResult("This field is required", new[] { nameof(Terms) });
         }
+    }
+
+    public class FgReferencesItem
+    {
+        public string Name { get; set; } = "";
+        public bool MayContact { get; set; }
+        public string Email { get; set; } = "";
     }
 }
 "
@@ -2610,6 +3225,46 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         </div>
       </div>
       <input id="fg_source" type="hidden" value="kitchen-sink" data-fg-path="source" data-fg-kind="text">
+      <div class="col-12 col-md-12">
+        <fieldset class="border rounded p-3 bg-body-tertiary" data-fg-repeater="references">
+          <legend class="fw-semibold text-secondary small px-1">References</legend>
+          <div class="d-flex flex-column gap-3" data-fg-items="references"></div>
+          <template data-fg-template="references">
+            <fieldset class="border rounded p-3" data-fg-item tabindex="-1">
+              <legend class="float-none w-auto px-1 fs-6 fw-semibold mb-0" data-fg-item-label></legend>
+              <div class="row g-3">
+                <div class="col-12 col-md-12">
+                  <div class="d-flex flex-column gap-1">
+                    <label class="form-label fw-semibold mb-0" for="fg_references___i___name">Name<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+                    <input id="fg_references___i___name" type="text" class="form-control" data-fg-path="references.__i__.name" data-fg-kind="text">
+                    <p id="fg_err_references___i___name" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+                  </div>
+                </div>
+                <div class="col-12 col-md-12">
+                  <div class="d-flex flex-column gap-1">
+                    <div class="form-check">
+                      <input id="fg_references___i___may_contact" type="checkbox" class="form-check-input" data-fg-path="references.__i__.may_contact" data-fg-kind="checkbox">
+                      <label class="form-check-label" for="fg_references___i___may_contact">May we contact them?</label>
+                    </div>
+                    <p id="fg_err_references___i___may_contact" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+                  </div>
+                </div>
+                <div class="col-12 col-md-12" data-fg-icond="0">
+                  <div class="d-flex flex-column gap-1">
+                    <label class="form-label fw-semibold mb-0" for="fg_references___i___email">Their email</label>
+                    <input id="fg_references___i___email" type="email" class="form-control" data-fg-path="references.__i__.email" data-fg-kind="text">
+                    <p id="fg_err_references___i___email" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-2 d-flex justify-content-end">
+                <button type="button" class="btn btn-link link-danger p-0" data-fg-remove>Remove</button>
+              </div>
+            </fieldset>
+          </template>
+          <button type="button" class="btn btn-outline-secondary mt-3" data-fg-add="references">Add reference</button>
+        </fieldset>
+      </div>
       <div class="col-12 col-md-12">
         <figure class="mb-0">
           <blockquote class="blockquote">
@@ -2884,7 +3539,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
     }
 
     function validateField(path) {
-      var validate = FG_VALIDATORS[path]
+      var validate = fgValidatorFor(path)
       if (!validate) return true
       var message = validate()
       setError(path, message)
@@ -2892,7 +3547,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
     }
 
     function fgHasError(path) {
-      var validate = FG_VALIDATORS[path]
+      var validate = fgValidatorFor(path)
       return validate ? Boolean(validate()) : false
     }
 
@@ -2901,7 +3556,156 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
         if (el) el.hidden = !c.test()
       })
+      Object.keys(FG_REPEATERS).forEach(function (path) {
+        fgItemElements(path).forEach(function (item, i) {
+          Array.prototype.forEach.call(item.querySelectorAll('[data-fg-icond]'), function (el) {
+            el.hidden = !FG_ITEM_CONDITIONS[Number(el.getAttribute('data-fg-icond'))](i)
+          })
+        })
+      })
     }
+
+    // Repeating sections: items are clones of a <template>; the index in
+    // ids and data paths is stamped on add and rewritten when an item above
+    // is removed (errors and touched state move with their item).
+    var FG_REPEATERS = {"references":{"key":"references","min":0,"max":3,"initial":1,"label":"Reference {n}"}}
+    var FG_REPEATER_VISIBLE = {
+      "references": function () { return true },
+    }
+    var FG_ITEM_VALIDATORS = {
+      'references': {
+        'name': function (i) {
+          const v = fgGet("references." + i + ".name")
+          if (fgIsBlank(v)) return "This field is required"
+          return null
+        },
+        'email': function (i) {
+          if (!((fgGet("references." + i + ".may_contact") === true))) return null
+          const v = fgGet("references." + i + ".email")
+          if (!fgIsEmpty(v) && ((typeof v !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v)))) return "Must be a valid email address"
+          return null
+        },
+      },
+    }
+    var FG_ITEM_CONDITIONS = [
+      function (i) { return (fgGet("references." + i + ".may_contact") === true) },
+    ]
+    function fgItemElements(path) {
+      var list = document.querySelector('[data-fg-items="' + path + '"]')
+      return list ? Array.prototype.slice.call(list.children) : []
+    }
+    function fgItemIndexes(path) {
+      return fgItemElements(path).map(function (_, i) { return i })
+    }
+    function fgItemLabel(path, index) {
+      return FG_REPEATERS[path].label.split('{n}').join(String(index + 1))
+    }
+    function fgItemPaths(path) {
+      if (!FG_REPEATER_VISIBLE[path]()) return []
+      var fields = Object.keys(FG_ITEM_VALIDATORS[path] || {})
+      var out = []
+      fgItemElements(path).forEach(function (_, i) {
+        fields.forEach(function (field) { out.push(path + '.' + i + '.' + field) })
+      })
+      return out
+    }
+    function fgAllPaths() {
+      var out = Object.keys(FG_VALIDATORS)
+      Object.keys(FG_REPEATERS).forEach(function (path) { out = out.concat(fgItemPaths(path)) })
+      return out
+    }
+    function fgStepPaths(meta, index) {
+      var out = (meta.stepPaths[index] || []).slice()
+      ;(meta.stepRepeaters[index] || []).forEach(function (path) { out = out.concat(fgItemPaths(path)) })
+      return out
+    }
+    function fgValidatorFor(path) {
+      if (FG_VALIDATORS[path]) return FG_VALIDATORS[path]
+      var match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
+      var validate = match && FG_ITEM_VALIDATORS[match[1]] && FG_ITEM_VALIDATORS[match[1]][match[3]]
+      if (!validate) return null
+      return function () { return validate(Number(match[2])) }
+    }
+    /** Rewrites one item's index in every attribute below it. */
+    function fgStampIndex(root, path, from, to) {
+      var key = FG_REPEATERS[path].key
+      var swaps = [[path + '.' + from + '.', path + '.' + to + '.'], [key + '_' + from + '_', key + '_' + to + '_']]
+      var nodes = [root].concat(Array.prototype.slice.call(root.querySelectorAll('*')))
+      nodes.forEach(function (el) {
+        Array.prototype.forEach.call(el.attributes, function (attr) {
+          var value = attr.value
+          swaps.forEach(function (s) { value = value.split(s[0]).join(s[1]) })
+          if (value !== attr.value) el.setAttribute(attr.name, value)
+        })
+      })
+    }
+    function fgRefreshItems(path) {
+      var list = fgItemElements(path)
+      var meta = FG_REPEATERS[path]
+      list.forEach(function (item, index) {
+        var current = Number(item.getAttribute('data-fg-index'))
+        if (current !== index) {
+          fgStampIndex(item, path, current, index)
+          item.setAttribute('data-fg-index', String(index))
+        }
+        item.querySelector('[data-fg-item-label]').textContent = fgItemLabel(path, index)
+        var remove = item.querySelector('[data-fg-remove]')
+        remove.setAttribute('aria-label', "Remove {label}".split('{label}').join(fgItemLabel(path, index)))
+        remove.parentNode.hidden = list.length <= meta.min
+      })
+      var add = document.querySelector('[data-fg-add="' + path + '"]')
+      if (add) add.hidden = meta.max !== null && list.length >= meta.max
+    }
+    function fgAddItem(path, focus) {
+      var meta = FG_REPEATERS[path]
+      var list = document.querySelector('[data-fg-items="' + path + '"]')
+      var template = document.querySelector('[data-fg-template="' + path + '"]')
+      var index = list.children.length
+      if (meta.max !== null && index >= meta.max) return
+      var item = template.content.firstElementChild.cloneNode(true)
+      fgStampIndex(item, path, '__i__', index)
+      item.setAttribute('data-fg-index', String(index))
+      item.querySelector('[data-fg-remove]').addEventListener('click', function () {
+        fgRemoveItem(path, Number(item.getAttribute('data-fg-index')))
+      })
+      list.appendChild(item)
+      fgRefreshItems(path)
+      updateConditions()
+      if (focus) {
+        var control = item.querySelector('input:not([type=hidden]), select, textarea')
+        ;(control || item).focus()
+        fgAnnounce("{label} added".split('{label}').join(fgItemLabel(path, index)))
+      }
+    }
+    function fgRemoveItem(path, index) {
+      var items = fgItemElements(path)
+      if (items.length <= FG_REPEATERS[path].min) return
+      var label = fgItemLabel(path, index)
+      var prefix = path + '.'
+      var moved = {}
+      Object.keys(touched).forEach(function (key) {
+        if (key.indexOf(prefix) !== 0) { moved[key] = true; return }
+        var rest = key.slice(prefix.length)
+        var n = Number(rest.split('.')[0])
+        if (n === index) return
+        moved[n > index ? prefix + (n - 1) + rest.slice(String(n).length) : key] = true
+      })
+      Object.keys(touched).forEach(function (key) { delete touched[key] })
+      Object.keys(moved).forEach(function (key) { touched[key] = true })
+      items[index].remove()
+      fgRefreshItems(path)
+      updateConditions()
+      fgItemPaths(path).forEach(function (p) { if (touched[p]) validateField(p); else setError(p, null) })
+      var remaining = fgItemElements(path)
+      var target = remaining[Math.min(index, remaining.length - 1)] || document.querySelector('[data-fg-add="' + path + '"]')
+      if (target) target.focus()
+      fgAnnounce("{label} removed".split('{label}').join(label))
+    }
+    Object.keys(FG_REPEATERS).forEach(function (path) {
+      for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
+      document.querySelector('[data-fg-add="' + path + '"]').addEventListener('click', function () { fgAddItem(path, true) })
+    })
+
 
     // Tags (chips) fields: value lives in fgTags, chips are painted into
     // the [data-fg-tags-chips] span, Enter/comma/blur adds the draft.
@@ -2965,7 +3769,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       return text.split('{n}').join(String(count))
     }
 
-    var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"nav-link active","tabBase":"nav-link","stepActive":"d-inline-flex align-items-center gap-2 fw-semibold text-body","stepBase":"d-inline-flex align-items-center gap-2","stepPaths":[["twitter"],["github"]],"announce":[]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"nav-link active","tabBase":"nav-link","stepActive":"d-inline-flex align-items-center gap-2 fw-semibold text-body","stepBase":"d-inline-flex align-items-center gap-2","stepPaths":[["shipping_city"],["order_notes"]],"announce":["Step 1 of 2: Shipping","Step 2 of 2: Review"]}]
+    var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"nav-link active","tabBase":"nav-link","stepActive":"d-inline-flex align-items-center gap-2 fw-semibold text-body","stepBase":"d-inline-flex align-items-center gap-2","stepPaths":[["twitter"],["github"]],"stepRepeaters":[[],[]],"announce":[]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"nav-link active","tabBase":"nav-link","stepActive":"d-inline-flex align-items-center gap-2 fw-semibold text-body","stepBase":"d-inline-flex align-items-center gap-2","stepPaths":[["shipping_city"],["order_notes"]],"stepRepeaters":[[],[]],"announce":["Step 1 of 2: Shipping","Step 2 of 2: Review"]}]
     var FG_SUBMIT_GATE = ["ks_wizard"]
     var fgSecState = {}
     function fgUpdateSubmit() {
@@ -3023,7 +3827,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       })
       if (nextBtn) nextBtn.addEventListener('click', function () {
         var ok = true
-        var paths = meta.stepPaths[fgSecState[meta.key]] || []
+        var paths = fgStepPaths(meta, fgSecState[meta.key])
         paths.forEach(function (path) {
           touched[path] = true
           if (!validateField(path)) ok = false
@@ -3059,6 +3863,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         "brand_color": fgGet("brand_color"),
         "volume": fgGet("volume"),
         "source": fgGet("source"),
+        "references": fgItemIndexes("references").map(function (i) { return ({ "name": fgGet("references." + i + ".name"), "may_contact": fgGet("references." + i + ".may_contact"), ...((fgGet("references." + i + ".may_contact") === true) ? { "email": fgGet("references." + i + ".email") } : {}) }) }),
         "contact_method": fgGet("contact_method"),
         ...(fgVisible_contact_phone() ? { "contact_phone": fgGet("contact_phone") } : {}),
         ...(fgVisible_contact_other() ? { "contact_other": fgGet("contact_other") } : {}),
@@ -3122,6 +3927,10 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         })
         Object.keys(touched).forEach(function (path) { delete touched[path] })
         Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })
+        Object.keys(FG_REPEATERS).forEach(function (path) {
+          fgItemElements(path).forEach(function (item) { item.remove() })
+          for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
+        })
         document.getElementById('fg-result').hidden = true
         updateConditions()
         fgAnnounce("The form was reset.")
@@ -3131,7 +3940,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
     form.addEventListener('submit', function (event) {
       event.preventDefault()
       var failed = 0
-      Object.keys(FG_VALIDATORS).forEach(function (path) {
+      fgAllPaths().forEach(function (path) {
         touched[path] = true
         if (!validateField(path)) failed++
       })
@@ -3140,10 +3949,10 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         // Move each tabs/steps host to its first section holding an error
         // (unless the visible one already shows one).
         FG_SECTIONS.forEach(function (meta) {
-          var current = meta.stepPaths[fgSecState[meta.key]] || []
+          var current = fgStepPaths(meta, fgSecState[meta.key])
           if (current.some(fgHasError)) return
           for (var i = 0; i < meta.stepPaths.length; i++) {
-            if ((meta.stepPaths[i] || []).some(fgHasError)) { fgSetSec(meta, i); break }
+            if ((fgStepPaths(meta, i)).some(fgHasError)) { fgSetSec(meta, i); break }
           }
         })
         return
@@ -3390,6 +4199,46 @@ exports[`html target > snapshot (tailwind) 1`] = `
         </div>
       </div>
       <input id="fg_source" type="hidden" value="kitchen-sink" data-fg-path="source" data-fg-kind="text">
+      <div class="col-span-12 md:col-span-12">
+        <fieldset class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50" data-fg-repeater="references">
+          <legend class="px-1 text-sm font-semibold text-gray-500 dark:text-gray-400">References</legend>
+          <div class="flex flex-col gap-4" data-fg-items="references"></div>
+          <template data-fg-template="references">
+            <fieldset class="min-w-0 rounded-lg border border-gray-300 p-4 dark:border-gray-600" data-fg-item tabindex="-1">
+              <legend class="px-1 text-sm font-semibold" data-fg-item-label></legend>
+              <div class="grid grid-cols-12 gap-4">
+                <div class="col-span-12 md:col-span-12">
+                  <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-semibold" for="fg_references___i___name">Name<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+                    <input id="fg_references___i___name" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="references.__i__.name" data-fg-kind="text">
+                    <p id="fg_err_references___i___name" class="text-xs text-red-600" role="alert" hidden></p>
+                  </div>
+                </div>
+                <div class="col-span-12 md:col-span-12">
+                  <div class="flex flex-col gap-1.5">
+                    <div class="flex items-center gap-2">
+                      <input id="fg_references___i___may_contact" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" data-fg-path="references.__i__.may_contact" data-fg-kind="checkbox">
+                      <label class="inline-flex items-center gap-2 text-sm" for="fg_references___i___may_contact">May we contact them?</label>
+                    </div>
+                    <p id="fg_err_references___i___may_contact" class="text-xs text-red-600" role="alert" hidden></p>
+                  </div>
+                </div>
+                <div class="col-span-12 md:col-span-12" data-fg-icond="0">
+                  <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-semibold" for="fg_references___i___email">Their email</label>
+                    <input id="fg_references___i___email" type="email" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="references.__i__.email" data-fg-kind="text">
+                    <p id="fg_err_references___i___email" class="text-xs text-red-600" role="alert" hidden></p>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-3 flex justify-end">
+                <button type="button" class="text-sm text-red-600 underline hover:text-red-700 dark:text-red-400" data-fg-remove>Remove</button>
+              </div>
+            </fieldset>
+          </template>
+          <button type="button" class="mt-4 rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-add="references">Add reference</button>
+        </fieldset>
+      </div>
       <div class="col-span-12 md:col-span-12">
         <figure class="border-s-4 border-gray-300 ps-4 dark:border-gray-600">
           <blockquote class="text-base italic">
@@ -3664,7 +4513,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
     }
 
     function validateField(path) {
-      var validate = FG_VALIDATORS[path]
+      var validate = fgValidatorFor(path)
       if (!validate) return true
       var message = validate()
       setError(path, message)
@@ -3672,7 +4521,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
     }
 
     function fgHasError(path) {
-      var validate = FG_VALIDATORS[path]
+      var validate = fgValidatorFor(path)
       return validate ? Boolean(validate()) : false
     }
 
@@ -3681,7 +4530,156 @@ exports[`html target > snapshot (tailwind) 1`] = `
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
         if (el) el.hidden = !c.test()
       })
+      Object.keys(FG_REPEATERS).forEach(function (path) {
+        fgItemElements(path).forEach(function (item, i) {
+          Array.prototype.forEach.call(item.querySelectorAll('[data-fg-icond]'), function (el) {
+            el.hidden = !FG_ITEM_CONDITIONS[Number(el.getAttribute('data-fg-icond'))](i)
+          })
+        })
+      })
     }
+
+    // Repeating sections: items are clones of a <template>; the index in
+    // ids and data paths is stamped on add and rewritten when an item above
+    // is removed (errors and touched state move with their item).
+    var FG_REPEATERS = {"references":{"key":"references","min":0,"max":3,"initial":1,"label":"Reference {n}"}}
+    var FG_REPEATER_VISIBLE = {
+      "references": function () { return true },
+    }
+    var FG_ITEM_VALIDATORS = {
+      'references': {
+        'name': function (i) {
+          const v = fgGet("references." + i + ".name")
+          if (fgIsBlank(v)) return "This field is required"
+          return null
+        },
+        'email': function (i) {
+          if (!((fgGet("references." + i + ".may_contact") === true))) return null
+          const v = fgGet("references." + i + ".email")
+          if (!fgIsEmpty(v) && ((typeof v !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v)))) return "Must be a valid email address"
+          return null
+        },
+      },
+    }
+    var FG_ITEM_CONDITIONS = [
+      function (i) { return (fgGet("references." + i + ".may_contact") === true) },
+    ]
+    function fgItemElements(path) {
+      var list = document.querySelector('[data-fg-items="' + path + '"]')
+      return list ? Array.prototype.slice.call(list.children) : []
+    }
+    function fgItemIndexes(path) {
+      return fgItemElements(path).map(function (_, i) { return i })
+    }
+    function fgItemLabel(path, index) {
+      return FG_REPEATERS[path].label.split('{n}').join(String(index + 1))
+    }
+    function fgItemPaths(path) {
+      if (!FG_REPEATER_VISIBLE[path]()) return []
+      var fields = Object.keys(FG_ITEM_VALIDATORS[path] || {})
+      var out = []
+      fgItemElements(path).forEach(function (_, i) {
+        fields.forEach(function (field) { out.push(path + '.' + i + '.' + field) })
+      })
+      return out
+    }
+    function fgAllPaths() {
+      var out = Object.keys(FG_VALIDATORS)
+      Object.keys(FG_REPEATERS).forEach(function (path) { out = out.concat(fgItemPaths(path)) })
+      return out
+    }
+    function fgStepPaths(meta, index) {
+      var out = (meta.stepPaths[index] || []).slice()
+      ;(meta.stepRepeaters[index] || []).forEach(function (path) { out = out.concat(fgItemPaths(path)) })
+      return out
+    }
+    function fgValidatorFor(path) {
+      if (FG_VALIDATORS[path]) return FG_VALIDATORS[path]
+      var match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
+      var validate = match && FG_ITEM_VALIDATORS[match[1]] && FG_ITEM_VALIDATORS[match[1]][match[3]]
+      if (!validate) return null
+      return function () { return validate(Number(match[2])) }
+    }
+    /** Rewrites one item's index in every attribute below it. */
+    function fgStampIndex(root, path, from, to) {
+      var key = FG_REPEATERS[path].key
+      var swaps = [[path + '.' + from + '.', path + '.' + to + '.'], [key + '_' + from + '_', key + '_' + to + '_']]
+      var nodes = [root].concat(Array.prototype.slice.call(root.querySelectorAll('*')))
+      nodes.forEach(function (el) {
+        Array.prototype.forEach.call(el.attributes, function (attr) {
+          var value = attr.value
+          swaps.forEach(function (s) { value = value.split(s[0]).join(s[1]) })
+          if (value !== attr.value) el.setAttribute(attr.name, value)
+        })
+      })
+    }
+    function fgRefreshItems(path) {
+      var list = fgItemElements(path)
+      var meta = FG_REPEATERS[path]
+      list.forEach(function (item, index) {
+        var current = Number(item.getAttribute('data-fg-index'))
+        if (current !== index) {
+          fgStampIndex(item, path, current, index)
+          item.setAttribute('data-fg-index', String(index))
+        }
+        item.querySelector('[data-fg-item-label]').textContent = fgItemLabel(path, index)
+        var remove = item.querySelector('[data-fg-remove]')
+        remove.setAttribute('aria-label', "Remove {label}".split('{label}').join(fgItemLabel(path, index)))
+        remove.parentNode.hidden = list.length <= meta.min
+      })
+      var add = document.querySelector('[data-fg-add="' + path + '"]')
+      if (add) add.hidden = meta.max !== null && list.length >= meta.max
+    }
+    function fgAddItem(path, focus) {
+      var meta = FG_REPEATERS[path]
+      var list = document.querySelector('[data-fg-items="' + path + '"]')
+      var template = document.querySelector('[data-fg-template="' + path + '"]')
+      var index = list.children.length
+      if (meta.max !== null && index >= meta.max) return
+      var item = template.content.firstElementChild.cloneNode(true)
+      fgStampIndex(item, path, '__i__', index)
+      item.setAttribute('data-fg-index', String(index))
+      item.querySelector('[data-fg-remove]').addEventListener('click', function () {
+        fgRemoveItem(path, Number(item.getAttribute('data-fg-index')))
+      })
+      list.appendChild(item)
+      fgRefreshItems(path)
+      updateConditions()
+      if (focus) {
+        var control = item.querySelector('input:not([type=hidden]), select, textarea')
+        ;(control || item).focus()
+        fgAnnounce("{label} added".split('{label}').join(fgItemLabel(path, index)))
+      }
+    }
+    function fgRemoveItem(path, index) {
+      var items = fgItemElements(path)
+      if (items.length <= FG_REPEATERS[path].min) return
+      var label = fgItemLabel(path, index)
+      var prefix = path + '.'
+      var moved = {}
+      Object.keys(touched).forEach(function (key) {
+        if (key.indexOf(prefix) !== 0) { moved[key] = true; return }
+        var rest = key.slice(prefix.length)
+        var n = Number(rest.split('.')[0])
+        if (n === index) return
+        moved[n > index ? prefix + (n - 1) + rest.slice(String(n).length) : key] = true
+      })
+      Object.keys(touched).forEach(function (key) { delete touched[key] })
+      Object.keys(moved).forEach(function (key) { touched[key] = true })
+      items[index].remove()
+      fgRefreshItems(path)
+      updateConditions()
+      fgItemPaths(path).forEach(function (p) { if (touched[p]) validateField(p); else setError(p, null) })
+      var remaining = fgItemElements(path)
+      var target = remaining[Math.min(index, remaining.length - 1)] || document.querySelector('[data-fg-add="' + path + '"]')
+      if (target) target.focus()
+      fgAnnounce("{label} removed".split('{label}').join(label))
+    }
+    Object.keys(FG_REPEATERS).forEach(function (path) {
+      for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
+      document.querySelector('[data-fg-add="' + path + '"]').addEventListener('click', function () { fgAddItem(path, true) })
+    })
+
 
     // Tags (chips) fields: value lives in fgTags, chips are painted into
     // the [data-fg-tags-chips] span, Enter/comma/blur adds the draft.
@@ -3745,7 +4743,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
       return text.split('{n}').join(String(count))
     }
 
-    var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600","tabBase":"-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700","stepActive":"flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100","stepBase":"flex items-center gap-2","stepPaths":[["twitter"],["github"]],"announce":[]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600","tabBase":"-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700","stepActive":"flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100","stepBase":"flex items-center gap-2","stepPaths":[["shipping_city"],["order_notes"]],"announce":["Step 1 of 2: Shipping","Step 2 of 2: Review"]}]
+    var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600","tabBase":"-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700","stepActive":"flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100","stepBase":"flex items-center gap-2","stepPaths":[["twitter"],["github"]],"stepRepeaters":[[],[]],"announce":[]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600","tabBase":"-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700","stepActive":"flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100","stepBase":"flex items-center gap-2","stepPaths":[["shipping_city"],["order_notes"]],"stepRepeaters":[[],[]],"announce":["Step 1 of 2: Shipping","Step 2 of 2: Review"]}]
     var FG_SUBMIT_GATE = ["ks_wizard"]
     var fgSecState = {}
     function fgUpdateSubmit() {
@@ -3803,7 +4801,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
       })
       if (nextBtn) nextBtn.addEventListener('click', function () {
         var ok = true
-        var paths = meta.stepPaths[fgSecState[meta.key]] || []
+        var paths = fgStepPaths(meta, fgSecState[meta.key])
         paths.forEach(function (path) {
           touched[path] = true
           if (!validateField(path)) ok = false
@@ -3839,6 +4837,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
         "brand_color": fgGet("brand_color"),
         "volume": fgGet("volume"),
         "source": fgGet("source"),
+        "references": fgItemIndexes("references").map(function (i) { return ({ "name": fgGet("references." + i + ".name"), "may_contact": fgGet("references." + i + ".may_contact"), ...((fgGet("references." + i + ".may_contact") === true) ? { "email": fgGet("references." + i + ".email") } : {}) }) }),
         "contact_method": fgGet("contact_method"),
         ...(fgVisible_contact_phone() ? { "contact_phone": fgGet("contact_phone") } : {}),
         ...(fgVisible_contact_other() ? { "contact_other": fgGet("contact_other") } : {}),
@@ -3902,6 +4901,10 @@ exports[`html target > snapshot (tailwind) 1`] = `
         })
         Object.keys(touched).forEach(function (path) { delete touched[path] })
         Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })
+        Object.keys(FG_REPEATERS).forEach(function (path) {
+          fgItemElements(path).forEach(function (item) { item.remove() })
+          for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
+        })
         document.getElementById('fg-result').hidden = true
         updateConditions()
         fgAnnounce("The form was reset.")
@@ -3911,7 +4914,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
     form.addEventListener('submit', function (event) {
       event.preventDefault()
       var failed = 0
-      Object.keys(FG_VALIDATORS).forEach(function (path) {
+      fgAllPaths().forEach(function (path) {
         touched[path] = true
         if (!validateField(path)) failed++
       })
@@ -3920,10 +4923,10 @@ exports[`html target > snapshot (tailwind) 1`] = `
         // Move each tabs/steps host to its first section holding an error
         // (unless the visible one already shows one).
         FG_SECTIONS.forEach(function (meta) {
-          var current = meta.stepPaths[fgSecState[meta.key]] || []
+          var current = fgStepPaths(meta, fgSecState[meta.key])
           if (current.some(fgHasError)) return
           for (var i = 0; i < meta.stepPaths.length; i++) {
-            if ((meta.stepPaths[i] || []).some(fgHasError)) { fgSetSec(meta, i); break }
+            if ((fgStepPaths(meta, i)).some(fgHasError)) { fgSetSec(meta, i); break }
           }
         })
         return
@@ -4055,6 +5058,13 @@ exports[`html target > snapshot (vanilla) 1`] = `
   .fg-input--color { inline-size: 4rem; block-size: 2.5rem; padding: 0.25rem; cursor: pointer; }
   fieldset.fg-field { margin: 0; padding: 0; border: 0; min-inline-size: 0; }
   fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
+  /* Repeatable sections */
+  .fg-repeater-items { display: flex; flex-direction: column; gap: var(--fg-space); }
+  .fg-repeater-item { margin: 0; padding: var(--fg-space); min-inline-size: 0; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-bg); }
+  .fg-repeater-item-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; }
+  .fg-repeater-item-actions { display: flex; justify-content: flex-end; margin-block-start: 0.75rem; }
+  .fg-repeater-remove { padding: 0; font: inherit; font-size: 0.875rem; color: var(--fg-color-error); background: none; border: none; text-decoration: underline; cursor: pointer; }
+  .fg-repeater-add { margin-block-start: var(--fg-space); }
   @media (prefers-color-scheme: dark) {
     .fg-form:not([data-fg-theme='light']) {
       --fg-color-bg: #0f172a; --fg-color-surface: #1e293b; --fg-color-text: #e2e8f0;
@@ -4282,6 +5292,46 @@ exports[`html target > snapshot (vanilla) 1`] = `
         </div>
       </div>
       <input id="fg_source" type="hidden" value="kitchen-sink" data-fg-path="source" data-fg-kind="text">
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <fieldset class="fg-group" data-fg-repeater="references">
+          <legend class="fg-group-label">References</legend>
+          <div class="fg-repeater-items" data-fg-items="references"></div>
+          <template data-fg-template="references">
+            <fieldset class="fg-repeater-item" data-fg-item tabindex="-1">
+              <legend class="fg-repeater-item-label" data-fg-item-label></legend>
+              <div class="fg-grid">
+                <div class="fg-cell" style="grid-column: span 12 / span 12">
+                  <div class="fg-field">
+                    <label class="fg-label" for="fg_references___i___name">Name<span class="fg-required" aria-hidden="true">*</span></label>
+                    <input id="fg_references___i___name" type="text" class="fg-input" data-fg-path="references.__i__.name" data-fg-kind="text">
+                    <p id="fg_err_references___i___name" class="fg-error" role="alert" hidden></p>
+                  </div>
+                </div>
+                <div class="fg-cell" style="grid-column: span 12 / span 12">
+                  <div class="fg-field">
+                    <div class="fg-checkbox-row">
+                      <input id="fg_references___i___may_contact" type="checkbox" class="fg-checkbox" data-fg-path="references.__i__.may_contact" data-fg-kind="checkbox">
+                      <label class="fg-checkbox-label" for="fg_references___i___may_contact">May we contact them?</label>
+                    </div>
+                    <p id="fg_err_references___i___may_contact" class="fg-error" role="alert" hidden></p>
+                  </div>
+                </div>
+                <div class="fg-cell" style="grid-column: span 12 / span 12" data-fg-icond="0">
+                  <div class="fg-field">
+                    <label class="fg-label" for="fg_references___i___email">Their email</label>
+                    <input id="fg_references___i___email" type="email" class="fg-input" data-fg-path="references.__i__.email" data-fg-kind="text">
+                    <p id="fg_err_references___i___email" class="fg-error" role="alert" hidden></p>
+                  </div>
+                </div>
+              </div>
+              <div class="fg-repeater-item-actions">
+                <button type="button" class="fg-repeater-remove" data-fg-remove>Remove</button>
+              </div>
+            </fieldset>
+          </template>
+          <button type="button" class="fg-button fg-button--secondary fg-repeater-add" data-fg-add="references">Add reference</button>
+        </fieldset>
+      </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
         <figure class="fg-quote">
           <blockquote class="fg-quote-text">
@@ -4556,7 +5606,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
     }
 
     function validateField(path) {
-      var validate = FG_VALIDATORS[path]
+      var validate = fgValidatorFor(path)
       if (!validate) return true
       var message = validate()
       setError(path, message)
@@ -4564,7 +5614,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
     }
 
     function fgHasError(path) {
-      var validate = FG_VALIDATORS[path]
+      var validate = fgValidatorFor(path)
       return validate ? Boolean(validate()) : false
     }
 
@@ -4573,7 +5623,156 @@ exports[`html target > snapshot (vanilla) 1`] = `
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
         if (el) el.hidden = !c.test()
       })
+      Object.keys(FG_REPEATERS).forEach(function (path) {
+        fgItemElements(path).forEach(function (item, i) {
+          Array.prototype.forEach.call(item.querySelectorAll('[data-fg-icond]'), function (el) {
+            el.hidden = !FG_ITEM_CONDITIONS[Number(el.getAttribute('data-fg-icond'))](i)
+          })
+        })
+      })
     }
+
+    // Repeating sections: items are clones of a <template>; the index in
+    // ids and data paths is stamped on add and rewritten when an item above
+    // is removed (errors and touched state move with their item).
+    var FG_REPEATERS = {"references":{"key":"references","min":0,"max":3,"initial":1,"label":"Reference {n}"}}
+    var FG_REPEATER_VISIBLE = {
+      "references": function () { return true },
+    }
+    var FG_ITEM_VALIDATORS = {
+      'references': {
+        'name': function (i) {
+          const v = fgGet("references." + i + ".name")
+          if (fgIsBlank(v)) return "This field is required"
+          return null
+        },
+        'email': function (i) {
+          if (!((fgGet("references." + i + ".may_contact") === true))) return null
+          const v = fgGet("references." + i + ".email")
+          if (!fgIsEmpty(v) && ((typeof v !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v)))) return "Must be a valid email address"
+          return null
+        },
+      },
+    }
+    var FG_ITEM_CONDITIONS = [
+      function (i) { return (fgGet("references." + i + ".may_contact") === true) },
+    ]
+    function fgItemElements(path) {
+      var list = document.querySelector('[data-fg-items="' + path + '"]')
+      return list ? Array.prototype.slice.call(list.children) : []
+    }
+    function fgItemIndexes(path) {
+      return fgItemElements(path).map(function (_, i) { return i })
+    }
+    function fgItemLabel(path, index) {
+      return FG_REPEATERS[path].label.split('{n}').join(String(index + 1))
+    }
+    function fgItemPaths(path) {
+      if (!FG_REPEATER_VISIBLE[path]()) return []
+      var fields = Object.keys(FG_ITEM_VALIDATORS[path] || {})
+      var out = []
+      fgItemElements(path).forEach(function (_, i) {
+        fields.forEach(function (field) { out.push(path + '.' + i + '.' + field) })
+      })
+      return out
+    }
+    function fgAllPaths() {
+      var out = Object.keys(FG_VALIDATORS)
+      Object.keys(FG_REPEATERS).forEach(function (path) { out = out.concat(fgItemPaths(path)) })
+      return out
+    }
+    function fgStepPaths(meta, index) {
+      var out = (meta.stepPaths[index] || []).slice()
+      ;(meta.stepRepeaters[index] || []).forEach(function (path) { out = out.concat(fgItemPaths(path)) })
+      return out
+    }
+    function fgValidatorFor(path) {
+      if (FG_VALIDATORS[path]) return FG_VALIDATORS[path]
+      var match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
+      var validate = match && FG_ITEM_VALIDATORS[match[1]] && FG_ITEM_VALIDATORS[match[1]][match[3]]
+      if (!validate) return null
+      return function () { return validate(Number(match[2])) }
+    }
+    /** Rewrites one item's index in every attribute below it. */
+    function fgStampIndex(root, path, from, to) {
+      var key = FG_REPEATERS[path].key
+      var swaps = [[path + '.' + from + '.', path + '.' + to + '.'], [key + '_' + from + '_', key + '_' + to + '_']]
+      var nodes = [root].concat(Array.prototype.slice.call(root.querySelectorAll('*')))
+      nodes.forEach(function (el) {
+        Array.prototype.forEach.call(el.attributes, function (attr) {
+          var value = attr.value
+          swaps.forEach(function (s) { value = value.split(s[0]).join(s[1]) })
+          if (value !== attr.value) el.setAttribute(attr.name, value)
+        })
+      })
+    }
+    function fgRefreshItems(path) {
+      var list = fgItemElements(path)
+      var meta = FG_REPEATERS[path]
+      list.forEach(function (item, index) {
+        var current = Number(item.getAttribute('data-fg-index'))
+        if (current !== index) {
+          fgStampIndex(item, path, current, index)
+          item.setAttribute('data-fg-index', String(index))
+        }
+        item.querySelector('[data-fg-item-label]').textContent = fgItemLabel(path, index)
+        var remove = item.querySelector('[data-fg-remove]')
+        remove.setAttribute('aria-label', "Remove {label}".split('{label}').join(fgItemLabel(path, index)))
+        remove.parentNode.hidden = list.length <= meta.min
+      })
+      var add = document.querySelector('[data-fg-add="' + path + '"]')
+      if (add) add.hidden = meta.max !== null && list.length >= meta.max
+    }
+    function fgAddItem(path, focus) {
+      var meta = FG_REPEATERS[path]
+      var list = document.querySelector('[data-fg-items="' + path + '"]')
+      var template = document.querySelector('[data-fg-template="' + path + '"]')
+      var index = list.children.length
+      if (meta.max !== null && index >= meta.max) return
+      var item = template.content.firstElementChild.cloneNode(true)
+      fgStampIndex(item, path, '__i__', index)
+      item.setAttribute('data-fg-index', String(index))
+      item.querySelector('[data-fg-remove]').addEventListener('click', function () {
+        fgRemoveItem(path, Number(item.getAttribute('data-fg-index')))
+      })
+      list.appendChild(item)
+      fgRefreshItems(path)
+      updateConditions()
+      if (focus) {
+        var control = item.querySelector('input:not([type=hidden]), select, textarea')
+        ;(control || item).focus()
+        fgAnnounce("{label} added".split('{label}').join(fgItemLabel(path, index)))
+      }
+    }
+    function fgRemoveItem(path, index) {
+      var items = fgItemElements(path)
+      if (items.length <= FG_REPEATERS[path].min) return
+      var label = fgItemLabel(path, index)
+      var prefix = path + '.'
+      var moved = {}
+      Object.keys(touched).forEach(function (key) {
+        if (key.indexOf(prefix) !== 0) { moved[key] = true; return }
+        var rest = key.slice(prefix.length)
+        var n = Number(rest.split('.')[0])
+        if (n === index) return
+        moved[n > index ? prefix + (n - 1) + rest.slice(String(n).length) : key] = true
+      })
+      Object.keys(touched).forEach(function (key) { delete touched[key] })
+      Object.keys(moved).forEach(function (key) { touched[key] = true })
+      items[index].remove()
+      fgRefreshItems(path)
+      updateConditions()
+      fgItemPaths(path).forEach(function (p) { if (touched[p]) validateField(p); else setError(p, null) })
+      var remaining = fgItemElements(path)
+      var target = remaining[Math.min(index, remaining.length - 1)] || document.querySelector('[data-fg-add="' + path + '"]')
+      if (target) target.focus()
+      fgAnnounce("{label} removed".split('{label}').join(label))
+    }
+    Object.keys(FG_REPEATERS).forEach(function (path) {
+      for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
+      document.querySelector('[data-fg-add="' + path + '"]').addEventListener('click', function () { fgAddItem(path, true) })
+    })
+
 
     // Tags (chips) fields: value lives in fgTags, chips are painted into
     // the [data-fg-tags-chips] span, Enter/comma/blur adds the draft.
@@ -4637,7 +5836,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
       return text.split('{n}').join(String(count))
     }
 
-    var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"fg-tab-button fg-tab-button--active","tabBase":"fg-tab-button","stepActive":"fg-step-item fg-step-item--active","stepBase":"fg-step-item","stepPaths":[["twitter"],["github"]],"announce":[]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"fg-tab-button fg-tab-button--active","tabBase":"fg-tab-button","stepActive":"fg-step-item fg-step-item--active","stepBase":"fg-step-item","stepPaths":[["shipping_city"],["order_notes"]],"announce":["Step 1 of 2: Shipping","Step 2 of 2: Review"]}]
+    var FG_SECTIONS = [{"key":"ks_social_tabs","kind":"tabs","count":2,"tabActive":"fg-tab-button fg-tab-button--active","tabBase":"fg-tab-button","stepActive":"fg-step-item fg-step-item--active","stepBase":"fg-step-item","stepPaths":[["twitter"],["github"]],"stepRepeaters":[[],[]],"announce":[]},{"key":"ks_wizard","kind":"steps","count":2,"tabActive":"fg-tab-button fg-tab-button--active","tabBase":"fg-tab-button","stepActive":"fg-step-item fg-step-item--active","stepBase":"fg-step-item","stepPaths":[["shipping_city"],["order_notes"]],"stepRepeaters":[[],[]],"announce":["Step 1 of 2: Shipping","Step 2 of 2: Review"]}]
     var FG_SUBMIT_GATE = ["ks_wizard"]
     var fgSecState = {}
     function fgUpdateSubmit() {
@@ -4695,7 +5894,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
       })
       if (nextBtn) nextBtn.addEventListener('click', function () {
         var ok = true
-        var paths = meta.stepPaths[fgSecState[meta.key]] || []
+        var paths = fgStepPaths(meta, fgSecState[meta.key])
         paths.forEach(function (path) {
           touched[path] = true
           if (!validateField(path)) ok = false
@@ -4731,6 +5930,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
         "brand_color": fgGet("brand_color"),
         "volume": fgGet("volume"),
         "source": fgGet("source"),
+        "references": fgItemIndexes("references").map(function (i) { return ({ "name": fgGet("references." + i + ".name"), "may_contact": fgGet("references." + i + ".may_contact"), ...((fgGet("references." + i + ".may_contact") === true) ? { "email": fgGet("references." + i + ".email") } : {}) }) }),
         "contact_method": fgGet("contact_method"),
         ...(fgVisible_contact_phone() ? { "contact_phone": fgGet("contact_phone") } : {}),
         ...(fgVisible_contact_other() ? { "contact_other": fgGet("contact_other") } : {}),
@@ -4794,6 +5994,10 @@ exports[`html target > snapshot (vanilla) 1`] = `
         })
         Object.keys(touched).forEach(function (path) { delete touched[path] })
         Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })
+        Object.keys(FG_REPEATERS).forEach(function (path) {
+          fgItemElements(path).forEach(function (item) { item.remove() })
+          for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
+        })
         document.getElementById('fg-result').hidden = true
         updateConditions()
         fgAnnounce("The form was reset.")
@@ -4803,7 +6007,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
     form.addEventListener('submit', function (event) {
       event.preventDefault()
       var failed = 0
-      Object.keys(FG_VALIDATORS).forEach(function (path) {
+      fgAllPaths().forEach(function (path) {
         touched[path] = true
         if (!validateField(path)) failed++
       })
@@ -4812,10 +6016,10 @@ exports[`html target > snapshot (vanilla) 1`] = `
         // Move each tabs/steps host to its first section holding an error
         // (unless the visible one already shows one).
         FG_SECTIONS.forEach(function (meta) {
-          var current = meta.stepPaths[fgSecState[meta.key]] || []
+          var current = fgStepPaths(meta, fgSecState[meta.key])
           if (current.some(fgHasError)) return
           for (var i = 0; i < meta.stepPaths.length; i++) {
-            if ((meta.stepPaths[i] || []).some(fgHasError)) { fgSetSec(meta, i); break }
+            if ((fgStepPaths(meta, i)).some(fgHasError)) { fgSetSec(meta, i); break }
           }
         })
         return
@@ -4892,6 +6096,11 @@ type FormData = {
   order_notes: string
   newsletter: boolean
   terms: boolean
+  references: Array<{
+    name: string
+    may_contact: boolean
+    email: string
+  }>
 }
 
 const INITIAL: FormData = {
@@ -4927,7 +6136,12 @@ const INITIAL: FormData = {
   shipping_city: "",
   order_notes: "",
   newsletter: true,
-  terms: false
+  terms: false,
+  references: [{
+    name: "",
+    may_contact: false,
+    email: ""
+  }]
 }
 
 function fgVisible_contact_phone(data: FormData) {
@@ -5030,6 +6244,7 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "brand_color": data.brand_color,
     "volume": data.volume,
     "source": data.source,
+    "references": data.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}) })),
     "contact_method": data.contact_method,
     ...(fgVisible_contact_phone(data) ? { "contact_phone": data.contact_phone } : {}),
     ...(fgVisible_contact_other(data) ? { "contact_other": data.contact_other } : {}),
@@ -5040,6 +6255,91 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "newsletter": data.newsletter,
     "terms": data.terms,
   }
+}
+
+const FG_ITEM_DEFAULTS: Record<string, () => Record<string, unknown>> = {
+  'references': () => ({
+    name: "",
+    may_contact: false,
+    email: ""
+  }),
+}
+
+const FG_ITEM_LIMITS: Record<string, { min: number; max: number }> = {
+  'references': { min: 0, max: 3 },
+}
+
+const FG_ITEM_LABELS: Record<string, string> = {
+  'references': "Reference {n}",
+}
+
+const FG_REPEATER_VISIBLE: Record<string, (data: FormData) => boolean> = {
+  'references': (_data: FormData) => true,
+}
+
+const itemValidators: Record<string, Record<string, (item: Record<string, unknown>, data: FormData) => string | null>> = {
+  'references': {
+    'name': function (item: Record<string, unknown>, _data: FormData) {
+      const v = item["name"]
+      if (fgIsBlank(v)) return "This field is required"
+      return null
+    },
+    'email': function (item: Record<string, unknown>, _data: FormData) {
+      if (!((item["may_contact"] === true))) return null
+      const v = item["email"]
+      if (!fgIsEmpty(v) && ((typeof v !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v)))) return "Must be a valid email address"
+      return null
+    },
+  },
+}
+
+function fgList(data: FormData, path: string): Record<string, unknown>[] {
+  return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], data) as Record<string, unknown>[]
+}
+
+function fgItemLabel(path: string, index: number): string {
+  return (FG_ITEM_LABELS[path] ?? '').split('{n}').join(String(index + 1))
+}
+
+function fgRemoveLabel(path: string, index: number): string {
+  return "Remove {label}".split('{label}').join(fgItemLabel(path, index))
+}
+
+/** Every item field path of a visible repeater (validation, step gates). */
+function fgItemPaths(data: FormData, path: string): string[] {
+  if (!FG_REPEATER_VISIBLE[path]?.(data)) return []
+  const fields = Object.keys(itemValidators[path] ?? {})
+  return fgList(data, path).flatMap((_, i) => fields.map((field) => \`\${path}.\${i}.\${field}\`))
+}
+
+/** Validator for a field path, including item paths like "people.2.name". */
+function fgValidatorFor(path: string): ((data: FormData) => string | null) | undefined {
+  const direct = validators[path]
+  if (direct) return direct
+  const match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
+  if (!match) return undefined
+  const validate = itemValidators[match[1]!]?.[match[3]!]
+  if (!validate) return undefined
+  return (data) => {
+    const item = fgList(data, match[1]!)[Number(match[2])]
+    return item ? validate(item, data) : null
+  }
+}
+
+/** All field paths to validate on submit (items included). */
+function fgAllPaths(data: FormData): string[] {
+  return [...Object.keys(validators), ...Object.keys(itemValidators).flatMap((path) => fgItemPaths(data, path))]
+}
+
+/** Moves item keys/paths after a removal: "people.3.x" → "people.2.x". */
+function fgShiftKey(key: string, path: string, removed: number): string | null {
+  if (!key.startsWith(path + '.')) return key
+  const rest = key.slice(path.length + 1)
+  const dot = rest.indexOf('.')
+  const index = Number(dot === -1 ? rest : rest.slice(0, dot))
+  if (!Number.isInteger(index)) return key
+  if (index === removed) return null
+  return index > removed ? \`\${path}.\${index - 1}\${dot === -1 ? '' : rest.slice(dot)}\` : key
 }
 
 const fgSecPaths_ks_social_tabs = [["twitter"], ["github"]]
@@ -5065,6 +6365,11 @@ export default function KitchenSinkForm({
   const [fgSec_ks_social_tabs, setFgSec_ks_social_tabs] = useState(0)
   const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)
   const [tagDrafts, setTagDrafts] = useState<Record<string, string>>({})
+  const fgRoot = useRef<HTMLFormElement>(null)
+  // Stable React keys per item (the form object is cloned on every edit).
+  const fgKeys = useRef<Record<string, number[]>>({})
+  const fgNextKey = useRef(0)
+  const fgPendingFocus = useRef<{ path: string; index: number } | null>(null)
 
   // Polite aria-live region; cleared first so repeated text re-announces.
   function fgAnnounce(message: string): void {
@@ -5082,7 +6387,7 @@ export default function KitchenSinkForm({
     const next = { ...errors }
     for (const path of fgSecPaths_ks_wizard[fgSec_ks_wizard] ?? []) {
       touched.current.add(path)
-      const validate = validators[path]
+      const validate = fgValidatorFor(path)
       const message = validate ? validate(form) : null
       if (message) { next[path] = message; ok = false } else { delete next[path] }
     }
@@ -5101,7 +6406,7 @@ export default function KitchenSinkForm({
   }
 
   function validateField(path: string, data: FormData): void {
-    const validate = validators[path]
+    const validate = fgValidatorFor(path)
     if (validate) applyError(path, validate(data))
   }
 
@@ -5167,10 +6472,65 @@ export default function KitchenSinkForm({
     setField(path, current.filter((_, i) => i !== index))
   }
 
+  function fgKeyAt(path: string, index: number): number {
+    const keys = (fgKeys.current[path] ??= [])
+    while (keys.length <= index) keys.push(fgNextKey.current++)
+    return keys[index]!
+  }
+
+  function fgAddItem(path: string): void {
+    const list = fgList(form, path)
+    if (list.length >= (FG_ITEM_LIMITS[path]?.max ?? Number.POSITIVE_INFINITY)) return
+    setField(path, [...list, FG_ITEM_DEFAULTS[path]!()])
+    fgPendingFocus.current = { path, index: list.length }
+    fgAnnounce("{label} added".split('{label}').join(fgItemLabel(path, list.length)))
+  }
+
+  function fgRemoveItem(path: string, index: number): void {
+    const list = fgList(form, path)
+    if (list.length <= (FG_ITEM_LIMITS[path]?.min ?? 0)) return
+    const label = fgItemLabel(path, index)
+    fgKeyAt(path, list.length - 1)
+    fgKeys.current[path]!.splice(index, 1)
+    const nextTouched = [...touched.current].map((k) => fgShiftKey(k, path, index)).filter((k): k is string => k !== null)
+    touched.current = new Set(nextTouched)
+    setErrors((prev) => {
+      const next: Record<string, string> = {}
+      for (const [key, message] of Object.entries(prev)) {
+        const target = fgShiftKey(key, path, index)
+        if (target !== null) next[target] = message
+      }
+      return next
+    })
+    setField(path, list.filter((_, i) => i !== index))
+    fgPendingFocus.current = { path, index: -1 - index }
+    fgAnnounce("{label} removed".split('{label}').join(label))
+  }
+
+  // After an add: focus the new item's first control. After a remove
+  // (negative index): focus the item that took its place, or the add button.
+  useEffect(() => {
+    const pending = fgPendingFocus.current
+    if (!pending) return
+    fgPendingFocus.current = null
+    const repeater = fgRoot.current?.querySelector(\`[data-fg-repeater="\${pending.path}"]\`)
+    const items = Array.from(repeater?.querySelectorAll<HTMLElement>(':scope > div > [data-fg-item]') ?? [])
+    if (pending.index >= 0) {
+      const item = items[pending.index]
+      const control = item?.querySelector<HTMLElement>('input:not([type=hidden]), select, textarea')
+      ;(control ?? item)?.focus()
+    } else {
+      const removed = -1 - pending.index
+      const target = items[Math.min(removed, items.length - 1)]
+      ;(target ?? repeater?.querySelector<HTMLElement>('[data-fg-add]'))?.focus()
+    }
+  })
+
   function fgReset(): void {
     setForm(INITIAL)
     setErrors({})
     touched.current.clear()
+    fgKeys.current = {}
     setResult(null)
     setTagDrafts({})
     fgAnnounce("The form was reset.")
@@ -5179,9 +6539,9 @@ export default function KitchenSinkForm({
   function handleSubmit(event: React.FormEvent): void {
     event.preventDefault()
     const nextErrors: Record<string, string> = {}
-    for (const path of Object.keys(validators)) {
+    for (const path of fgAllPaths(form)) {
       touched.current.add(path)
-      const message = validators[path]!(form)
+      const message = fgValidatorFor(path)?.(form) ?? null
       if (message) nextErrors[path] = message
     }
     setErrors(nextErrors)
@@ -5204,7 +6564,7 @@ export default function KitchenSinkForm({
   }
 
   return (
-    <form className="container py-4" dir="ltr" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
+    <form ref={fgRoot} className="container py-4" dir="ltr" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
       <div className="row g-3">
         <div className="col-12 col-md-12 text-center">
           <h2 className="fw-semibold text-primary">Kitchen Sink</h2>
@@ -5424,6 +6784,49 @@ export default function KitchenSinkForm({
           </div>
         </div>
         <div className="col-12 col-md-12">
+          <fieldset className="border rounded p-3 bg-body-tertiary" data-fg-repeater="references">
+            <legend className="fw-semibold text-secondary small px-1">References</legend>
+            <div className="d-flex flex-column gap-3">
+              {form.references.map((item, i) => (
+                <fieldset key={fgKeyAt('references', i)} className="border rounded p-3" data-fg-item tabIndex={-1}>
+                  <legend className="float-none w-auto px-1 fs-6 fw-semibold mb-0">{fgItemLabel('references', i)}</legend>
+                  <div className="row g-3">
+                    <div className="col-12 col-md-12">
+                      <div className="d-flex flex-column gap-1">
+                        <label className="form-label fw-semibold mb-0" htmlFor={'fg_references_' + i + '_name'}>Name<span className="text-danger ms-1" aria-hidden="true">*</span></label>
+                        <input id={'fg_references_' + i + '_name'} type="text" value={item.name} className={errors[('references.' + i + '.name')] ? "form-control is-invalid" : "form-control"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField(('references.' + i + '.name'), e.target.value)} onBlur={() => touch(('references.' + i + '.name'))} />
+                        {errors[('references.' + i + '.name')] && <p className="invalid-feedback d-block mt-0" role="alert">{errors[('references.' + i + '.name')]}</p>}
+                      </div>
+                    </div>
+                    <div className="col-12 col-md-12">
+                      <div className="d-flex flex-column gap-1">
+                        <div className="form-check">
+                          <input id={'fg_references_' + i + '_may_contact'} type="checkbox" checked={item.may_contact} className="form-check-input" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField(('references.' + i + '.may_contact'), e.target.checked); touch(('references.' + i + '.may_contact')) }} />
+                          <label className="form-check-label" htmlFor={'fg_references_' + i + '_may_contact'}>May we contact them?</label>
+                        </div>
+                        {errors[('references.' + i + '.may_contact')] && <p className="invalid-feedback d-block mt-0" role="alert">{errors[('references.' + i + '.may_contact')]}</p>}
+                      </div>
+                    </div>
+                    {((item.may_contact === true)) && (
+                      <div className="col-12 col-md-12">
+                        <div className="d-flex flex-column gap-1">
+                          <label className="form-label fw-semibold mb-0" htmlFor={'fg_references_' + i + '_email'}>Their email</label>
+                          <input id={'fg_references_' + i + '_email'} type="email" value={item.email} className={errors[('references.' + i + '.email')] ? "form-control is-invalid" : "form-control"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField(('references.' + i + '.email'), e.target.value)} onBlur={() => touch(('references.' + i + '.email'))} />
+                          {errors[('references.' + i + '.email')] && <p className="invalid-feedback d-block mt-0" role="alert">{errors[('references.' + i + '.email')]}</p>}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-2 d-flex justify-content-end">
+                    <button type="button" className="btn btn-link link-danger p-0" aria-label={fgRemoveLabel('references', i)} onClick={() => fgRemoveItem('references', i)}>Remove</button>
+                  </div>
+                </fieldset>
+              ))}
+            </div>
+            {form.references.length < 3 && <button type="button" className="btn btn-outline-secondary mt-3" data-fg-add="references" onClick={() => fgAddItem('references')}>Add reference</button>}
+          </fieldset>
+        </div>
+        <div className="col-12 col-md-12">
           <figure className="mb-0">
             <blockquote className="blockquote">
               <p>Forms are conversations.</p>
@@ -5615,6 +7018,11 @@ type FormData = {
   order_notes: string
   newsletter: boolean
   terms: boolean
+  references: Array<{
+    name: string
+    may_contact: boolean
+    email: string
+  }>
 }
 
 const INITIAL: FormData = {
@@ -5650,7 +7058,12 @@ const INITIAL: FormData = {
   shipping_city: "",
   order_notes: "",
   newsletter: true,
-  terms: false
+  terms: false,
+  references: [{
+    name: "",
+    may_contact: false,
+    email: ""
+  }]
 }
 
 function fgVisible_contact_phone(data: FormData) {
@@ -5753,6 +7166,7 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "brand_color": data.brand_color,
     "volume": data.volume,
     "source": data.source,
+    "references": data.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}) })),
     "contact_method": data.contact_method,
     ...(fgVisible_contact_phone(data) ? { "contact_phone": data.contact_phone } : {}),
     ...(fgVisible_contact_other(data) ? { "contact_other": data.contact_other } : {}),
@@ -5763,6 +7177,91 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "newsletter": data.newsletter,
     "terms": data.terms,
   }
+}
+
+const FG_ITEM_DEFAULTS: Record<string, () => Record<string, unknown>> = {
+  'references': () => ({
+    name: "",
+    may_contact: false,
+    email: ""
+  }),
+}
+
+const FG_ITEM_LIMITS: Record<string, { min: number; max: number }> = {
+  'references': { min: 0, max: 3 },
+}
+
+const FG_ITEM_LABELS: Record<string, string> = {
+  'references': "Reference {n}",
+}
+
+const FG_REPEATER_VISIBLE: Record<string, (data: FormData) => boolean> = {
+  'references': (_data: FormData) => true,
+}
+
+const itemValidators: Record<string, Record<string, (item: Record<string, unknown>, data: FormData) => string | null>> = {
+  'references': {
+    'name': function (item: Record<string, unknown>, _data: FormData) {
+      const v = item["name"]
+      if (fgIsBlank(v)) return "This field is required"
+      return null
+    },
+    'email': function (item: Record<string, unknown>, _data: FormData) {
+      if (!((item["may_contact"] === true))) return null
+      const v = item["email"]
+      if (!fgIsEmpty(v) && ((typeof v !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v)))) return "Must be a valid email address"
+      return null
+    },
+  },
+}
+
+function fgList(data: FormData, path: string): Record<string, unknown>[] {
+  return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], data) as Record<string, unknown>[]
+}
+
+function fgItemLabel(path: string, index: number): string {
+  return (FG_ITEM_LABELS[path] ?? '').split('{n}').join(String(index + 1))
+}
+
+function fgRemoveLabel(path: string, index: number): string {
+  return "Remove {label}".split('{label}').join(fgItemLabel(path, index))
+}
+
+/** Every item field path of a visible repeater (validation, step gates). */
+function fgItemPaths(data: FormData, path: string): string[] {
+  if (!FG_REPEATER_VISIBLE[path]?.(data)) return []
+  const fields = Object.keys(itemValidators[path] ?? {})
+  return fgList(data, path).flatMap((_, i) => fields.map((field) => \`\${path}.\${i}.\${field}\`))
+}
+
+/** Validator for a field path, including item paths like "people.2.name". */
+function fgValidatorFor(path: string): ((data: FormData) => string | null) | undefined {
+  const direct = validators[path]
+  if (direct) return direct
+  const match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
+  if (!match) return undefined
+  const validate = itemValidators[match[1]!]?.[match[3]!]
+  if (!validate) return undefined
+  return (data) => {
+    const item = fgList(data, match[1]!)[Number(match[2])]
+    return item ? validate(item, data) : null
+  }
+}
+
+/** All field paths to validate on submit (items included). */
+function fgAllPaths(data: FormData): string[] {
+  return [...Object.keys(validators), ...Object.keys(itemValidators).flatMap((path) => fgItemPaths(data, path))]
+}
+
+/** Moves item keys/paths after a removal: "people.3.x" → "people.2.x". */
+function fgShiftKey(key: string, path: string, removed: number): string | null {
+  if (!key.startsWith(path + '.')) return key
+  const rest = key.slice(path.length + 1)
+  const dot = rest.indexOf('.')
+  const index = Number(dot === -1 ? rest : rest.slice(0, dot))
+  if (!Number.isInteger(index)) return key
+  if (index === removed) return null
+  return index > removed ? \`\${path}.\${index - 1}\${dot === -1 ? '' : rest.slice(dot)}\` : key
 }
 
 const fgSecPaths_ks_social_tabs = [["twitter"], ["github"]]
@@ -5788,6 +7287,11 @@ export default function KitchenSinkForm({
   const [fgSec_ks_social_tabs, setFgSec_ks_social_tabs] = useState(0)
   const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)
   const [tagDrafts, setTagDrafts] = useState<Record<string, string>>({})
+  const fgRoot = useRef<HTMLFormElement>(null)
+  // Stable React keys per item (the form object is cloned on every edit).
+  const fgKeys = useRef<Record<string, number[]>>({})
+  const fgNextKey = useRef(0)
+  const fgPendingFocus = useRef<{ path: string; index: number } | null>(null)
 
   // Polite aria-live region; cleared first so repeated text re-announces.
   function fgAnnounce(message: string): void {
@@ -5805,7 +7309,7 @@ export default function KitchenSinkForm({
     const next = { ...errors }
     for (const path of fgSecPaths_ks_wizard[fgSec_ks_wizard] ?? []) {
       touched.current.add(path)
-      const validate = validators[path]
+      const validate = fgValidatorFor(path)
       const message = validate ? validate(form) : null
       if (message) { next[path] = message; ok = false } else { delete next[path] }
     }
@@ -5824,7 +7328,7 @@ export default function KitchenSinkForm({
   }
 
   function validateField(path: string, data: FormData): void {
-    const validate = validators[path]
+    const validate = fgValidatorFor(path)
     if (validate) applyError(path, validate(data))
   }
 
@@ -5890,10 +7394,65 @@ export default function KitchenSinkForm({
     setField(path, current.filter((_, i) => i !== index))
   }
 
+  function fgKeyAt(path: string, index: number): number {
+    const keys = (fgKeys.current[path] ??= [])
+    while (keys.length <= index) keys.push(fgNextKey.current++)
+    return keys[index]!
+  }
+
+  function fgAddItem(path: string): void {
+    const list = fgList(form, path)
+    if (list.length >= (FG_ITEM_LIMITS[path]?.max ?? Number.POSITIVE_INFINITY)) return
+    setField(path, [...list, FG_ITEM_DEFAULTS[path]!()])
+    fgPendingFocus.current = { path, index: list.length }
+    fgAnnounce("{label} added".split('{label}').join(fgItemLabel(path, list.length)))
+  }
+
+  function fgRemoveItem(path: string, index: number): void {
+    const list = fgList(form, path)
+    if (list.length <= (FG_ITEM_LIMITS[path]?.min ?? 0)) return
+    const label = fgItemLabel(path, index)
+    fgKeyAt(path, list.length - 1)
+    fgKeys.current[path]!.splice(index, 1)
+    const nextTouched = [...touched.current].map((k) => fgShiftKey(k, path, index)).filter((k): k is string => k !== null)
+    touched.current = new Set(nextTouched)
+    setErrors((prev) => {
+      const next: Record<string, string> = {}
+      for (const [key, message] of Object.entries(prev)) {
+        const target = fgShiftKey(key, path, index)
+        if (target !== null) next[target] = message
+      }
+      return next
+    })
+    setField(path, list.filter((_, i) => i !== index))
+    fgPendingFocus.current = { path, index: -1 - index }
+    fgAnnounce("{label} removed".split('{label}').join(label))
+  }
+
+  // After an add: focus the new item's first control. After a remove
+  // (negative index): focus the item that took its place, or the add button.
+  useEffect(() => {
+    const pending = fgPendingFocus.current
+    if (!pending) return
+    fgPendingFocus.current = null
+    const repeater = fgRoot.current?.querySelector(\`[data-fg-repeater="\${pending.path}"]\`)
+    const items = Array.from(repeater?.querySelectorAll<HTMLElement>(':scope > div > [data-fg-item]') ?? [])
+    if (pending.index >= 0) {
+      const item = items[pending.index]
+      const control = item?.querySelector<HTMLElement>('input:not([type=hidden]), select, textarea')
+      ;(control ?? item)?.focus()
+    } else {
+      const removed = -1 - pending.index
+      const target = items[Math.min(removed, items.length - 1)]
+      ;(target ?? repeater?.querySelector<HTMLElement>('[data-fg-add]'))?.focus()
+    }
+  })
+
   function fgReset(): void {
     setForm(INITIAL)
     setErrors({})
     touched.current.clear()
+    fgKeys.current = {}
     setResult(null)
     setTagDrafts({})
     fgAnnounce("The form was reset.")
@@ -5902,9 +7461,9 @@ export default function KitchenSinkForm({
   function handleSubmit(event: React.FormEvent): void {
     event.preventDefault()
     const nextErrors: Record<string, string> = {}
-    for (const path of Object.keys(validators)) {
+    for (const path of fgAllPaths(form)) {
       touched.current.add(path)
-      const message = validators[path]!(form)
+      const message = fgValidatorFor(path)?.(form) ?? null
       if (message) nextErrors[path] = message
     }
     setErrors(nextErrors)
@@ -5927,7 +7486,7 @@ export default function KitchenSinkForm({
   }
 
   return (
-    <form className="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" dir="ltr" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
+    <form ref={fgRoot} className="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" dir="ltr" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-12 md:col-span-12 text-center">
           <h2 className="font-semibold text-indigo-600 dark:text-indigo-400">Kitchen Sink</h2>
@@ -6155,6 +7714,49 @@ export default function KitchenSinkForm({
           </div>
         </div>
         <div className="col-span-12 md:col-span-12">
+          <fieldset className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50" data-fg-repeater="references">
+            <legend className="px-1 text-sm font-semibold text-gray-500 dark:text-gray-400">References</legend>
+            <div className="flex flex-col gap-4">
+              {form.references.map((item, i) => (
+                <fieldset key={fgKeyAt('references', i)} className="min-w-0 rounded-lg border border-gray-300 p-4 dark:border-gray-600" data-fg-item tabIndex={-1}>
+                  <legend className="px-1 text-sm font-semibold">{fgItemLabel('references', i)}</legend>
+                  <div className="grid grid-cols-12 gap-4">
+                    <div className="col-span-12 md:col-span-12">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-sm font-semibold" htmlFor={'fg_references_' + i + '_name'}>Name<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+                        <input id={'fg_references_' + i + '_name'} type="text" value={item.name} className={errors[('references.' + i + '.name')] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField(('references.' + i + '.name'), e.target.value)} onBlur={() => touch(('references.' + i + '.name'))} />
+                        {errors[('references.' + i + '.name')] && <p className="text-xs text-red-600" role="alert">{errors[('references.' + i + '.name')]}</p>}
+                      </div>
+                    </div>
+                    <div className="col-span-12 md:col-span-12">
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-2">
+                          <input id={'fg_references_' + i + '_may_contact'} type="checkbox" checked={item.may_contact} className="h-4 w-4 rounded border-gray-300 accent-indigo-600" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField(('references.' + i + '.may_contact'), e.target.checked); touch(('references.' + i + '.may_contact')) }} />
+                          <label className="inline-flex items-center gap-2 text-sm" htmlFor={'fg_references_' + i + '_may_contact'}>May we contact them?</label>
+                        </div>
+                        {errors[('references.' + i + '.may_contact')] && <p className="text-xs text-red-600" role="alert">{errors[('references.' + i + '.may_contact')]}</p>}
+                      </div>
+                    </div>
+                    {((item.may_contact === true)) && (
+                      <div className="col-span-12 md:col-span-12">
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-sm font-semibold" htmlFor={'fg_references_' + i + '_email'}>Their email</label>
+                          <input id={'fg_references_' + i + '_email'} type="email" value={item.email} className={errors[('references.' + i + '.email')] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField(('references.' + i + '.email'), e.target.value)} onBlur={() => touch(('references.' + i + '.email'))} />
+                          {errors[('references.' + i + '.email')] && <p className="text-xs text-red-600" role="alert">{errors[('references.' + i + '.email')]}</p>}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-3 flex justify-end">
+                    <button type="button" className="text-sm text-red-600 underline hover:text-red-700 dark:text-red-400" aria-label={fgRemoveLabel('references', i)} onClick={() => fgRemoveItem('references', i)}>Remove</button>
+                  </div>
+                </fieldset>
+              ))}
+            </div>
+            {form.references.length < 3 && <button type="button" className="mt-4 rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-add="references" onClick={() => fgAddItem('references')}>Add reference</button>}
+          </fieldset>
+        </div>
+        <div className="col-span-12 md:col-span-12">
           <figure className="border-s-4 border-gray-300 ps-4 dark:border-gray-600">
             <blockquote className="text-base italic">
               <p>Forms are conversations.</p>
@@ -6347,6 +7949,11 @@ type FormData = {
   order_notes: string
   newsletter: boolean
   terms: boolean
+  references: Array<{
+    name: string
+    may_contact: boolean
+    email: string
+  }>
 }
 
 const INITIAL: FormData = {
@@ -6382,7 +7989,12 @@ const INITIAL: FormData = {
   shipping_city: "",
   order_notes: "",
   newsletter: true,
-  terms: false
+  terms: false,
+  references: [{
+    name: "",
+    may_contact: false,
+    email: ""
+  }]
 }
 
 function fgVisible_contact_phone(data: FormData) {
@@ -6485,6 +8097,7 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "brand_color": data.brand_color,
     "volume": data.volume,
     "source": data.source,
+    "references": data.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}) })),
     "contact_method": data.contact_method,
     ...(fgVisible_contact_phone(data) ? { "contact_phone": data.contact_phone } : {}),
     ...(fgVisible_contact_other(data) ? { "contact_other": data.contact_other } : {}),
@@ -6495,6 +8108,91 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "newsletter": data.newsletter,
     "terms": data.terms,
   }
+}
+
+const FG_ITEM_DEFAULTS: Record<string, () => Record<string, unknown>> = {
+  'references': () => ({
+    name: "",
+    may_contact: false,
+    email: ""
+  }),
+}
+
+const FG_ITEM_LIMITS: Record<string, { min: number; max: number }> = {
+  'references': { min: 0, max: 3 },
+}
+
+const FG_ITEM_LABELS: Record<string, string> = {
+  'references': "Reference {n}",
+}
+
+const FG_REPEATER_VISIBLE: Record<string, (data: FormData) => boolean> = {
+  'references': (_data: FormData) => true,
+}
+
+const itemValidators: Record<string, Record<string, (item: Record<string, unknown>, data: FormData) => string | null>> = {
+  'references': {
+    'name': function (item: Record<string, unknown>, _data: FormData) {
+      const v = item["name"]
+      if (fgIsBlank(v)) return "This field is required"
+      return null
+    },
+    'email': function (item: Record<string, unknown>, _data: FormData) {
+      if (!((item["may_contact"] === true))) return null
+      const v = item["email"]
+      if (!fgIsEmpty(v) && ((typeof v !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v)))) return "Must be a valid email address"
+      return null
+    },
+  },
+}
+
+function fgList(data: FormData, path: string): Record<string, unknown>[] {
+  return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], data) as Record<string, unknown>[]
+}
+
+function fgItemLabel(path: string, index: number): string {
+  return (FG_ITEM_LABELS[path] ?? '').split('{n}').join(String(index + 1))
+}
+
+function fgRemoveLabel(path: string, index: number): string {
+  return "Remove {label}".split('{label}').join(fgItemLabel(path, index))
+}
+
+/** Every item field path of a visible repeater (validation, step gates). */
+function fgItemPaths(data: FormData, path: string): string[] {
+  if (!FG_REPEATER_VISIBLE[path]?.(data)) return []
+  const fields = Object.keys(itemValidators[path] ?? {})
+  return fgList(data, path).flatMap((_, i) => fields.map((field) => \`\${path}.\${i}.\${field}\`))
+}
+
+/** Validator for a field path, including item paths like "people.2.name". */
+function fgValidatorFor(path: string): ((data: FormData) => string | null) | undefined {
+  const direct = validators[path]
+  if (direct) return direct
+  const match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
+  if (!match) return undefined
+  const validate = itemValidators[match[1]!]?.[match[3]!]
+  if (!validate) return undefined
+  return (data) => {
+    const item = fgList(data, match[1]!)[Number(match[2])]
+    return item ? validate(item, data) : null
+  }
+}
+
+/** All field paths to validate on submit (items included). */
+function fgAllPaths(data: FormData): string[] {
+  return [...Object.keys(validators), ...Object.keys(itemValidators).flatMap((path) => fgItemPaths(data, path))]
+}
+
+/** Moves item keys/paths after a removal: "people.3.x" → "people.2.x". */
+function fgShiftKey(key: string, path: string, removed: number): string | null {
+  if (!key.startsWith(path + '.')) return key
+  const rest = key.slice(path.length + 1)
+  const dot = rest.indexOf('.')
+  const index = Number(dot === -1 ? rest : rest.slice(0, dot))
+  if (!Number.isInteger(index)) return key
+  if (index === removed) return null
+  return index > removed ? \`\${path}.\${index - 1}\${dot === -1 ? '' : rest.slice(dot)}\` : key
 }
 
 const fgSecPaths_ks_social_tabs = [["twitter"], ["github"]]
@@ -6520,6 +8218,11 @@ export default function KitchenSinkForm({
   const [fgSec_ks_social_tabs, setFgSec_ks_social_tabs] = useState(0)
   const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)
   const [tagDrafts, setTagDrafts] = useState<Record<string, string>>({})
+  const fgRoot = useRef<HTMLFormElement>(null)
+  // Stable React keys per item (the form object is cloned on every edit).
+  const fgKeys = useRef<Record<string, number[]>>({})
+  const fgNextKey = useRef(0)
+  const fgPendingFocus = useRef<{ path: string; index: number } | null>(null)
 
   // Polite aria-live region; cleared first so repeated text re-announces.
   function fgAnnounce(message: string): void {
@@ -6537,7 +8240,7 @@ export default function KitchenSinkForm({
     const next = { ...errors }
     for (const path of fgSecPaths_ks_wizard[fgSec_ks_wizard] ?? []) {
       touched.current.add(path)
-      const validate = validators[path]
+      const validate = fgValidatorFor(path)
       const message = validate ? validate(form) : null
       if (message) { next[path] = message; ok = false } else { delete next[path] }
     }
@@ -6556,7 +8259,7 @@ export default function KitchenSinkForm({
   }
 
   function validateField(path: string, data: FormData): void {
-    const validate = validators[path]
+    const validate = fgValidatorFor(path)
     if (validate) applyError(path, validate(data))
   }
 
@@ -6622,10 +8325,65 @@ export default function KitchenSinkForm({
     setField(path, current.filter((_, i) => i !== index))
   }
 
+  function fgKeyAt(path: string, index: number): number {
+    const keys = (fgKeys.current[path] ??= [])
+    while (keys.length <= index) keys.push(fgNextKey.current++)
+    return keys[index]!
+  }
+
+  function fgAddItem(path: string): void {
+    const list = fgList(form, path)
+    if (list.length >= (FG_ITEM_LIMITS[path]?.max ?? Number.POSITIVE_INFINITY)) return
+    setField(path, [...list, FG_ITEM_DEFAULTS[path]!()])
+    fgPendingFocus.current = { path, index: list.length }
+    fgAnnounce("{label} added".split('{label}').join(fgItemLabel(path, list.length)))
+  }
+
+  function fgRemoveItem(path: string, index: number): void {
+    const list = fgList(form, path)
+    if (list.length <= (FG_ITEM_LIMITS[path]?.min ?? 0)) return
+    const label = fgItemLabel(path, index)
+    fgKeyAt(path, list.length - 1)
+    fgKeys.current[path]!.splice(index, 1)
+    const nextTouched = [...touched.current].map((k) => fgShiftKey(k, path, index)).filter((k): k is string => k !== null)
+    touched.current = new Set(nextTouched)
+    setErrors((prev) => {
+      const next: Record<string, string> = {}
+      for (const [key, message] of Object.entries(prev)) {
+        const target = fgShiftKey(key, path, index)
+        if (target !== null) next[target] = message
+      }
+      return next
+    })
+    setField(path, list.filter((_, i) => i !== index))
+    fgPendingFocus.current = { path, index: -1 - index }
+    fgAnnounce("{label} removed".split('{label}').join(label))
+  }
+
+  // After an add: focus the new item's first control. After a remove
+  // (negative index): focus the item that took its place, or the add button.
+  useEffect(() => {
+    const pending = fgPendingFocus.current
+    if (!pending) return
+    fgPendingFocus.current = null
+    const repeater = fgRoot.current?.querySelector(\`[data-fg-repeater="\${pending.path}"]\`)
+    const items = Array.from(repeater?.querySelectorAll<HTMLElement>(':scope > div > [data-fg-item]') ?? [])
+    if (pending.index >= 0) {
+      const item = items[pending.index]
+      const control = item?.querySelector<HTMLElement>('input:not([type=hidden]), select, textarea')
+      ;(control ?? item)?.focus()
+    } else {
+      const removed = -1 - pending.index
+      const target = items[Math.min(removed, items.length - 1)]
+      ;(target ?? repeater?.querySelector<HTMLElement>('[data-fg-add]'))?.focus()
+    }
+  })
+
   function fgReset(): void {
     setForm(INITIAL)
     setErrors({})
     touched.current.clear()
+    fgKeys.current = {}
     setResult(null)
     setTagDrafts({})
     fgAnnounce("The form was reset.")
@@ -6634,9 +8392,9 @@ export default function KitchenSinkForm({
   function handleSubmit(event: React.FormEvent): void {
     event.preventDefault()
     const nextErrors: Record<string, string> = {}
-    for (const path of Object.keys(validators)) {
+    for (const path of fgAllPaths(form)) {
       touched.current.add(path)
-      const message = validators[path]!(form)
+      const message = fgValidatorFor(path)?.(form) ?? null
       if (message) nextErrors[path] = message
     }
     setErrors(nextErrors)
@@ -6659,7 +8417,7 @@ export default function KitchenSinkForm({
   }
 
   return (
-    <form className="fg-form" dir="ltr" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
+    <form ref={fgRoot} className="fg-form" dir="ltr" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
       <div className="fg-grid">
         <div className="fg-cell fg-align-center" style={{ gridColumn: 'span 12 / span 12' }}>
           <h2 className="fg-heading fg-tone-primary">Kitchen Sink</h2>
@@ -6887,6 +8645,49 @@ export default function KitchenSinkForm({
           </div>
         </div>
         <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+          <fieldset className="fg-group" data-fg-repeater="references">
+            <legend className="fg-group-label">References</legend>
+            <div className="fg-repeater-items">
+              {form.references.map((item, i) => (
+                <fieldset key={fgKeyAt('references', i)} className="fg-repeater-item" data-fg-item tabIndex={-1}>
+                  <legend className="fg-repeater-item-label">{fgItemLabel('references', i)}</legend>
+                  <div className="fg-grid">
+                    <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+                      <div className="fg-field">
+                        <label className="fg-label" htmlFor={'fg_references_' + i + '_name'}>Name<span className="fg-required" aria-hidden="true">*</span></label>
+                        <input id={'fg_references_' + i + '_name'} type="text" value={item.name} className={errors[('references.' + i + '.name')] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField(('references.' + i + '.name'), e.target.value)} onBlur={() => touch(('references.' + i + '.name'))} />
+                        {errors[('references.' + i + '.name')] && <p className="fg-error" role="alert">{errors[('references.' + i + '.name')]}</p>}
+                      </div>
+                    </div>
+                    <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+                      <div className="fg-field">
+                        <div className="fg-checkbox-row">
+                          <input id={'fg_references_' + i + '_may_contact'} type="checkbox" checked={item.may_contact} className="fg-checkbox" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField(('references.' + i + '.may_contact'), e.target.checked); touch(('references.' + i + '.may_contact')) }} />
+                          <label className="fg-checkbox-label" htmlFor={'fg_references_' + i + '_may_contact'}>May we contact them?</label>
+                        </div>
+                        {errors[('references.' + i + '.may_contact')] && <p className="fg-error" role="alert">{errors[('references.' + i + '.may_contact')]}</p>}
+                      </div>
+                    </div>
+                    {((item.may_contact === true)) && (
+                      <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+                        <div className="fg-field">
+                          <label className="fg-label" htmlFor={'fg_references_' + i + '_email'}>Their email</label>
+                          <input id={'fg_references_' + i + '_email'} type="email" value={item.email} className={errors[('references.' + i + '.email')] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField(('references.' + i + '.email'), e.target.value)} onBlur={() => touch(('references.' + i + '.email'))} />
+                          {errors[('references.' + i + '.email')] && <p className="fg-error" role="alert">{errors[('references.' + i + '.email')]}</p>}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="fg-repeater-item-actions">
+                    <button type="button" className="fg-repeater-remove" aria-label={fgRemoveLabel('references', i)} onClick={() => fgRemoveItem('references', i)}>Remove</button>
+                  </div>
+                </fieldset>
+              ))}
+            </div>
+            {form.references.length < 3 && <button type="button" className="fg-button fg-button--secondary fg-repeater-add" data-fg-add="references" onClick={() => fgAddItem('references')}>Add reference</button>}
+          </fieldset>
+        </div>
+        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
           <figure className="fg-quote">
             <blockquote className="fg-quote-text">
               <p>Forms are conversations.</p>
@@ -7025,7 +8826,7 @@ export default function KitchenSinkForm({
 exports[`vue-standalone target > snapshot (bootstrap5) 1`] = `
 "<script setup lang="ts">
 // Generated by FormsGen — no runtime dependencies beyond Vue.
-import { nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, reactive, ref, toRaw } from 'vue'
 
 const emit = defineEmits<{ submit: [data: Record<string, unknown>] }>()
 
@@ -7063,6 +8864,11 @@ type FormData = {
   order_notes: string
   newsletter: boolean
   terms: boolean
+  references: Array<{
+    name: string
+    may_contact: boolean
+    email: string
+  }>
 }
 
 const form = reactive<FormData>({
@@ -7098,7 +8904,12 @@ const form = reactive<FormData>({
   shipping_city: "",
   order_notes: "",
   newsletter: true,
-  terms: false
+  terms: false,
+  references: [{
+    name: "",
+    may_contact: false,
+    email: ""
+  }]
 })
 
 const errors = reactive<Record<string, string>>({})
@@ -7212,7 +9023,7 @@ const validators: Record<string, () => string | null> = {
 }
 
 function runValidator(path: string): void {
-  const validate = validators[path]
+  const validate = validators[path] ?? fgItemValidator(path)
   if (!validate) return
   const message = validate()
   if (message) errors[path] = message
@@ -7261,7 +9072,7 @@ function revalidate(path: string): void {
 
 function validateAll(): boolean {
   let ok = true
-  for (const path of Object.keys(validators)) {
+  for (const path of [...Object.keys(validators), ...Object.keys(fgItemValidators).flatMap(fgItemPaths)]) {
     touched.add(path)
     runValidator(path)
     if (errors[path]) ok = false
@@ -7317,6 +9128,121 @@ function fgRemoveTag(path: string, index: number): void {
   revalidate(path)
 }
 
+const fgRoot = ref<HTMLElement | null>(null)
+const fgItemDefaults: Record<string, () => Record<string, unknown>> = {
+  'references': () => ({
+    name: "",
+    may_contact: false,
+    email: ""
+  }),
+}
+const fgItemLimits: Record<string, { min: number; max: number }> = {
+  'references': { min: 0, max: 3 },
+}
+const fgItemLabels: Record<string, string> = {
+  'references': "Reference {n}",
+}
+const fgRepeaterVisible: Record<string, () => boolean> = {
+  'references': () => true,
+}
+const fgItemValidators: Record<string, Record<string, (item: Record<string, unknown>) => string | null>> = {
+  'references': {
+    'name': function (item: Record<string, unknown>) {
+      const v = item["name"]
+      if (fgIsBlank(v)) return "This field is required"
+      return null
+    },
+    'email': function (item: Record<string, unknown>) {
+      if (!((item["may_contact"] === true))) return null
+      const v = item["email"]
+      if (!fgIsEmpty(v) && ((typeof v !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v)))) return "Must be a valid email address"
+      return null
+    },
+  },
+}
+
+function fgList(path: string): Record<string, unknown>[] {
+  return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form) as Record<string, unknown>[]
+}
+function fgItemLabel(path: string, index: number): string {
+  return (fgItemLabels[path] ?? '').split('{n}').join(String(index + 1))
+}
+function fgRemoveLabel(path: string, index: number): string {
+  return "Remove {label}".split('{label}').join(fgItemLabel(path, index))
+}
+/** Validator for an item field path like "people.2.name". */
+function fgItemValidator(path: string): (() => string | null) | undefined {
+  const match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
+  if (!match) return undefined
+  const validate = fgItemValidators[match[1]!]?.[match[3]!]
+  const item = fgList(match[1]!)[Number(match[2])]
+  return validate && item ? () => validate(item) : undefined
+}
+/** Every item field path of a repeater (for validation and step gates). */
+function fgItemPaths(path: string): string[] {
+  if (!fgRepeaterVisible[path]?.()) return []
+  const fields = Object.keys(fgItemValidators[path] ?? {})
+  return fgList(path).flatMap((_, i) => fields.map((field) => \`\${path}.\${i}.\${field}\`))
+}
+const fgItemKeys = new WeakMap<object, number>()
+let fgNextItemKey = 0
+function fgKeyOf(item: object): number {
+  const raw = toRaw(item)
+  let key = fgItemKeys.get(raw)
+  if (key === undefined) {
+    key = fgNextItemKey++
+    fgItemKeys.set(raw, key)
+  }
+  return key
+}
+function fgItemElements(path: string): HTMLElement[] {
+  const repeater = fgRoot.value?.querySelector(\`[data-fg-repeater="\${path}"]\`)
+  return Array.from(repeater?.querySelectorAll<HTMLElement>(':scope > div > [data-fg-item]') ?? [])
+}
+/** A removed item's errors/touched state go; later items' move up one. */
+function fgShiftItems(path: string, removed: number): void {
+  const pattern = new RegExp('^' + path.replace(/\\./g, '\\\\.') + '\\\\.(\\\\d+)(\\\\..*)$')
+  const move = (key: string): string | null => {
+    const match = pattern.exec(key)
+    if (!match) return key
+    const index = Number(match[1])
+    if (index === removed) return null
+    return index > removed ? \`\${path}.\${index - 1}\${match[2]}\` : key
+  }
+  const nextTouched = [...touched].map(move).filter((k): k is string => k !== null)
+  touched.clear()
+  nextTouched.forEach((k) => touched.add(k))
+  const nextErrors: Record<string, string> = {}
+  for (const [key, message] of Object.entries(errors)) {
+    const target = move(key)
+    if (target !== null) nextErrors[target] = message
+  }
+  for (const key of Object.keys(errors)) delete errors[key]
+  Object.assign(errors, nextErrors)
+}
+async function fgAddItem(path: string): Promise<void> {
+  const list = fgList(path)
+  if (list.length >= (fgItemLimits[path]?.max ?? Number.POSITIVE_INFINITY)) return
+  list.push(fgItemDefaults[path]!())
+  await nextTick()
+  const item = fgItemElements(path)[list.length - 1]
+  const control = item?.querySelector<HTMLElement>('input:not([type=hidden]), select, textarea')
+  ;(control ?? item)?.focus()
+  fgAnnounce("{label} added".split('{label}').join(fgItemLabel(path, list.length - 1)))
+}
+async function fgRemoveItem(path: string, index: number): Promise<void> {
+  const list = fgList(path)
+  if (list.length <= (fgItemLimits[path]?.min ?? 0)) return
+  const label = fgItemLabel(path, index)
+  fgShiftItems(path, index)
+  list.splice(index, 1)
+  await nextTick()
+  const remaining = fgItemElements(path)
+  const target = remaining[Math.min(index, remaining.length - 1)]
+  ;(target ?? fgRoot.value?.querySelector<HTMLElement>(\`[data-fg-add="\${path}"]\`))?.focus()
+  fgAnnounce("{label} removed".split('{label}').join(label))
+}
+
 function fgReset(): void {
   Object.assign(form, {
     full_name: "",
@@ -7351,7 +9277,12 @@ function fgReset(): void {
     shipping_city: "",
     order_notes: "",
     newsletter: true,
-    terms: false
+    terms: false,
+    references: [{
+      name: "",
+      may_contact: false,
+      email: ""
+    }]
   })
   for (const key of Object.keys(errors)) delete errors[key]
   touched.clear()
@@ -7386,6 +9317,7 @@ function buildPayload(): Record<string, unknown> {
     "brand_color": form.brand_color,
     "volume": form.volume,
     "source": form.source,
+    "references": form.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}) })),
     "contact_method": form.contact_method,
     ...(fgVisible_contact_phone() ? { "contact_phone": form.contact_phone } : {}),
     ...(fgVisible_contact_other() ? { "contact_other": form.contact_other } : {}),
@@ -7413,6 +9345,7 @@ async function onSubmit(): Promise<void> {
 
 <template>
   <form
+    ref="fgRoot"
     class="container py-4"
     dir="ltr"
     novalidate
@@ -7628,6 +9561,45 @@ async function onSubmit(): Promise<void> {
         </div>
       </div>
       <div class="col-12 col-md-12">
+        <fieldset class="border rounded p-3 bg-body-tertiary" data-fg-repeater="references">
+          <legend class="fw-semibold text-secondary small px-1">References</legend>
+          <div class="d-flex flex-column gap-3">
+            <fieldset v-for="(item, i) in form.references" :key="fgKeyOf(item)" class="border rounded p-3" data-fg-item tabindex="-1">
+              <legend class="float-none w-auto px-1 fs-6 fw-semibold mb-0">{{ fgItemLabel('references', i) }}</legend>
+              <div class="row g-3">
+                <div class="col-12 col-md-12">
+                  <div class="d-flex flex-column gap-1">
+                    <label class="form-label fw-semibold mb-0" :for="'fg_references_' + i + '_name'">Name<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+                    <input :id="'fg_references_' + i + '_name'" v-model="item.name" type="text" class="form-control" :class="{ 'is-invalid': !!errors[('references.' + i + '.name')] }" @blur="touch(('references.' + i + '.name'))" @input="revalidate(('references.' + i + '.name'))">
+                    <p v-if="errors[('references.' + i + '.name')]" class="invalid-feedback d-block mt-0" role="alert">{{ errors[('references.' + i + '.name')] }}</p>
+                  </div>
+                </div>
+                <div class="col-12 col-md-12">
+                  <div class="d-flex flex-column gap-1">
+                    <div class="form-check">
+                      <input :id="'fg_references_' + i + '_may_contact'" v-model="item.may_contact" type="checkbox" class="form-check-input" @change="touch(('references.' + i + '.may_contact'))">
+                      <label class="form-check-label" :for="'fg_references_' + i + '_may_contact'">May we contact them?</label>
+                    </div>
+                    <p v-if="errors[('references.' + i + '.may_contact')]" class="invalid-feedback d-block mt-0" role="alert">{{ errors[('references.' + i + '.may_contact')] }}</p>
+                  </div>
+                </div>
+                <div class="col-12 col-md-12" v-if='(item.may_contact === true)'>
+                  <div class="d-flex flex-column gap-1">
+                    <label class="form-label fw-semibold mb-0" :for="'fg_references_' + i + '_email'">Their email</label>
+                    <input :id="'fg_references_' + i + '_email'" v-model="item.email" type="email" class="form-control" :class="{ 'is-invalid': !!errors[('references.' + i + '.email')] }" @blur="touch(('references.' + i + '.email'))" @input="revalidate(('references.' + i + '.email'))">
+                    <p v-if="errors[('references.' + i + '.email')]" class="invalid-feedback d-block mt-0" role="alert">{{ errors[('references.' + i + '.email')] }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-2 d-flex justify-content-end">
+                <button type="button" class="btn btn-link link-danger p-0" :aria-label="fgRemoveLabel('references', i)" @click="fgRemoveItem('references', i)">Remove</button>
+              </div>
+            </fieldset>
+          </div>
+          <button v-if="form.references.length < 3" type="button" class="btn btn-outline-secondary mt-3" data-fg-add="references" @click="fgAddItem('references')">Add reference</button>
+        </fieldset>
+      </div>
+      <div class="col-12 col-md-12">
         <figure class="mb-0">
           <blockquote class="blockquote">
             <p>Forms are conversations.</p>
@@ -7761,7 +9733,7 @@ async function onSubmit(): Promise<void> {
 exports[`vue-standalone target > snapshot (tailwind) 1`] = `
 "<script setup lang="ts">
 // Generated by FormsGen — no runtime dependencies beyond Vue.
-import { nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, reactive, ref, toRaw } from 'vue'
 
 const emit = defineEmits<{ submit: [data: Record<string, unknown>] }>()
 
@@ -7799,6 +9771,11 @@ type FormData = {
   order_notes: string
   newsletter: boolean
   terms: boolean
+  references: Array<{
+    name: string
+    may_contact: boolean
+    email: string
+  }>
 }
 
 const form = reactive<FormData>({
@@ -7834,7 +9811,12 @@ const form = reactive<FormData>({
   shipping_city: "",
   order_notes: "",
   newsletter: true,
-  terms: false
+  terms: false,
+  references: [{
+    name: "",
+    may_contact: false,
+    email: ""
+  }]
 })
 
 const errors = reactive<Record<string, string>>({})
@@ -7948,7 +9930,7 @@ const validators: Record<string, () => string | null> = {
 }
 
 function runValidator(path: string): void {
-  const validate = validators[path]
+  const validate = validators[path] ?? fgItemValidator(path)
   if (!validate) return
   const message = validate()
   if (message) errors[path] = message
@@ -7997,7 +9979,7 @@ function revalidate(path: string): void {
 
 function validateAll(): boolean {
   let ok = true
-  for (const path of Object.keys(validators)) {
+  for (const path of [...Object.keys(validators), ...Object.keys(fgItemValidators).flatMap(fgItemPaths)]) {
     touched.add(path)
     runValidator(path)
     if (errors[path]) ok = false
@@ -8053,6 +10035,121 @@ function fgRemoveTag(path: string, index: number): void {
   revalidate(path)
 }
 
+const fgRoot = ref<HTMLElement | null>(null)
+const fgItemDefaults: Record<string, () => Record<string, unknown>> = {
+  'references': () => ({
+    name: "",
+    may_contact: false,
+    email: ""
+  }),
+}
+const fgItemLimits: Record<string, { min: number; max: number }> = {
+  'references': { min: 0, max: 3 },
+}
+const fgItemLabels: Record<string, string> = {
+  'references': "Reference {n}",
+}
+const fgRepeaterVisible: Record<string, () => boolean> = {
+  'references': () => true,
+}
+const fgItemValidators: Record<string, Record<string, (item: Record<string, unknown>) => string | null>> = {
+  'references': {
+    'name': function (item: Record<string, unknown>) {
+      const v = item["name"]
+      if (fgIsBlank(v)) return "This field is required"
+      return null
+    },
+    'email': function (item: Record<string, unknown>) {
+      if (!((item["may_contact"] === true))) return null
+      const v = item["email"]
+      if (!fgIsEmpty(v) && ((typeof v !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v)))) return "Must be a valid email address"
+      return null
+    },
+  },
+}
+
+function fgList(path: string): Record<string, unknown>[] {
+  return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form) as Record<string, unknown>[]
+}
+function fgItemLabel(path: string, index: number): string {
+  return (fgItemLabels[path] ?? '').split('{n}').join(String(index + 1))
+}
+function fgRemoveLabel(path: string, index: number): string {
+  return "Remove {label}".split('{label}').join(fgItemLabel(path, index))
+}
+/** Validator for an item field path like "people.2.name". */
+function fgItemValidator(path: string): (() => string | null) | undefined {
+  const match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
+  if (!match) return undefined
+  const validate = fgItemValidators[match[1]!]?.[match[3]!]
+  const item = fgList(match[1]!)[Number(match[2])]
+  return validate && item ? () => validate(item) : undefined
+}
+/** Every item field path of a repeater (for validation and step gates). */
+function fgItemPaths(path: string): string[] {
+  if (!fgRepeaterVisible[path]?.()) return []
+  const fields = Object.keys(fgItemValidators[path] ?? {})
+  return fgList(path).flatMap((_, i) => fields.map((field) => \`\${path}.\${i}.\${field}\`))
+}
+const fgItemKeys = new WeakMap<object, number>()
+let fgNextItemKey = 0
+function fgKeyOf(item: object): number {
+  const raw = toRaw(item)
+  let key = fgItemKeys.get(raw)
+  if (key === undefined) {
+    key = fgNextItemKey++
+    fgItemKeys.set(raw, key)
+  }
+  return key
+}
+function fgItemElements(path: string): HTMLElement[] {
+  const repeater = fgRoot.value?.querySelector(\`[data-fg-repeater="\${path}"]\`)
+  return Array.from(repeater?.querySelectorAll<HTMLElement>(':scope > div > [data-fg-item]') ?? [])
+}
+/** A removed item's errors/touched state go; later items' move up one. */
+function fgShiftItems(path: string, removed: number): void {
+  const pattern = new RegExp('^' + path.replace(/\\./g, '\\\\.') + '\\\\.(\\\\d+)(\\\\..*)$')
+  const move = (key: string): string | null => {
+    const match = pattern.exec(key)
+    if (!match) return key
+    const index = Number(match[1])
+    if (index === removed) return null
+    return index > removed ? \`\${path}.\${index - 1}\${match[2]}\` : key
+  }
+  const nextTouched = [...touched].map(move).filter((k): k is string => k !== null)
+  touched.clear()
+  nextTouched.forEach((k) => touched.add(k))
+  const nextErrors: Record<string, string> = {}
+  for (const [key, message] of Object.entries(errors)) {
+    const target = move(key)
+    if (target !== null) nextErrors[target] = message
+  }
+  for (const key of Object.keys(errors)) delete errors[key]
+  Object.assign(errors, nextErrors)
+}
+async function fgAddItem(path: string): Promise<void> {
+  const list = fgList(path)
+  if (list.length >= (fgItemLimits[path]?.max ?? Number.POSITIVE_INFINITY)) return
+  list.push(fgItemDefaults[path]!())
+  await nextTick()
+  const item = fgItemElements(path)[list.length - 1]
+  const control = item?.querySelector<HTMLElement>('input:not([type=hidden]), select, textarea')
+  ;(control ?? item)?.focus()
+  fgAnnounce("{label} added".split('{label}').join(fgItemLabel(path, list.length - 1)))
+}
+async function fgRemoveItem(path: string, index: number): Promise<void> {
+  const list = fgList(path)
+  if (list.length <= (fgItemLimits[path]?.min ?? 0)) return
+  const label = fgItemLabel(path, index)
+  fgShiftItems(path, index)
+  list.splice(index, 1)
+  await nextTick()
+  const remaining = fgItemElements(path)
+  const target = remaining[Math.min(index, remaining.length - 1)]
+  ;(target ?? fgRoot.value?.querySelector<HTMLElement>(\`[data-fg-add="\${path}"]\`))?.focus()
+  fgAnnounce("{label} removed".split('{label}').join(label))
+}
+
 function fgReset(): void {
   Object.assign(form, {
     full_name: "",
@@ -8087,7 +10184,12 @@ function fgReset(): void {
     shipping_city: "",
     order_notes: "",
     newsletter: true,
-    terms: false
+    terms: false,
+    references: [{
+      name: "",
+      may_contact: false,
+      email: ""
+    }]
   })
   for (const key of Object.keys(errors)) delete errors[key]
   touched.clear()
@@ -8122,6 +10224,7 @@ function buildPayload(): Record<string, unknown> {
     "brand_color": form.brand_color,
     "volume": form.volume,
     "source": form.source,
+    "references": form.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}) })),
     "contact_method": form.contact_method,
     ...(fgVisible_contact_phone() ? { "contact_phone": form.contact_phone } : {}),
     ...(fgVisible_contact_other() ? { "contact_other": form.contact_other } : {}),
@@ -8149,6 +10252,7 @@ async function onSubmit(): Promise<void> {
 
 <template>
   <form
+    ref="fgRoot"
     class="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100"
     dir="ltr"
     novalidate
@@ -8372,6 +10476,45 @@ async function onSubmit(): Promise<void> {
         </div>
       </div>
       <div class="col-span-12 md:col-span-12">
+        <fieldset class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50" data-fg-repeater="references">
+          <legend class="px-1 text-sm font-semibold text-gray-500 dark:text-gray-400">References</legend>
+          <div class="flex flex-col gap-4">
+            <fieldset v-for="(item, i) in form.references" :key="fgKeyOf(item)" class="min-w-0 rounded-lg border border-gray-300 p-4 dark:border-gray-600" data-fg-item tabindex="-1">
+              <legend class="px-1 text-sm font-semibold">{{ fgItemLabel('references', i) }}</legend>
+              <div class="grid grid-cols-12 gap-4">
+                <div class="col-span-12 md:col-span-12">
+                  <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-semibold" :for="'fg_references_' + i + '_name'">Name<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+                    <input :id="'fg_references_' + i + '_name'" v-model="item.name" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors[('references.' + i + '.name')] }" @blur="touch(('references.' + i + '.name'))" @input="revalidate(('references.' + i + '.name'))">
+                    <p v-if="errors[('references.' + i + '.name')]" class="text-xs text-red-600" role="alert">{{ errors[('references.' + i + '.name')] }}</p>
+                  </div>
+                </div>
+                <div class="col-span-12 md:col-span-12">
+                  <div class="flex flex-col gap-1.5">
+                    <div class="flex items-center gap-2">
+                      <input :id="'fg_references_' + i + '_may_contact'" v-model="item.may_contact" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" @change="touch(('references.' + i + '.may_contact'))">
+                      <label class="inline-flex items-center gap-2 text-sm" :for="'fg_references_' + i + '_may_contact'">May we contact them?</label>
+                    </div>
+                    <p v-if="errors[('references.' + i + '.may_contact')]" class="text-xs text-red-600" role="alert">{{ errors[('references.' + i + '.may_contact')] }}</p>
+                  </div>
+                </div>
+                <div class="col-span-12 md:col-span-12" v-if='(item.may_contact === true)'>
+                  <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-semibold" :for="'fg_references_' + i + '_email'">Their email</label>
+                    <input :id="'fg_references_' + i + '_email'" v-model="item.email" type="email" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors[('references.' + i + '.email')] }" @blur="touch(('references.' + i + '.email'))" @input="revalidate(('references.' + i + '.email'))">
+                    <p v-if="errors[('references.' + i + '.email')]" class="text-xs text-red-600" role="alert">{{ errors[('references.' + i + '.email')] }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-3 flex justify-end">
+                <button type="button" class="text-sm text-red-600 underline hover:text-red-700 dark:text-red-400" :aria-label="fgRemoveLabel('references', i)" @click="fgRemoveItem('references', i)">Remove</button>
+              </div>
+            </fieldset>
+          </div>
+          <button v-if="form.references.length < 3" type="button" class="mt-4 rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-add="references" @click="fgAddItem('references')">Add reference</button>
+        </fieldset>
+      </div>
+      <div class="col-span-12 md:col-span-12">
         <figure class="border-s-4 border-gray-300 ps-4 dark:border-gray-600">
           <blockquote class="text-base italic">
             <p>Forms are conversations.</p>
@@ -8505,7 +10648,7 @@ async function onSubmit(): Promise<void> {
 exports[`vue-standalone target > snapshot (vanilla) 1`] = `
 "<script setup lang="ts">
 // Generated by FormsGen — no runtime dependencies beyond Vue.
-import { nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, reactive, ref, toRaw } from 'vue'
 
 const emit = defineEmits<{ submit: [data: Record<string, unknown>] }>()
 
@@ -8543,6 +10686,11 @@ type FormData = {
   order_notes: string
   newsletter: boolean
   terms: boolean
+  references: Array<{
+    name: string
+    may_contact: boolean
+    email: string
+  }>
 }
 
 const form = reactive<FormData>({
@@ -8578,7 +10726,12 @@ const form = reactive<FormData>({
   shipping_city: "",
   order_notes: "",
   newsletter: true,
-  terms: false
+  terms: false,
+  references: [{
+    name: "",
+    may_contact: false,
+    email: ""
+  }]
 })
 
 const errors = reactive<Record<string, string>>({})
@@ -8692,7 +10845,7 @@ const validators: Record<string, () => string | null> = {
 }
 
 function runValidator(path: string): void {
-  const validate = validators[path]
+  const validate = validators[path] ?? fgItemValidator(path)
   if (!validate) return
   const message = validate()
   if (message) errors[path] = message
@@ -8741,7 +10894,7 @@ function revalidate(path: string): void {
 
 function validateAll(): boolean {
   let ok = true
-  for (const path of Object.keys(validators)) {
+  for (const path of [...Object.keys(validators), ...Object.keys(fgItemValidators).flatMap(fgItemPaths)]) {
     touched.add(path)
     runValidator(path)
     if (errors[path]) ok = false
@@ -8797,6 +10950,121 @@ function fgRemoveTag(path: string, index: number): void {
   revalidate(path)
 }
 
+const fgRoot = ref<HTMLElement | null>(null)
+const fgItemDefaults: Record<string, () => Record<string, unknown>> = {
+  'references': () => ({
+    name: "",
+    may_contact: false,
+    email: ""
+  }),
+}
+const fgItemLimits: Record<string, { min: number; max: number }> = {
+  'references': { min: 0, max: 3 },
+}
+const fgItemLabels: Record<string, string> = {
+  'references': "Reference {n}",
+}
+const fgRepeaterVisible: Record<string, () => boolean> = {
+  'references': () => true,
+}
+const fgItemValidators: Record<string, Record<string, (item: Record<string, unknown>) => string | null>> = {
+  'references': {
+    'name': function (item: Record<string, unknown>) {
+      const v = item["name"]
+      if (fgIsBlank(v)) return "This field is required"
+      return null
+    },
+    'email': function (item: Record<string, unknown>) {
+      if (!((item["may_contact"] === true))) return null
+      const v = item["email"]
+      if (!fgIsEmpty(v) && ((typeof v !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v)))) return "Must be a valid email address"
+      return null
+    },
+  },
+}
+
+function fgList(path: string): Record<string, unknown>[] {
+  return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form) as Record<string, unknown>[]
+}
+function fgItemLabel(path: string, index: number): string {
+  return (fgItemLabels[path] ?? '').split('{n}').join(String(index + 1))
+}
+function fgRemoveLabel(path: string, index: number): string {
+  return "Remove {label}".split('{label}').join(fgItemLabel(path, index))
+}
+/** Validator for an item field path like "people.2.name". */
+function fgItemValidator(path: string): (() => string | null) | undefined {
+  const match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
+  if (!match) return undefined
+  const validate = fgItemValidators[match[1]!]?.[match[3]!]
+  const item = fgList(match[1]!)[Number(match[2])]
+  return validate && item ? () => validate(item) : undefined
+}
+/** Every item field path of a repeater (for validation and step gates). */
+function fgItemPaths(path: string): string[] {
+  if (!fgRepeaterVisible[path]?.()) return []
+  const fields = Object.keys(fgItemValidators[path] ?? {})
+  return fgList(path).flatMap((_, i) => fields.map((field) => \`\${path}.\${i}.\${field}\`))
+}
+const fgItemKeys = new WeakMap<object, number>()
+let fgNextItemKey = 0
+function fgKeyOf(item: object): number {
+  const raw = toRaw(item)
+  let key = fgItemKeys.get(raw)
+  if (key === undefined) {
+    key = fgNextItemKey++
+    fgItemKeys.set(raw, key)
+  }
+  return key
+}
+function fgItemElements(path: string): HTMLElement[] {
+  const repeater = fgRoot.value?.querySelector(\`[data-fg-repeater="\${path}"]\`)
+  return Array.from(repeater?.querySelectorAll<HTMLElement>(':scope > div > [data-fg-item]') ?? [])
+}
+/** A removed item's errors/touched state go; later items' move up one. */
+function fgShiftItems(path: string, removed: number): void {
+  const pattern = new RegExp('^' + path.replace(/\\./g, '\\\\.') + '\\\\.(\\\\d+)(\\\\..*)$')
+  const move = (key: string): string | null => {
+    const match = pattern.exec(key)
+    if (!match) return key
+    const index = Number(match[1])
+    if (index === removed) return null
+    return index > removed ? \`\${path}.\${index - 1}\${match[2]}\` : key
+  }
+  const nextTouched = [...touched].map(move).filter((k): k is string => k !== null)
+  touched.clear()
+  nextTouched.forEach((k) => touched.add(k))
+  const nextErrors: Record<string, string> = {}
+  for (const [key, message] of Object.entries(errors)) {
+    const target = move(key)
+    if (target !== null) nextErrors[target] = message
+  }
+  for (const key of Object.keys(errors)) delete errors[key]
+  Object.assign(errors, nextErrors)
+}
+async function fgAddItem(path: string): Promise<void> {
+  const list = fgList(path)
+  if (list.length >= (fgItemLimits[path]?.max ?? Number.POSITIVE_INFINITY)) return
+  list.push(fgItemDefaults[path]!())
+  await nextTick()
+  const item = fgItemElements(path)[list.length - 1]
+  const control = item?.querySelector<HTMLElement>('input:not([type=hidden]), select, textarea')
+  ;(control ?? item)?.focus()
+  fgAnnounce("{label} added".split('{label}').join(fgItemLabel(path, list.length - 1)))
+}
+async function fgRemoveItem(path: string, index: number): Promise<void> {
+  const list = fgList(path)
+  if (list.length <= (fgItemLimits[path]?.min ?? 0)) return
+  const label = fgItemLabel(path, index)
+  fgShiftItems(path, index)
+  list.splice(index, 1)
+  await nextTick()
+  const remaining = fgItemElements(path)
+  const target = remaining[Math.min(index, remaining.length - 1)]
+  ;(target ?? fgRoot.value?.querySelector<HTMLElement>(\`[data-fg-add="\${path}"]\`))?.focus()
+  fgAnnounce("{label} removed".split('{label}').join(label))
+}
+
 function fgReset(): void {
   Object.assign(form, {
     full_name: "",
@@ -8831,7 +11099,12 @@ function fgReset(): void {
     shipping_city: "",
     order_notes: "",
     newsletter: true,
-    terms: false
+    terms: false,
+    references: [{
+      name: "",
+      may_contact: false,
+      email: ""
+    }]
   })
   for (const key of Object.keys(errors)) delete errors[key]
   touched.clear()
@@ -8866,6 +11139,7 @@ function buildPayload(): Record<string, unknown> {
     "brand_color": form.brand_color,
     "volume": form.volume,
     "source": form.source,
+    "references": form.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}) })),
     "contact_method": form.contact_method,
     ...(fgVisible_contact_phone() ? { "contact_phone": form.contact_phone } : {}),
     ...(fgVisible_contact_other() ? { "contact_other": form.contact_other } : {}),
@@ -8893,6 +11167,7 @@ async function onSubmit(): Promise<void> {
 
 <template>
   <form
+    ref="fgRoot"
     class="fg-form"
     dir="ltr"
     novalidate
@@ -9114,6 +11389,45 @@ async function onSubmit(): Promise<void> {
           <p class="fg-description">{{ form.volume }}</p>
           <p v-if="errors['volume']" class="fg-error" role="alert">{{ errors['volume'] }}</p>
         </div>
+      </div>
+      <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <fieldset class="fg-group" data-fg-repeater="references">
+          <legend class="fg-group-label">References</legend>
+          <div class="fg-repeater-items">
+            <fieldset v-for="(item, i) in form.references" :key="fgKeyOf(item)" class="fg-repeater-item" data-fg-item tabindex="-1">
+              <legend class="fg-repeater-item-label">{{ fgItemLabel('references', i) }}</legend>
+              <div class="fg-grid">
+                <div class="fg-cell" style="grid-column: span 12 / span 12">
+                  <div class="fg-field">
+                    <label class="fg-label" :for="'fg_references_' + i + '_name'">Name<span class="fg-required" aria-hidden="true">*</span></label>
+                    <input :id="'fg_references_' + i + '_name'" v-model="item.name" type="text" class="fg-input" :class="{ 'fg-invalid': !!errors[('references.' + i + '.name')] }" @blur="touch(('references.' + i + '.name'))" @input="revalidate(('references.' + i + '.name'))">
+                    <p v-if="errors[('references.' + i + '.name')]" class="fg-error" role="alert">{{ errors[('references.' + i + '.name')] }}</p>
+                  </div>
+                </div>
+                <div class="fg-cell" style="grid-column: span 12 / span 12">
+                  <div class="fg-field">
+                    <div class="fg-checkbox-row">
+                      <input :id="'fg_references_' + i + '_may_contact'" v-model="item.may_contact" type="checkbox" class="fg-checkbox" @change="touch(('references.' + i + '.may_contact'))">
+                      <label class="fg-checkbox-label" :for="'fg_references_' + i + '_may_contact'">May we contact them?</label>
+                    </div>
+                    <p v-if="errors[('references.' + i + '.may_contact')]" class="fg-error" role="alert">{{ errors[('references.' + i + '.may_contact')] }}</p>
+                  </div>
+                </div>
+                <div class="fg-cell" style="grid-column: span 12 / span 12" v-if='(item.may_contact === true)'>
+                  <div class="fg-field">
+                    <label class="fg-label" :for="'fg_references_' + i + '_email'">Their email</label>
+                    <input :id="'fg_references_' + i + '_email'" v-model="item.email" type="email" class="fg-input" :class="{ 'fg-invalid': !!errors[('references.' + i + '.email')] }" @blur="touch(('references.' + i + '.email'))" @input="revalidate(('references.' + i + '.email'))">
+                    <p v-if="errors[('references.' + i + '.email')]" class="fg-error" role="alert">{{ errors[('references.' + i + '.email')] }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="fg-repeater-item-actions">
+                <button type="button" class="fg-repeater-remove" :aria-label="fgRemoveLabel('references', i)" @click="fgRemoveItem('references', i)">Remove</button>
+              </div>
+            </fieldset>
+          </div>
+          <button v-if="form.references.length < 3" type="button" class="fg-button fg-button--secondary fg-repeater-add" data-fg-add="references" @click="fgAddItem('references')">Add reference</button>
+        </fieldset>
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
         <figure class="fg-quote">
@@ -9348,6 +11662,13 @@ a.fg-button { display: inline-block; text-decoration: none; }
 .fg-input--color { inline-size: 4rem; block-size: 2.5rem; padding: 0.25rem; cursor: pointer; }
 fieldset.fg-field { margin: 0; padding: 0; border: 0; min-inline-size: 0; }
 fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
+/* Repeatable sections */
+.fg-repeater-items { display: flex; flex-direction: column; gap: var(--fg-space); }
+.fg-repeater-item { margin: 0; padding: var(--fg-space); min-inline-size: 0; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-bg); }
+.fg-repeater-item-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; }
+.fg-repeater-item-actions { display: flex; justify-content: flex-end; margin-block-start: 0.75rem; }
+.fg-repeater-remove { padding: 0; font: inherit; font-size: 0.875rem; color: var(--fg-color-error); background: none; border: none; text-decoration: underline; cursor: pointer; }
+.fg-repeater-add { margin-block-start: var(--fg-space); }
 @media (prefers-color-scheme: dark) {
   .fg-form:not([data-fg-theme='light']) {
     --fg-color-bg: #0f172a; --fg-color-surface: #1e293b; --fg-color-text: #e2e8f0;

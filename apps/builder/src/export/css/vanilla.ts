@@ -54,6 +54,12 @@ const CLASSES: Record<Slot, string> = {
   quoteCite: 'fg-quote-cite',
   buttonDanger: 'fg-button fg-button--danger',
   colorInput: 'fg-input fg-input--color',
+  repeaterItems: 'fg-repeater-items',
+  repeaterItem: 'fg-repeater-item',
+  repeaterItemLabel: 'fg-repeater-item-label',
+  repeaterItemActions: 'fg-repeater-item-actions',
+  repeaterRemove: 'fg-repeater-remove',
+  repeaterAdd: 'fg-button fg-button--secondary fg-repeater-add',
 }
 
 /** Mirrors packages/renderer/src/styles.css for self-contained artifacts. */
@@ -169,6 +175,13 @@ a.fg-button { display: inline-block; text-decoration: none; }
 .fg-input--color { inline-size: 4rem; block-size: 2.5rem; padding: 0.25rem; cursor: pointer; }
 fieldset.fg-field { margin: 0; padding: 0; border: 0; min-inline-size: 0; }
 fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
+/* Repeatable sections */
+.fg-repeater-items { display: flex; flex-direction: column; gap: var(--fg-space); }
+.fg-repeater-item { margin: 0; padding: var(--fg-space); min-inline-size: 0; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-bg); }
+.fg-repeater-item-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; }
+.fg-repeater-item-actions { display: flex; justify-content: flex-end; margin-block-start: 0.75rem; }
+.fg-repeater-remove { padding: 0; font: inherit; font-size: 0.875rem; color: var(--fg-color-error); background: none; border: none; text-decoration: underline; cursor: pointer; }
+.fg-repeater-add { margin-block-start: var(--fg-space); }
 @media (prefers-color-scheme: dark) {
   .fg-form:not([data-fg-theme='light']) {
     --fg-color-bg: #0f172a; --fg-color-surface: #1e293b; --fg-color-text: #e2e8f0;

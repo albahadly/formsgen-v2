@@ -2,6 +2,7 @@
 // the renderer, the builder, and (later) the export generators.
 
 import { getCoreElement } from './elements'
+import { isRepeater, repeaterItemDefaults, repeaterLimits } from './repeater'
 import type { ElementNode } from './schema'
 
 /** Depth-first visit of every node; return false from the visitor to stop. */
@@ -73,7 +74,12 @@ export function buildDefaultData(nodes: ElementNode[]): Record<string, unknown> 
   for (const node of nodes) {
     const core = getCoreElement(node.type)
     if (!core) continue
-    if (core.isContainer) {
+    if (isRepeater(node)) {
+      if (node.name) {
+        const { initial } = repeaterLimits(node)
+        data[node.name] = Array.from({ length: initial }, () => repeaterItemDefaults(node))
+      }
+    } else if (core.isContainer) {
       const childData = buildDefaultData(node.children ?? [])
       if (node.name) {
         data[node.name] = childData

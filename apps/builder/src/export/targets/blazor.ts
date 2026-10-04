@@ -4,18 +4,25 @@
 // visibility properties, and a payload builder that reconstructs the
 // nested data shape (REBUILD_PROMPT §7 target 6).
 
-import { getCoreElement, joinPath, resolveMessages, type ElementNode } from '@formsgen/renderer'
+import { getCoreElement, isRepeater, joinPath, resolveMessages, type ElementNode } from '@formsgen/renderer'
 import { errorsTextFunctionCs, stepAnnouncements } from '../announce'
 import { pascalMember } from '@/registry/emitters/shared'
 import {
   csAttributes,
   csConditions,
   csFieldKind,
+  csRuleChecks,
   csValidateStatements,
   type CsFieldKind,
 } from '../csharp'
-import { collectExportFields } from '../logic'
-import { renderTree, stepButtonLabels, type RenderedSectionHost } from '../markup'
+import { collectExportFields, collectExportRepeaters } from '../logic'
+import {
+  renderTree,
+  stepButtonLabels,
+  type RenderedRepeater,
+  type RenderedSectionHost,
+} from '../markup'
+import { blazorItemMarkup, repeaterLegend } from '../repeaterMarkup'
 import {
   collectSectionHosts,
   fieldDefault,
@@ -48,6 +55,19 @@ export const blazorTarget: ExportTarget = {
     const hosts = collectSectionHosts(schema)
     const messages = resolveMessages(schema.meta.locale)
     const accessor = (path: string): string => `Model.${pascalMember(pathKey(path))}`
+    const repeaters = collectExportRepeaters(schema)
+    const hasRepeaters = repeaters.length > 0
+    const itemClass = (r: (typeof repeaters)[number]): string => `Fg${pascalMember(r.key)}Item`
+    const repeaterMember = (r: (typeof repeaters)[number]): string => pascalMember(r.key)
+    /** Condition key (dots → underscores) to C#: the repeater's items read `item.X`. */
+    const itemCsAccessor = (r: (typeof repeaters)[number]) => (key: string): string => {
+      const child = r.fields.find((f) => key === `${r.key}_${f.name}`)
+      return child ? `item.${pascalMember(child.name)}` : `Model.${pascalMember(key)}`
+    }
+    const repeaterVisible = (r: (typeof repeaters)[number]): string =>
+      r.conditionChain.length
+        ? r.conditionChain.map((g) => `(${csConditions(g, (key) => `Model.${pascalMember(key)}`)})`).join(' && ')
+        : 'true'
 
     // Submit button: configurable text/placement/style (meta.submitButton).
     // With exactly ONE gating wizard, the submit replaces Next on its last
@@ -96,6 +116,42 @@ export const blazorTarget: ExportTarget = {
       .map((host) => `    private int fgSec_${host.key} = 0;`)
       .join('\n')
 
+    // Repeating sections: @foreach over the item list; fields bind to
+    // `item`, ids embed the index; @ref lets add/remove move focus.
+    const renderRepeater = (r: RenderedRepeater): string => {
+      const repeater = repeaters.find((x) => x.path === r.path)!
+      const list = `Model.${repeaterMember(repeater)}`
+      const fieldsArg = `fgItemFields_${repeater.key}`
+      const removeBtn = `<div class="${css.classes('repeaterItemActions')}">
+                <button type="button" class="${css.classes('repeaterRemove')}" aria-label='@FgRemoveLabel("${r.path}", i)' @onclick='() => FgRemoveItem(${list}, "${r.path}", i, ${r.limits.min}, ${fieldsArg})'>${r.messages.removeItem}</button>
+            </div>`
+      const addBtn = `<button type="button" class="${css.classes('repeaterAdd')}" data-fg-add="${r.path}" @ref="fgAddRef_${repeater.key}" @onclick='() => FgAddItem(${list}, "${r.path}", ${Number.isFinite(r.limits.max) ? r.limits.max : 'int.MaxValue'})'>${r.addText}</button>`
+      const item = blazorItemMarkup(
+        r.itemHtml,
+        repeater.key,
+        repeater.fields.map((f) => f.name),
+      )
+      return `<fieldset class="${css.classes('group')}" data-fg-repeater="${r.path}">${repeaterLegend(css, r, 'class')}
+  <div class="${css.classes('repeaterItems')}">
+    @foreach (var (item, i) in ${list}.Select((x, n) => (x, n)).ToList())
+    {
+        <fieldset @key="item" class="${css.classes('repeaterItem')}" data-fg-item tabindex="-1" @ref="fgItemRefs[item]">
+            <legend class="${css.classes('repeaterItemLabel')}">@FgItemLabel("${r.path}", i)</legend>
+${indentBlock(item, 3)}
+            ${r.limits.min > 0 ? `@if (${list}.Count > ${r.limits.min})
+            {
+                ${removeBtn}
+            }` : removeBtn}
+        </fieldset>
+    }
+  </div>
+  ${Number.isFinite(r.limits.max) ? `@if (${list}.Count < ${r.limits.max})
+  {
+      ${addBtn}
+  }` : addBtn}
+</fieldset>`
+    }
+
     const markup = renderTree(schema, {
       lang: 'blazor',
       css,
@@ -105,6 +161,11 @@ export const blazorTarget: ExportTarget = {
       conditionExpr: (groups) => csConditions(groups, (key) => `Model.${pascalMember(key)}`),
       wrapConditional: (expr, block) => `@if (${expr})\n{\n${indentBlock(block, 1)}\n}`,
       renderSections,
+      renderRepeater,
+      itemOptions: (path) => {
+        const repeater = repeaters.find((x) => x.path === path)!
+        return { conditionExpr: (groups) => csConditions(groups, itemCsAccessor(repeater)) }
+      },
     })
 
     // Model properties (flat: one per field, PascalCase of the data path).
@@ -147,6 +208,28 @@ export const blazorTarget: ExportTarget = {
       })
       .join('\n\n')
 
+    const repeaterProperties = repeaters
+      .map(
+        (r) =>
+          `        public List<${itemClass(r)}> ${repeaterMember(r)} { get; set; } = new() { ${Array.from({ length: r.limits.initial }, () => 'new(), ').join('')}};`,
+      )
+      .join('\n\n')
+    const itemClasses = repeaters
+      .map(
+        (r) => `
+    public class ${itemClass(r)}
+    {
+${r.fields
+  .map((f) => {
+    const kind = csFieldKind(f.node.type)
+    return `        public ${csType(kind)} ${pascalMember(f.name)} { get; set; }${csInit(kind, fieldDefault(f.node), f.node)}`
+  })
+  .join('\n')}
+    }
+`,
+      )
+      .join('')
+
     // Validate() handles what attributes can't.
     const validateStatements = fields
       .flatMap((field) => {
@@ -168,6 +251,31 @@ export const blazorTarget: ExportTarget = {
         const ownCond = node.conditions?.length
           ? csConditions(node.conditions, (key) => `Model.${pascalMember(key)}`)
           : null
+        if (isRepeater(node)) {
+          const repeater = repeaters.find((r) => r.path === (node.name ? joinPath(parentPath, node.name) : ''))
+          if (!repeater) continue
+          const list = `list${dictCounter}`
+          const entry = `item${dictCounter++}`
+          payloadStatements.push(`        var ${list} = new List<Dictionary<string, object?>>();`)
+          payloadStatements.push(`        foreach (var item in Model.${repeaterMember(repeater)})\n        {`)
+          payloadStatements.push(`            var ${entry} = new Dictionary<string, object?>();`)
+          for (const f of repeater.fields) {
+            const member = `item.${pascalMember(f.name)}`
+            const value =
+              f.node.type === 'select' || f.node.type === 'radiogroup' ? `string.IsNullOrEmpty(${member}) ? null : ${member}` : member
+            const assign = `${entry}[${csStr(f.name)}] = ${value};`
+            payloadStatements.push(
+              f.node.conditions?.length
+                ? `            if (${csConditions(f.node.conditions, itemCsAccessor(repeater))}) ${assign}`
+                : `            ${assign}`,
+            )
+          }
+          payloadStatements.push(`            ${list}.Add(${entry});\n        }`)
+          payloadStatements.push(
+            ownCond ? `        if (${ownCond}) ${dict}[${csStr(node.name!)}] = ${list};` : `        ${dict}[${csStr(node.name!)}] = ${list};`,
+          )
+          continue
+        }
         if (core.isContainer) {
           const childPath = node.name ? joinPath(parentPath, node.name) : parentPath
           if (node.name) {
@@ -236,7 +344,7 @@ export const blazorTarget: ExportTarget = {
         fgEdit = new EditContext(Model);
         fgMessages = new ValidationMessageStore(fgEdit);
         fgEdit.OnValidationRequested += (_, _) => FgValidateAll();
-        fgEdit.OnFieldChanged += (_, e) => FgFieldChanged(e.FieldIdentifier.FieldName);
+        fgEdit.OnFieldChanged += (_, e) => FgFieldChanged(e.FieldIdentifier${hasRepeaters ? '' : '.FieldName'});
     }
 
     private void FgPointerDown(PointerEventArgs _)
@@ -262,7 +370,13 @@ export const blazorTarget: ExportTarget = {
     }
 
     private void FgFlushDeferred()
-    {
+    {${hasRepeaters ? `
+        if (fgDeferredItemFields.Count > 0)
+        {
+            var items = fgDeferredItemFields.ToArray();
+            fgDeferredItemFields.Clear();
+            foreach (var field in items) FgValidateItemField(field);
+        }` : ''}
         if (fgDeferredFields.Count == 0) return;
         var names = fgDeferredFields.ToArray();
         fgDeferredFields.Clear();
@@ -273,7 +387,7 @@ export const blazorTarget: ExportTarget = {
     {
         fgDeferredFields.Clear();
         fgMessages.Clear();
-        FgValidateMembers(fgAllMembers);
+        FgValidateMembers(fgAllMembers);${repeaters.map((r) => `\n        FgValidateRepeater_${r.key}();`).join('')}
     }
 
     private object? FgValue(string name) => name switch
@@ -351,11 +465,35 @@ ${stepAnnouncements(host, messages).map((text) => `        ${csStr(text)},`).joi
 ${arms}
             _ => Array.Empty<string>(),
         };
-        if (FgValidateMembers(members) && fgSec_${host.key} < ${host.sections.length - 1}) await FgGo_${host.key}(fgSec_${host.key} + 1);
+        ${sectionRepeaterSwitch(host)
+          ? `var ok = FgValidateMembers(members);
+        ok &= ${sectionRepeaterSwitch(host, 'FgValidateRepeater')};
+        if (ok && fgSec_${host.key} < ${host.sections.length - 1}) await FgGo_${host.key}(fgSec_${host.key} + 1);`
+          : `if (FgValidateMembers(members) && fgSec_${host.key} < ${host.sections.length - 1}) await FgGo_${host.key}(fgSec_${host.key} + 1);`}
     }
 `
       })
       .join('')
+
+    // Sections holding repeaters also count their items' fields.
+    function sectionRepeaterSwitch(host: (typeof hosts)[number], fn?: string, indexVar?: string): string {
+      if (!host.sections.some((sec) => sec.repeaters.length > 0)) return ''
+      if (!fn) return 'yes'
+      const arms = host.sections
+        .filter((sec) => sec.repeaters.length > 0)
+        .map((sec) => {
+          const calls = sec.repeaters.map((path) => {
+            const r = repeaters.find((x) => x.path === path)!
+            return `${fn}_${r.key}()`
+          })
+          return `${sec.index} => ${calls.join(fn === 'FgValidateRepeater' ? ' & ' : ' || ')},`
+        })
+      return `(${indexVar ?? `fgSec_${host.key}`} switch { ${arms.join(' ')} _ => ${fn === 'FgValidateRepeater' ? 'true' : 'false'} })`
+    }
+    function secHasErrors(host: (typeof hosts)[number], index: string): string {
+      const base = `FgHasMessages(fgSecMembers_${host.key}[${index}])`
+      return sectionRepeaterSwitch(host) ? `(${base} || ${sectionRepeaterSwitch(host, 'FgRepeaterHasErrors', index)})` : base
+    }
 
     const jumpBlock = hasHosts
       ? `
@@ -387,11 +525,11 @@ ${host.sections
     {
 ${hosts
   .map(
-    (host) => `        if (!FgHasMessages(fgSecMembers_${host.key}[fgSec_${host.key}]))
+    (host) => `        if (!${secHasErrors(host, `fgSec_${host.key}`)})
         {
             for (var i = 0; i < fgSecMembers_${host.key}.Length; i++)
             {
-                if (FgHasMessages(fgSecMembers_${host.key}[i])) { fgSec_${host.key} = i; break; }
+                if (${secHasErrors(host, 'i')}) { fgSec_${host.key} = i; break; }
             }
         }`,
   )
@@ -448,7 +586,7 @@ ${fields.map((f) => `        ${csStr(pascalMember(f.key))},`).join('\n')}
 
     private async Task FgOnInvalidSubmit(EditContext context)
     {${hasHosts ? '\n        FgJumpToError();' : ''}
-        var count = fgAllMembers.Count(m => context.GetValidationMessages(new FieldIdentifier(Model, m)).Any());
+        var count = fgAllMembers.Count(m => context.GetValidationMessages(new FieldIdentifier(Model, m)).Any())${hasRepeaters ? ' + FgItemErrorCount()' : ''};
         await FgAnnounce(FgErrorsText(count));
     }
 `
@@ -460,7 +598,7 @@ ${fields.map((f) => `        ${csStr(pascalMember(f.key))},`).join('\n')}
     private async Task FgReset()
     {
         Model = new();
-        FgInitEdit();
+        FgInitEdit();${hasRepeaters ? '\n        fgItemRefs.Clear();' : ''}
         fgDeferredFields.Clear();
         ResultJson = null;${tagsKeys.length ? '\n        foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";' : ''}
         await FgAnnounce(${csStr(messages.formReset)});
@@ -468,7 +606,160 @@ ${fields.map((f) => `        ${csStr(pascalMember(f.key))},`).join('\n')}
 `
       : ''
 
-    const helperBlocks = `${editContextBlock}${announceBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}${resetBlock}`
+    const repeaterBlock = hasRepeaters
+      ? `
+${repeaters
+  .map(
+    (r) => `    private static readonly string[] fgItemFields_${r.key} = { ${r.fields
+      .filter((f) => (f.node.validation?.length ?? 0) > 0)
+      .map((f) => csStr(pascalMember(f.name)))
+      .join(', ')} };
+    private ElementReference fgAddRef_${r.key};
+
+    private bool FgRepeaterHasErrors_${r.key}() =>
+        Model.${repeaterMember(r)}.Any(item => fgItemFields_${r.key}.Any(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any()));
+
+    private bool FgValidateRepeater_${r.key}()
+    {
+${repeaterVisible(r) === 'true' ? '' : `        if (!(${repeaterVisible(r)})) return true;\n`}        var ok = true;
+        foreach (var item in Model.${repeaterMember(r)})
+        {
+            foreach (var name in fgItemFields_${r.key}) ok &= FgValidateItemField(new FieldIdentifier(item, name), false);
+        }
+        fgEdit.NotifyValidationStateChanged();
+        return ok;
+    }
+`,
+  )
+  .join('\n')}
+    private readonly HashSet<FieldIdentifier> fgDeferredItemFields = new();
+    private readonly Dictionary<object, ElementReference> fgItemRefs = new();
+    private object? fgFocusItem;
+    private string? fgFocusAdd;
+
+    private void FgFieldChanged(FieldIdentifier field)
+    {
+        if (ReferenceEquals(field.Model, Model))
+        {
+            FgFieldChanged(field.FieldName);
+            return;
+        }
+        if (fgPressing)
+        {
+            fgDeferredItemFields.Add(field);
+            return;
+        }
+        FgValidateItemField(field);
+    }
+
+    /** First rule violation of an item field (null when valid or hidden). */
+    private string? FgItemError(object model, string name)
+    {
+        switch (model)
+        {
+${repeaters
+  .map(
+    (r) => `            case ${itemClass(r)} item:
+                switch (name)
+                {
+${r.fields
+  .filter((f) => (f.node.validation?.length ?? 0) > 0)
+  .map((f) => {
+    const kind = csFieldKind(f.node.type)
+    const member = `item.${pascalMember(f.name)}`
+    const guard = f.node.conditions?.length
+      ? `                        if (!(${csConditions(f.node.conditions, itemCsAccessor(r))})) return null;\n`
+      : ''
+    const checks = csRuleChecks(f.node.validation ?? [], kind, member, itemCsAccessor(r))
+      .map(({ test, message }) => `                        if (${test}) return ${csStr(message)};`)
+      .join('\n')
+    return `                    case ${csStr(pascalMember(f.name))}:\n                    {\n${guard}${checks}\n                        return null;\n                    }`
+  })
+  .join('\n')}
+                }
+                break;`,
+  )
+  .join('\n')}
+        }
+        return null;
+    }
+
+    private bool FgValidateItemField(FieldIdentifier field, bool notify = true)
+    {
+        fgMessages.Clear(field);
+        var error = FgItemError(field.Model, field.FieldName);
+        if (error != null) fgMessages.Add(field, error);
+        if (notify) fgEdit.NotifyValidationStateChanged();
+        return error == null;
+    }
+
+    private int FgItemErrorCount()
+    {
+        var count = 0;
+${repeaters
+  .map(
+    (r) =>
+      `        foreach (var item in Model.${repeaterMember(r)}) count += fgItemFields_${r.key}.Count(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any());`,
+  )
+  .join('\n')}
+        return count;
+    }
+
+    private static string FgItemLabel(string path, int index) => (path switch
+    {
+${repeaters.map((r) => `        ${csStr(r.path)} => ${csStr(r.itemLabel)},`).join('\n')}
+        _ => "{n}",
+    }).Replace("{n}", (index + 1).ToString());
+
+    private static string FgRemoveLabel(string path, int index) =>
+        ${csStr(messages.removeItemLabel)}.Replace("{label}", FgItemLabel(path, index));
+
+    private async Task FgAddItem<T>(List<T> list, string path, int max) where T : class, new()
+    {
+        if (list.Count >= max) return;
+        var item = new T();
+        list.Add(item);
+        fgFocusItem = item;
+        await FgAnnounce(${csStr(messages.itemAdded)}.Replace("{label}", FgItemLabel(path, list.Count - 1)));
+    }
+
+    private async Task FgRemoveItem<T>(List<T> list, string path, int index, int min, string[] fields) where T : class
+    {
+        if (list.Count <= min || index >= list.Count) return;
+        var label = FgItemLabel(path, index);
+        var item = list[index];
+        foreach (var name in fields) fgMessages.Clear(new FieldIdentifier(item, name));
+        fgItemRefs.Remove(item);
+        list.RemoveAt(index);
+        fgEdit.NotifyValidationStateChanged();
+        if (list.Count > 0) fgFocusItem = list[Math.Min(index, list.Count - 1)];
+        else fgFocusAdd = path;
+        await FgAnnounce(${csStr(messages.itemRemoved)}.Replace("{label}", label));
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (fgFocusItem != null && fgItemRefs.TryGetValue(fgFocusItem, out var itemRef))
+        {
+            fgFocusItem = null;
+            await itemRef.FocusAsync();
+        }
+        else if (fgFocusAdd != null)
+        {
+            var path = fgFocusAdd;
+            fgFocusAdd = null;
+            var addRef = path switch
+            {
+${repeaters.map((r) => `                ${csStr(r.path)} => fgAddRef_${r.key},`).join('\n')}
+                _ => default,
+            };
+            if (addRef.Context != null) await addRef.FocusAsync();
+        }
+    }
+`
+      : ''
+
+    const helperBlocks = `${editContextBlock}${announceBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}${repeaterBlock}${resetBlock}`
 
     const formBinding = 'EditContext="fgEdit" OnSubmit="FgSubmit"'
     const extraUsings = '@using System.Linq\n@using Microsoft.AspNetCore.Components.Forms\n'
@@ -530,14 +821,14 @@ ${payloadStatements.join('\n')}
 
     public class ${name}Model : IValidatableObject
     {
-${properties}
+${properties}${repeaterProperties ? `\n\n${repeaterProperties}` : ''}
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
 ${validateStatements || '            yield break;'}
         }
     }
-}
+${itemClasses}}
 `
 
     const stylesheet = css.stylesheet?.(schema.meta.theme)

@@ -6,12 +6,23 @@ import { resolveMessages } from '@formsgen/renderer'
 import { errorsTextFunction, stepAnnouncementsLiteral, submittedText } from '../announce'
 import { RUNTIME_HELPERS_TS } from '../compile'
 import {
+  collectExportRepeaters,
+  itemValidatorsLiteral,
+  scopedAccessor,
+  type ItemAccess,
   collectExportFields,
   payloadExpr,
   validatorsLiteral,
   visibilityFunctions,
 } from '../logic'
-import { renderTree, stepButtonLabels, type RenderedSectionHost } from '../markup'
+import {
+  renderTree,
+  stepButtonLabels,
+  type RenderedRepeater,
+  type RenderedSectionHost,
+} from '../markup'
+import { reactItemMarkup, repeaterLegend } from '../repeaterMarkup'
+import { compileConditions } from '../compile'
 import {
   collectSectionHosts,
   defaultsObject,
@@ -46,6 +57,18 @@ export const reactTarget: ExportTarget = {
     const defaults = defaultsObject(schema)
     const hosts = collectSectionHosts(schema)
     const messages = resolveMessages(schema.meta.locale)
+    const repeaters = collectExportRepeaters(schema)
+    const hasRepeaters = repeaters.length > 0
+    // JSX maps `form.<path>`; module functions map `data.<path>`.
+    const jsxItems: ItemAccess = {
+      map: (path, body) => `form.${path}.map((item, i) => ${body})`,
+      read: (template, path) => `item.${template.slice(path.length + 1)}`,
+    }
+    const dataItems: ItemAccess = {
+      map: (path, body) => `data.${path}.map((item) => ${body})`,
+      read: (template, path) => `item.${template.slice(path.length + 1)}`,
+    }
+    const validatorFor = hasRepeaters ? 'fgValidatorFor(path)' : 'validators[path]'
 
     // Submit button: configurable text/placement/style (meta.submitButton).
     // With exactly ONE gating wizard, the submit replaces Next on its last
@@ -86,6 +109,28 @@ export const reactTarget: ExportTarget = {
       return `<div>\n  <ol className="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div className="${css.classes('stepActions')}">\n    {${state} > 0 && <button type="button" className="${css.classes('buttonSecondary')}" onClick={() => fgGo_${host.key}(${state} - 1)}>${labels.back}</button>}\n    {${state} < ${last} && <button type="button" className="${css.classes('submitButton')}" onClick={fgNext_${host.key}}>${labels.next}</button>}${embeddedSubmit}\n  </div>\n</div>`
     }
 
+    const renderRepeater = (r: RenderedRepeater): string => {
+      const list = `form.${r.path}`
+      const removeBtn = `<div className="${css.classes('repeaterItemActions')}">
+          <button type="button" className="${css.classes('repeaterRemove')}" aria-label={fgRemoveLabel('${r.path}', i)} onClick={() => fgRemoveItem('${r.path}', i)}>${r.messages.removeItem}</button>
+        </div>`
+      const addBtn = `<button type="button" className="${css.classes('repeaterAdd')}" data-fg-add="${r.path}" onClick={() => fgAddItem('${r.path}')}>${r.addText}</button>`
+      return `<fieldset className="${css.classes('group')}" data-fg-repeater="${r.path}">${repeaterLegend(css, r, 'className')}
+  <div className="${css.classes('repeaterItems')}">
+    {${list}.map((item, i) => (
+      <fieldset key={fgKeyAt('${r.path}', i)} className="${css.classes('repeaterItem')}" data-fg-item tabIndex={-1}>
+        <legend className="${css.classes('repeaterItemLabel')}">{fgItemLabel('${r.path}', i)}</legend>
+${indentBlock(reactItemMarkup(r.itemHtml, r.path), 4)}
+        ${r.limits.min > 0 ? `{${list}.length > ${r.limits.min} && (
+        ${removeBtn}
+        )}` : removeBtn}
+      </fieldset>
+    ))}
+  </div>
+  ${Number.isFinite(r.limits.max) ? `{${list}.length < ${r.limits.max} && ${addBtn}}` : addBtn}
+</fieldset>`
+    }
+
     const markup = renderTree(schema, {
       lang: 'react',
       css,
@@ -95,13 +140,26 @@ export const reactTarget: ExportTarget = {
       conditionAttr: () => '',
       wrapConditional: (expr, block) => `{(${expr}) && (\n${indentBlock(block, 1)}\n)}`,
       renderSections,
+      renderRepeater,
+      itemOptions: (path) => ({ accessor: scopedAccessor(formAccessor, jsxItems, path) }),
     })
 
+    // A section holding a repeater also gates on its items' fields (dynamic).
+    const dynamicHost = (host: (typeof hosts)[number]): boolean => host.sections.some((s) => s.repeaters.length > 0)
+    const secPaths = (host: (typeof hosts)[number]): string =>
+      dynamicHost(host) ? `fgSecPaths_${host.key}(form)` : `fgSecPaths_${host.key}`
     const sectionPathsConsts = hosts
-      .map(
-        (host) =>
-          `const fgSecPaths_${host.key} = [${host.sections.map((s) => `[${s.paths.map((p) => JSON.stringify(p)).join(', ')}]`).join(', ')}]`,
-      )
+      .map((host) => {
+        const lists = host.sections
+          .map(
+            (s) =>
+              `[${[...s.paths.map((p) => JSON.stringify(p)), ...s.repeaters.map((r) => `...fgItemPaths(data, '${r}')`)].join(', ')}]`,
+          )
+          .join(', ')
+        return dynamicHost(host)
+          ? `const fgSecPaths_${host.key} = (data: FormData): string[][] => [${lists}]`
+          : `const fgSecPaths_${host.key} = [${lists}]`
+      })
       .join('\n')
 
     const sectionHooks = hosts
@@ -119,9 +177,9 @@ export const reactTarget: ExportTarget = {
   function fgNext_${host.key}(): void {
     let ok = true
     const next = { ...errors }
-    for (const path of fgSecPaths_${host.key}[fgSec_${host.key}] ?? []) {
+    for (const path of ${secPaths(host)}[fgSec_${host.key}] ?? []) {
       touched.current.add(path)
-      const validate = validators[path]
+      const validate = ${validatorFor}
       const message = validate ? validate(form) : null
       if (message) { next[path] = message; ok = false } else { delete next[path] }
     }
@@ -141,8 +199,8 @@ export const reactTarget: ExportTarget = {
       hosts.length > 0
         ? hosts
             .map(
-              (host) => `      if (!(fgSecPaths_${host.key}[fgSec_${host.key}] ?? []).some((p) => nextErrors[p])) {
-        const target = fgSecPaths_${host.key}.findIndex((paths) => paths.some((p) => nextErrors[p]))
+              (host) => `      if (!(${secPaths(host)}[fgSec_${host.key}] ?? []).some((p) => nextErrors[p])) {
+        const target = ${secPaths(host)}.findIndex((paths) => paths.some((p) => nextErrors[p]))
         if (target !== -1) setFgSec_${host.key}(target)
       }`,
             )
@@ -166,12 +224,154 @@ export const reactTarget: ExportTarget = {
   }`
       : ''
 
+    const fmtMax = (max: number): string => (Number.isFinite(max) ? String(max) : 'Number.POSITIVE_INFINITY')
+    const repeaterModule = hasRepeaters
+      ? `const FG_ITEM_DEFAULTS: Record<string, () => Record<string, unknown>> = {
+${repeaters.map((r) => `  '${r.path}': () => (${indentBlock(toJsLiteral(r.itemDefaults), 1).trimStart()}),`).join('\n')}
+}
+
+const FG_ITEM_LIMITS: Record<string, { min: number; max: number }> = {
+${repeaters.map((r) => `  '${r.path}': { min: ${r.limits.min}, max: ${fmtMax(r.limits.max)} },`).join('\n')}
+}
+
+const FG_ITEM_LABELS: Record<string, string> = {
+${repeaters.map((r) => `  '${r.path}': ${JSON.stringify(r.itemLabel)},`).join('\n')}
+}
+
+const FG_REPEATER_VISIBLE: Record<string, (data: FormData) => boolean> = {
+${repeaters
+  .map(
+    (r) =>
+      `  '${r.path}': (${r.conditionChain.length ? 'data' : '_data'}: FormData) => ${r.conditionChain.length ? r.conditionChain.map((g) => `(${compileConditions(g, dataAccessor)})`).join(' && ') : 'true'},`,
+  )
+  .join('\n')}
+}
+
+const itemValidators: Record<string, Record<string, (item: Record<string, unknown>, data: FormData) => string | null>> = ${itemValidatorsLiteral(
+          repeaters,
+          dataAccessor,
+          { ...dataItems, read: (template, path) => `item[${JSON.stringify(template.slice(path.length + 1))}]` },
+          (_r, body) => `item: Record<string, unknown>, ${/\bdata\./.test(body) ? 'data' : '_data'}: FormData`,
+        )}
+
+function fgList(data: FormData, path: string): Record<string, unknown>[] {
+  return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], data) as Record<string, unknown>[]
+}
+
+function fgItemLabel(path: string, index: number): string {
+  return (FG_ITEM_LABELS[path] ?? '').split('{n}').join(String(index + 1))
+}
+
+function fgRemoveLabel(path: string, index: number): string {
+  return ${JSON.stringify(messages.removeItemLabel)}.split('{label}').join(fgItemLabel(path, index))
+}
+
+/** Every item field path of a visible repeater (validation, step gates). */
+function fgItemPaths(data: FormData, path: string): string[] {
+  if (!FG_REPEATER_VISIBLE[path]?.(data)) return []
+  const fields = Object.keys(itemValidators[path] ?? {})
+  return fgList(data, path).flatMap((_, i) => fields.map((field) => \`\${path}.\${i}.\${field}\`))
+}
+
+/** Validator for a field path, including item paths like "people.2.name". */
+function fgValidatorFor(path: string): ((data: FormData) => string | null) | undefined {
+  const direct = validators[path]
+  if (direct) return direct
+  const match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
+  if (!match) return undefined
+  const validate = itemValidators[match[1]!]?.[match[3]!]
+  if (!validate) return undefined
+  return (data) => {
+    const item = fgList(data, match[1]!)[Number(match[2])]
+    return item ? validate(item, data) : null
+  }
+}
+
+/** All field paths to validate on submit (items included). */
+function fgAllPaths(data: FormData): string[] {
+  return [...Object.keys(validators), ...Object.keys(itemValidators).flatMap((path) => fgItemPaths(data, path))]
+}
+
+/** Moves item keys/paths after a removal: "people.3.x" → "people.2.x". */
+function fgShiftKey(key: string, path: string, removed: number): string | null {
+  if (!key.startsWith(path + '.')) return key
+  const rest = key.slice(path.length + 1)
+  const dot = rest.indexOf('.')
+  const index = Number(dot === -1 ? rest : rest.slice(0, dot))
+  if (!Number.isInteger(index)) return key
+  if (index === removed) return null
+  return index > removed ? \`\${path}.\${index - 1}\${dot === -1 ? '' : rest.slice(dot)}\` : key
+}`
+      : ''
+    const repeaterHooks = hasRepeaters
+      ? `  const fgRoot = useRef<HTMLFormElement>(null)
+  // Stable React keys per item (the form object is cloned on every edit).
+  const fgKeys = useRef<Record<string, number[]>>({})
+  const fgNextKey = useRef(0)
+  const fgPendingFocus = useRef<{ path: string; index: number } | null>(null)`
+      : ''
+    const repeaterHandlers = hasRepeaters
+      ? `  function fgKeyAt(path: string, index: number): number {
+    const keys = (fgKeys.current[path] ??= [])
+    while (keys.length <= index) keys.push(fgNextKey.current++)
+    return keys[index]!
+  }
+
+  function fgAddItem(path: string): void {
+    const list = fgList(form, path)
+    if (list.length >= (FG_ITEM_LIMITS[path]?.max ?? Number.POSITIVE_INFINITY)) return
+    setField(path, [...list, FG_ITEM_DEFAULTS[path]!()])
+    fgPendingFocus.current = { path, index: list.length }
+    fgAnnounce(${JSON.stringify(messages.itemAdded)}.split('{label}').join(fgItemLabel(path, list.length)))
+  }
+
+  function fgRemoveItem(path: string, index: number): void {
+    const list = fgList(form, path)
+    if (list.length <= (FG_ITEM_LIMITS[path]?.min ?? 0)) return
+    const label = fgItemLabel(path, index)
+    fgKeyAt(path, list.length - 1)
+    fgKeys.current[path]!.splice(index, 1)
+    const nextTouched = [...touched.current].map((k) => fgShiftKey(k, path, index)).filter((k): k is string => k !== null)
+    touched.current = new Set(nextTouched)
+    setErrors((prev) => {
+      const next: Record<string, string> = {}
+      for (const [key, message] of Object.entries(prev)) {
+        const target = fgShiftKey(key, path, index)
+        if (target !== null) next[target] = message
+      }
+      return next
+    })
+    setField(path, list.filter((_, i) => i !== index))
+    fgPendingFocus.current = { path, index: -1 - index }
+    fgAnnounce(${JSON.stringify(messages.itemRemoved)}.split('{label}').join(label))
+  }
+
+  // After an add: focus the new item's first control. After a remove
+  // (negative index): focus the item that took its place, or the add button.
+  useEffect(() => {
+    const pending = fgPendingFocus.current
+    if (!pending) return
+    fgPendingFocus.current = null
+    const repeater = fgRoot.current?.querySelector(\`[data-fg-repeater="\${pending.path}"]\`)
+    const items = Array.from(repeater?.querySelectorAll<HTMLElement>(':scope > div > [data-fg-item]') ?? [])
+    if (pending.index >= 0) {
+      const item = items[pending.index]
+      const control = item?.querySelector<HTMLElement>('input:not([type=hidden]), select, textarea')
+      ;(control ?? item)?.focus()
+    } else {
+      const removed = -1 - pending.index
+      const target = items[Math.min(removed, items.length - 1)]
+      ;(target ?? repeater?.querySelector<HTMLElement>('[data-fg-add]'))?.focus()
+    }
+  })`
+      : ''
+
     // Reset buttons: back to INITIAL, no errors, announced.
     const resetHandler = hasResetButton(schema)
       ? `  function fgReset(): void {
     setForm(INITIAL)
     setErrors({})
-    touched.current.clear()
+    touched.current.clear()${hasRepeaters ? '\n    fgKeys.current = {}' : ''}
     setResult(null)${hasTags ? '\n    setTagDrafts({})' : ''}
     fgAnnounce(${JSON.stringify(messages.formReset)})
   }`
@@ -220,9 +420,9 @@ const validators: Record<string, (data: FormData) => string | null> = ${validato
     )}
 
 function buildPayload(data: FormData): Record<string, unknown> {
-  return ${indentBlock(payloadExpr(schema, dataAccessor, (key) => `fgVisible_${key}(data)`), 1).trimStart()}
+  return ${indentBlock(payloadExpr(schema, dataAccessor, (key) => `fgVisible_${key}(data)`, dataItems), 1).trimStart()}
 }
-${sectionPathsConsts ? `\n${sectionPathsConsts}\n` : ''}${stepAnnounceConsts ? `${stepAnnounceConsts}\n` : ''}
+${repeaterModule ? `\n${repeaterModule}\n` : ''}${sectionPathsConsts ? `\n${sectionPathsConsts}\n` : ''}${stepAnnounceConsts ? `${stepAnnounceConsts}\n` : ''}
 ${errorsTextFunction(messages, true)}
 
 export default function ${name}({
@@ -235,7 +435,7 @@ export default function ${name}({
   const [result, setResult] = useState<Record<string, unknown> | null>(null)
   const touched = useRef(new Set<string>())
   const [fgAnnouncement, setFgAnnouncement] = useState('')
-${sectionHooks ? `${sectionHooks}\n` : ''}${tagsState ? `${tagsState}\n` : ''}
+${sectionHooks ? `${sectionHooks}\n` : ''}${tagsState ? `${tagsState}\n` : ''}${repeaterHooks ? `${repeaterHooks}\n` : ''}
   // Polite aria-live region; cleared first so repeated text re-announces.
   function fgAnnounce(message: string): void {
     setFgAnnouncement('')
@@ -253,7 +453,7 @@ ${stepHandlers ? `\n${stepHandlers}\n` : ''}
   }
 
   function validateField(path: string, data: FormData): void {
-    const validate = validators[path]
+    const validate = ${validatorFor}
     if (validate) applyError(path, validate(data))
   }
 
@@ -308,13 +508,13 @@ ${stepHandlers ? `\n${stepHandlers}\n` : ''}
     touched.current.add(path)
     validateField(path, form)
   }
-${tagsHandlers ? `\n${tagsHandlers}\n` : ''}${resetHandler ? `\n${resetHandler}\n` : ''}
+${tagsHandlers ? `\n${tagsHandlers}\n` : ''}${repeaterHandlers ? `\n${repeaterHandlers}\n` : ''}${resetHandler ? `\n${resetHandler}\n` : ''}
   function handleSubmit(event: React.FormEvent): void {
     event.preventDefault()
     const nextErrors: Record<string, string> = {}
-    for (const path of Object.keys(validators)) {
+    for (const path of ${hasRepeaters ? 'fgAllPaths(form)' : 'Object.keys(validators)'}) {
       touched.current.add(path)
-      const message = validators[path]!(form)
+      const message = ${hasRepeaters ? 'fgValidatorFor(path)?.(form) ?? null' : 'validators[path]!(form)'}
       if (message) nextErrors[path] = message
     }
     setErrors(nextErrors)
@@ -329,7 +529,7 @@ ${jumpBlock ? `${jumpBlock}\n` : ''}      fgAnnounce(fgErrorsText(Object.keys(ne
 ${submitBlock}  }
 
   return (
-    <form className="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} dir="${schema.meta.dir}" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
+    <form${hasRepeaters ? ' ref={fgRoot}' : ''} className="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} dir="${schema.meta.dir}" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
       <div className="${css.classes('grid')}">
 ${indentBlock(markup, 4)}
       </div>

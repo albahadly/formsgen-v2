@@ -55,6 +55,12 @@ const CLASSES: Record<Slot, string> = {
   quoteCite: 'blockquote-footer mb-0',
   buttonDanger: 'btn btn-danger',
   colorInput: 'form-control form-control-color',
+  repeaterItems: 'd-flex flex-column gap-3',
+  repeaterItem: 'border rounded p-3',
+  repeaterItemLabel: 'float-none w-auto px-1 fs-6 fw-semibold mb-0',
+  repeaterItemActions: 'mt-2 d-flex justify-content-end',
+  repeaterRemove: 'btn btn-link link-danger p-0',
+  repeaterAdd: 'btn btn-outline-secondary mt-3',
 }
 
 // Bootstrap's own size modifiers are designed to be appended.

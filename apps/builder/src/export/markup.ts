@@ -5,6 +5,8 @@
 import {
   SECTION_CONTAINERS,
   fill,
+  isRepeater,
+  repeaterLimits,
   getCoreElement,
   joinPath,
   resolveMessages,
@@ -50,6 +52,38 @@ export interface MarkupOptions {
    * sequentially as labeled fieldsets.
    */
   renderSections?: ((host: RenderedSectionHost) => string) | undefined
+  /**
+   * Renders a repeater from its item template (children rendered once with
+   * ITEM_TOKEN in place of the item index in paths and ids). Targets
+   * without it emit an "unsupported" comment.
+   */
+  renderRepeater?: ((repeater: RenderedRepeater) => string) | undefined
+  /**
+   * Option overrides for markup inside a repeater item — e.g. an accessor
+   * (or C# condition compiler) that reads sibling fields from the item.
+   */
+  itemOptions?: ((repeaterPath: string) => Partial<MarkupOptions>) | undefined
+}
+
+/** Stands for the item index inside repeater item templates. */
+export const ITEM_TOKEN = '__i__'
+
+export interface RenderedRepeater {
+  node: ElementNode
+  /** Data path of the item array (no index), e.g. "people". */
+  path: string
+  /** Identifier-safe key for generated names. */
+  key: string
+  /** The item's grid markup, with ITEM_TOKEN for the index. */
+  itemHtml: string
+  messages: MessageCatalog
+  limits: { min: number; max: number; initial: number }
+  /** Escaped legend text, or null. */
+  legend: string | null
+  /** Item label template (escaped) with {n}. */
+  itemLabel: string
+  /** Escaped add-button text. */
+  addText: string
 }
 
 export interface RenderedSection {
@@ -106,19 +140,29 @@ function indentBlock(text: string, depth: number): string {
     .join('\n')
 }
 
-export function renderTree(schema: FormSchema, options: MarkupOptions): string {
-  const { css } = options
+export function renderTree(schema: FormSchema, rootOptions: MarkupOptions): string {
+  const { css } = rootOptions
   const messages = resolveMessages(schema.meta.locale)
-  const classAttr = options.classAttr ?? 'class'
-  const comment = options.comment ?? ((text: string) => `<!-- ${text} -->`)
+  const classAttr = rootOptions.classAttr ?? 'class'
+  const comment = rootOptions.comment ?? ((text: string) => `<!-- ${text} -->`)
 
-  const renderNodes = (nodes: ElementNode[], parentPath: string, defaultSpan: number): string =>
+  const renderNodes = (
+    nodes: ElementNode[],
+    parentPath: string,
+    defaultSpan: number,
+    options: MarkupOptions = rootOptions,
+  ): string =>
     nodes
-      .map((node) => renderNode(node, parentPath, defaultSpan))
+      .map((node) => renderNode(node, parentPath, defaultSpan, options))
       .filter(Boolean)
       .join('\n')
 
-  const renderNode = (node: ElementNode, parentPath: string, defaultSpan: number): string => {
+  const renderNode = (
+    node: ElementNode,
+    parentPath: string,
+    defaultSpan: number,
+    options: MarkupOptions,
+  ): string => {
     const core = getCoreElement(node.type)
     const def = getElement(node.type)
     if (!core || !def) return comment(`unsupported element type: ${esc(node.type)}`)
@@ -164,7 +208,32 @@ export function renderTree(schema: FormSchema, options: MarkupOptions): string {
     const open = `<div ${classAttr}="${cellClass}"${styleAttr}${condAttr}>`
 
     let inner: string
-    if (core.isContainer) {
+    if (isRepeater(node)) {
+      const repeaterPath = node.name ? joinPath(parentPath, node.name) : parentPath
+      if (!options.renderRepeater || !node.name) {
+        inner = comment(`repeating section "${esc(node.name ?? node.id)}" is not supported by this target yet`)
+      } else {
+        const itemOptions: MarkupOptions = { ...options, ...options.itemOptions?.(repeaterPath) }
+        const itemHtml = `<div ${classAttr}="${css.classes('grid')}">\n${indentBlock(
+          renderNodes(node.children ?? [], `${repeaterPath}.${ITEM_TOKEN}`, 12, itemOptions),
+          1,
+        )}\n</div>`
+        const label = node.props['label']
+        const itemLabel = node.props['itemLabel']
+        const addText = node.props['addText']
+        inner = options.renderRepeater({
+          node,
+          path: repeaterPath,
+          key: pathKey(repeaterPath),
+          itemHtml,
+          messages,
+          limits: repeaterLimits(node),
+          legend: typeof label === 'string' && label !== '' ? esc(label) : null,
+          itemLabel: esc(typeof itemLabel === 'string' && itemLabel !== '' ? itemLabel : messages.item),
+          addText: esc(typeof addText === 'string' && addText !== '' ? addText : messages.addItem),
+        })
+      }
+    } else if (core.isContainer) {
       const childPath = node.name ? joinPath(parentPath, node.name) : parentPath
       const sectionType = SECTION_CONTAINERS[node.type]
       if (sectionType) {
@@ -177,7 +246,7 @@ export function renderTree(schema: FormSchema, options: MarkupOptions): string {
               typeof section.props['label'] === 'string' && section.props['label'] !== ''
                 ? esc(section.props['label'] as string)
                 : esc(fill(sectionType === 'tab' ? messages.tab : messages.step, { n: index + 1 })),
-            html: `<div ${classAttr}="${css.classes('grid')}">\n${indentBlock(renderNodes(section.children ?? [], childPath, 12), 1)}\n</div>`,
+            html: `<div ${classAttr}="${css.classes('grid')}">\n${indentBlock(renderNodes(section.children ?? [], childPath, 12, options), 1)}\n</div>`,
           }))
         const host: RenderedSectionHost = {
           node,
@@ -197,14 +266,14 @@ export function renderTree(schema: FormSchema, options: MarkupOptions): string {
       } else if (node.type === 'columns') {
         const count = Number(node.props['count'] ?? 2)
         const childSpan = Math.max(1, Math.round(12 / count))
-        inner = `<div ${classAttr}="${css.classes('grid')}">\n${indentBlock(renderNodes(node.children ?? [], childPath, childSpan), 1)}\n</div>`
+        inner = `<div ${classAttr}="${css.classes('grid')}">\n${indentBlock(renderNodes(node.children ?? [], childPath, childSpan, options), 1)}\n</div>`
       } else {
         const label = node.props['label']
         const legend =
           typeof label === 'string' && label !== ''
             ? `<legend ${classAttr}="${css.classes('groupLabel')}">${esc(label)}</legend>\n  `
             : ''
-        inner = `<fieldset ${classAttr}="${css.classes('group')}">\n  ${legend}<div ${classAttr}="${css.classes('grid')}">\n${indentBlock(renderNodes(node.children ?? [], childPath, 12), 2)}\n  </div>\n</fieldset>`
+        inner = `<fieldset ${classAttr}="${css.classes('group')}">\n  ${legend}<div ${classAttr}="${css.classes('grid')}">\n${indentBlock(renderNodes(node.children ?? [], childPath, 12, options), 2)}\n  </div>\n</fieldset>`
       }
     } else {
       const emitter = def.export?.[options.lang]
@@ -231,4 +300,9 @@ export function renderTree(schema: FormSchema, options: MarkupOptions): string {
   }
 
   return renderNodes(schema.tree, '', 12)
+}
+
+/** Splits text on ITEM_TOKEN: `a__i__b` → ['a', 'b']. */
+export function splitItemToken(text: string): string[] {
+  return text.split(ITEM_TOKEN)
 }

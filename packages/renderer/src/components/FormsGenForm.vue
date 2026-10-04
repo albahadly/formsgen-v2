@@ -5,7 +5,7 @@ import { FORM_CONTEXT, type FormContext } from '../context'
 import { pluralText, resolveMessages } from '../messages'
 import { evaluateRules } from '../rules'
 import { pinsLightScheme, themeInlineStyle } from '../theme'
-import { collectVisibleFields, pickVisibleData, setValueByPath } from '../runtime'
+import { collectVisibleFields, pickVisibleData, scopedLookup, setValueByPath } from '../runtime'
 import type { FormSchema } from '../schema'
 import { buildDefaultData } from '../tree'
 import FgNode from './FgNode.vue'
@@ -70,7 +70,12 @@ function validateField(path: string): void {
     errors[path] = null
     return
   }
-  const violations = evaluateRules(field.node.validation, lookup(path), lookup, messages.value)
+  const violations = evaluateRules(
+    field.node.validation,
+    lookup(path),
+    scopedLookup(data, field.scope),
+    messages.value,
+  )
   errors[path] = violations[0]?.message ?? null
 }
 
@@ -82,7 +87,7 @@ function validateAll(): boolean {
     const violations = evaluateRules(
       field.node.validation,
       lookup(field.path),
-      lookup,
+      scopedLookup(data, field.scope),
       messages.value,
     )
     errors[field.path] = violations[0]?.message ?? null
@@ -208,6 +213,31 @@ function announce(message: string): void {
   })
 }
 context.announce = announce
+
+/**
+ * A repeater item was removed: later items move up one index, so their
+ * touched state and errors follow them (the removed item's are dropped).
+ */
+context.shiftItems = (repeaterPath, removedIndex) => {
+  const pattern = new RegExp(`^${repeaterPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.(\\d+)(\\..*)$`)
+  const moved = (key: string): string | null => {
+    const match = pattern.exec(key)
+    if (!match) return key
+    const index = Number(match[1])
+    if (index === removedIndex) return null
+    return index > removedIndex ? `${repeaterPath}.${index - 1}${match[2]}` : key
+  }
+  const nextTouched = [...touched].map(moved).filter((k): k is string => k !== null)
+  touched.clear()
+  for (const key of nextTouched) touched.add(key)
+  const nextErrors: Record<string, string | null> = {}
+  for (const [key, message] of Object.entries(errors)) {
+    const target = moved(key)
+    if (target !== null) nextErrors[target] = message
+  }
+  for (const key of Object.keys(errors)) delete errors[key]
+  Object.assign(errors, nextErrors)
+}
 
 /** Reset buttons: back to the initial values, no errors shown. */
 context.reset = () => {

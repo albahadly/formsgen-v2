@@ -6,7 +6,9 @@
 
 import {
   BOOLEAN_TYPES,
+  findParent,
   getCoreElement,
+  isRepeater,
   joinPath,
   type Condition,
   type ConditionOperator,
@@ -59,18 +61,30 @@ function optionsOf(node: ElementNode): ConditionOption[] {
  */
 export function listConditionSources(tree: ElementNode[], excludeId: string): ConditionSource[] {
   const sources: ConditionSource[] = []
+  // Fields inside a repeater exist once per item: only fields of the SAME
+  // repeater (resolved to the same item at runtime) may reference them.
+  const parent = findParent(tree, excludeId)
+  const ownRepeater = parent && isRepeater(parent) ? parent : null
+  let prefix = ''
   const walk = (nodes: ElementNode[], base: string): void => {
     for (const node of nodes) {
       if (node.id === excludeId) continue
       const core = getCoreElement(node.type)
       if (!core) continue
-      if (core.isContainer) {
+      if (isRepeater(node)) {
+        if (node.id === ownRepeater?.id && node.name) {
+          const label = node.props['label']
+          prefix = `${typeof label === 'string' && label !== '' ? label : node.name} › `
+          walk(node.children ?? [], joinPath(base, node.name))
+          prefix = ''
+        }
+      } else if (core.isContainer) {
         walk(node.children ?? [], node.name ? joinPath(base, node.name) : base)
       } else if (core.hasValue && node.name) {
         const label = node.props['label']
         sources.push({
           path: joinPath(base, node.name),
-          label: typeof label === 'string' && label !== '' ? label : node.name,
+          label: prefix + (typeof label === 'string' && label !== '' ? label : node.name),
           type: node.type,
           options: optionsOf(node),
         })

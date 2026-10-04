@@ -52,6 +52,18 @@ export interface MessageCatalog {
   opensInNewTab: string
   /** {index} {total} {label} — index is 1-based */
   stepProgress: string
+  /** {n} — fallback label of a repeater item */
+  item: string
+  /** Default text of a repeater's add button. */
+  addItem: string
+  /** Visible text of an item's remove button. */
+  removeItem: string
+  /** {label} — accessible name of an item's remove button */
+  removeItemLabel: string
+  /** {label} — announced after an item is added */
+  itemAdded: string
+  /** {label} — announced after an item is removed */
+  itemRemoved: string
 }
 
 const en: MessageCatalog = {
@@ -80,6 +92,12 @@ const en: MessageCatalog = {
   formReset: 'The form was reset.',
   opensInNewTab: '(opens in a new tab)',
   stepProgress: 'Step {index} of {total}: {label}',
+  item: 'Item {n}',
+  addItem: 'Add item',
+  removeItem: 'Remove',
+  removeItemLabel: 'Remove {label}',
+  itemAdded: '{label} added',
+  itemRemoved: '{label} removed',
 }
 
 const ar: MessageCatalog = {
@@ -111,6 +129,12 @@ const ar: MessageCatalog = {
   formReset: 'تمت إعادة تعيين النموذج.',
   opensInNewTab: '(يُفتح في علامة تبويب جديدة)',
   stepProgress: 'الخطوة {index} من {total}: {label}',
+  item: 'العنصر {n}',
+  addItem: 'إضافة عنصر',
+  removeItem: 'إزالة',
+  removeItemLabel: 'إزالة {label}',
+  itemAdded: 'تمت إضافة {label}',
+  itemRemoved: 'تمت إزالة {label}',
 }
 
 export const MESSAGES: Readonly<Record<'en' | 'ar', MessageCatalog>> = { en, ar }

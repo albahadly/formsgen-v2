@@ -87,6 +87,7 @@ describe('buildDefaultData', () => {
       brand_color: '#000000',
       volume: 0,
       source: 'kitchen-sink',
+      references: [{ name: '', may_contact: false, email: '' }],
       contact_method: null,
       contact_phone: '',
       contact_other: '',

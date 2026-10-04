@@ -5,6 +5,7 @@ import { checkboxGroupElement, radioGroupElement } from './elements/choiceGroups
 import { columnsElement } from './elements/columns'
 import { groupElement } from './elements/group'
 import { hiddenElement } from './elements/hidden'
+import { repeaterElement } from './elements/repeater'
 import { numberElement, rangeElement } from './elements/number'
 import { multiSelectElement, selectElement } from './elements/select'
 import { tagsElement } from './elements/tags'
@@ -100,6 +101,7 @@ for (const def of [
   // structure
   groupElement,
   columnsElement,
+  repeaterElement,
   tabsElement,
   tabElement,
   stepsElement,

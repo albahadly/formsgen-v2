@@ -59,6 +59,12 @@ export type Slot =
   | 'quoteCite'
   | 'buttonDanger'
   | 'colorInput'
+  | 'repeaterItems'
+  | 'repeaterItem'
+  | 'repeaterItemLabel'
+  | 'repeaterItemActions'
+  | 'repeaterRemove'
+  | 'repeaterAdd'
 
 export interface CellAttrs {
   class: string

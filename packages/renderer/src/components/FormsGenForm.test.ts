@@ -24,6 +24,7 @@ async function fillValidForm(wrapper: ReturnType<typeof mountForm>) {
   await wrapper.get('select[name="contact_method"]').setValue('email')
   await wrapper.get('input[name="shipping_city"]').setValue('Muscat') // step 1
   await wrapper.get('input[name="terms"]').setValue(true)
+  await wrapper.get('#fg-ks-ref-name-0').setValue('Dana') // repeater item 1
 }
 
 describe('FormsGenForm', () => {
@@ -93,6 +94,7 @@ describe('FormsGenForm', () => {
       brand_color: '#000000',
       volume: 0,
       source: 'kitchen-sink',
+      references: [{ name: 'Dana', may_contact: false }],
       contact_method: 'email',
       twitter: '',
       github: '',

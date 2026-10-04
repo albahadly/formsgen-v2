@@ -29,6 +29,7 @@ describe('element registry', () => {
       'quote',
       'radiogroup',
       'range',
+      'repeater',
       'search',
       'select',
       'step',
@@ -49,6 +50,7 @@ describe('element registry', () => {
     expect(listElements('structure').map((d) => d.type).sort()).toEqual([
       'columns',
       'group',
+      'repeater',
       'step',
       'steps',
       'tab',
@@ -83,8 +85,9 @@ describe('element registry', () => {
       if (def.hasValue) {
         const controls = def.propertyPanel.flatMap((s) => s.controls)
         expect(controls.some((c) => c.kind === 'name'), `${def.type} name control`).toBe(true)
-        // A hidden input carries a fixed value: nothing to validate.
-        if (def.type !== 'hidden') {
+        // A hidden input carries a fixed value; a repeater's item count is
+        // bounded by its min/max props: neither has rules to validate.
+        if (def.type !== 'hidden' && def.type !== 'repeater') {
           expect(controls.some((c) => c.kind === 'validation'), `${def.type} validation`).toBe(true)
         }
       }

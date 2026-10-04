@@ -5,14 +5,25 @@
 
 import { resolveMessages, type ElementNode } from '@formsgen/renderer'
 import { errorsTextFunction, jsTemplate, stepAnnouncements, submittedText } from '../announce'
-import { RUNTIME_HELPERS } from '../compile'
+import { RUNTIME_HELPERS, compileConditions } from '../compile'
 import {
   collectExportFields,
+  collectExportRepeaters,
+  itemValidatorsLiteral,
+  scopedAccessor,
+  type ItemAccess,
   payloadExpr,
   validatorsLiteral,
   visibilityFunctions,
 } from '../logic'
-import { renderTree, stepButtonLabels, type RenderedSectionHost } from '../markup'
+import {
+  ITEM_TOKEN,
+  renderTree,
+  stepButtonLabels,
+  type RenderedRepeater,
+  type RenderedSectionHost,
+} from '../markup'
+import { repeaterLegend } from '../repeaterMarkup'
 import { collectSectionHosts, hasResetButton, resolveSubmitButton } from '../structure'
 import { esc } from '@/registry/emitters/shared'
 import { formRootClass, pinnedSchemeAttr } from '../css/themeBridge'
@@ -34,6 +45,13 @@ export const htmlTarget: ExportTarget = {
   generate: ({ schema, css }) => {
     const accessor = (path: string): string => `fgGet(${JSON.stringify(path)})`
     const fields = collectExportFields(schema)
+    const repeaters = collectExportRepeaters(schema)
+    const hasRepeaters = repeaters.length > 0
+    // Item fields are read from the DOM by their indexed path.
+    const items: ItemAccess = {
+      map: (path, body) => `fgItemIndexes(${JSON.stringify(path)}).map(function (i) { return ${body} })`,
+      read: (template, path) => `fgGet(${JSON.stringify(`${path}.`)} + i + ${JSON.stringify(template.slice(path.length))})`,
+    }
     const hosts = collectSectionHosts(schema)
     const messages = resolveMessages(schema.meta.locale)
 
@@ -81,7 +99,38 @@ export const htmlTarget: ExportTarget = {
       return `<div>\n  <ol class="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div class="${css.classes('stepActions')}">\n    <button type="button" class="${css.classes('buttonSecondary')}" data-fg-step-back="${host.key}" hidden>${labels.back}</button>\n    <button type="button" class="${css.classes('submitButton')}" data-fg-step-next="${host.key}">${labels.next}</button>${embeddedSubmit}\n  </div>\n</div>`
     }
 
-    const markup = renderTree(schema, { lang: 'html', css, accessor, conditionAttr, renderSections })
+    // Conditional wrappers INSIDE repeater items: tested per item (index i).
+    const itemConditionTests: string[] = []
+    const renderRepeater = (r: RenderedRepeater): string =>
+      `<fieldset class="${css.classes('group')}" data-fg-repeater="${r.path}">${repeaterLegend(css, r, 'class')}
+  <div class="${css.classes('repeaterItems')}" data-fg-items="${r.path}"></div>
+  <template data-fg-template="${r.path}">
+    <fieldset class="${css.classes('repeaterItem')}" data-fg-item tabindex="-1">
+      <legend class="${css.classes('repeaterItemLabel')}" data-fg-item-label></legend>
+${indentBlock(r.itemHtml, 3)}
+      <div class="${css.classes('repeaterItemActions')}">
+        <button type="button" class="${css.classes('repeaterRemove')}" data-fg-remove>${r.messages.removeItem}</button>
+      </div>
+    </fieldset>
+  </template>
+  <button type="button" class="${css.classes('repeaterAdd')}" data-fg-add="${r.path}">${r.addText}</button>
+</fieldset>`
+
+    const markup = renderTree(schema, {
+      lang: 'html',
+      css,
+      accessor,
+      conditionAttr,
+      renderSections,
+      renderRepeater,
+      itemOptions: (path) => ({
+        accessor: scopedAccessor(accessor, items, path),
+        conditionAttr: (_node, expr) => {
+          itemConditionTests.push(expr)
+          return ` data-fg-icond="${itemConditionTests.length - 1}"`
+        },
+      }),
+    })
 
     const sectionsMeta = hosts.map((host) => ({
       key: host.key,
@@ -92,6 +141,7 @@ export const htmlTarget: ExportTarget = {
       stepActive: css.classes('stepItemActive'),
       stepBase: css.classes('stepItem'),
       stepPaths: host.sections.map((s) => s.paths),
+      ...(hasRepeaters ? { stepRepeaters: host.sections.map((s) => s.repeaters) } : {}),
       announce:
         host.kind === 'steps'
           ? stepAnnouncements(host, messages)
@@ -134,7 +184,11 @@ export const htmlTarget: ExportTarget = {
           if (fgTagsPaint[path]) fgTagsPaint[path]()
         })
         Object.keys(touched).forEach(function (path) { delete touched[path] })
-        Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })
+        Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })${hasRepeaters ? `
+        Object.keys(FG_REPEATERS).forEach(function (path) {
+          fgItemElements(path).forEach(function (item) { item.remove() })
+          for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
+        })` : ''}
         document.getElementById('fg-result').hidden = true
         updateConditions()
         fgAnnounce(${JSON.stringify(messages.formReset)})
@@ -143,6 +197,152 @@ export const htmlTarget: ExportTarget = {
 
 `
       : ''
+
+    function repeaterRuntime(): string {
+      const repeaterMeta = Object.fromEntries(
+        repeaters.map((r) => [
+          r.path,
+          {
+            key: r.key,
+            min: r.limits.min,
+            max: Number.isFinite(r.limits.max) ? r.limits.max : null,
+            initial: r.limits.initial,
+            label: r.itemLabel,
+          },
+        ]),
+      )
+      return `// Repeating sections: items are clones of a <template>; the index in
+// ids and data paths is stamped on add and rewritten when an item above
+// is removed (errors and touched state move with their item).
+var FG_REPEATERS = ${JSON.stringify(repeaterMeta).replace(/</g, '\\u003c')}
+var FG_REPEATER_VISIBLE = {
+${repeaters
+  .map(
+    (r) =>
+      `  ${JSON.stringify(r.path)}: function () { return ${r.conditionChain.length ? r.conditionChain.map((g) => `(${compileConditions(g, accessor)})`).join(' && ') : 'true'} },`,
+  )
+  .join('\n')}
+}
+var FG_ITEM_VALIDATORS = ${itemValidatorsLiteral(repeaters, accessor, items, () => 'i')}
+var FG_ITEM_CONDITIONS = [
+${itemConditionTests.map((expr) => `  function (i) { return ${expr} },`).join('\n')}
+]
+function fgItemElements(path) {
+  var list = document.querySelector('[data-fg-items="' + path + '"]')
+  return list ? Array.prototype.slice.call(list.children) : []
+}
+function fgItemIndexes(path) {
+  return fgItemElements(path).map(function (_, i) { return i })
+}
+function fgItemLabel(path, index) {
+  return FG_REPEATERS[path].label.split('{n}').join(String(index + 1))
+}
+function fgItemPaths(path) {
+  if (!FG_REPEATER_VISIBLE[path]()) return []
+  var fields = Object.keys(FG_ITEM_VALIDATORS[path] || {})
+  var out = []
+  fgItemElements(path).forEach(function (_, i) {
+    fields.forEach(function (field) { out.push(path + '.' + i + '.' + field) })
+  })
+  return out
+}
+function fgAllPaths() {
+  var out = Object.keys(FG_VALIDATORS)
+  Object.keys(FG_REPEATERS).forEach(function (path) { out = out.concat(fgItemPaths(path)) })
+  return out
+}
+function fgStepPaths(meta, index) {
+  var out = (meta.stepPaths[index] || []).slice()
+  ;(meta.stepRepeaters[index] || []).forEach(function (path) { out = out.concat(fgItemPaths(path)) })
+  return out
+}
+function fgValidatorFor(path) {
+  if (FG_VALIDATORS[path]) return FG_VALIDATORS[path]
+  var match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
+  var validate = match && FG_ITEM_VALIDATORS[match[1]] && FG_ITEM_VALIDATORS[match[1]][match[3]]
+  if (!validate) return null
+  return function () { return validate(Number(match[2])) }
+}
+/** Rewrites one item's index in every attribute below it. */
+function fgStampIndex(root, path, from, to) {
+  var key = FG_REPEATERS[path].key
+  var swaps = [[path + '.' + from + '.', path + '.' + to + '.'], [key + '_' + from + '_', key + '_' + to + '_']]
+  var nodes = [root].concat(Array.prototype.slice.call(root.querySelectorAll('*')))
+  nodes.forEach(function (el) {
+    Array.prototype.forEach.call(el.attributes, function (attr) {
+      var value = attr.value
+      swaps.forEach(function (s) { value = value.split(s[0]).join(s[1]) })
+      if (value !== attr.value) el.setAttribute(attr.name, value)
+    })
+  })
+}
+function fgRefreshItems(path) {
+  var list = fgItemElements(path)
+  var meta = FG_REPEATERS[path]
+  list.forEach(function (item, index) {
+    var current = Number(item.getAttribute('data-fg-index'))
+    if (current !== index) {
+      fgStampIndex(item, path, current, index)
+      item.setAttribute('data-fg-index', String(index))
+    }
+    item.querySelector('[data-fg-item-label]').textContent = fgItemLabel(path, index)
+    var remove = item.querySelector('[data-fg-remove]')
+    remove.setAttribute('aria-label', ${JSON.stringify(messages.removeItemLabel)}.split('{label}').join(fgItemLabel(path, index)))
+    remove.parentNode.hidden = list.length <= meta.min
+  })
+  var add = document.querySelector('[data-fg-add="' + path + '"]')
+  if (add) add.hidden = meta.max !== null && list.length >= meta.max
+}
+function fgAddItem(path, focus) {
+  var meta = FG_REPEATERS[path]
+  var list = document.querySelector('[data-fg-items="' + path + '"]')
+  var template = document.querySelector('[data-fg-template="' + path + '"]')
+  var index = list.children.length
+  if (meta.max !== null && index >= meta.max) return
+  var item = template.content.firstElementChild.cloneNode(true)
+  fgStampIndex(item, path, '${ITEM_TOKEN}', index)
+  item.setAttribute('data-fg-index', String(index))
+  item.querySelector('[data-fg-remove]').addEventListener('click', function () {
+    fgRemoveItem(path, Number(item.getAttribute('data-fg-index')))
+  })
+  list.appendChild(item)
+  fgRefreshItems(path)
+  updateConditions()
+  if (focus) {
+    var control = item.querySelector('input:not([type=hidden]), select, textarea')
+    ;(control || item).focus()
+    fgAnnounce(${JSON.stringify(messages.itemAdded)}.split('{label}').join(fgItemLabel(path, index)))
+  }
+}
+function fgRemoveItem(path, index) {
+  var items = fgItemElements(path)
+  if (items.length <= FG_REPEATERS[path].min) return
+  var label = fgItemLabel(path, index)
+  var prefix = path + '.'
+  var moved = {}
+  Object.keys(touched).forEach(function (key) {
+    if (key.indexOf(prefix) !== 0) { moved[key] = true; return }
+    var rest = key.slice(prefix.length)
+    var n = Number(rest.split('.')[0])
+    if (n === index) return
+    moved[n > index ? prefix + (n - 1) + rest.slice(String(n).length) : key] = true
+  })
+  Object.keys(touched).forEach(function (key) { delete touched[key] })
+  Object.keys(moved).forEach(function (key) { touched[key] = true })
+  items[index].remove()
+  fgRefreshItems(path)
+  updateConditions()
+  fgItemPaths(path).forEach(function (p) { if (touched[p]) validateField(p); else setError(p, null) })
+  var remaining = fgItemElements(path)
+  var target = remaining[Math.min(index, remaining.length - 1)] || document.querySelector('[data-fg-add="' + path + '"]')
+  if (target) target.focus()
+  fgAnnounce(${JSON.stringify(messages.itemRemoved)}.split('{label}').join(label))
+}
+Object.keys(FG_REPEATERS).forEach(function (path) {
+  for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
+  document.querySelector('[data-fg-add="' + path + '"]').addEventListener('click', function () { fgAddItem(path, true) })
+})`
+    }
 
     const script = `  <script>
   (function () {
@@ -204,7 +404,7 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
     }
 
     function validateField(path) {
-      var validate = FG_VALIDATORS[path]
+      var validate = ${hasRepeaters ? 'fgValidatorFor(path)' : 'FG_VALIDATORS[path]'}
       if (!validate) return true
       var message = validate()
       setError(path, message)
@@ -212,7 +412,7 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
     }
 
     function fgHasError(path) {
-      var validate = FG_VALIDATORS[path]
+      var validate = ${hasRepeaters ? 'fgValidatorFor(path)' : 'FG_VALIDATORS[path]'}
       return validate ? Boolean(validate()) : false
     }
 
@@ -220,8 +420,18 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
       FG_CONDITIONS.forEach(function (c) {
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
         if (el) el.hidden = !c.test()
-      })
+      })${hasRepeaters ? `
+      Object.keys(FG_REPEATERS).forEach(function (path) {
+        fgItemElements(path).forEach(function (item, i) {
+          Array.prototype.forEach.call(item.querySelectorAll('[data-fg-icond]'), function (el) {
+            el.hidden = !FG_ITEM_CONDITIONS[Number(el.getAttribute('data-fg-icond'))](i)
+          })
+        })
+      })` : ''}
     }
+${hasRepeaters ? `
+${indentBlock(repeaterRuntime(), 2)}
+` : ''}
 
     // Tags (chips) fields: value lives in fgTags, chips are painted into
     // the [data-fg-tags-chips] span, Enter/comma/blur adds the draft.
@@ -339,7 +549,7 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
       })
       if (nextBtn) nextBtn.addEventListener('click', function () {
         var ok = true
-        var paths = meta.stepPaths[fgSecState[meta.key]] || []
+        var paths = ${hasRepeaters ? 'fgStepPaths(meta, fgSecState[meta.key])' : 'meta.stepPaths[fgSecState[meta.key]] || []'}
         paths.forEach(function (path) {
           touched[path] = true
           if (!validateField(path)) ok = false
@@ -350,7 +560,7 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
     })
 
     function buildPayload() {
-      return ${payloadExpr(schema, accessor).split('\n').join('\n      ')}
+      return ${payloadExpr(schema, accessor, undefined, items).split('\n').join('\n      ')}
     }
 
     var form = document.getElementById('fg-form')
@@ -398,7 +608,7 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
 ${resetScript}    form.addEventListener('submit', function (event) {
       event.preventDefault()
       var failed = 0
-      Object.keys(FG_VALIDATORS).forEach(function (path) {
+      ${hasRepeaters ? 'fgAllPaths()' : 'Object.keys(FG_VALIDATORS)'}.forEach(function (path) {
         touched[path] = true
         if (!validateField(path)) failed++
       })
@@ -407,10 +617,10 @@ ${resetScript}    form.addEventListener('submit', function (event) {
         // Move each tabs/steps host to its first section holding an error
         // (unless the visible one already shows one).
         FG_SECTIONS.forEach(function (meta) {
-          var current = meta.stepPaths[fgSecState[meta.key]] || []
+          var current = ${hasRepeaters ? 'fgStepPaths(meta, fgSecState[meta.key])' : 'meta.stepPaths[fgSecState[meta.key]] || []'}
           if (current.some(fgHasError)) return
           for (var i = 0; i < meta.stepPaths.length; i++) {
-            if ((meta.stepPaths[i] || []).some(fgHasError)) { fgSetSec(meta, i); break }
+            if ((${hasRepeaters ? 'fgStepPaths(meta, i)' : 'meta.stepPaths[i] || []'}).some(fgHasError)) { fgSetSec(meta, i); break }
           }
         })
         return

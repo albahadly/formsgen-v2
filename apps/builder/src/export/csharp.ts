@@ -196,7 +196,25 @@ export function csValidateStatements(field: ExportField, kind: CsFieldKind): str
   const guardOpen = visible === 'true' ? '' : `if (${visible})\n        {\n    `
   const guardClose = visible === 'true' ? '' : `\n        }`
 
-  // Per-kind "empty" and "size" expressions mirroring the JS semantics.
+  const checks = csRuleChecks(rules, kind, member, csSelfAccessor).map(
+    ({ test, message }) =>
+      `    if (${test}) yield return new ValidationResult(${csStr(message)}, new[] { nameof(${member}) });`,
+  )
+  lines.push(`    ${guardOpen}${checks.join('\n    ')}${guardClose}`)
+  return lines
+}
+
+/**
+ * One C# test per rule (true = violated) over `member`, mirroring the JS
+ * semantics: rules other than required skip empty values. `sameAs` maps a
+ * same-as target key to an expression.
+ */
+export function csRuleChecks(
+  rules: Rule[],
+  kind: CsFieldKind,
+  member: string,
+  sameAs: (key: string) => string,
+): { test: string; message: string }[] {
   const emptyExpr =
     kind === 'bool'
       ? `!${member}`
@@ -217,50 +235,44 @@ export function csValidateStatements(field: ExportField, kind: CsFieldKind): str
         : kind === 'list'
           ? `${member}.Count`
           : `${member}.Length`
-
-  const checks: string[] = []
+  const guarded = (test: string): string => `!(${emptyExpr}) && (${test})`
+  const checks: { test: string; message: string }[] = []
   for (const rule of rules) {
-    const result = `yield return new ValidationResult(${csStr(ruleMessage(rule))}, new[] { nameof(${member}) });`
-    const guarded = (test: string): string => `    if (!(${emptyExpr}) && (${test})) ${result}`
+    const message = ruleMessage(rule)
     switch (rule.rule) {
       case 'required':
-        checks.push(`    if (${emptyExpr}) ${result}`)
+        checks.push({ test: emptyExpr, message })
         break
       case 'min':
-        checks.push(guarded(`${sizeExpr} < ${Number(rule.value)}`))
+        checks.push({ test: guarded(`${sizeExpr} < ${Number(rule.value)}`), message })
         break
       case 'max':
-        checks.push(guarded(`${sizeExpr} > ${Number(rule.value)}`))
+        checks.push({ test: guarded(`${sizeExpr} > ${Number(rule.value)}`), message })
         break
       case 'between': {
         const [lo, hi] = Array.isArray(rule.value) ? rule.value : [0, 0]
-        checks.push(guarded(`${sizeExpr} < ${Number(lo)} || ${sizeExpr} > ${Number(hi)}`))
+        checks.push({ test: guarded(`${sizeExpr} < ${Number(lo)} || ${sizeExpr} > ${Number(hi)}`), message })
         break
       }
       case 'email':
-        checks.push(
-          guarded(
-            `!System.Text.RegularExpressions.Regex.IsMatch(${member}, @"^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")`,
-          ),
-        )
+        checks.push({
+          test: guarded(`!System.Text.RegularExpressions.Regex.IsMatch(${member}, @"^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")`),
+          message,
+        })
         break
       case 'url':
-        checks.push(guarded(`!Uri.TryCreate(${member}, UriKind.Absolute, out _)`))
+        checks.push({ test: guarded(`!Uri.TryCreate(${member}, UriKind.Absolute, out _)`), message })
         break
       case 'regex':
-        checks.push(
-          guarded(
-            `!System.Text.RegularExpressions.Regex.IsMatch(${member}, ${csVerbatim(String(rule.value))})`,
-          ),
-        )
+        checks.push({
+          test: guarded(`!System.Text.RegularExpressions.Regex.IsMatch(${member}, ${csVerbatim(String(rule.value))})`),
+          message,
+        })
         break
       case 'same-as':
-        checks.push(
-          `    if (!Equals(${member}, ${csSelfAccessor(String(rule.value).replace(/\./g, '_'))})) ${result}`,
-        )
+        checks.push({ test: `!Equals(${member}, ${sameAs(String(rule.value).replace(/\./g, '_'))})`, message })
         break
     }
   }
-  lines.push(`    ${guardOpen}${checks.join('\n    ')}${guardClose}`)
-  return lines
+  return checks
 }

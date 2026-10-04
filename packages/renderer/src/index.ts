@@ -29,6 +29,7 @@ export {
 
 export {
   collectVisibleFields,
+  scopedLookup,
   joinPath,
   pickVisibleData,
   setValueByPath,
@@ -76,6 +77,18 @@ export {
   type CoreElementMeta,
 } from './elements'
 export { FIELD_COMPONENTS, fieldComponentFor } from './components/fieldComponents'
+export {
+  REPEATER_EXCLUDED_TYPES,
+  REPEATER_TYPE,
+  allowedInRepeater,
+  isRepeater,
+  repeaterItemDefaults,
+  repeaterItemLabel,
+  repeaterLimits,
+  resolveScoped,
+  type ItemScope,
+} from './repeater'
+export { default as FgRepeater } from './components/FgRepeater.vue'
 export { default as FgButton } from './components/fields/FgButton.vue'
 
 export {

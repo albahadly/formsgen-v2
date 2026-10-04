@@ -1,5 +1,6 @@
 import type { InjectionKey } from 'vue'
 import type { MessageCatalog } from './messages'
+import type { ItemScope } from './repeater'
 
 /** Injected by <FormsGenForm> into every field/container component. */
 export interface FormContext {
@@ -30,6 +31,8 @@ export interface FormContext {
   submitButtonSpec?(): { text: string; secondary: boolean }
   /** Speak a message through the form's polite aria-live region. */
   announce?(message: string): void
+  /** A repeater removed an item: shift later items' touched state/errors. */
+  shiftItems?(repeaterPath: string, removedIndex: number): void
   /** Restore the initial values and clear errors (reset buttons). */
   reset?(): void
   /** Built-in texts for the form's locale (English when absent). */
@@ -37,3 +40,6 @@ export interface FormContext {
 }
 
 export const FORM_CONTEXT: InjectionKey<FormContext> = Symbol('formsgen-form')
+
+/** Provided by each repeater item: resolves sibling references, unique ids. */
+export const ITEM_SCOPE: InjectionKey<ItemScope> = Symbol('formsgen-item-scope')

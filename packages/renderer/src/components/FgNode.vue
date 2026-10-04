@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { computed, inject, onBeforeUnmount, ref, watch } from 'vue'
 import { isVisible } from '../conditions'
-import { FORM_CONTEXT } from '../context'
+import { FORM_CONTEXT, ITEM_SCOPE } from '../context'
+import { isRepeater, resolveScoped } from '../repeater'
 import { STATIC_TYPES, getCoreElement } from '../elements'
 import { MESSAGES, fill } from '../messages'
 import { joinPath } from '../runtime'
 import type { ColSpan, ElementNode } from '../schema'
 import { fieldComponentFor } from './fieldComponents'
 import FgButton from './fields/FgButton.vue'
+import FgRepeater from './FgRepeater.vue'
 import FgStatic from './fields/FgStatic.vue'
 
 const props = defineProps<{
@@ -26,7 +28,10 @@ const isStatic = computed(() => STATIC_TYPES.has(props.node.type) && props.node.
 
 const fieldComponent = computed(() => fieldComponentFor(props.node.type))
 
-const visible = computed(() => isVisible(props.node.conditions, (f) => ctx.getValue(f)))
+const scope = inject(ITEM_SCOPE, null)
+const visible = computed(() =>
+  isVisible(props.node.conditions, (f) => ctx.getValue(resolveScoped(f, scope))),
+)
 
 const path = computed(() =>
   props.node.name ? joinPath(props.parentPath, props.node.name) : props.parentPath,
@@ -78,7 +83,18 @@ function sectionPaths(section: ElementNode): string[] {
     for (const child of nodes) {
       const core = getCoreElement(child.type)
       if (!core) continue
-      if (core.isContainer) {
+      if (isRepeater(child)) {
+        if (!child.name) continue
+        const repeaterPath = joinPath(base, child.name)
+        const items = formCtx.getValue(repeaterPath)
+        const count = Array.isArray(items) ? items.length : 0
+        for (let i = 0; i < count; i++) {
+          for (const leaf of child.children ?? []) {
+            const leafCore = getCoreElement(leaf.type)
+            if (leafCore?.hasValue && leaf.name) paths.push(`${repeaterPath}.${i}.${leaf.name}`)
+          }
+        }
+      } else if (core.isContainer) {
         walk(child.children ?? [], child.name ? joinPath(base, child.name) : base)
       } else if (core.hasValue && child.name) {
         paths.push(joinPath(base, child.name))
@@ -163,7 +179,7 @@ const embeddedSubmit = computed(
 
 <template>
   <div
-    v-if="visible && (fieldComponent || isStatic || isSectionHost || ['button', 'group', 'columns', 'tab', 'step'].includes(node.type))"
+    v-if="visible && (fieldComponent || isStatic || isSectionHost || ['button', 'group', 'columns', 'tab', 'step', 'repeater'].includes(node.type))"
     class="fg-cell"
     :class="cellClasses"
     :style="cellStyle"
@@ -181,6 +197,11 @@ const embeddedSubmit = computed(
     <FgButton
       v-else-if="node.type === 'button'"
       :node="node"
+    />
+    <FgRepeater
+      v-else-if="isRepeater(node)"
+      :node="node"
+      :path="path"
     />
     <fieldset
       v-else-if="node.type === 'group'"

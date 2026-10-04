@@ -22,6 +22,7 @@ Bumping `$schema` to `formsgen/v3` would make every existing document fail `pars
 | `ElementNode.style` `{ size: 'sm'\|'lg', hideLabel, align: 'center'\|'end', tone: 'muted'\|'primary'\|'danger', className }` | 20 | medium size, visible label, start alignment, default color, no extra class |
 | `meta.theme` token set (not new; its values became *validated*) — `color-text`, `color-bg`, `color-border`, `color-error`, `font`, `space` join `color-primary` / `radius` in the Settings UI | 21 | the built-in look. Token names must match `[a-z][a-z0-9-]*`; values must be plain CSS (no `; { } < > \ @`, backticks or line breaks, balanced quotes, ≤ 120 chars), because they are written into generated CSS |
 | New element types `datetime`, `month`, `week`, `color`, `search`, `toggle`, `hidden`, `image`, `link`, `quote`, `button`; new props `display` (radio/checkbox groups: `list`\|`blocks`\|`buttons`) and `orientation` (range: `vertical`) | 23 | the previous catalog (older builds report an unknown type as unsupported); `display` absent = list, `orientation` absent = horizontal. `href`/`src` props must be http(s), mailto:, tel: or relative URLs |
+| Element type `repeater` (props `itemLabel`, `addText`, `minItems`, `maxItems`, `initialItems`): an array-of-objects value; children's conditions may name siblings by template path (`people.name`, resolved per item) | 24 | n/a (older builds report the type as unsupported). The parser requires a name and rejects containers and tags inside |
 
 ## Alternatives considered
 
