@@ -4,6 +4,8 @@
 // cleared after each pick so the same file can be chosen again.
 // The input covers a drop zone (transparent), so a click anywhere opens
 // the picker and a dropped file reaches the input as a normal pick.
+// Several files dropped on a field that takes one: the first is kept and
+// a note says so (browsers would otherwise reject the drop).
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { fileLimits, isFile } from '../../files'
 import { MESSAGES, fill } from '../../messages'
@@ -40,6 +42,8 @@ onBeforeUnmount(() => {
 })
 
 const dragging = ref(false)
+/** "Only one file fits here, so a.pdf was added." until the next change. */
+const note = ref('')
 
 function onPick(event: Event): void {
   dragging.value = false
@@ -47,10 +51,22 @@ function onPick(event: Event): void {
   const picked = [...(input.files ?? [])]
   input.value = ''
   if (picked.length === 0) return
+  note.value = ''
   value.value = limits.value.multiple ? [...files.value, ...picked] : picked.slice(0, 1)
   onBlur()
 }
+function onDrop(event: DragEvent): void {
+  dragging.value = false
+  const dropped = [...(event.dataTransfer?.files ?? [])]
+  if (limits.value.multiple || dropped.length < 2) return
+  event.preventDefault()
+  value.value = dropped.slice(0, 1)
+  note.value = fill(messages.value.oneFileOnly, { name: dropped[0]!.name })
+  ctx.announce?.(note.value)
+  onBlur()
+}
 function remove(index: number): void {
+  note.value = ''
   const file = files.value[index]
   if (file) release(file)
   value.value = files.value.filter((_, i) => i !== index)
@@ -86,7 +102,7 @@ function formatSize(bytes: number): string {
         @change="onPick"
         @dragenter="dragging = true"
         @dragleave="dragging = false"
-        @drop="dragging = false"
+        @drop="onDrop"
       >
     </div>
     <ul
@@ -116,6 +132,13 @@ function formatSize(bytes: number): string {
         </button>
       </li>
     </ul>
+    <p
+      v-if="note"
+      class="fg-description"
+      data-fg-file-note
+    >
+      {{ note }}
+    </p>
     <p
       v-if="description"
       class="fg-description"

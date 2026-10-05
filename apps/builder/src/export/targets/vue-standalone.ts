@@ -10,6 +10,7 @@ import { ADD_DATE_TS, DUAL_RANGE_HELPERS_TS, MATRIX_TOGGLE_TS, exportStylesheet,
 import { compileConditions } from '../compile'
 import { calcSteps, vueCalcBlock } from '../calc'
 import { answerHelpers, usesAnswers } from '../answers'
+import { dragHandle, dragTargetAttrs, vueItemDrag } from '../itemDrag'
 import { draftBar, draftHelpers, usesDraft, vueDraftBlock } from '../draft'
 import {
   collectExportFields,
@@ -132,13 +133,14 @@ export const vueStandaloneTarget: ExportTarget = {
       const remove = r.sortable && r.limits.min > 0 ? ` v-if="${list}.length > ${r.limits.min}"` : ''
       const moves = r.sortable
         ? `
+        ${dragHandle('vue', css, r.messages, { path: r.path, index: i, list })}
         <button v-if="${i} > 0" type="button" class="${css.classes('repeaterMove')}" data-fg-move="up" :aria-label="fgMoveLabel('${r.path}', ${i}, 'up')" @click="fgMoveItem('${r.path}', ${i}, -1)">↑</button>
         <button v-if="${i} < ${list}.length - 1" type="button" class="${css.classes('repeaterMove')}" data-fg-move="down" :aria-label="fgMoveLabel('${r.path}', ${i}, 'down')" @click="fgMoveItem('${r.path}', ${i}, 1)">↓</button>`
         : ''
       const add = Number.isFinite(r.limits.max) ? ` v-if="${list}.length < ${r.limits.max}"` : ''
       return `<fieldset class="${css.classes('group')}" data-fg-repeater="${r.path}">${repeaterLegend(css, r, 'class')}
   <div class="${css.classes('repeaterItems')}">
-    <fieldset v-for="(${item}, ${i}) in ${list}" :key="fgKeyOf(${item})" class="${css.classes('repeaterItem')}" data-fg-item tabindex="-1">
+    <fieldset v-for="(${item}, ${i}) in ${list}" :key="fgKeyOf(${item})" class="${css.classes('repeaterItem')}" data-fg-item tabindex="-1"${r.sortable ? dragTargetAttrs('vue', { path: r.path, index: i, list }) : ''}>
       <legend class="${css.classes('repeaterItemLabel')}">{{ fgItemLabel('${r.path}', ${i}) }}</legend>
 ${indentBlock(vueItemMarkup(r.itemHtml, r.path, r.depth), 3)}
       <div${actions} class="${css.classes('repeaterItemActions')}">${moves}
@@ -433,6 +435,7 @@ async function fgMoveItem(path: string, index: number, delta: -1 | 1): Promise<v
   ;(buttons.find((b) => b.dataset['fgMove'] === (delta < 0 ? 'up' : 'down')) ?? buttons[0] ?? item)?.focus()
   fgAnnounce(${JSON.stringify(messages.itemMoved)}.split('{label}').join(label).split('{n}').join(String(target + 1)))
 }
+${vueItemDrag(messages)}
 `
     : ''
 }async function fgRemoveItem(path: string, index: number): Promise<void> {

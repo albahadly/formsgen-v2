@@ -217,6 +217,52 @@ describe('<FormsGenForm> with a repeater', () => {
     wrapper.unmount()
   })
 
+  it('sortable items can be dragged by their handle onto another item', async () => {
+    const wrapper = mountForm([{ ...people, props: { ...people.props, sortable: true, minItems: 0, initialItems: 3 } }])
+    const items = () => wrapper.findAll('[data-fg-item]')
+    const values = () => items().map((item) => (item.get('input[type=text]').element as HTMLInputElement).value)
+    for (const [k, name] of ['Ann', 'Bob', 'Cy'].entries()) await items()[k]!.get('input[type=text]').setValue(name)
+    await items()[2]!.get('input[type=text]').setValue('')
+    await items()[2]!.get('input[type=text]').trigger('blur') // Cy's item: touched, empty → error
+    const transfer = { effectAllowed: '', dropEffect: '', setData: () => {}, setDragImage: () => {} }
+    const fire = async (el: Element, type: string) => {
+      const event = new Event(type, { bubbles: true, cancelable: true })
+      Object.defineProperty(event, 'dataTransfer', { value: transfer })
+      el.dispatchEvent(event)
+      await flushPromises()
+      return event
+    }
+    const handle = items()[2]!.get('[data-fg-handle]')
+    expect(handle.attributes('draggable')).toBe('true')
+    expect(handle.attributes('aria-hidden')).toBe('true')
+    expect(handle.attributes('title')).toBe('Drag to reorder')
+    await fire(handle.element, 'dragstart')
+    expect(items()[2]!.attributes('data-fg-drag')).toBe('')
+    expect((await fire(items()[0]!.element, 'dragover')).defaultPrevented).toBe(true)
+    expect(items()[0]!.attributes('data-fg-drop')).toBe('before')
+    expect((await fire(items()[0]!.element, 'drop')).defaultPrevented).toBe(true)
+    expect(values()).toEqual(['', 'Ann', 'Bob'])
+    expect(items()[0]!.text()).toContain('This field is required') // the error moved with its item
+    expect(items().some((item) => item.attributes('data-fg-drop') !== undefined || item.attributes('data-fg-drag') !== undefined)).toBe(false)
+    expect(document.activeElement).toBe(items()[0]!.element)
+    expect(wrapper.get('[role=status]').text()).toBe('Person 3 moved to position 1')
+    // Downwards: the line shows below the target.
+    await fire(items()[0]!.get('[data-fg-handle]').element, 'dragstart')
+    await fire(items()[1]!.element, 'dragover')
+    expect(items()[1]!.attributes('data-fg-drop')).toBe('after')
+    await fire(items()[1]!.element, 'drop')
+    expect(values()).toEqual(['Ann', '', 'Bob'])
+    // Without a drag from this list, drops are left alone (files, text).
+    expect((await fire(items()[0]!.element, 'dragover')).defaultPrevented).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('a single item has no drag handle', () => {
+    const wrapper = mountForm([{ ...people, props: { ...people.props, sortable: true, initialItems: 1, minItems: 0 } }])
+    expect(wrapper.find('[data-fg-handle]').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
   it('items have no move buttons unless the repeater is sortable', () => {
     const wrapper = mountForm([{ ...people, props: { ...people.props, initialItems: 2 } }])
     expect(wrapper.find('[data-fg-move]').exists()).toBe(false)

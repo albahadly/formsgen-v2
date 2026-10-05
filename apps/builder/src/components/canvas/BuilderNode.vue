@@ -14,6 +14,7 @@ import draggable from 'vuedraggable'
 import { t, tOr } from '@/i18n'
 import { getElement } from '@/registry'
 import { useBuilderStore } from '@/stores/builder'
+import { useUiStore } from '@/stores/ui'
 import { useDropList } from './useDropList'
 
 const props = defineProps<{
@@ -22,6 +23,7 @@ const props = defineProps<{
 }>()
 
 const store = useBuilderStore()
+const ui = useUiStore()
 // Fallback section names are form content: they follow the form's locale.
 const formMessages = computed(() => resolveMessages(store.schema.meta.locale))
 
@@ -136,6 +138,15 @@ function onDuplicate(): void {
         {{ t('canvas.conditionalBadge') }}
       </span>
       <button
+        v-if="ui.narrow && selected"
+        type="button"
+        class="rounded bg-indigo-600 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+        :data-testid="`canvas-edit-${node.id}`"
+        @click.stop="ui.mobilePanel = 'properties'"
+      >
+        ⚙ {{ t('mobile.edit') }}
+      </button>
+      <button
         type="button"
         class="rounded bg-gray-500 px-1.5 py-0.5 text-[10px] font-semibold text-white hover:bg-gray-600"
         :aria-label="t('canvas.duplicate')"
@@ -201,7 +212,7 @@ function onDuplicate(): void {
           {{ sectionLabel(section, index) }}
           <span
             v-if="sections.length > 1"
-            class="hidden rounded px-0.5 text-[10px] text-red-400 hover:bg-red-50 hover:text-red-600 group-hover/tab:inline"
+            class="hidden rounded px-0.5 text-[10px] text-red-400 hover:bg-red-50 hover:text-red-600 group-hover/tab:inline [@media(hover:none)]:inline"
             role="button"
             :aria-label="t('canvas.section.remove')"
             :data-testid="`section-remove-${section.id}`"
@@ -220,6 +231,8 @@ function onDuplicate(): void {
       <draggable
         v-if="activeSection"
         v-model="sectionDrop.list.value"
+        :delay="250"
+        :delay-on-touch-only="true"
         item-key="id"
         group="canvas"
         class="flex min-h-12 flex-col gap-2"
@@ -259,6 +272,8 @@ function onDuplicate(): void {
       </p>
       <draggable
         v-model="list"
+        :delay="250"
+        :delay-on-touch-only="true"
         item-key="id"
         group="canvas"
         class="flex min-h-12 flex-col gap-2"

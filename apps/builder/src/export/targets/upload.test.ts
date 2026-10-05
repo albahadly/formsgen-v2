@@ -258,3 +258,50 @@ describe('drop zones and upload progress', () => {
     expect(done).toEqual([true, false])
   })
 })
+
+describe('several files dropped on a one-file field', () => {
+  it('the JS helper keeps the first through a change event, and leaves other drops alone', async () => {
+    const { dropFirstHelper } = await import('../uploadRuntime')
+    const dropFirst = new Function(`${dropFirstHelper(MESSAGES.en, false)}\nreturn fgDropFirst`)() as (
+      input: HTMLInputElement,
+      event: { dataTransfer: DataTransfer | null; preventDefault(): void },
+    ) => string
+    // jsdom has no DataTransfer: a stand-in that keeps the added files.
+    class FakeTransfer {
+      list: File[] = []
+      items = { add: (f: File) => this.list.push(f) }
+      get files() {
+        return this.list as unknown as FileList
+      }
+    }
+    ;(globalThis as unknown as { DataTransfer: unknown }).DataTransfer = FakeTransfer
+    const input = document.createElement('input')
+    input.type = 'file'
+    let assigned: unknown = null
+    Object.defineProperty(input, 'files', { set: (v) => (assigned = v), get: () => assigned })
+    let changes = 0
+    input.addEventListener('change', () => changes++)
+    let prevented = 0
+    const event = (files: File[]) => ({ dataTransfer: { files } as unknown as DataTransfer, preventDefault: () => prevented++ })
+    const a = new File(['a'], 'a.pdf')
+    const b = new File(['b'], 'b.pdf')
+    expect(dropFirst(input, event([a, b]))).toBe('Only one file fits here, so a.pdf was added.')
+    expect([assigned, changes, prevented]).toEqual([[a], 1, 1])
+    expect(dropFirst(input, event([a]))).toBe('')
+    input.multiple = true
+    expect(dropFirst(input, event([a, b]))).toBe('')
+    expect([changes, prevented]).toEqual([1, 1])
+  })
+
+  it('every target shows the note under the field', () => {
+    const s = schema([photo])
+    expect(out('vue-standalone', s)).toContain(`@drop="fgDropFiles('photo', $event)"`)
+    expect(out('vue-standalone', s)).toContain(`<p v-if="fgFileNotes['photo']" class="fg-description" data-fg-file-note>`)
+    expect(out('react', s)).toContain(`onDrop={(e) => fgDropFiles('photo', e)}`)
+    expect(out('html', s)).toContain('data-fg-file-note="photo" hidden')
+    const razor = out('blazor', s)
+    expect(razor).toMatch(/<InputFile [^>]*accept="image\/\*" multiple OnChange/)
+    expect(razor).toContain('var all = e.GetMultipleFiles(int.MaxValue);')
+    expect(razor).toContain('@fgFileNotes["Photo"]')
+  })
+})

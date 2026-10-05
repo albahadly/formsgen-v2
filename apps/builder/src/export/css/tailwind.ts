@@ -74,12 +74,13 @@ const CLASSES: Record<Slot, string> = {
   buttonDanger:
     'rounded-md bg-red-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-300',
   repeaterItems: 'flex flex-col gap-4',
-  repeaterItem: 'min-w-0 rounded-lg border border-gray-300 p-4 dark:border-gray-600',
+  repeaterItem: 'min-w-0 rounded-lg border border-gray-300 p-4 dark:border-gray-600 data-[fg-drag]:opacity-50 data-[fg-drop=before]:shadow-[0_-3px_0_0_#4f46e5] data-[fg-drop=after]:shadow-[0_3px_0_0_#4f46e5]',
   repeaterItemLabel: 'px-1 text-sm font-semibold',
   repeaterItemActions: 'mt-3 flex items-center gap-2',
   repeaterRemove: 'ms-auto text-sm text-red-600 underline hover:text-red-700 dark:text-red-400',
   repeaterMove:
     'inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600',
+  repeaterHandle: 'cursor-grab select-none px-1 text-xl leading-none text-gray-500 dark:text-gray-400',
   repeaterAdd:
     'mt-4 rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50',
   calculated:

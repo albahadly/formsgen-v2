@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { SAMPLE_SERVER_URL } from '@/export/submitServer'
 import { computed, ref, watch } from 'vue'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { t } from '@/i18n'
@@ -266,6 +267,18 @@ function onKeydown(event: KeyboardEvent): void {
             </select>
           </label>
         </div>
+        <p class="-mt-2 text-xs text-gray-500">
+          <button
+            v-if="submitUrl !== SAMPLE_SERVER_URL"
+            type="button"
+            class="font-medium text-indigo-600 underline hover:text-indigo-500"
+            data-testid="settings-use-sample-server"
+            @click="submitUrl = SAMPLE_SERVER_URL"
+          >
+            {{ t('settings.useSampleServer') }}
+          </button>
+          <span v-else>{{ t('settings.sampleServerHint') }}</span>
+        </p>
 
         <div class="flex flex-col gap-3 border-t border-gray-100 pt-3">
           <span class="text-xs font-semibold text-gray-700">{{ t('settings.submitButton') }}</span>

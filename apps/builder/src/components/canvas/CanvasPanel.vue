@@ -87,6 +87,8 @@ function onKeydown(event: KeyboardEvent): void {
     >
       <draggable
         v-model="list"
+        :delay="250"
+        :delay-on-touch-only="true"
         item-key="id"
         group="canvas"
         class="flex min-h-24 flex-col gap-2"

@@ -103,7 +103,9 @@ function blazorInput(node: ElementNode, ctx: EmitCtx): string {
   const maxBytes = limits.maxSizeMb > 0 ? `${Math.round(limits.maxSizeMb * 1024 * 1024)}L` : '0L'
   const args = [`Model.${member}`, 'e', String(limits.multiple), maxBytes, String(isImageUpload(node)), `"${member}"`]
   const drag = (on: boolean): string => `'() => fgDragging["${member}"] = ${on}'`
-  const input = `<InputFile @key='fgFileKeys["${member}"]' @ref='fgFileInputs["${member}"]' id="${ctx.id}" class="${ctx.css.classes('fileInput')}"${inputAttrs(node)} OnChange='@(e => FgPickFiles(${args.join(', ')}))' @ondragenter=${drag(true)} @ondragleave=${drag(false)} @ondrop=${drag(false)} />`
+  const accept = limits.accept ? ` accept="${esc(limits.accept)}"` : ''
+  // Always multiple: FgPickFiles keeps the first file when the field takes one.
+  const input = `<InputFile @key='fgFileKeys["${member}"]' @ref='fgFileInputs["${member}"]' id="${ctx.id}" class="${ctx.css.classes('fileInput')}"${accept} multiple OnChange='@(e => FgPickFiles(${args.join(', ')}))' @ondragenter=${drag(true)} @ondragleave=${drag(false)} @ondrop=${drag(false)} />`
   return dropZone(node, ctx, input, false, ` data-fg-dragging='@(fgDragging["${member}"] ? "" : null)'`)
 }
 
@@ -141,9 +143,10 @@ function makeUpload(config: { type: string; label: string; description: string; 
             dropZone(
               node,
               ctx,
-              `<input id="${ctx.id}" type="file" class="${ctx.css.classes('fileInput')}"${inputAttrs(node)} :aria-invalid="errors['${ctx.path}'] ? 'true' : undefined" @change="fgPickFiles('${ctx.path}', $event)" @dragenter="fgDrag($event.currentTarget, true)" @dragleave="fgDrag($event.currentTarget, false)" @drop="fgDrag($event.currentTarget, false)">`,
+              `<input id="${ctx.id}" type="file" class="${ctx.css.classes('fileInput')}"${inputAttrs(node)} :aria-invalid="errors['${ctx.path}'] ? 'true' : undefined" @change="fgPickFiles('${ctx.path}', $event)" @dragenter="fgDrag($event.currentTarget, true)" @dragleave="fgDrag($event.currentTarget, false)" @drop="fgDropFiles('${ctx.path}', $event)">`,
             ),
             vueList(node, ctx),
+            `<p v-if="fgFileNotes['${ctx.path}']" class="${ctx.css.classes('description')}" data-fg-file-note>{{ fgFileNotes['${ctx.path}'] }}</p>`,
             descriptionFor(node, ctx),
             vueError(ctx),
           ],
@@ -159,6 +162,7 @@ function makeUpload(config: { type: string; label: string; description: string; 
               `<input id="${ctx.id}" type="file" class="${ctx.css.classes('fileInput')}"${inputAttrs(node)} data-fg-path="${ctx.path}" data-fg-kind="files"${isImageUpload(node) ? ' data-fg-thumbs' : ''}>`,
             ),
             `<ul class="${ctx.css.classes('fileList')}" data-fg-file-list="${ctx.path}" hidden></ul>`,
+            `<p class="${ctx.css.classes('description')}" data-fg-file-note="${ctx.path}" hidden></p>`,
             descriptionFor(node, ctx),
             htmlError(ctx),
           ],
@@ -171,10 +175,11 @@ function makeUpload(config: { type: string; label: string; description: string; 
             dropZone(
               node,
               ctx,
-              `<input id="${ctx.id}" type="file" className="${ctx.css.classes('fileInput')}"${inputAttrs(node, true)} aria-invalid={errors['${ctx.path}'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('${ctx.path}', e.target)} onDragEnter={(e) => fgDrag(e.currentTarget, true)} onDragLeave={(e) => fgDrag(e.currentTarget, false)} onDrop={(e) => fgDrag(e.currentTarget, false)} />`,
+              `<input id="${ctx.id}" type="file" className="${ctx.css.classes('fileInput')}"${inputAttrs(node, true)} aria-invalid={errors['${ctx.path}'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('${ctx.path}', e.target)} onDragEnter={(e) => fgDrag(e.currentTarget, true)} onDragLeave={(e) => fgDrag(e.currentTarget, false)} onDrop={(e) => fgDropFiles('${ctx.path}', e)} />`,
               true,
             ),
             reactList(node, ctx),
+            `{fgFileNotes['${ctx.path}'] && <p className="${ctx.css.classes('description')}" data-fg-file-note>{fgFileNotes['${ctx.path}']}</p>}`,
             reactDescription(node, ctx),
             reactError(ctx),
           ],
@@ -186,6 +191,7 @@ function makeUpload(config: { type: string; label: string; description: string; 
             labelFor(node, ctx),
             blazorInput(node, ctx),
             blazorList(node, ctx),
+            `@if (fgFileNotes["${pascalMember(ctx.key)}"] != "")\n{\n    <p class="${ctx.css.classes('description')}" data-fg-file-note>@fgFileNotes["${pascalMember(ctx.key)}"]</p>\n}`,
             descriptionFor(node, ctx),
             blazorValidationMessage(ctx),
           ],

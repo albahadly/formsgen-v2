@@ -114,6 +114,13 @@ export function repeaterSortable(node: ElementNode): boolean {
 }
 
 /** Label of item `index` (0-based): props.itemLabel with {n}, else fallback. */
+/** Where index `i` ends up when the item at `from` moves to `to` (the rest close up). */
+export function movedIndex(i: number, from: number, to: number): number {
+  if (i === from) return to
+  if (from < to) return i > from && i <= to ? i - 1 : i
+  return i >= to && i < from ? i + 1 : i
+}
+
 export function repeaterItemLabel(node: ElementNode, index: number, fallback: string): string {
   const template = typeof node.props['itemLabel'] === 'string' && node.props['itemLabel'] !== ''
     ? (node.props['itemLabel'] as string)

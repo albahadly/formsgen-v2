@@ -8,9 +8,10 @@ import { errorsTextFunction, jsTemplate, stepAnnouncements, submittedText } from
 import { FILE_HELPERS, RUNTIME_HELPERS, compileConditions } from '../compile'
 import { calcSteps, htmlCalcBlock } from '../calc'
 import { htmlAnswerPainter, usesAnswers } from '../answers'
+import { dragHandle, htmlItemDrag } from '../itemDrag'
 import { draftBar, draftHelpers, htmlDraftRuntime, usesDraft } from '../draft'
 import { fieldsByPath, listSeparator } from '@formsgen/renderer'
-import { postsUploads, uploadFields, uploadStatusMarkup, uploadTextHelper } from '../uploadRuntime'
+import { dropFirstHelper, postsUploads, uploadFields, uploadStatusMarkup, uploadTextHelper } from '../uploadRuntime'
 import { exportStylesheet, hasDateRange, hasDates, hasMatrix, hasRangeSlider, phoneCountryFields } from '../composite'
 import {
   collectExportFields,
@@ -125,6 +126,7 @@ ${indentBlock(r.itemHtml, 3)}
       <div class="${css.classes('repeaterItemActions')}">${
         r.sortable
           ? `
+        ${dragHandle('html', css, r.messages, { path: r.path, index: '', list: '' })}
         <button type="button" class="${css.classes('repeaterMove')}" data-fg-move="up">↑</button>
         <button type="button" class="${css.classes('repeaterMove')}" data-fg-move="down">↓</button>`
           : ''
@@ -422,7 +424,16 @@ ${hasRepeaters ? '' : tplHelper(false)}
 function fgFileSize(bytes) {
   return bytes >= 1024 * 1024 ? (bytes / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB'
 }
+${dropFirstHelper(messages, false)}
+// "Only one file fits here, …" under a field ('' hides it); cleared by the next change.
+function fgFileNote(path, text) {
+  var note = document.querySelector('[data-fg-file-note="' + path + '"]')
+  if (!note) return
+  note.textContent = text
+  note.hidden = text === ''
+}
 function fgPaintFiles(path) {
+  fgFileNote(path, '')
   var list = document.querySelector('[data-fg-file-list="' + path + '"]')
   var input = fgControl(path)
   if (!list || !input) return
@@ -476,7 +487,13 @@ function fgWireFiles(root) {
     }
     input.addEventListener('dragenter', drag(true))
     input.addEventListener('dragleave', drag(false))
-    input.addEventListener('drop', drag(false))
+    input.addEventListener('drop', function (event) {
+      input.parentElement.removeAttribute('data-fg-dragging')
+      var note = fgDropFirst(input, event)
+      if (!note) return
+      fgFileNote(input.getAttribute('data-fg-path'), note)
+      fgAnnounce(note)
+    })
     input.addEventListener('change', function () {
       var path = input.getAttribute('data-fg-path')
       var picked = Array.prototype.slice.call(input.files || [])
@@ -625,6 +642,8 @@ function fgRefreshItems(path) {
     remove.hidden = list.length <= meta.min${
       repeaters.some((r) => r.node.props['sortable'] === true)
         ? `
+    var handle = item.querySelector(':scope > div > [data-fg-handle]')
+    if (handle) handle.hidden = list.length < 2
     var up = item.querySelector(':scope > div > [data-fg-move="up"]')
     var down = item.querySelector(':scope > div > [data-fg-move="down"]')
     if (up) {
@@ -681,7 +700,8 @@ ${
     button.addEventListener('click', function () {
       fgMoveItem(listPath(), Number(item.getAttribute('data-fg-index')), button.getAttribute('data-fg-move') === 'up' ? -1 : 1)
     })
-  })`
+  })
+  fgWireItemDrag(item, listPath)`
     : ''
 }
   list.appendChild(item)
@@ -715,6 +735,7 @@ function fgMoveItem(path, index, delta) {
   ;(same && !same.hidden ? same : other && !other.hidden ? other : moved).focus()
   fgAnnounce(${JSON.stringify(messages.itemMoved)}.split('{label}').join(label).split('{n}').join(String(target + 1)))
 }
+${htmlItemDrag(messages)}
 `
     : ''
 }function fgRemoveItem(path, index) {

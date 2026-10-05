@@ -31,6 +31,7 @@ import { collectExportFields, collectExportRepeaters } from '../logic'
 import { postsUploads, uploadStatusMarkup } from '../uploadRuntime'
 import { CALC_HELPERS_CS, calcSteps, formulaCs, type FormulaAccess } from '../calc'
 import { answerHelpersCs, usesAnswers } from '../answers'
+import { blazorItemDrag, dragHandle } from '../itemDrag'
 import { blazorDraftBlock, draftBar, usesDraft } from '../draft'
 import {
   renderTree,
@@ -232,6 +233,7 @@ ${CALC_HELPERS_CS}
       const shownAbove = r.sortable ? Math.min(r.limits.min, 1) : r.limits.min
       const removeBtn = r.sortable
         ? `<div class="${css.classes('repeaterItemActions')}">
+                ${dragHandle('blazor', css, r.messages, { path: r.path, index: i, list })}
                 @if (${i} > 0)
                 {
                     <button type="button" class="${css.classes('repeaterMove')}" data-fg-move="up" aria-label='@FgMoveLabel("${r.path}", ${i}, true)' @ref="fgMoveUpRefs[${itemVar}]" @onclick='() => FgMoveItem(${list}, "${r.path}", ${i}, -1)'>↑</button>
@@ -259,7 +261,7 @@ ${CALC_HELPERS_CS}
               ...innerOf(repeater).map((x) => ({ tokenPath: tokenPath(x), depth: 2, fields: x.fields.map((f) => f.name) })),
             ])
       return `<fieldset class="${css.classes('group')}" data-fg-repeater="${r.path}">${repeaterLegend(css, r, 'class')}
-  <div class="${css.classes('repeaterItems')}">
+  <div class="${css.classes('repeaterItems')}"${r.sortable ? ` data-fg-list='@FgListId(${list}, "${r.path}")'` : ''}>
     @foreach (var (${itemVar}, ${i}) in ${list}.Select((x, n) => (x, n)).ToList())
     {
         <fieldset @key="${itemVar}" class="${css.classes('repeaterItem')}" data-fg-item tabindex="-1" @ref="fgItemRefs[${itemVar}]">
@@ -868,7 +870,8 @@ ${repeaterVisible(r) === 'true' ? '' : `        if (!(${repeaterVisible(r)})) re
         // The same button when the moved item still has it, else the other one.
         fgFocusMove = (list[target], delta < 0 ? target > 0 : target == list.Count - 1);
         await FgAnnounce(${csStr(messages.itemMoved)}.Replace("{label}", label).Replace("{n}", (target + 1).ToString()));
-    }`
+    }
+${blazorItemDrag(name, messages, csStr)}`
         : ''
     }
     private string? fgFocusAdd;
@@ -1033,13 +1036,19 @@ ${repeaters.map((r) => `        ${csStr(r.path)} => ${csStr(r.itemLabel)},`).joi
     private readonly FgStore<int> fgFileKeys = new(_ => 0);
     // Drop zones with files dragged over them.
     private readonly FgStore<bool> fgDragging = new(_ => false);
+    // "Only one file fits here, …" per field, until its next change.
+    private readonly FgStore<string> fgFileNotes = new(_ => "");
     private readonly Dictionary<string, InputFile> fgFileInputs = new();
     private string? fgFocusFile;
 
     private async Task FgPickFiles(List<FgUpload> list, InputFileChangeEventArgs e, bool multiple, long maxBytes, bool thumbs, string member)
     {
         var picked = new List<FgUpload>();
-        foreach (var file in e.GetMultipleFiles(multiple ? int.MaxValue : 1))
+        // Every input takes several files (a browser rejects a drop of several
+        // on one that doesn't); a field that takes one keeps the first and says so.
+        var all = e.GetMultipleFiles(int.MaxValue);
+        fgFileNotes[member] = !multiple && all.Count > 1 ? ${csStr(messages.oneFileOnly)}.Replace("{name}", all[0].Name) : "";
+        foreach (var file in multiple ? all : all.Take(1))
         {
             byte[]? data = null;
             if (maxBytes <= 0 || file.Size <= maxBytes)
@@ -1068,10 +1077,12 @@ ${repeaters.map((r) => `        ${csStr(r.path)} => ${csStr(r.itemLabel)},`).joi
         fgFileKeys[member]++;
         fgFocusFile = member;
         fgEdit.NotifyFieldChanged(FgField(member));
+        if (fgFileNotes[member] != "") await FgAnnounce(fgFileNotes[member]);
     }
 
     private void FgRemoveFile(List<FgUpload> list, FgUpload file, string member)
     {
+        fgFileNotes[member] = "";
         list.RemoveAll(f => ReferenceEquals(f, file));
         fgEdit.NotifyFieldChanged(FgField(member));
     }
@@ -1403,11 +1414,12 @@ ${Object.entries(dialCodes(typedFields, schema.meta.locale)).map(([code, dial]) 
     ].join('')
 
     const saveDraft = usesDraft(schema)
+    const sortable = repeaters.some((r) => r.node.props['sortable'] === true)
     const afterRenderBlock =
       hasRepeaters || hasUploads || hasSlider || saveDraft
         ? `
     protected override async Task OnAfterRenderAsync(bool firstRender)
-    {${hasRepeaters ? '\n        await FgFocusRepeaters();' : ''}${hasUploads ? '\n        await FgFocusUploads();' : ''}${hasSlider ? '\n        await FgFocusDual();' : ''}${saveDraft ? '\n        // Saved answers: restored after the first render, kept after later ones.\n        if (firstRender) await FgDraftLoad();\n        else await FgDraftSave();' : ''}
+    {${hasRepeaters ? '\n        await FgFocusRepeaters();' : ''}${hasUploads ? '\n        await FgFocusUploads();' : ''}${hasSlider ? '\n        await FgFocusDual();' : ''}${sortable ? '\n        if (firstRender) await FgItemDragInit();' : ''}${saveDraft ? '\n        // Saved answers: restored after the first render, kept after later ones.\n        if (firstRender) await FgDraftLoad();\n        else await FgDraftSave();' : ''}
     }
 `
         : ''
@@ -1485,9 +1497,9 @@ ${Object.entries(dialCodes(typedFields, schema.meta.locale)).map(([code, dial]) 
     const draft = `@* Generated by FormsGen (.NET 8). *@
 @using System.ComponentModel.DataAnnotations
 @using System.Text.Json
-${extraUsings}${submitUrl ? '@using System.Net.Http.Json\n' : ''}${httpInject}${saveDraft ? '@inject Microsoft.JSInterop.IJSRuntime FgJs\n' : ''}
+${extraUsings}${submitUrl ? '@using System.Net.Http.Json\n' : ''}${httpInject}${saveDraft || sortable ? '@inject Microsoft.JSInterop.IJSRuntime FgJs\n' : ''}${sortable ? '@implements IDisposable\n' : ''}
 <EditForm ${formBinding} novalidate dir="${schema.meta.dir}">
-    <div class="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">${saveDraft ? `\n${indentBlock(draftBar('blazor', schema, css, messages), 2)}` : ''}
+    <div class="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd"${sortable ? ' @ref="fgFormRoot"' : ''}>${saveDraft ? `\n${indentBlock(draftBar('blazor', schema, css, messages), 2)}` : ''}
     <div class="${css.classes('grid')}">
 ${indentBlock(markup, 2)}
     </div>

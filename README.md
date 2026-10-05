@@ -14,6 +14,7 @@ every phase: `docs/handoff/INDEX.md`.
 | Path | What |
 |---|---|
 | `packages/renderer` | `@formsgen/renderer` — standalone Vue 3 library that renders a FormsGen JSON schema (ESM + UMD + d.ts + CSS) |
+| `packages/submit-server` | Sample submission server: one dependency-free Node file that receives and stores what a form sends (JSON or multipart with files); the export dialog can add it to a ZIP |
 | `apps/builder` | The builder application (Vue 3 + Vite + Pinia + Tailwind) |
 | `docs/handoff` | Per-phase handoff documents — read the latest one first |
 | `docs/adr` | Architecture decision records |

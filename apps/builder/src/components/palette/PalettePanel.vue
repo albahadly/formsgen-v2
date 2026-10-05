@@ -72,6 +72,8 @@ function clone(def: ElementDefinition) {
       </button>
     </div>
     <draggable
+      :delay="250"
+      :delay-on-touch-only="true"
       :list="items"
       item-key="type"
       class="flex flex-1 flex-col gap-1.5 overflow-y-auto"

@@ -66,6 +66,7 @@ const CLASSES: Record<Slot, string> = {
   repeaterItemActions: 'mt-2 d-flex align-items-center gap-2',
   repeaterRemove: 'btn btn-link link-danger p-0 ms-auto',
   repeaterMove: 'btn btn-outline-secondary btn-sm',
+  repeaterHandle: 'px-1 fs-5 lh-1 text-body-secondary user-select-none fg-repeater-handle',
   repeaterAdd: 'btn btn-outline-secondary mt-3',
   // The (transparent) input covers the zone; see BOOTSTRAP_UPLOAD_CSS.
   calculated: 'form-control bg-body-tertiary',

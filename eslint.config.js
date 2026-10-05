@@ -21,4 +21,10 @@ export default tseslint.config(
       'vue/multi-word-component-names': 'off',
     },
   },
+  {
+    // The sample submission server: plain Node, logs to the console.
+    files: ['packages/submit-server/**/*.mjs'],
+    languageOptions: { globals: { Buffer: 'readonly', process: 'readonly' } },
+    rules: { 'no-console': 'off' },
+  },
 )

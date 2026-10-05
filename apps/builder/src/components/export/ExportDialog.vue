@@ -5,6 +5,7 @@ import CodeBlock from '@/components/ui/CodeBlock.vue'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { getCssAdapter, listCssAdapters, type CssFrameworkId } from '@/export/css'
 import { withProject } from '@/export/project'
+import { sampleServerFiles } from '@/export/submitServer'
 import { getTarget, listTargets, type ExportedFile } from '@/export/targets'
 import { t, tText } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'
@@ -29,6 +30,9 @@ const target = computed(() => getTarget(targetId.value)!)
 /** Code exports carry the project (so Open can read them back) unless turned off. */
 const includeProject = ref(true)
 const isCode = computed(() => targetId.value !== 'json')
+/** Adds the sample submission server (server/) to code exports. */
+const includeServer = ref(false)
+const serverFiles = computed<ExportedFile[]>(() => (isCode.value && includeServer.value ? sampleServerFiles(builder.schema) : []))
 
 const files = computed<ExportedFile[]>(() => {
   const generated = target.value.generate({ schema: builder.schema, css: getCssAdapter(framework.value) })
@@ -48,6 +52,7 @@ const readme = computed(() => {
 const viewFiles = computed<ExportedFile[]>(() => [
   ...files.value,
   { path: 'README.md', content: readme.value, language: 'markdown' },
+  ...serverFiles.value,
 ])
 
 const activeFile = computed(
@@ -89,6 +94,7 @@ async function downloadZip(): Promise<void> {
   // The project file, so the ZIP can be reopened and edited.
   if (isCode.value) zip.file(projectFile.value, `${JSON.stringify(builder.schema, null, 2)}\n`)
   zip.file('README.md', readme.value)
+  for (const file of serverFiles.value) zip.file(file.path, file.content)
   const blob = await zip.generateAsync({ type: 'blob' })
   downloadBlob(blob, `${builder.schema.meta.name}-${target.value.id}.zip`)
 }
@@ -126,7 +132,7 @@ async function downloadZip(): Promise<void> {
 
       <div class="flex flex-wrap items-center gap-2 border-b border-gray-100 px-4 py-2">
         <div
-          class="flex rounded-md bg-gray-100 p-0.5"
+          class="flex max-w-full overflow-x-auto rounded-md bg-gray-100 p-0.5"
           role="tablist"
         >
           <button
@@ -134,7 +140,7 @@ async function downloadZip(): Promise<void> {
             :key="candidate.id"
             type="button"
             role="tab"
-            class="rounded px-2.5 py-1 text-xs font-medium"
+            class="shrink-0 whitespace-nowrap rounded px-2.5 py-1 text-xs font-medium"
             :class="targetId === candidate.id ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-600 hover:text-gray-900'"
             :aria-selected="targetId === candidate.id"
             :title="tText(candidate.description)"
@@ -173,6 +179,19 @@ async function downloadZip(): Promise<void> {
             data-testid="export-include-project"
           >
           {{ t('export.includeProject') }}
+        </label>
+        <label
+          v-if="isCode"
+          class="flex items-center gap-1.5 text-xs text-gray-600"
+          :title="t('export.includeServer.hint')"
+        >
+          <input
+            v-model="includeServer"
+            type="checkbox"
+            class="h-3.5 w-3.5 accent-indigo-600"
+            data-testid="export-include-server"
+          >
+          {{ t('export.includeServer') }}
         </label>
 
         <span class="flex-1" />

@@ -36,6 +36,8 @@ export interface FormContext {
   shiftItems?(repeaterPath: string, removedIndex: number): void
   /** Two items of a repeater swapped places: so do their touched state/errors. */
   swapItems?(repeaterPath: string, a: number, b: number): void
+  /** An item moved from one index to another (drag and drop): its state moves too. */
+  moveItems?(repeaterPath: string, from: number, to: number): void
   /** Restore the initial values and clear errors (reset buttons). */
   reset?(): void
   /** Text with answers inserted ({field}, {field|fallback}); scope: the item it sits in. */

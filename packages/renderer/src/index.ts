@@ -90,6 +90,7 @@ export {
   repeaterItemLabel,
   repeaterLimits,
   repeaterSortable,
+  movedIndex,
   resolveScoped,
   type ItemScope,
 } from './repeater'

@@ -8,7 +8,7 @@ import { browserStorage, draftDropsFiles, draftJson, draftVersion, readDraft, re
 import { pinsLightScheme, themeInlineStyle } from '../theme'
 import { analyzeFormulas, calculatedDecimals, calculatedValue, calculationOrder } from '../formula'
 import { fieldsByPath, listSeparator, pipeText } from '../pipe'
-import { resolveScoped } from '../repeater'
+import { movedIndex, resolveScoped } from '../repeater'
 import { collectCalculated, collectVisibleFields, pickVisibleData, scopedLookup, setValueByPath } from '../runtime'
 import type { FormSchema } from '../schema'
 import { buildDefaultData } from '../tree'
@@ -333,6 +333,7 @@ function remapItems(repeaterPath: string, to: (index: number) => number | null):
 context.shiftItems = (repeaterPath, removed) =>
   remapItems(repeaterPath, (i) => (i === removed ? null : i > removed ? i - 1 : i))
 context.swapItems = (repeaterPath, a, b) => remapItems(repeaterPath, (i) => (i === a ? b : i === b ? a : i))
+context.moveItems = (repeaterPath, from, to) => remapItems(repeaterPath, (i) => movedIndex(i, from, to))
 
 /** Back to the initial values, no errors shown; `message` is announced. */
 function resetForm(message: string): void {

@@ -68,6 +68,8 @@ export interface MessageCatalog {
   moveItemUp: string
   /** {label} — accessible name of an item's move-down button */
   moveItemDown: string
+  /** Tooltip of a sortable item's drag handle. */
+  dragItem: string
   /** {label} {n} — announced after an item moved (n = its new position) */
   itemMoved: string
   /** {name} {size} — a chosen file over the size limit (MB) */
@@ -110,6 +112,8 @@ export interface MessageCatalog {
   countryCode: string
   /** Accessible name of a field's help-tooltip button. */
   moreInfo: string
+  /** {name} — several files dropped on a field that takes one: the first is kept. */
+  oneFileOnly: string
   /** Save and continue later: the note while answers are kept on the device. */
   draftOn: string
   /** …after saved answers were restored. */
@@ -156,6 +160,7 @@ const en: MessageCatalog = {
   itemRemoved: '{label} removed',
   moveItemUp: 'Move {label} up',
   moveItemDown: 'Move {label} down',
+  dragItem: 'Drag to reorder',
   itemMoved: '{label} moved to position {n}',
   fileTooLarge: '{name} is larger than {size} MB',
   fileType: '{name} is not an accepted file type',
@@ -179,6 +184,7 @@ const en: MessageCatalog = {
   removeDate: 'Remove {date}',
   countryCode: 'Country code',
   moreInfo: 'More information',
+  oneFileOnly: 'Only one file fits here, so {name} was added.',
   draftOn: 'Your answers are saved on this device until you send the form.',
   draftRestored: 'Welcome back! Your saved answers were restored.',
   draftNoFiles: 'Files aren’t saved; choose them again before sending.',
@@ -223,6 +229,7 @@ const ar: MessageCatalog = {
   itemRemoved: 'تمت إزالة {label}',
   moveItemUp: 'نقل {label} إلى الأعلى',
   moveItemDown: 'نقل {label} إلى الأسفل',
+  dragItem: 'اسحب لإعادة الترتيب',
   itemMoved: 'نُقل {label} إلى الموضع {n}',
   fileTooLarge: 'حجم {name} أكبر من {size} ميغابايت',
   fileType: '{name} ليس من أنواع الملفات المقبولة',
@@ -246,6 +253,7 @@ const ar: MessageCatalog = {
   removeDate: 'إزالة {date}',
   countryCode: 'رمز الدولة',
   moreInfo: 'مزيد من المعلومات',
+  oneFileOnly: 'يتّسع هذا الحقل لملف واحد فقط، لذا أُضيف {name}.',
   draftOn: 'تُحفَظ إجاباتك على هذا الجهاز حتى ترسل النموذج.',
   draftRestored: 'مرحبًا بعودتك! تمت استعادة إجاباتك المحفوظة.',
   draftNoFiles: 'لا تُحفَظ الملفات؛ اخترها مرة أخرى قبل الإرسال.',

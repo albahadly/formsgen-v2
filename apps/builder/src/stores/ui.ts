@@ -5,6 +5,8 @@ import { defineStore } from 'pinia'
 export type ViewMode = 'editor' | 'preview' | 'code'
 export type Device = 'mobile' | 'tablet' | 'desktop'
 export type PreviewTheme = 'light' | 'dark'
+/** Phones show one panel at a time (see App.vue). */
+export type MobilePanel = 'palette' | 'tree' | 'canvas' | 'properties'
 
 export const DEVICE_WIDTHS: Record<Device, string> = {
   mobile: '375px',
@@ -20,6 +22,9 @@ export const useUiStore = defineStore('ui', {
     showSettings: false,
     showExport: false,
     showTemplates: false,
+    /** Narrower than 768px: one panel at a time, picked in a bottom tab bar. */
+    narrow: false,
+    mobilePanel: 'canvas' as MobilePanel,
   }),
   getters: {
     deviceWidth: (state) => DEVICE_WIDTHS[state.device],

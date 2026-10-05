@@ -7,6 +7,7 @@ import { errorsTextFunction, stepAnnouncementsLiteral, submittedText } from '../
 import { FILE_HELPERS_TS, RUNTIME_HELPERS_TS, pruneUnusedHelpers } from '../compile'
 import { calcSteps, reactCalcBlock } from '../calc'
 import { answerHelpers, usesAnswers } from '../answers'
+import { dragHandle, dragTargetAttrs, movedIndexJs, reactItemDrag } from '../itemDrag'
 import { draftBar, draftHelpers, reactDraftHandlers, reactDraftHooks, usesDraft } from '../draft'
 import { postsUploads, reactUploadHandlers, reactUploadModule, uploadFields, uploadStatusMarkup, uploadTextHelper } from '../uploadRuntime'
 import {
@@ -155,6 +156,7 @@ export const reactTarget: ExportTarget = {
       const removeBtn = `<div className="${css.classes('repeaterItemActions')}">${
         r.sortable
           ? `
+          ${dragHandle('react', css, r.messages, { path: r.path, index: i, list })}
           {${i} > 0 && <button type="button" className="${css.classes('repeaterMove')}" data-fg-move="up" aria-label={fgMoveLabel('${r.path}', ${i}, 'up')} onClick={() => fgMoveItem('${r.path}', ${i}, -1)}>↑</button>}
           {${i} < ${list}.length - 1 && <button type="button" className="${css.classes('repeaterMove')}" data-fg-move="down" aria-label={fgMoveLabel('${r.path}', ${i}, 'down')} onClick={() => fgMoveItem('${r.path}', ${i}, 1)}>↓</button>}`
           : ''
@@ -165,7 +167,7 @@ export const reactTarget: ExportTarget = {
       return `<fieldset className="${css.classes('group')}" data-fg-repeater="${r.path}">${repeaterLegend(css, r, 'className')}
   <div className="${css.classes('repeaterItems')}">
     {${list}.map((${item}, ${i}) => (
-      <fieldset key={fgKeyAt('${r.path}', ${i})} className="${css.classes('repeaterItem')}" data-fg-item tabIndex={-1}>
+      <fieldset key={fgKeyAt('${r.path}', ${i})} className="${css.classes('repeaterItem')}" data-fg-item tabIndex={-1}${r.sortable ? dragTargetAttrs('react', { path: r.path, index: i, list }) : ''}>
         <legend className="${css.classes('repeaterItemLabel')}">{fgItemLabel('${r.path}', ${i})}</legend>
 ${indentBlock(reactItemMarkup(r.itemHtml, r.path, r.depth), 4)}
         ${shownAbove > 0 ? `{${list}.length > ${shownAbove} && (
@@ -334,7 +336,7 @@ ${indentBlock(reactItemMarkup(r.itemHtml, r.path, r.depth), 4)}
     const itemStoreSetters = [hasTags ? 'setTagDrafts' : '', hasDateList ? 'setDateDrafts' : '', hasPhone ? 'setPhoneCountry' : ''].filter(Boolean)
     const fmtMax = (max: number): string => (Number.isFinite(max) ? String(max) : 'Number.POSITIVE_INFINITY')
     const repeaterModule = hasRepeaters
-      ? `const FG_ITEM_DEFAULTS: Record<string, () => Record<string, unknown>> = {
+      ? `${repeaters.some((r) => r.node.props['sortable'] === true) ? `${movedIndexJs(true)}\n\n` : ''}const FG_ITEM_DEFAULTS: Record<string, () => Record<string, unknown>> = {
 ${repeaters.map((r) => `  '${r.path}': () => (${indentBlock(toJsLiteral(r.itemDefaults), 1).trimStart()}),`).join('\n')}
 }
 
@@ -450,7 +452,7 @@ function fgRemapStore<T>(store: Record<string, T>, path: string, to: (index: num
   // Stable React keys per item (the form object is cloned on every edit).
   const fgKeys = useRef<Record<string, number[]>>({})
   const fgNextKey = useRef(0)
-  const fgPendingFocus = useRef<{ path: string; index: number; move?: 'up' | 'down' } | null>(null)`
+  const fgPendingFocus = useRef<{ path: string; index: number; move?: 'up' | 'down' | 'item' } | null>(null)`
       : ''
     const repeaterHandlers = hasRepeaters
       ? `  function fgKeyAt(path: string, index: number): number {
@@ -502,6 +504,8 @@ ${
     fgAnnounce(${JSON.stringify(messages.itemMoved)}.split('{label}').join(label).split('{n}').join(String(target + 1)))
   }
 
+${reactItemDrag(messages)}
+
 `
     : ''
 }  function fgRemoveItem(path: string, index: number): void {
@@ -526,7 +530,10 @@ ${
     const items = Array.from(repeater?.querySelectorAll<HTMLElement>(':scope > div > [data-fg-item]') ?? [])
     ${
       repeaters.some((r) => r.node.props['sortable'] === true)
-        ? `if (pending.move) {
+        ? `if (pending.move === 'item') {
+      // After a drop: the moved item itself.
+      items[pending.index]?.focus()
+    } else if (pending.move) {
       // After a move: the same button on the moved item, else its other one.
       const buttons = Array.from(items[pending.index]?.querySelectorAll<HTMLElement>('[data-fg-move]') ?? [])
       ;(buttons.find((b) => b.dataset['fgMove'] === pending.move) ?? buttons[0] ?? items[pending.index])?.focus()

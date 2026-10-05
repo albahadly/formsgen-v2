@@ -169,6 +169,7 @@ export function exportStylesheet(css: CssFrameworkAdapter, schema: FormSchema): 
   if (css.id === 'vanilla') return base
   const extra = [
     hasRangeSlider(schema) ? `/* Two-handle range slider */\n${DUAL_RANGE_CSS}` : '',
+    css.id === 'bootstrap5' && hasSortableRepeater(schema.tree) ? `/* Sortable items: the dragged item, where it would land */\n${itemDragCss()}` : '',
     hasTooltips(schema) ? `/* Help tooltips */\n${TIP_CSS}` : '',
     css.id === 'bootstrap5' && hasUploadFields(schema.tree) ? `/* Upload drop zones */\n${BOOTSTRAP_UPLOAD_CSS}` : '',
     // Bootstrap hides floating-label placeholders even on focus; show the hint then.
@@ -185,6 +186,20 @@ function nodesHaveTooltip(nodes: ElementNode[]): boolean {
     const tip = node.props['tooltip']
     return (typeof tip === 'string' && tip.trim() !== '') || nodesHaveTooltip(node.children ?? [])
   })
+}
+
+function hasSortableRepeater(nodes: ElementNode[]): boolean {
+  return nodes.some((n) => (n.type === 'repeater' && n.props['sortable'] === true) || hasSortableRepeater(n.children ?? []))
+}
+
+/** Bootstrap has no utilities for these (Tailwind's item classes carry them). */
+function itemDragCss(): string {
+  const line = 'var(--bs-primary)'
+  return `.fg-repeater-handle { cursor: grab; }
+[data-fg-item][data-fg-drag] { opacity: 0.5; }
+[data-fg-item][data-fg-drop="before"] { box-shadow: 0 -3px 0 0 ${line}; }
+[data-fg-item][data-fg-drop="after"] { box-shadow: 0 3px 0 0 ${line}; }
+`
 }
 
 export const hasTooltips = (schema: FormSchema): boolean => nodesHaveTooltip(schema.tree)

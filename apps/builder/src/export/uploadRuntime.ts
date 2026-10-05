@@ -47,6 +47,27 @@ function fgRemoveFileLabel(name: string): string {
 // Marks the drop zone (the input's parent) while files are dragged over it.
 function fgDrag(input: EventTarget | null, on: boolean): void {
   ;(input as HTMLElement | null)?.parentElement?.toggleAttribute('data-fg-dragging', on)
+}
+${dropFirstHelper(messages, true)}`
+}
+
+/**
+ * Several files dropped on a field that takes one (browsers reject such a
+ * drop): the first becomes the input's file and a change event runs the
+ * usual pick; returns the note to show ('' when the drop was left alone).
+ */
+export function dropFirstHelper(messages: MessageCatalog, ts: boolean): string {
+  const t = (annotation: string): string => (ts ? annotation : '')
+  return `function fgDropFirst(input${t(': HTMLInputElement')}, event${t(': { dataTransfer: DataTransfer | null; preventDefault(): void }')})${t(': string')} {
+  var dropped = event.dataTransfer ? event.dataTransfer.files : null
+  if (input.multiple || !dropped || dropped.length < 2) return ''
+  event.preventDefault()
+  var first = dropped[0]${t('!')}
+  var keep = new DataTransfer()
+  keep.items.add(first)
+  input.files = keep.files
+  input.dispatchEvent(new Event('change', { bubbles: true }))
+  return ${JSON.stringify(messages.oneFileOnly)}.split('{name}').join(first.name)
 }`
 }
 
@@ -64,11 +85,21 @@ function fgSetFiles(path: string, files: File[]): void {
   const target = keys.reduce<Record<string, unknown>>((o, k) => o[k] as Record<string, unknown>, form as unknown as Record<string, unknown>)
   target[last] = files
 }
+// "Only one file fits here, …" per field path, until its next change.
+const fgFileNotes = reactive<Record<string, string>>({})
+function fgDropFiles(path: string, event: DragEvent): void {
+  fgDrag(event.currentTarget, false)
+  const note = fgDropFirst(event.currentTarget as HTMLInputElement, event)
+  if (!note) return
+  fgFileNotes[path] = note
+  fgAnnounce(note)
+}
 function fgPickFiles(path: string, event: Event): void {
   const input = event.target as HTMLInputElement
   const picked = Array.from(input.files ?? [])
   input.value = ''
   if (picked.length === 0) return
+  delete fgFileNotes[path]
   fgSetFiles(path, fgFileMultiple[fgTpl(path)] ? [...fgFileList(path), ...picked] : picked.slice(0, 1))
   touch(path)
 }
@@ -76,6 +107,7 @@ function fgRemoveFile(path: string, index: number): void {
   const list = fgFileList(path)
   const file = list[index]
   if (file) fgReleaseThumb(file)
+  delete fgFileNotes[path]
   fgSetFiles(path, list.filter((_, i) => i !== index))
   touch(path)
 }`
@@ -96,10 +128,30 @@ function fgFileList(data: FormData, path: string): File[] {
 /** React: handlers inside the component (state through setField). */
 export function reactUploadHandlers(fields: ExportField[]): string {
   if (uploadFields(fields).length === 0) return ''
-  return `  function fgPickFiles(path: string, input: HTMLInputElement): void {
+  return `  // "Only one file fits here, …" per field path, until its next change.
+  const [fgFileNotes, setFgFileNotes] = useState<Record<string, string>>({})
+  function fgFileNote(path: string, note: string): void {
+    setFgFileNotes((notes) => {
+      const next = { ...notes }
+      if (note) next[path] = note
+      else delete next[path]
+      return next
+    })
+  }
+
+  function fgDropFiles(path: string, event: React.DragEvent<HTMLInputElement>): void {
+    fgDrag(event.currentTarget, false)
+    const note = fgDropFirst(event.currentTarget, event)
+    if (!note) return
+    fgFileNote(path, note)
+    fgAnnounce(note)
+  }
+
+  function fgPickFiles(path: string, input: HTMLInputElement): void {
     const picked = Array.from(input.files ?? [])
     input.value = ''
     if (picked.length === 0) return
+    fgFileNote(path, '')
     touched.current.add(path)
     setField(path, FG_FILE_MULTIPLE[fgTpl(path)] ? [...fgFileList(form, path), ...picked] : picked.slice(0, 1))
   }
@@ -108,6 +160,7 @@ export function reactUploadHandlers(fields: ExportField[]): string {
     const list = fgFileList(form, path)
     const file = list[index]
     if (file) fgReleaseThumb(file)
+    fgFileNote(path, '')
     touched.current.add(path)
     setField(path, list.filter((_, i) => i !== index))
   }`

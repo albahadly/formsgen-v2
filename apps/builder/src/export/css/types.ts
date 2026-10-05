@@ -73,6 +73,8 @@ export type Slot =
   | 'repeaterRemove'
   /** An item's move up / move down buttons (sortable repeaters). */
   | 'repeaterMove'
+  /** A sortable item's drag handle (⠿). */
+  | 'repeaterHandle'
   | 'repeaterAdd'
   /** Upload drop zone (the file input covers it) and its text. */
   /** A calculated field's read-only box. */

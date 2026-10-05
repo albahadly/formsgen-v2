@@ -6,9 +6,11 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
 @using System.Text.Json
 @using System.Linq
 @using Microsoft.AspNetCore.Components.Forms
+@inject Microsoft.JSInterop.IJSRuntime FgJs
+@implements IDisposable
 
 <EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate dir="ltr">
-    <div class="container py-4" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
+    <div class="container py-4" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd" @ref="fgFormRoot">
     <div class="row g-3">
         <div class="col-12 col-md-12 text-center">
           <h2 class="fw-semibold text-primary">Kitchen Sink</h2>
@@ -134,7 +136,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
                   <label class="form-label fw-semibold fs-6 mb-0" for="fg_account_avatar">Profile picture</label>
                   <div class="fg-file-drop position-relative d-flex align-items-center justify-content-center border border-2 rounded-3 p-4 text-center small text-body-secondary bg-body-tertiary" data-fg-dragging='@(fgDragging["AccountAvatar"] ? "" : null)'>
                     <span class="fw-medium">Choose a file or drag it here</span>
-                    <InputFile @key='fgFileKeys["AccountAvatar"]' @ref='fgFileInputs["AccountAvatar"]' id="fg_account_avatar" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept="image/*" OnChange='@(e => FgPickFiles(Model.AccountAvatar, e, false, 2097152L, true, "AccountAvatar"))' @ondragenter='() => fgDragging["AccountAvatar"] = true' @ondragleave='() => fgDragging["AccountAvatar"] = false' @ondrop='() => fgDragging["AccountAvatar"] = false' />
+                    <InputFile @key='fgFileKeys["AccountAvatar"]' @ref='fgFileInputs["AccountAvatar"]' id="fg_account_avatar" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept="image/*" multiple OnChange='@(e => FgPickFiles(Model.AccountAvatar, e, false, 2097152L, true, "AccountAvatar"))' @ondragenter='() => fgDragging["AccountAvatar"] = true' @ondragleave='() => fgDragging["AccountAvatar"] = false' @ondrop='() => fgDragging["AccountAvatar"] = false' />
                   </div>
                   @if (Model.AccountAvatar.Count > 0)
                   {
@@ -153,6 +155,10 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
                           }
                       </ul>
                   }
+                  @if (fgFileNotes["AccountAvatar"] != "")
+                {
+                    <p class="form-text mt-0" data-fg-file-note>@fgFileNotes["AccountAvatar"]</p>
+                }
                   <ValidationMessage For="@(() => Model.AccountAvatar)" class="invalid-feedback d-block mt-0" />
                 </div>
               </div>
@@ -350,7 +356,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         <div class="col-12 col-md-12">
           <fieldset class="border rounded p-3 bg-body-tertiary" data-fg-repeater="references">
             <legend class="fw-semibold text-secondary small px-1">References</legend>
-            <div class="d-flex flex-column gap-3">
+            <div class="d-flex flex-column gap-3" data-fg-list='@FgListId(Model.References, "references")'>
               @foreach (var (item, i) in Model.References.Select((x, n) => (x, n)).ToList())
               {
                   <fieldset @key="item" class="border rounded p-3" data-fg-item tabindex="-1" @ref="fgItemRefs[item]">
@@ -641,6 +647,10 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
                         }
                       </div>
                       <div class="mt-2 d-flex align-items-center gap-2">
+                          @if (Model.References.Count > 1)
+                          {
+                              <span class="px-1 fs-5 lh-1 text-body-secondary user-select-none fg-repeater-handle" data-fg-handle draggable="true" aria-hidden="true" title="Drag to reorder">⠿</span>
+                          }
                           @if (i > 0)
                           {
                               <button type="button" class="btn btn-outline-secondary btn-sm" data-fg-move="up" aria-label='@FgMoveLabel("references", i, true)' @ref="fgMoveUpRefs[item]" @onclick='() => FgMoveItem(Model.References, "references", i, -1)'>↑</button>
@@ -680,6 +690,10 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
                     }
                 </ul>
             }
+            @if (fgFileNotes["Attachments"] != "")
+          {
+              <p class="form-text mt-0" data-fg-file-note>@fgFileNotes["Attachments"]</p>
+          }
             <p class="form-text mt-0">Up to 3 PDF or Word files, 5 MB each</p>
             <ValidationMessage For="@(() => Model.Attachments)" class="invalid-feedback d-block mt-0" />
           </div>
@@ -1541,6 +1555,100 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         fgFocusMove = (list[target], delta < 0 ? target > 0 : target == list.Count - 1);
         await FgAnnounce("{label} moved to position {n}".Replace("{label}", label).Replace("{n}", (target + 1).ToString()));
     }
+
+    // Dragging items by their handle: a script on the form's root runs the
+    // drag (Razor can't accept a drop only while dragging, nor set drag data)
+    // and calls FgItemDropped; lists are known by id (data-fg-list).
+    private ElementReference fgFormRoot;
+    private Microsoft.JSInterop.DotNetObjectReference<KitchenSinkForm>? fgSelf;
+    private readonly List<(object List, string Path)> fgLists = new();
+
+    private int FgListId(object list, string path)
+    {
+        var index = fgLists.FindIndex(entry => ReferenceEquals(entry.List, list));
+        if (index != -1) return index;
+        fgLists.Add((list, path));
+        return fgLists.Count - 1;
+    }
+
+    private const string FgItemDragScript = @"window.fgItemDrag = window.fgItemDrag || function (root, dotnet) {
+  var drag = null;
+  function itemOf(el) { return el && el.closest ? el.closest('[data-fg-item]') : null; }
+  function listOf(item) { return item.parentElement.getAttribute('data-fg-list'); }
+  function indexOf(item) { return Array.prototype.indexOf.call(item.parentElement.querySelectorAll(':scope > [data-fg-item]'), item); }
+  function target(el) {
+    var item = itemOf(el);
+    while (item && listOf(item) !== drag.list) item = itemOf(item.parentElement);
+    return item;
+  }
+  function paint() {
+    Array.prototype.forEach.call(root.querySelectorAll('[data-fg-item]'), function (el) {
+      var mine = drag && listOf(el) === drag.list;
+      var index = mine ? indexOf(el) : -1;
+      el.toggleAttribute('data-fg-drag', Boolean(mine && index === drag.from));
+      if (mine && index === drag.at && index !== drag.from) el.setAttribute('data-fg-drop', index < drag.from ? 'before' : 'after');
+      else el.removeAttribute('data-fg-drop');
+    });
+  }
+  root.addEventListener('dragstart', function (event) {
+    var handle = event.target.closest && event.target.closest('[data-fg-handle]');
+    if (!handle) return;
+    var item = itemOf(handle);
+    drag = { list: listOf(item), from: indexOf(item), at: -1 };
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', '');
+    event.dataTransfer.setDragImage(item, 16, 16);
+    paint();
+  });
+  root.addEventListener('dragover', function (event) {
+    if (!drag) return;
+    var item = target(event.target);
+    if (!item) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    var at = indexOf(item);
+    if (at !== drag.at) { drag.at = at; paint(); }
+  });
+  root.addEventListener('drop', function (event) {
+    if (!drag) return;
+    var item = target(event.target);
+    if (!item) return;
+    event.preventDefault();
+    var done = drag;
+    drag = null;
+    paint();
+    dotnet.invokeMethodAsync('FgItemDropped', Number(done.list), done.from, indexOf(item));
+  });
+  root.addEventListener('dragend', function () {
+    if (!drag) return;
+    drag = null;
+    paint();
+  });
+};";
+
+    private async Task FgItemDragInit()
+    {
+        fgSelf = Microsoft.JSInterop.DotNetObjectReference.Create(this);
+        await FgJs.InvokeVoidAsync("eval", FgItemDragScript);
+        await FgJs.InvokeVoidAsync("fgItemDrag", fgFormRoot, fgSelf);
+    }
+
+    [Microsoft.JSInterop.JSInvokable]
+    public async Task FgItemDropped(int list, int from, int to)
+    {
+        if (list < 0 || list >= fgLists.Count || fgLists[list].List is not System.Collections.IList items) return;
+        if (from == to || from < 0 || to < 0 || from >= items.Count || to >= items.Count) return;
+        var label = FgItemLabel(fgLists[list].Path, from);
+        var moved = items[from]!;
+        items.RemoveAt(from);
+        items.Insert(to, moved);
+        fgFocusItem = moved;
+        await FgAnnounce("{label} moved to position {n}".Replace("{label}", label).Replace("{n}", (to + 1).ToString()));
+        StateHasChanged();
+    }
+
+    public void Dispose() => fgSelf?.Dispose();
+
     private string? fgFocusAdd;
 
     private void FgFieldChanged(FieldIdentifier field)
@@ -1665,13 +1773,19 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
     private readonly FgStore<int> fgFileKeys = new(_ => 0);
     // Drop zones with files dragged over them.
     private readonly FgStore<bool> fgDragging = new(_ => false);
+    // "Only one file fits here, …" per field, until its next change.
+    private readonly FgStore<string> fgFileNotes = new(_ => "");
     private readonly Dictionary<string, InputFile> fgFileInputs = new();
     private string? fgFocusFile;
 
     private async Task FgPickFiles(List<FgUpload> list, InputFileChangeEventArgs e, bool multiple, long maxBytes, bool thumbs, string member)
     {
         var picked = new List<FgUpload>();
-        foreach (var file in e.GetMultipleFiles(multiple ? int.MaxValue : 1))
+        // Every input takes several files (a browser rejects a drop of several
+        // on one that doesn't); a field that takes one keeps the first and says so.
+        var all = e.GetMultipleFiles(int.MaxValue);
+        fgFileNotes[member] = !multiple && all.Count > 1 ? "Only one file fits here, so {name} was added.".Replace("{name}", all[0].Name) : "";
+        foreach (var file in multiple ? all : all.Take(1))
         {
             byte[]? data = null;
             if (maxBytes <= 0 || file.Size <= maxBytes)
@@ -1700,10 +1814,12 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         fgFileKeys[member]++;
         fgFocusFile = member;
         fgEdit.NotifyFieldChanged(FgField(member));
+        if (fgFileNotes[member] != "") await FgAnnounce(fgFileNotes[member]);
     }
 
     private void FgRemoveFile(List<FgUpload> list, FgUpload file, string member)
     {
+        fgFileNotes[member] = "";
         list.RemoveAll(f => ReferenceEquals(f, file));
         fgEdit.NotifyFieldChanged(FgField(member));
     }
@@ -2168,6 +2284,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         await FgFocusRepeaters();
         await FgFocusUploads();
         await FgFocusDual();
+        if (firstRender) await FgItemDragInit();
     }
 
     private async Task FgReset()
@@ -2406,9 +2523,11 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
 @using System.Text.Json
 @using System.Linq
 @using Microsoft.AspNetCore.Components.Forms
+@inject Microsoft.JSInterop.IJSRuntime FgJs
+@implements IDisposable
 
 <EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate dir="ltr">
-    <div class="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
+    <div class="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd" @ref="fgFormRoot">
     <div class="grid grid-cols-12 gap-4">
         <div class="col-span-12 md:col-span-12 text-center">
           <h2 class="font-semibold text-indigo-600 dark:text-indigo-400">Kitchen Sink</h2>
@@ -2534,7 +2653,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
                   <label class="text-sm font-semibold" for="fg_account_avatar">Profile picture</label>
                   <div class="relative flex min-h-[4.5rem] items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center text-sm text-gray-500 hover:border-indigo-500 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-300 data-[fg-dragging]:border-indigo-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400" data-fg-dragging='@(fgDragging["AccountAvatar"] ? "" : null)'>
                     <span class="font-medium">Choose a file or drag it here</span>
-                    <InputFile @key='fgFileKeys["AccountAvatar"]' @ref='fgFileInputs["AccountAvatar"]' id="fg_account_avatar" class="absolute inset-0 h-full w-full cursor-pointer opacity-0" accept="image/*" OnChange='@(e => FgPickFiles(Model.AccountAvatar, e, false, 2097152L, true, "AccountAvatar"))' @ondragenter='() => fgDragging["AccountAvatar"] = true' @ondragleave='() => fgDragging["AccountAvatar"] = false' @ondrop='() => fgDragging["AccountAvatar"] = false' />
+                    <InputFile @key='fgFileKeys["AccountAvatar"]' @ref='fgFileInputs["AccountAvatar"]' id="fg_account_avatar" class="absolute inset-0 h-full w-full cursor-pointer opacity-0" accept="image/*" multiple OnChange='@(e => FgPickFiles(Model.AccountAvatar, e, false, 2097152L, true, "AccountAvatar"))' @ondragenter='() => fgDragging["AccountAvatar"] = true' @ondragleave='() => fgDragging["AccountAvatar"] = false' @ondrop='() => fgDragging["AccountAvatar"] = false' />
                   </div>
                   @if (Model.AccountAvatar.Count > 0)
                   {
@@ -2553,6 +2672,10 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
                           }
                       </ul>
                   }
+                  @if (fgFileNotes["AccountAvatar"] != "")
+                {
+                    <p class="text-xs text-gray-500 dark:text-gray-400" data-fg-file-note>@fgFileNotes["AccountAvatar"]</p>
+                }
                   <ValidationMessage For="@(() => Model.AccountAvatar)" class="text-xs text-red-600" />
                 </div>
               </div>
@@ -2758,10 +2881,10 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         <div class="col-span-12 md:col-span-12">
           <fieldset class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50" data-fg-repeater="references">
             <legend class="px-1 text-sm font-semibold text-gray-500 dark:text-gray-400">References</legend>
-            <div class="flex flex-col gap-4">
+            <div class="flex flex-col gap-4" data-fg-list='@FgListId(Model.References, "references")'>
               @foreach (var (item, i) in Model.References.Select((x, n) => (x, n)).ToList())
               {
-                  <fieldset @key="item" class="min-w-0 rounded-lg border border-gray-300 p-4 dark:border-gray-600" data-fg-item tabindex="-1" @ref="fgItemRefs[item]">
+                  <fieldset @key="item" class="min-w-0 rounded-lg border border-gray-300 p-4 dark:border-gray-600 data-[fg-drag]:opacity-50 data-[fg-drop=before]:shadow-[0_-3px_0_0_#4f46e5] data-[fg-drop=after]:shadow-[0_3px_0_0_#4f46e5]" data-fg-item tabindex="-1" @ref="fgItemRefs[item]">
                       <legend class="px-1 text-sm font-semibold">@FgItemLabel("references", i)</legend>
                       <div class="grid grid-cols-12 gap-4">
                         <div class="col-span-12 md:col-span-12">
@@ -3049,6 +3172,10 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
                         }
                       </div>
                       <div class="mt-3 flex items-center gap-2">
+                          @if (Model.References.Count > 1)
+                          {
+                              <span class="cursor-grab select-none px-1 text-xl leading-none text-gray-500 dark:text-gray-400" data-fg-handle draggable="true" aria-hidden="true" title="Drag to reorder">⠿</span>
+                          }
                           @if (i > 0)
                           {
                               <button type="button" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600" data-fg-move="up" aria-label='@FgMoveLabel("references", i, true)' @ref="fgMoveUpRefs[item]" @onclick='() => FgMoveItem(Model.References, "references", i, -1)'>↑</button>
@@ -3088,6 +3215,10 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
                     }
                 </ul>
             }
+            @if (fgFileNotes["Attachments"] != "")
+          {
+              <p class="text-xs text-gray-500 dark:text-gray-400" data-fg-file-note>@fgFileNotes["Attachments"]</p>
+          }
             <p class="text-xs text-gray-500 dark:text-gray-400">Up to 3 PDF or Word files, 5 MB each</p>
             <ValidationMessage For="@(() => Model.Attachments)" class="text-xs text-red-600" />
           </div>
@@ -3949,6 +4080,100 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         fgFocusMove = (list[target], delta < 0 ? target > 0 : target == list.Count - 1);
         await FgAnnounce("{label} moved to position {n}".Replace("{label}", label).Replace("{n}", (target + 1).ToString()));
     }
+
+    // Dragging items by their handle: a script on the form's root runs the
+    // drag (Razor can't accept a drop only while dragging, nor set drag data)
+    // and calls FgItemDropped; lists are known by id (data-fg-list).
+    private ElementReference fgFormRoot;
+    private Microsoft.JSInterop.DotNetObjectReference<KitchenSinkForm>? fgSelf;
+    private readonly List<(object List, string Path)> fgLists = new();
+
+    private int FgListId(object list, string path)
+    {
+        var index = fgLists.FindIndex(entry => ReferenceEquals(entry.List, list));
+        if (index != -1) return index;
+        fgLists.Add((list, path));
+        return fgLists.Count - 1;
+    }
+
+    private const string FgItemDragScript = @"window.fgItemDrag = window.fgItemDrag || function (root, dotnet) {
+  var drag = null;
+  function itemOf(el) { return el && el.closest ? el.closest('[data-fg-item]') : null; }
+  function listOf(item) { return item.parentElement.getAttribute('data-fg-list'); }
+  function indexOf(item) { return Array.prototype.indexOf.call(item.parentElement.querySelectorAll(':scope > [data-fg-item]'), item); }
+  function target(el) {
+    var item = itemOf(el);
+    while (item && listOf(item) !== drag.list) item = itemOf(item.parentElement);
+    return item;
+  }
+  function paint() {
+    Array.prototype.forEach.call(root.querySelectorAll('[data-fg-item]'), function (el) {
+      var mine = drag && listOf(el) === drag.list;
+      var index = mine ? indexOf(el) : -1;
+      el.toggleAttribute('data-fg-drag', Boolean(mine && index === drag.from));
+      if (mine && index === drag.at && index !== drag.from) el.setAttribute('data-fg-drop', index < drag.from ? 'before' : 'after');
+      else el.removeAttribute('data-fg-drop');
+    });
+  }
+  root.addEventListener('dragstart', function (event) {
+    var handle = event.target.closest && event.target.closest('[data-fg-handle]');
+    if (!handle) return;
+    var item = itemOf(handle);
+    drag = { list: listOf(item), from: indexOf(item), at: -1 };
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', '');
+    event.dataTransfer.setDragImage(item, 16, 16);
+    paint();
+  });
+  root.addEventListener('dragover', function (event) {
+    if (!drag) return;
+    var item = target(event.target);
+    if (!item) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    var at = indexOf(item);
+    if (at !== drag.at) { drag.at = at; paint(); }
+  });
+  root.addEventListener('drop', function (event) {
+    if (!drag) return;
+    var item = target(event.target);
+    if (!item) return;
+    event.preventDefault();
+    var done = drag;
+    drag = null;
+    paint();
+    dotnet.invokeMethodAsync('FgItemDropped', Number(done.list), done.from, indexOf(item));
+  });
+  root.addEventListener('dragend', function () {
+    if (!drag) return;
+    drag = null;
+    paint();
+  });
+};";
+
+    private async Task FgItemDragInit()
+    {
+        fgSelf = Microsoft.JSInterop.DotNetObjectReference.Create(this);
+        await FgJs.InvokeVoidAsync("eval", FgItemDragScript);
+        await FgJs.InvokeVoidAsync("fgItemDrag", fgFormRoot, fgSelf);
+    }
+
+    [Microsoft.JSInterop.JSInvokable]
+    public async Task FgItemDropped(int list, int from, int to)
+    {
+        if (list < 0 || list >= fgLists.Count || fgLists[list].List is not System.Collections.IList items) return;
+        if (from == to || from < 0 || to < 0 || from >= items.Count || to >= items.Count) return;
+        var label = FgItemLabel(fgLists[list].Path, from);
+        var moved = items[from]!;
+        items.RemoveAt(from);
+        items.Insert(to, moved);
+        fgFocusItem = moved;
+        await FgAnnounce("{label} moved to position {n}".Replace("{label}", label).Replace("{n}", (to + 1).ToString()));
+        StateHasChanged();
+    }
+
+    public void Dispose() => fgSelf?.Dispose();
+
     private string? fgFocusAdd;
 
     private void FgFieldChanged(FieldIdentifier field)
@@ -4073,13 +4298,19 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
     private readonly FgStore<int> fgFileKeys = new(_ => 0);
     // Drop zones with files dragged over them.
     private readonly FgStore<bool> fgDragging = new(_ => false);
+    // "Only one file fits here, …" per field, until its next change.
+    private readonly FgStore<string> fgFileNotes = new(_ => "");
     private readonly Dictionary<string, InputFile> fgFileInputs = new();
     private string? fgFocusFile;
 
     private async Task FgPickFiles(List<FgUpload> list, InputFileChangeEventArgs e, bool multiple, long maxBytes, bool thumbs, string member)
     {
         var picked = new List<FgUpload>();
-        foreach (var file in e.GetMultipleFiles(multiple ? int.MaxValue : 1))
+        // Every input takes several files (a browser rejects a drop of several
+        // on one that doesn't); a field that takes one keeps the first and says so.
+        var all = e.GetMultipleFiles(int.MaxValue);
+        fgFileNotes[member] = !multiple && all.Count > 1 ? "Only one file fits here, so {name} was added.".Replace("{name}", all[0].Name) : "";
+        foreach (var file in multiple ? all : all.Take(1))
         {
             byte[]? data = null;
             if (maxBytes <= 0 || file.Size <= maxBytes)
@@ -4108,10 +4339,12 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         fgFileKeys[member]++;
         fgFocusFile = member;
         fgEdit.NotifyFieldChanged(FgField(member));
+        if (fgFileNotes[member] != "") await FgAnnounce(fgFileNotes[member]);
     }
 
     private void FgRemoveFile(List<FgUpload> list, FgUpload file, string member)
     {
+        fgFileNotes[member] = "";
         list.RemoveAll(f => ReferenceEquals(f, file));
         fgEdit.NotifyFieldChanged(FgField(member));
     }
@@ -4576,6 +4809,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         await FgFocusRepeaters();
         await FgFocusUploads();
         await FgFocusDual();
+        if (firstRender) await FgItemDragInit();
     }
 
     private async Task FgReset()
@@ -4814,9 +5048,11 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
 @using System.Text.Json
 @using System.Linq
 @using Microsoft.AspNetCore.Components.Forms
+@inject Microsoft.JSInterop.IJSRuntime FgJs
+@implements IDisposable
 
 <EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate dir="ltr">
-    <div class="fg-form" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
+    <div class="fg-form" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd" @ref="fgFormRoot">
     <div class="fg-grid">
         <div class="fg-cell fg-align-center" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <h2 class="fg-heading fg-tone-primary">Kitchen Sink</h2>
@@ -4942,7 +5178,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
                   <label class="fg-label" for="fg_account_avatar">Profile picture</label>
                   <div class="fg-file-drop" data-fg-dragging='@(fgDragging["AccountAvatar"] ? "" : null)'>
                     <span class="fg-file-drop-text">Choose a file or drag it here</span>
-                    <InputFile @key='fgFileKeys["AccountAvatar"]' @ref='fgFileInputs["AccountAvatar"]' id="fg_account_avatar" class="fg-file-input" accept="image/*" OnChange='@(e => FgPickFiles(Model.AccountAvatar, e, false, 2097152L, true, "AccountAvatar"))' @ondragenter='() => fgDragging["AccountAvatar"] = true' @ondragleave='() => fgDragging["AccountAvatar"] = false' @ondrop='() => fgDragging["AccountAvatar"] = false' />
+                    <InputFile @key='fgFileKeys["AccountAvatar"]' @ref='fgFileInputs["AccountAvatar"]' id="fg_account_avatar" class="fg-file-input" accept="image/*" multiple OnChange='@(e => FgPickFiles(Model.AccountAvatar, e, false, 2097152L, true, "AccountAvatar"))' @ondragenter='() => fgDragging["AccountAvatar"] = true' @ondragleave='() => fgDragging["AccountAvatar"] = false' @ondrop='() => fgDragging["AccountAvatar"] = false' />
                   </div>
                   @if (Model.AccountAvatar.Count > 0)
                   {
@@ -4961,6 +5197,10 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
                           }
                       </ul>
                   }
+                  @if (fgFileNotes["AccountAvatar"] != "")
+                {
+                    <p class="fg-description" data-fg-file-note>@fgFileNotes["AccountAvatar"]</p>
+                }
                   <ValidationMessage For="@(() => Model.AccountAvatar)" class="fg-error" />
                 </div>
               </div>
@@ -5166,7 +5406,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <fieldset class="fg-group" data-fg-repeater="references">
             <legend class="fg-group-label">References</legend>
-            <div class="fg-repeater-items">
+            <div class="fg-repeater-items" data-fg-list='@FgListId(Model.References, "references")'>
               @foreach (var (item, i) in Model.References.Select((x, n) => (x, n)).ToList())
               {
                   <fieldset @key="item" class="fg-repeater-item" data-fg-item tabindex="-1" @ref="fgItemRefs[item]">
@@ -5457,6 +5697,10 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
                         }
                       </div>
                       <div class="fg-repeater-item-actions">
+                          @if (Model.References.Count > 1)
+                          {
+                              <span class="fg-repeater-handle" data-fg-handle draggable="true" aria-hidden="true" title="Drag to reorder">⠿</span>
+                          }
                           @if (i > 0)
                           {
                               <button type="button" class="fg-repeater-move" data-fg-move="up" aria-label='@FgMoveLabel("references", i, true)' @ref="fgMoveUpRefs[item]" @onclick='() => FgMoveItem(Model.References, "references", i, -1)'>↑</button>
@@ -5496,6 +5740,10 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
                     }
                 </ul>
             }
+            @if (fgFileNotes["Attachments"] != "")
+          {
+              <p class="fg-description" data-fg-file-note>@fgFileNotes["Attachments"]</p>
+          }
             <p class="fg-description">Up to 3 PDF or Word files, 5 MB each</p>
             <ValidationMessage For="@(() => Model.Attachments)" class="fg-error" />
           </div>
@@ -6357,6 +6605,100 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         fgFocusMove = (list[target], delta < 0 ? target > 0 : target == list.Count - 1);
         await FgAnnounce("{label} moved to position {n}".Replace("{label}", label).Replace("{n}", (target + 1).ToString()));
     }
+
+    // Dragging items by their handle: a script on the form's root runs the
+    // drag (Razor can't accept a drop only while dragging, nor set drag data)
+    // and calls FgItemDropped; lists are known by id (data-fg-list).
+    private ElementReference fgFormRoot;
+    private Microsoft.JSInterop.DotNetObjectReference<KitchenSinkForm>? fgSelf;
+    private readonly List<(object List, string Path)> fgLists = new();
+
+    private int FgListId(object list, string path)
+    {
+        var index = fgLists.FindIndex(entry => ReferenceEquals(entry.List, list));
+        if (index != -1) return index;
+        fgLists.Add((list, path));
+        return fgLists.Count - 1;
+    }
+
+    private const string FgItemDragScript = @"window.fgItemDrag = window.fgItemDrag || function (root, dotnet) {
+  var drag = null;
+  function itemOf(el) { return el && el.closest ? el.closest('[data-fg-item]') : null; }
+  function listOf(item) { return item.parentElement.getAttribute('data-fg-list'); }
+  function indexOf(item) { return Array.prototype.indexOf.call(item.parentElement.querySelectorAll(':scope > [data-fg-item]'), item); }
+  function target(el) {
+    var item = itemOf(el);
+    while (item && listOf(item) !== drag.list) item = itemOf(item.parentElement);
+    return item;
+  }
+  function paint() {
+    Array.prototype.forEach.call(root.querySelectorAll('[data-fg-item]'), function (el) {
+      var mine = drag && listOf(el) === drag.list;
+      var index = mine ? indexOf(el) : -1;
+      el.toggleAttribute('data-fg-drag', Boolean(mine && index === drag.from));
+      if (mine && index === drag.at && index !== drag.from) el.setAttribute('data-fg-drop', index < drag.from ? 'before' : 'after');
+      else el.removeAttribute('data-fg-drop');
+    });
+  }
+  root.addEventListener('dragstart', function (event) {
+    var handle = event.target.closest && event.target.closest('[data-fg-handle]');
+    if (!handle) return;
+    var item = itemOf(handle);
+    drag = { list: listOf(item), from: indexOf(item), at: -1 };
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', '');
+    event.dataTransfer.setDragImage(item, 16, 16);
+    paint();
+  });
+  root.addEventListener('dragover', function (event) {
+    if (!drag) return;
+    var item = target(event.target);
+    if (!item) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    var at = indexOf(item);
+    if (at !== drag.at) { drag.at = at; paint(); }
+  });
+  root.addEventListener('drop', function (event) {
+    if (!drag) return;
+    var item = target(event.target);
+    if (!item) return;
+    event.preventDefault();
+    var done = drag;
+    drag = null;
+    paint();
+    dotnet.invokeMethodAsync('FgItemDropped', Number(done.list), done.from, indexOf(item));
+  });
+  root.addEventListener('dragend', function () {
+    if (!drag) return;
+    drag = null;
+    paint();
+  });
+};";
+
+    private async Task FgItemDragInit()
+    {
+        fgSelf = Microsoft.JSInterop.DotNetObjectReference.Create(this);
+        await FgJs.InvokeVoidAsync("eval", FgItemDragScript);
+        await FgJs.InvokeVoidAsync("fgItemDrag", fgFormRoot, fgSelf);
+    }
+
+    [Microsoft.JSInterop.JSInvokable]
+    public async Task FgItemDropped(int list, int from, int to)
+    {
+        if (list < 0 || list >= fgLists.Count || fgLists[list].List is not System.Collections.IList items) return;
+        if (from == to || from < 0 || to < 0 || from >= items.Count || to >= items.Count) return;
+        var label = FgItemLabel(fgLists[list].Path, from);
+        var moved = items[from]!;
+        items.RemoveAt(from);
+        items.Insert(to, moved);
+        fgFocusItem = moved;
+        await FgAnnounce("{label} moved to position {n}".Replace("{label}", label).Replace("{n}", (to + 1).ToString()));
+        StateHasChanged();
+    }
+
+    public void Dispose() => fgSelf?.Dispose();
+
     private string? fgFocusAdd;
 
     private void FgFieldChanged(FieldIdentifier field)
@@ -6481,13 +6823,19 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
     private readonly FgStore<int> fgFileKeys = new(_ => 0);
     // Drop zones with files dragged over them.
     private readonly FgStore<bool> fgDragging = new(_ => false);
+    // "Only one file fits here, …" per field, until its next change.
+    private readonly FgStore<string> fgFileNotes = new(_ => "");
     private readonly Dictionary<string, InputFile> fgFileInputs = new();
     private string? fgFocusFile;
 
     private async Task FgPickFiles(List<FgUpload> list, InputFileChangeEventArgs e, bool multiple, long maxBytes, bool thumbs, string member)
     {
         var picked = new List<FgUpload>();
-        foreach (var file in e.GetMultipleFiles(multiple ? int.MaxValue : 1))
+        // Every input takes several files (a browser rejects a drop of several
+        // on one that doesn't); a field that takes one keeps the first and says so.
+        var all = e.GetMultipleFiles(int.MaxValue);
+        fgFileNotes[member] = !multiple && all.Count > 1 ? "Only one file fits here, so {name} was added.".Replace("{name}", all[0].Name) : "";
+        foreach (var file in multiple ? all : all.Take(1))
         {
             byte[]? data = null;
             if (maxBytes <= 0 || file.Size <= maxBytes)
@@ -6516,10 +6864,12 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         fgFileKeys[member]++;
         fgFocusFile = member;
         fgEdit.NotifyFieldChanged(FgField(member));
+        if (fgFileNotes[member] != "") await FgAnnounce(fgFileNotes[member]);
     }
 
     private void FgRemoveFile(List<FgUpload> list, FgUpload file, string member)
     {
+        fgFileNotes[member] = "";
         list.RemoveAll(f => ReferenceEquals(f, file));
         fgEdit.NotifyFieldChanged(FgField(member));
     }
@@ -6984,6 +7334,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         await FgFocusRepeaters();
         await FgFocusUploads();
         await FgFocusDual();
+        if (firstRender) await FgItemDragInit();
     }
 
     private async Task FgReset()
@@ -7238,6 +7589,12 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
   .fg-dual input[type='range']:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
   .fg-dual input[type='range']:focus-visible::-moz-range-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
 
+  /* Sortable items: the dragged item, where it would land */
+  .fg-repeater-handle { cursor: grab; }
+  [data-fg-item][data-fg-drag] { opacity: 0.5; }
+  [data-fg-item][data-fg-drop="before"] { box-shadow: 0 -3px 0 0 var(--bs-primary); }
+  [data-fg-item][data-fg-drop="after"] { box-shadow: 0 3px 0 0 var(--bs-primary); }
+
   /* Help tooltips */
   .fg-label-row { display: flex; align-items: center; gap: 0.375rem; }
   /* The bubble anchors to the row holding the tip (label row, checkbox row or
@@ -7389,6 +7746,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
                   <input id="fg_account_avatar" type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept="image/*" data-fg-path="account.avatar" data-fg-kind="files" data-fg-thumbs>
                 </div>
                 <ul class="list-group mt-2" data-fg-file-list="account.avatar" hidden></ul>
+                <p class="form-text mt-0" data-fg-file-note="account.avatar" hidden></p>
                 <p id="fg_err_account_avatar" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
               </div>
             </div>
@@ -7855,6 +8213,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
                 </div>
               </div>
               <div class="mt-2 d-flex align-items-center gap-2">
+                <span class="px-1 fs-5 lh-1 text-body-secondary user-select-none fg-repeater-handle" data-fg-handle draggable="true" aria-hidden="true" title="Drag to reorder">⠿</span>
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-fg-move="up">↑</button>
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-fg-move="down">↓</button>
                 <button type="button" class="btn btn-link link-danger p-0 ms-auto" data-fg-remove>Remove</button>
@@ -7872,6 +8231,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
             <input id="fg_attachments" type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept=".pdf,.doc,.docx" multiple data-fg-path="attachments" data-fg-kind="files">
           </div>
           <ul class="list-group mt-2" data-fg-file-list="attachments" hidden></ul>
+          <p class="form-text mt-0" data-fg-file-note="attachments" hidden></p>
           <p class="form-text mt-0">Up to 3 PDF or Word files, 5 MB each</p>
           <p id="fg_err_attachments" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
         </div>
@@ -8824,6 +9184,8 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         var remove = item.querySelector(':scope > div > [data-fg-remove]')
         remove.setAttribute('aria-label', "Remove {label}".split('{label}').join(fgItemLabel(path, index)))
         remove.hidden = list.length <= meta.min
+        var handle = item.querySelector(':scope > div > [data-fg-handle]')
+        if (handle) handle.hidden = list.length < 2
         var up = item.querySelector(':scope > div > [data-fg-move="up"]')
         var down = item.querySelector(':scope > div > [data-fg-move="down"]')
         if (up) {
@@ -8877,6 +9239,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
           fgMoveItem(listPath(), Number(item.getAttribute('data-fg-index')), button.getAttribute('data-fg-move') === 'up' ? -1 : 1)
         })
       })
+      fgWireItemDrag(item, listPath)
       list.appendChild(item)
       fgWire(item)
       fgInitRepeaters(item)
@@ -8905,6 +9268,71 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       var other = moved.querySelector(':scope > div > [data-fg-move="' + (delta < 0 ? 'down' : 'up') + '"]')
       ;(same && !same.hidden ? same : other && !other.hidden ? other : moved).focus()
       fgAnnounce("{label} moved to position {n}".split('{label}').join(label).split('{n}').join(String(target + 1)))
+    }
+    // Dragging items by their handle: the list being dragged in, the item and the one under it.
+    var fgItemDrag = null
+    function fgMovedIndex(n, from, to) {
+      if (n === from) return to
+      if (from < to) return n > from && n <= to ? n - 1 : n
+      return n >= to && n < from ? n + 1 : n
+    }
+    function fgDragMarks() {
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fg-item]'), function (el) {
+        var path = el.parentNode.getAttribute('data-fg-items')
+        var index = Number(el.getAttribute('data-fg-index'))
+        var dragging = fgItemDrag && fgItemDrag.path === path
+        el.toggleAttribute('data-fg-drag', Boolean(dragging && fgItemDrag.from === index))
+        if (dragging && fgItemDrag.at === index && fgItemDrag.from !== index) el.setAttribute('data-fg-drop', index < fgItemDrag.from ? 'before' : 'after')
+        else el.removeAttribute('data-fg-drop')
+      })
+    }
+    function fgWireItemDrag(item, listPath) {
+      var index = function () { return Number(item.getAttribute('data-fg-index')) }
+      var handle = item.querySelector(':scope > div > [data-fg-handle]')
+      if (handle) {
+        handle.addEventListener('dragstart', function (event) {
+          fgItemDrag = { path: listPath(), from: index(), at: -1 }
+          event.dataTransfer.effectAllowed = 'move'
+          event.dataTransfer.setData('text/plain', fgItemLabel(listPath(), index()))
+          event.dataTransfer.setDragImage(item, 16, 16)
+          fgDragMarks()
+        })
+        handle.addEventListener('dragend', function () {
+          fgItemDrag = null
+          fgDragMarks()
+        })
+      }
+      item.addEventListener('dragover', function (event) {
+        if (!fgItemDrag || fgItemDrag.path !== listPath()) return
+        event.preventDefault()
+        event.stopPropagation()
+        event.dataTransfer.dropEffect = 'move'
+        if (fgItemDrag.at !== index()) {
+          fgItemDrag.at = index()
+          fgDragMarks()
+        }
+      })
+      item.addEventListener('drop', function (event) {
+        if (!fgItemDrag || fgItemDrag.path !== listPath()) return
+        event.preventDefault()
+        event.stopPropagation()
+        var from = fgItemDrag.from
+        fgItemDrag = null
+        fgDragMarks()
+        fgMoveItemTo(listPath(), from, index())
+      })
+    }
+    /** Moves item \`from\` to \`to\` (the others close up); the moved item gets focus. */
+    function fgMoveItemTo(path, from, to) {
+      var items = fgItemElements(path)
+      if (from === to || to < 0 || to >= items.length) return
+      var label = fgItemLabel(path, from)
+      fgRemapItems(path, function (n) { return fgMovedIndex(n, from, to) })
+      items[from].parentNode.insertBefore(items[from], to > from ? items[to].nextSibling : items[to])
+      fgRefreshItems(path)
+      updateConditions()
+      fgItemElements(path)[to].focus()
+      fgAnnounce("{label} moved to position {n}".split('{label}').join(label).split('{n}').join(String(to + 1)))
     }
     function fgRemoveItem(path, index) {
       var items = fgItemElements(path)
@@ -8985,7 +9413,26 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
     function fgFileSize(bytes) {
       return bytes >= 1024 * 1024 ? (bytes / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB'
     }
+    function fgDropFirst(input, event) {
+      var dropped = event.dataTransfer ? event.dataTransfer.files : null
+      if (input.multiple || !dropped || dropped.length < 2) return ''
+      event.preventDefault()
+      var first = dropped[0]
+      var keep = new DataTransfer()
+      keep.items.add(first)
+      input.files = keep.files
+      input.dispatchEvent(new Event('change', { bubbles: true }))
+      return "Only one file fits here, so {name} was added.".split('{name}').join(first.name)
+    }
+    // "Only one file fits here, …" under a field ('' hides it); cleared by the next change.
+    function fgFileNote(path, text) {
+      var note = document.querySelector('[data-fg-file-note="' + path + '"]')
+      if (!note) return
+      note.textContent = text
+      note.hidden = text === ''
+    }
     function fgPaintFiles(path) {
+      fgFileNote(path, '')
       var list = document.querySelector('[data-fg-file-list="' + path + '"]')
       var input = fgControl(path)
       if (!list || !input) return
@@ -9039,7 +9486,13 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         }
         input.addEventListener('dragenter', drag(true))
         input.addEventListener('dragleave', drag(false))
-        input.addEventListener('drop', drag(false))
+        input.addEventListener('drop', function (event) {
+          input.parentElement.removeAttribute('data-fg-dragging')
+          var note = fgDropFirst(input, event)
+          if (!note) return
+          fgFileNote(input.getAttribute('data-fg-path'), note)
+          fgAnnounce(note)
+        })
         input.addEventListener('change', function () {
           var path = input.getAttribute('data-fg-path')
           var picked = Array.prototype.slice.call(input.files || [])
@@ -9563,6 +10016,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
                   <input id="fg_account_avatar" type="file" class="absolute inset-0 h-full w-full cursor-pointer opacity-0" accept="image/*" data-fg-path="account.avatar" data-fg-kind="files" data-fg-thumbs>
                 </div>
                 <ul class="flex flex-col gap-1.5" data-fg-file-list="account.avatar" hidden></ul>
+                <p class="text-xs text-gray-500 dark:text-gray-400" data-fg-file-note="account.avatar" hidden></p>
                 <p id="fg_err_account_avatar" class="text-xs text-red-600" role="alert" hidden></p>
               </div>
             </div>
@@ -9755,7 +10209,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
           <legend class="px-1 text-sm font-semibold text-gray-500 dark:text-gray-400">References</legend>
           <div class="flex flex-col gap-4" data-fg-items="references"></div>
           <template data-fg-template="references">
-            <fieldset class="min-w-0 rounded-lg border border-gray-300 p-4 dark:border-gray-600" data-fg-item tabindex="-1">
+            <fieldset class="min-w-0 rounded-lg border border-gray-300 p-4 dark:border-gray-600 data-[fg-drag]:opacity-50 data-[fg-drop=before]:shadow-[0_-3px_0_0_#4f46e5] data-[fg-drop=after]:shadow-[0_3px_0_0_#4f46e5]" data-fg-item tabindex="-1">
               <legend class="px-1 text-sm font-semibold" data-fg-item-label></legend>
               <div class="grid grid-cols-12 gap-4">
                 <div class="col-span-12 md:col-span-12">
@@ -10037,6 +10491,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
                 </div>
               </div>
               <div class="mt-3 flex items-center gap-2">
+                <span class="cursor-grab select-none px-1 text-xl leading-none text-gray-500 dark:text-gray-400" data-fg-handle draggable="true" aria-hidden="true" title="Drag to reorder">⠿</span>
                 <button type="button" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600" data-fg-move="up">↑</button>
                 <button type="button" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600" data-fg-move="down">↓</button>
                 <button type="button" class="ms-auto text-sm text-red-600 underline hover:text-red-700 dark:text-red-400" data-fg-remove>Remove</button>
@@ -10054,6 +10509,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
             <input id="fg_attachments" type="file" class="absolute inset-0 h-full w-full cursor-pointer opacity-0" accept=".pdf,.doc,.docx" multiple data-fg-path="attachments" data-fg-kind="files">
           </div>
           <ul class="flex flex-col gap-1.5" data-fg-file-list="attachments" hidden></ul>
+          <p class="text-xs text-gray-500 dark:text-gray-400" data-fg-file-note="attachments" hidden></p>
           <p class="text-xs text-gray-500 dark:text-gray-400">Up to 3 PDF or Word files, 5 MB each</p>
           <p id="fg_err_attachments" class="text-xs text-red-600" role="alert" hidden></p>
         </div>
@@ -11006,6 +11462,8 @@ exports[`html target > snapshot (tailwind) 1`] = `
         var remove = item.querySelector(':scope > div > [data-fg-remove]')
         remove.setAttribute('aria-label', "Remove {label}".split('{label}').join(fgItemLabel(path, index)))
         remove.hidden = list.length <= meta.min
+        var handle = item.querySelector(':scope > div > [data-fg-handle]')
+        if (handle) handle.hidden = list.length < 2
         var up = item.querySelector(':scope > div > [data-fg-move="up"]')
         var down = item.querySelector(':scope > div > [data-fg-move="down"]')
         if (up) {
@@ -11059,6 +11517,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
           fgMoveItem(listPath(), Number(item.getAttribute('data-fg-index')), button.getAttribute('data-fg-move') === 'up' ? -1 : 1)
         })
       })
+      fgWireItemDrag(item, listPath)
       list.appendChild(item)
       fgWire(item)
       fgInitRepeaters(item)
@@ -11087,6 +11546,71 @@ exports[`html target > snapshot (tailwind) 1`] = `
       var other = moved.querySelector(':scope > div > [data-fg-move="' + (delta < 0 ? 'down' : 'up') + '"]')
       ;(same && !same.hidden ? same : other && !other.hidden ? other : moved).focus()
       fgAnnounce("{label} moved to position {n}".split('{label}').join(label).split('{n}').join(String(target + 1)))
+    }
+    // Dragging items by their handle: the list being dragged in, the item and the one under it.
+    var fgItemDrag = null
+    function fgMovedIndex(n, from, to) {
+      if (n === from) return to
+      if (from < to) return n > from && n <= to ? n - 1 : n
+      return n >= to && n < from ? n + 1 : n
+    }
+    function fgDragMarks() {
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fg-item]'), function (el) {
+        var path = el.parentNode.getAttribute('data-fg-items')
+        var index = Number(el.getAttribute('data-fg-index'))
+        var dragging = fgItemDrag && fgItemDrag.path === path
+        el.toggleAttribute('data-fg-drag', Boolean(dragging && fgItemDrag.from === index))
+        if (dragging && fgItemDrag.at === index && fgItemDrag.from !== index) el.setAttribute('data-fg-drop', index < fgItemDrag.from ? 'before' : 'after')
+        else el.removeAttribute('data-fg-drop')
+      })
+    }
+    function fgWireItemDrag(item, listPath) {
+      var index = function () { return Number(item.getAttribute('data-fg-index')) }
+      var handle = item.querySelector(':scope > div > [data-fg-handle]')
+      if (handle) {
+        handle.addEventListener('dragstart', function (event) {
+          fgItemDrag = { path: listPath(), from: index(), at: -1 }
+          event.dataTransfer.effectAllowed = 'move'
+          event.dataTransfer.setData('text/plain', fgItemLabel(listPath(), index()))
+          event.dataTransfer.setDragImage(item, 16, 16)
+          fgDragMarks()
+        })
+        handle.addEventListener('dragend', function () {
+          fgItemDrag = null
+          fgDragMarks()
+        })
+      }
+      item.addEventListener('dragover', function (event) {
+        if (!fgItemDrag || fgItemDrag.path !== listPath()) return
+        event.preventDefault()
+        event.stopPropagation()
+        event.dataTransfer.dropEffect = 'move'
+        if (fgItemDrag.at !== index()) {
+          fgItemDrag.at = index()
+          fgDragMarks()
+        }
+      })
+      item.addEventListener('drop', function (event) {
+        if (!fgItemDrag || fgItemDrag.path !== listPath()) return
+        event.preventDefault()
+        event.stopPropagation()
+        var from = fgItemDrag.from
+        fgItemDrag = null
+        fgDragMarks()
+        fgMoveItemTo(listPath(), from, index())
+      })
+    }
+    /** Moves item \`from\` to \`to\` (the others close up); the moved item gets focus. */
+    function fgMoveItemTo(path, from, to) {
+      var items = fgItemElements(path)
+      if (from === to || to < 0 || to >= items.length) return
+      var label = fgItemLabel(path, from)
+      fgRemapItems(path, function (n) { return fgMovedIndex(n, from, to) })
+      items[from].parentNode.insertBefore(items[from], to > from ? items[to].nextSibling : items[to])
+      fgRefreshItems(path)
+      updateConditions()
+      fgItemElements(path)[to].focus()
+      fgAnnounce("{label} moved to position {n}".split('{label}').join(label).split('{n}').join(String(to + 1)))
     }
     function fgRemoveItem(path, index) {
       var items = fgItemElements(path)
@@ -11167,7 +11691,26 @@ exports[`html target > snapshot (tailwind) 1`] = `
     function fgFileSize(bytes) {
       return bytes >= 1024 * 1024 ? (bytes / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB'
     }
+    function fgDropFirst(input, event) {
+      var dropped = event.dataTransfer ? event.dataTransfer.files : null
+      if (input.multiple || !dropped || dropped.length < 2) return ''
+      event.preventDefault()
+      var first = dropped[0]
+      var keep = new DataTransfer()
+      keep.items.add(first)
+      input.files = keep.files
+      input.dispatchEvent(new Event('change', { bubbles: true }))
+      return "Only one file fits here, so {name} was added.".split('{name}').join(first.name)
+    }
+    // "Only one file fits here, …" under a field ('' hides it); cleared by the next change.
+    function fgFileNote(path, text) {
+      var note = document.querySelector('[data-fg-file-note="' + path + '"]')
+      if (!note) return
+      note.textContent = text
+      note.hidden = text === ''
+    }
     function fgPaintFiles(path) {
+      fgFileNote(path, '')
       var list = document.querySelector('[data-fg-file-list="' + path + '"]')
       var input = fgControl(path)
       if (!list || !input) return
@@ -11221,7 +11764,13 @@ exports[`html target > snapshot (tailwind) 1`] = `
         }
         input.addEventListener('dragenter', drag(true))
         input.addEventListener('dragleave', drag(false))
-        input.addEventListener('drop', drag(false))
+        input.addEventListener('drop', function (event) {
+          input.parentElement.removeAttribute('data-fg-dragging')
+          var note = fgDropFirst(input, event)
+          if (!note) return
+          fgFileNote(input.getAttribute('data-fg-path'), note)
+          fgAnnounce(note)
+        })
         input.addEventListener('change', function () {
           var path = input.getAttribute('data-fg-path')
           var picked = Array.prototype.slice.call(input.files || [])
@@ -11645,6 +12194,11 @@ exports[`html target > snapshot (vanilla) 1`] = `
   :where(.fg-html) :where(th, td) { padding: 0.25rem 0.5rem; border: 1px solid var(--fg-color-border); text-align: start; }
   :where(.fg-html) img { max-inline-size: 100%; block-size: auto; }
   :where(.fg-html) a { color: var(--fg-color-primary); }
+  /* Sortable items: drag handle, the dragged item, where it would land */
+  .fg-repeater-handle { padding: 0 0.25rem; color: var(--fg-color-muted); font-size: 1.25rem; line-height: 1; cursor: grab; user-select: none; }
+  [data-fg-item][data-fg-drag] { opacity: 0.5; }
+  [data-fg-item][data-fg-drop="before"] { box-shadow: 0 -3px 0 0 var(--fg-color-primary); }
+  [data-fg-item][data-fg-drop="after"] { box-shadow: 0 3px 0 0 var(--fg-color-primary); }
   /* Save and continue later: the note above the form */
   .fg-draft { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.75rem; margin-block-end: var(--fg-space); padding: 0.5rem 0.75rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); color: var(--fg-color-muted); font-size: 0.875rem; }
   .fg-draft-text { flex: 1 1 16rem; margin: 0; }
@@ -11936,6 +12490,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
                   <input id="fg_account_avatar" type="file" class="fg-file-input" accept="image/*" data-fg-path="account.avatar" data-fg-kind="files" data-fg-thumbs>
                 </div>
                 <ul class="fg-file-list" data-fg-file-list="account.avatar" hidden></ul>
+                <p class="fg-description" data-fg-file-note="account.avatar" hidden></p>
                 <p id="fg_err_account_avatar" class="fg-error" role="alert" hidden></p>
               </div>
             </div>
@@ -12410,6 +12965,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
                 </div>
               </div>
               <div class="fg-repeater-item-actions">
+                <span class="fg-repeater-handle" data-fg-handle draggable="true" aria-hidden="true" title="Drag to reorder">⠿</span>
                 <button type="button" class="fg-repeater-move" data-fg-move="up">↑</button>
                 <button type="button" class="fg-repeater-move" data-fg-move="down">↓</button>
                 <button type="button" class="fg-repeater-remove" data-fg-remove>Remove</button>
@@ -12427,6 +12983,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
             <input id="fg_attachments" type="file" class="fg-file-input" accept=".pdf,.doc,.docx" multiple data-fg-path="attachments" data-fg-kind="files">
           </div>
           <ul class="fg-file-list" data-fg-file-list="attachments" hidden></ul>
+          <p class="fg-description" data-fg-file-note="attachments" hidden></p>
           <p class="fg-description">Up to 3 PDF or Word files, 5 MB each</p>
           <p id="fg_err_attachments" class="fg-error" role="alert" hidden></p>
         </div>
@@ -13379,6 +13936,8 @@ exports[`html target > snapshot (vanilla) 1`] = `
         var remove = item.querySelector(':scope > div > [data-fg-remove]')
         remove.setAttribute('aria-label', "Remove {label}".split('{label}').join(fgItemLabel(path, index)))
         remove.hidden = list.length <= meta.min
+        var handle = item.querySelector(':scope > div > [data-fg-handle]')
+        if (handle) handle.hidden = list.length < 2
         var up = item.querySelector(':scope > div > [data-fg-move="up"]')
         var down = item.querySelector(':scope > div > [data-fg-move="down"]')
         if (up) {
@@ -13432,6 +13991,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           fgMoveItem(listPath(), Number(item.getAttribute('data-fg-index')), button.getAttribute('data-fg-move') === 'up' ? -1 : 1)
         })
       })
+      fgWireItemDrag(item, listPath)
       list.appendChild(item)
       fgWire(item)
       fgInitRepeaters(item)
@@ -13460,6 +14020,71 @@ exports[`html target > snapshot (vanilla) 1`] = `
       var other = moved.querySelector(':scope > div > [data-fg-move="' + (delta < 0 ? 'down' : 'up') + '"]')
       ;(same && !same.hidden ? same : other && !other.hidden ? other : moved).focus()
       fgAnnounce("{label} moved to position {n}".split('{label}').join(label).split('{n}').join(String(target + 1)))
+    }
+    // Dragging items by their handle: the list being dragged in, the item and the one under it.
+    var fgItemDrag = null
+    function fgMovedIndex(n, from, to) {
+      if (n === from) return to
+      if (from < to) return n > from && n <= to ? n - 1 : n
+      return n >= to && n < from ? n + 1 : n
+    }
+    function fgDragMarks() {
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fg-item]'), function (el) {
+        var path = el.parentNode.getAttribute('data-fg-items')
+        var index = Number(el.getAttribute('data-fg-index'))
+        var dragging = fgItemDrag && fgItemDrag.path === path
+        el.toggleAttribute('data-fg-drag', Boolean(dragging && fgItemDrag.from === index))
+        if (dragging && fgItemDrag.at === index && fgItemDrag.from !== index) el.setAttribute('data-fg-drop', index < fgItemDrag.from ? 'before' : 'after')
+        else el.removeAttribute('data-fg-drop')
+      })
+    }
+    function fgWireItemDrag(item, listPath) {
+      var index = function () { return Number(item.getAttribute('data-fg-index')) }
+      var handle = item.querySelector(':scope > div > [data-fg-handle]')
+      if (handle) {
+        handle.addEventListener('dragstart', function (event) {
+          fgItemDrag = { path: listPath(), from: index(), at: -1 }
+          event.dataTransfer.effectAllowed = 'move'
+          event.dataTransfer.setData('text/plain', fgItemLabel(listPath(), index()))
+          event.dataTransfer.setDragImage(item, 16, 16)
+          fgDragMarks()
+        })
+        handle.addEventListener('dragend', function () {
+          fgItemDrag = null
+          fgDragMarks()
+        })
+      }
+      item.addEventListener('dragover', function (event) {
+        if (!fgItemDrag || fgItemDrag.path !== listPath()) return
+        event.preventDefault()
+        event.stopPropagation()
+        event.dataTransfer.dropEffect = 'move'
+        if (fgItemDrag.at !== index()) {
+          fgItemDrag.at = index()
+          fgDragMarks()
+        }
+      })
+      item.addEventListener('drop', function (event) {
+        if (!fgItemDrag || fgItemDrag.path !== listPath()) return
+        event.preventDefault()
+        event.stopPropagation()
+        var from = fgItemDrag.from
+        fgItemDrag = null
+        fgDragMarks()
+        fgMoveItemTo(listPath(), from, index())
+      })
+    }
+    /** Moves item \`from\` to \`to\` (the others close up); the moved item gets focus. */
+    function fgMoveItemTo(path, from, to) {
+      var items = fgItemElements(path)
+      if (from === to || to < 0 || to >= items.length) return
+      var label = fgItemLabel(path, from)
+      fgRemapItems(path, function (n) { return fgMovedIndex(n, from, to) })
+      items[from].parentNode.insertBefore(items[from], to > from ? items[to].nextSibling : items[to])
+      fgRefreshItems(path)
+      updateConditions()
+      fgItemElements(path)[to].focus()
+      fgAnnounce("{label} moved to position {n}".split('{label}').join(label).split('{n}').join(String(to + 1)))
     }
     function fgRemoveItem(path, index) {
       var items = fgItemElements(path)
@@ -13540,7 +14165,26 @@ exports[`html target > snapshot (vanilla) 1`] = `
     function fgFileSize(bytes) {
       return bytes >= 1024 * 1024 ? (bytes / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB'
     }
+    function fgDropFirst(input, event) {
+      var dropped = event.dataTransfer ? event.dataTransfer.files : null
+      if (input.multiple || !dropped || dropped.length < 2) return ''
+      event.preventDefault()
+      var first = dropped[0]
+      var keep = new DataTransfer()
+      keep.items.add(first)
+      input.files = keep.files
+      input.dispatchEvent(new Event('change', { bubbles: true }))
+      return "Only one file fits here, so {name} was added.".split('{name}').join(first.name)
+    }
+    // "Only one file fits here, …" under a field ('' hides it); cleared by the next change.
+    function fgFileNote(path, text) {
+      var note = document.querySelector('[data-fg-file-note="' + path + '"]')
+      if (!note) return
+      note.textContent = text
+      note.hidden = text === ''
+    }
     function fgPaintFiles(path) {
+      fgFileNote(path, '')
       var list = document.querySelector('[data-fg-file-list="' + path + '"]')
       var input = fgControl(path)
       if (!list || !input) return
@@ -13594,7 +14238,13 @@ exports[`html target > snapshot (vanilla) 1`] = `
         }
         input.addEventListener('dragenter', drag(true))
         input.addEventListener('dragleave', drag(false))
-        input.addEventListener('drop', drag(false))
+        input.addEventListener('drop', function (event) {
+          input.parentElement.removeAttribute('data-fg-dragging')
+          var note = fgDropFirst(input, event)
+          if (!note) return
+          fgFileNote(input.getAttribute('data-fg-path'), note)
+          fgAnnounce(note)
+        })
         input.addEventListener('change', function () {
           var path = input.getAttribute('data-fg-path')
           var picked = Array.prototype.slice.call(input.files || [])
@@ -14330,6 +14980,12 @@ function buildPayload(data: FormData): Record<string, unknown> {
   }
 }
 
+function fgMovedIndex(n: number, from: number, to: number): number {
+  if (n === from) return to
+  if (from < to) return n > from && n <= to ? n - 1 : n
+  return n >= to && n < from ? n + 1 : n
+}
+
 const FG_ITEM_DEFAULTS: Record<string, () => Record<string, unknown>> = {
   'references': () => ({
     name: "",
@@ -14501,6 +15157,17 @@ function fgRemoveFileLabel(name: string): string {
 function fgDrag(input: EventTarget | null, on: boolean): void {
   ;(input as HTMLElement | null)?.parentElement?.toggleAttribute('data-fg-dragging', on)
 }
+function fgDropFirst(input: HTMLInputElement, event: { dataTransfer: DataTransfer | null; preventDefault(): void }): string {
+  var dropped = event.dataTransfer ? event.dataTransfer.files : null
+  if (input.multiple || !dropped || dropped.length < 2) return ''
+  event.preventDefault()
+  var first = dropped[0]!
+  var keep = new DataTransfer()
+  keep.items.add(first)
+  input.files = keep.files
+  input.dispatchEvent(new Event('change', { bubbles: true }))
+  return "Only one file fits here, so {name} was added.".split('{name}').join(first.name)
+}
 
 const FG_FILE_MULTIPLE: Record<string, boolean> = { 'account.avatar': false, 'attachments': true }
 
@@ -14538,7 +15205,7 @@ export default function KitchenSinkForm({
   // Stable React keys per item (the form object is cloned on every edit).
   const fgKeys = useRef<Record<string, number[]>>({})
   const fgNextKey = useRef(0)
-  const fgPendingFocus = useRef<{ path: string; index: number; move?: 'up' | 'down' } | null>(null)
+  const fgPendingFocus = useRef<{ path: string; index: number; move?: 'up' | 'down' | 'item' } | null>(null)
 
   // Polite aria-live region; cleared first so repeated text re-announces.
   function fgAnnounce(message: string): void {
@@ -14674,10 +15341,30 @@ export default function KitchenSinkForm({
     setField(path, fgComposePhone(fgPhoneCountryOf(path), number))
   }
 
+  // "Only one file fits here, …" per field path, until its next change.
+  const [fgFileNotes, setFgFileNotes] = useState<Record<string, string>>({})
+  function fgFileNote(path: string, note: string): void {
+    setFgFileNotes((notes) => {
+      const next = { ...notes }
+      if (note) next[path] = note
+      else delete next[path]
+      return next
+    })
+  }
+
+  function fgDropFiles(path: string, event: React.DragEvent<HTMLInputElement>): void {
+    fgDrag(event.currentTarget, false)
+    const note = fgDropFirst(event.currentTarget, event)
+    if (!note) return
+    fgFileNote(path, note)
+    fgAnnounce(note)
+  }
+
   function fgPickFiles(path: string, input: HTMLInputElement): void {
     const picked = Array.from(input.files ?? [])
     input.value = ''
     if (picked.length === 0) return
+    fgFileNote(path, '')
     touched.current.add(path)
     setField(path, FG_FILE_MULTIPLE[fgTpl(path)] ? [...fgFileList(form, path), ...picked] : picked.slice(0, 1))
   }
@@ -14686,6 +15373,7 @@ export default function KitchenSinkForm({
     const list = fgFileList(form, path)
     const file = list[index]
     if (file) fgReleaseThumb(file)
+    fgFileNote(path, '')
     touched.current.add(path)
     setField(path, list.filter((_, i) => i !== index))
   }
@@ -14734,6 +15422,69 @@ export default function KitchenSinkForm({
     fgAnnounce("{label} moved to position {n}".split('{label}').join(label).split('{n}').join(String(target + 1)))
   }
 
+  // Dragging items by their handle: the list being dragged in, the item and the one under it.
+  const [fgItemDrag, setFgItemDrag] = useState<{ path: string; from: number; at: number }>({ path: '', from: -1, at: -1 })
+
+  function fgItemElements(path: string): HTMLElement[] {
+    const repeater = fgRoot.current?.querySelector(\`[data-fg-repeater="\${path}"]\`)
+    return Array.from(repeater?.querySelectorAll<HTMLElement>(':scope > div > [data-fg-item]') ?? [])
+  }
+
+  function fgDragStart(event: React.DragEvent, path: string, index: number): void {
+    setFgItemDrag({ path, from: index, at: -1 })
+    if (!event.dataTransfer) return
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', fgItemLabel(path, index))
+  const item = fgItemElements(path)[index]
+  if (item) event.dataTransfer.setDragImage(item, 16, 16)
+  }
+
+  function fgDragEnd(): void {
+    setFgItemDrag({ path: '', from: -1, at: -1 })
+  }
+
+  function fgDragOver(event: React.DragEvent, path: string, index: number): void {
+    if (fgItemDrag.path !== path) return
+    event.preventDefault()
+    event.stopPropagation()
+    event.dataTransfer.dropEffect = 'move'
+    if (fgItemDrag.at !== index) setFgItemDrag({ ...fgItemDrag, at: index })
+  }
+
+  function fgDropItem(event: React.DragEvent, path: string, index: number): void {
+    if (fgItemDrag.path !== path) return
+    event.preventDefault()
+    event.stopPropagation()
+    const from = fgItemDrag.from
+    fgDragEnd()
+    fgMoveItemTo(path, from, index)
+  }
+
+  function fgDragMark(path: string, index: number): '' | undefined {
+    return fgItemDrag.path === path && fgItemDrag.from === index ? '' : undefined
+  }
+
+  function fgDropMark(path: string, index: number): 'before' | 'after' | undefined {
+    if (fgItemDrag.path !== path || fgItemDrag.at !== index || fgItemDrag.from === index) return undefined
+    return index < fgItemDrag.from ? 'before' : 'after'
+  }
+
+  /** Moves item \`from\` to \`to\` (the others close up); the moved item gets focus. */
+  function fgMoveItemTo(path: string, from: number, to: number): void {
+    const list = fgList(form, path)
+    if (from === to || to < 0 || to >= list.length) return
+    const label = fgItemLabel(path, from)
+    fgKeyAt(path, list.length - 1)
+    const keys = fgKeys.current[path]!
+    keys.splice(to, 0, keys.splice(from, 1)[0]!)
+    fgRemapItems(path, (n) => fgMovedIndex(n, from, to))
+    const next = [...list]
+    next.splice(to, 0, next.splice(from, 1)[0]!)
+    setField(path, next)
+    fgPendingFocus.current = { path, index: to, move: 'item' }
+    fgAnnounce("{label} moved to position {n}".split('{label}').join(label).split('{n}').join(String(to + 1)))
+  }
+
   function fgRemoveItem(path: string, index: number): void {
     const list = fgList(form, path)
     if (list.length <= (FG_ITEM_LIMITS[fgTpl(path)]?.min ?? 0)) return
@@ -14754,7 +15505,10 @@ export default function KitchenSinkForm({
     fgPendingFocus.current = null
     const repeater = fgRoot.current?.querySelector(\`[data-fg-repeater="\${pending.path}"]\`)
     const items = Array.from(repeater?.querySelectorAll<HTMLElement>(':scope > div > [data-fg-item]') ?? [])
-    if (pending.move) {
+    if (pending.move === 'item') {
+      // After a drop: the moved item itself.
+      items[pending.index]?.focus()
+    } else if (pending.move) {
       // After a move: the same button on the moved item, else its other one.
       const buttons = Array.from(items[pending.index]?.querySelectorAll<HTMLElement>('[data-fg-move]') ?? [])
       ;(buttons.find((b) => b.dataset['fgMove'] === pending.move) ?? buttons[0] ?? items[pending.index])?.focus()
@@ -14936,7 +15690,7 @@ export default function KitchenSinkForm({
                   <label className="form-label fw-semibold fs-6 mb-0" htmlFor="fg_account_avatar">Profile picture</label>
                   <div className="fg-file-drop position-relative d-flex align-items-center justify-content-center border border-2 rounded-3 p-4 text-center small text-body-secondary bg-body-tertiary">
                     <span className="fw-medium">Choose a file or drag it here</span>
-                    <input id="fg_account_avatar" type="file" className="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept="image/*" aria-invalid={errors['account.avatar'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('account.avatar', e.target)} onDragEnter={(e) => fgDrag(e.currentTarget, true)} onDragLeave={(e) => fgDrag(e.currentTarget, false)} onDrop={(e) => fgDrag(e.currentTarget, false)} />
+                    <input id="fg_account_avatar" type="file" className="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept="image/*" aria-invalid={errors['account.avatar'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('account.avatar', e.target)} onDragEnter={(e) => fgDrag(e.currentTarget, true)} onDragLeave={(e) => fgDrag(e.currentTarget, false)} onDrop={(e) => fgDropFiles('account.avatar', e)} />
                   </div>
                   {form.account.avatar.length > 0 && (
                     <ul className="list-group mt-2">
@@ -14950,6 +15704,7 @@ export default function KitchenSinkForm({
                       ))}
                     </ul>
                   )}
+                  {fgFileNotes['account.avatar'] && <p className="form-text mt-0" data-fg-file-note>{fgFileNotes['account.avatar']}</p>}
                   {errors['account.avatar'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['account.avatar']}</p>}
                 </div>
               </div>
@@ -15150,7 +15905,7 @@ export default function KitchenSinkForm({
             <legend className="fw-semibold text-secondary small px-1">References</legend>
             <div className="d-flex flex-column gap-3">
               {form.references.map((item, i) => (
-                <fieldset key={fgKeyAt('references', i)} className="border rounded p-3" data-fg-item tabIndex={-1}>
+                <fieldset key={fgKeyAt('references', i)} className="border rounded p-3" data-fg-item tabIndex={-1} data-fg-drag={fgDragMark('references', i)} data-fg-drop={fgDropMark('references', i)} onDragOver={(e) => fgDragOver(e, 'references', i)} onDrop={(e) => fgDropItem(e, 'references', i)}>
                   <legend className="float-none w-auto px-1 fs-6 fw-semibold mb-0">{fgItemLabel('references', i)}</legend>
                   <div className="row g-3">
                     <div className="col-12 col-md-12">
@@ -15436,6 +16191,7 @@ export default function KitchenSinkForm({
                     )}
                   </div>
                   <div className="mt-2 d-flex align-items-center gap-2">
+                    {form.references.length > 1 && <span className="px-1 fs-5 lh-1 text-body-secondary user-select-none fg-repeater-handle" data-fg-handle draggable aria-hidden="true" title="Drag to reorder" onDragStart={(e) => fgDragStart(e, 'references', i)} onDragEnd={fgDragEnd}>⠿</span>}
                     {i > 0 && <button type="button" className="btn btn-outline-secondary btn-sm" data-fg-move="up" aria-label={fgMoveLabel('references', i, 'up')} onClick={() => fgMoveItem('references', i, -1)}>↑</button>}
                     {i < form.references.length - 1 && <button type="button" className="btn btn-outline-secondary btn-sm" data-fg-move="down" aria-label={fgMoveLabel('references', i, 'down')} onClick={() => fgMoveItem('references', i, 1)}>↓</button>}
                     <button type="button" className="btn btn-link link-danger p-0 ms-auto" aria-label={fgRemoveLabel('references', i)} onClick={() => fgRemoveItem('references', i)}>Remove</button>
@@ -15451,7 +16207,7 @@ export default function KitchenSinkForm({
             <label className="form-label fw-semibold fs-6 mb-0" htmlFor="fg_attachments">Attachments<span className="text-danger ms-1" aria-hidden="true">*</span></label>
             <div className="fg-file-drop position-relative d-flex align-items-center justify-content-center border border-2 rounded-3 p-4 text-center small text-body-secondary bg-body-tertiary">
               <span className="fw-medium">Choose files or drag them here</span>
-              <input id="fg_attachments" type="file" className="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept=".pdf,.doc,.docx" multiple aria-invalid={errors['attachments'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('attachments', e.target)} onDragEnter={(e) => fgDrag(e.currentTarget, true)} onDragLeave={(e) => fgDrag(e.currentTarget, false)} onDrop={(e) => fgDrag(e.currentTarget, false)} />
+              <input id="fg_attachments" type="file" className="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept=".pdf,.doc,.docx" multiple aria-invalid={errors['attachments'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('attachments', e.target)} onDragEnter={(e) => fgDrag(e.currentTarget, true)} onDragLeave={(e) => fgDrag(e.currentTarget, false)} onDrop={(e) => fgDropFiles('attachments', e)} />
             </div>
             {form.attachments.length > 0 && (
               <ul className="list-group mt-2">
@@ -15464,6 +16220,7 @@ export default function KitchenSinkForm({
                 ))}
               </ul>
             )}
+            {fgFileNotes['attachments'] && <p className="form-text mt-0" data-fg-file-note>{fgFileNotes['attachments']}</p>}
             <p className="form-text mt-0">Up to 3 PDF or Word files, 5 MB each</p>
             {errors['attachments'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['attachments']}</p>}
           </div>
@@ -16242,6 +16999,12 @@ function buildPayload(data: FormData): Record<string, unknown> {
   }
 }
 
+function fgMovedIndex(n: number, from: number, to: number): number {
+  if (n === from) return to
+  if (from < to) return n > from && n <= to ? n - 1 : n
+  return n >= to && n < from ? n + 1 : n
+}
+
 const FG_ITEM_DEFAULTS: Record<string, () => Record<string, unknown>> = {
   'references': () => ({
     name: "",
@@ -16413,6 +17176,17 @@ function fgRemoveFileLabel(name: string): string {
 function fgDrag(input: EventTarget | null, on: boolean): void {
   ;(input as HTMLElement | null)?.parentElement?.toggleAttribute('data-fg-dragging', on)
 }
+function fgDropFirst(input: HTMLInputElement, event: { dataTransfer: DataTransfer | null; preventDefault(): void }): string {
+  var dropped = event.dataTransfer ? event.dataTransfer.files : null
+  if (input.multiple || !dropped || dropped.length < 2) return ''
+  event.preventDefault()
+  var first = dropped[0]!
+  var keep = new DataTransfer()
+  keep.items.add(first)
+  input.files = keep.files
+  input.dispatchEvent(new Event('change', { bubbles: true }))
+  return "Only one file fits here, so {name} was added.".split('{name}').join(first.name)
+}
 
 const FG_FILE_MULTIPLE: Record<string, boolean> = { 'account.avatar': false, 'attachments': true }
 
@@ -16450,7 +17224,7 @@ export default function KitchenSinkForm({
   // Stable React keys per item (the form object is cloned on every edit).
   const fgKeys = useRef<Record<string, number[]>>({})
   const fgNextKey = useRef(0)
-  const fgPendingFocus = useRef<{ path: string; index: number; move?: 'up' | 'down' } | null>(null)
+  const fgPendingFocus = useRef<{ path: string; index: number; move?: 'up' | 'down' | 'item' } | null>(null)
 
   // Polite aria-live region; cleared first so repeated text re-announces.
   function fgAnnounce(message: string): void {
@@ -16586,10 +17360,30 @@ export default function KitchenSinkForm({
     setField(path, fgComposePhone(fgPhoneCountryOf(path), number))
   }
 
+  // "Only one file fits here, …" per field path, until its next change.
+  const [fgFileNotes, setFgFileNotes] = useState<Record<string, string>>({})
+  function fgFileNote(path: string, note: string): void {
+    setFgFileNotes((notes) => {
+      const next = { ...notes }
+      if (note) next[path] = note
+      else delete next[path]
+      return next
+    })
+  }
+
+  function fgDropFiles(path: string, event: React.DragEvent<HTMLInputElement>): void {
+    fgDrag(event.currentTarget, false)
+    const note = fgDropFirst(event.currentTarget, event)
+    if (!note) return
+    fgFileNote(path, note)
+    fgAnnounce(note)
+  }
+
   function fgPickFiles(path: string, input: HTMLInputElement): void {
     const picked = Array.from(input.files ?? [])
     input.value = ''
     if (picked.length === 0) return
+    fgFileNote(path, '')
     touched.current.add(path)
     setField(path, FG_FILE_MULTIPLE[fgTpl(path)] ? [...fgFileList(form, path), ...picked] : picked.slice(0, 1))
   }
@@ -16598,6 +17392,7 @@ export default function KitchenSinkForm({
     const list = fgFileList(form, path)
     const file = list[index]
     if (file) fgReleaseThumb(file)
+    fgFileNote(path, '')
     touched.current.add(path)
     setField(path, list.filter((_, i) => i !== index))
   }
@@ -16646,6 +17441,69 @@ export default function KitchenSinkForm({
     fgAnnounce("{label} moved to position {n}".split('{label}').join(label).split('{n}').join(String(target + 1)))
   }
 
+  // Dragging items by their handle: the list being dragged in, the item and the one under it.
+  const [fgItemDrag, setFgItemDrag] = useState<{ path: string; from: number; at: number }>({ path: '', from: -1, at: -1 })
+
+  function fgItemElements(path: string): HTMLElement[] {
+    const repeater = fgRoot.current?.querySelector(\`[data-fg-repeater="\${path}"]\`)
+    return Array.from(repeater?.querySelectorAll<HTMLElement>(':scope > div > [data-fg-item]') ?? [])
+  }
+
+  function fgDragStart(event: React.DragEvent, path: string, index: number): void {
+    setFgItemDrag({ path, from: index, at: -1 })
+    if (!event.dataTransfer) return
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', fgItemLabel(path, index))
+  const item = fgItemElements(path)[index]
+  if (item) event.dataTransfer.setDragImage(item, 16, 16)
+  }
+
+  function fgDragEnd(): void {
+    setFgItemDrag({ path: '', from: -1, at: -1 })
+  }
+
+  function fgDragOver(event: React.DragEvent, path: string, index: number): void {
+    if (fgItemDrag.path !== path) return
+    event.preventDefault()
+    event.stopPropagation()
+    event.dataTransfer.dropEffect = 'move'
+    if (fgItemDrag.at !== index) setFgItemDrag({ ...fgItemDrag, at: index })
+  }
+
+  function fgDropItem(event: React.DragEvent, path: string, index: number): void {
+    if (fgItemDrag.path !== path) return
+    event.preventDefault()
+    event.stopPropagation()
+    const from = fgItemDrag.from
+    fgDragEnd()
+    fgMoveItemTo(path, from, index)
+  }
+
+  function fgDragMark(path: string, index: number): '' | undefined {
+    return fgItemDrag.path === path && fgItemDrag.from === index ? '' : undefined
+  }
+
+  function fgDropMark(path: string, index: number): 'before' | 'after' | undefined {
+    if (fgItemDrag.path !== path || fgItemDrag.at !== index || fgItemDrag.from === index) return undefined
+    return index < fgItemDrag.from ? 'before' : 'after'
+  }
+
+  /** Moves item \`from\` to \`to\` (the others close up); the moved item gets focus. */
+  function fgMoveItemTo(path: string, from: number, to: number): void {
+    const list = fgList(form, path)
+    if (from === to || to < 0 || to >= list.length) return
+    const label = fgItemLabel(path, from)
+    fgKeyAt(path, list.length - 1)
+    const keys = fgKeys.current[path]!
+    keys.splice(to, 0, keys.splice(from, 1)[0]!)
+    fgRemapItems(path, (n) => fgMovedIndex(n, from, to))
+    const next = [...list]
+    next.splice(to, 0, next.splice(from, 1)[0]!)
+    setField(path, next)
+    fgPendingFocus.current = { path, index: to, move: 'item' }
+    fgAnnounce("{label} moved to position {n}".split('{label}').join(label).split('{n}').join(String(to + 1)))
+  }
+
   function fgRemoveItem(path: string, index: number): void {
     const list = fgList(form, path)
     if (list.length <= (FG_ITEM_LIMITS[fgTpl(path)]?.min ?? 0)) return
@@ -16666,7 +17524,10 @@ export default function KitchenSinkForm({
     fgPendingFocus.current = null
     const repeater = fgRoot.current?.querySelector(\`[data-fg-repeater="\${pending.path}"]\`)
     const items = Array.from(repeater?.querySelectorAll<HTMLElement>(':scope > div > [data-fg-item]') ?? [])
-    if (pending.move) {
+    if (pending.move === 'item') {
+      // After a drop: the moved item itself.
+      items[pending.index]?.focus()
+    } else if (pending.move) {
       // After a move: the same button on the moved item, else its other one.
       const buttons = Array.from(items[pending.index]?.querySelectorAll<HTMLElement>('[data-fg-move]') ?? [])
       ;(buttons.find((b) => b.dataset['fgMove'] === pending.move) ?? buttons[0] ?? items[pending.index])?.focus()
@@ -16848,7 +17709,7 @@ export default function KitchenSinkForm({
                   <label className="text-sm font-semibold" htmlFor="fg_account_avatar">Profile picture</label>
                   <div className="relative flex min-h-[4.5rem] items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center text-sm text-gray-500 hover:border-indigo-500 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-300 data-[fg-dragging]:border-indigo-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">
                     <span className="font-medium">Choose a file or drag it here</span>
-                    <input id="fg_account_avatar" type="file" className="absolute inset-0 h-full w-full cursor-pointer opacity-0" accept="image/*" aria-invalid={errors['account.avatar'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('account.avatar', e.target)} onDragEnter={(e) => fgDrag(e.currentTarget, true)} onDragLeave={(e) => fgDrag(e.currentTarget, false)} onDrop={(e) => fgDrag(e.currentTarget, false)} />
+                    <input id="fg_account_avatar" type="file" className="absolute inset-0 h-full w-full cursor-pointer opacity-0" accept="image/*" aria-invalid={errors['account.avatar'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('account.avatar', e.target)} onDragEnter={(e) => fgDrag(e.currentTarget, true)} onDragLeave={(e) => fgDrag(e.currentTarget, false)} onDrop={(e) => fgDropFiles('account.avatar', e)} />
                   </div>
                   {form.account.avatar.length > 0 && (
                     <ul className="flex flex-col gap-1.5">
@@ -16862,6 +17723,7 @@ export default function KitchenSinkForm({
                       ))}
                     </ul>
                   )}
+                  {fgFileNotes['account.avatar'] && <p className="text-xs text-gray-500 dark:text-gray-400" data-fg-file-note>{fgFileNotes['account.avatar']}</p>}
                   {errors['account.avatar'] && <p className="text-xs text-red-600" role="alert">{errors['account.avatar']}</p>}
                 </div>
               </div>
@@ -17070,7 +17932,7 @@ export default function KitchenSinkForm({
             <legend className="px-1 text-sm font-semibold text-gray-500 dark:text-gray-400">References</legend>
             <div className="flex flex-col gap-4">
               {form.references.map((item, i) => (
-                <fieldset key={fgKeyAt('references', i)} className="min-w-0 rounded-lg border border-gray-300 p-4 dark:border-gray-600" data-fg-item tabIndex={-1}>
+                <fieldset key={fgKeyAt('references', i)} className="min-w-0 rounded-lg border border-gray-300 p-4 dark:border-gray-600 data-[fg-drag]:opacity-50 data-[fg-drop=before]:shadow-[0_-3px_0_0_#4f46e5] data-[fg-drop=after]:shadow-[0_3px_0_0_#4f46e5]" data-fg-item tabIndex={-1} data-fg-drag={fgDragMark('references', i)} data-fg-drop={fgDropMark('references', i)} onDragOver={(e) => fgDragOver(e, 'references', i)} onDrop={(e) => fgDropItem(e, 'references', i)}>
                   <legend className="px-1 text-sm font-semibold">{fgItemLabel('references', i)}</legend>
                   <div className="grid grid-cols-12 gap-4">
                     <div className="col-span-12 md:col-span-12">
@@ -17356,6 +18218,7 @@ export default function KitchenSinkForm({
                     )}
                   </div>
                   <div className="mt-3 flex items-center gap-2">
+                    {form.references.length > 1 && <span className="cursor-grab select-none px-1 text-xl leading-none text-gray-500 dark:text-gray-400" data-fg-handle draggable aria-hidden="true" title="Drag to reorder" onDragStart={(e) => fgDragStart(e, 'references', i)} onDragEnd={fgDragEnd}>⠿</span>}
                     {i > 0 && <button type="button" className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600" data-fg-move="up" aria-label={fgMoveLabel('references', i, 'up')} onClick={() => fgMoveItem('references', i, -1)}>↑</button>}
                     {i < form.references.length - 1 && <button type="button" className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600" data-fg-move="down" aria-label={fgMoveLabel('references', i, 'down')} onClick={() => fgMoveItem('references', i, 1)}>↓</button>}
                     <button type="button" className="ms-auto text-sm text-red-600 underline hover:text-red-700 dark:text-red-400" aria-label={fgRemoveLabel('references', i)} onClick={() => fgRemoveItem('references', i)}>Remove</button>
@@ -17371,7 +18234,7 @@ export default function KitchenSinkForm({
             <label className="text-sm font-semibold" htmlFor="fg_attachments">Attachments<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
             <div className="relative flex min-h-[4.5rem] items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center text-sm text-gray-500 hover:border-indigo-500 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-300 data-[fg-dragging]:border-indigo-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">
               <span className="font-medium">Choose files or drag them here</span>
-              <input id="fg_attachments" type="file" className="absolute inset-0 h-full w-full cursor-pointer opacity-0" accept=".pdf,.doc,.docx" multiple aria-invalid={errors['attachments'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('attachments', e.target)} onDragEnter={(e) => fgDrag(e.currentTarget, true)} onDragLeave={(e) => fgDrag(e.currentTarget, false)} onDrop={(e) => fgDrag(e.currentTarget, false)} />
+              <input id="fg_attachments" type="file" className="absolute inset-0 h-full w-full cursor-pointer opacity-0" accept=".pdf,.doc,.docx" multiple aria-invalid={errors['attachments'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('attachments', e.target)} onDragEnter={(e) => fgDrag(e.currentTarget, true)} onDragLeave={(e) => fgDrag(e.currentTarget, false)} onDrop={(e) => fgDropFiles('attachments', e)} />
             </div>
             {form.attachments.length > 0 && (
               <ul className="flex flex-col gap-1.5">
@@ -17384,6 +18247,7 @@ export default function KitchenSinkForm({
                 ))}
               </ul>
             )}
+            {fgFileNotes['attachments'] && <p className="text-xs text-gray-500 dark:text-gray-400" data-fg-file-note>{fgFileNotes['attachments']}</p>}
             <p className="text-xs text-gray-500 dark:text-gray-400">Up to 3 PDF or Word files, 5 MB each</p>
             {errors['attachments'] && <p className="text-xs text-red-600" role="alert">{errors['attachments']}</p>}
           </div>
@@ -18162,6 +19026,12 @@ function buildPayload(data: FormData): Record<string, unknown> {
   }
 }
 
+function fgMovedIndex(n: number, from: number, to: number): number {
+  if (n === from) return to
+  if (from < to) return n > from && n <= to ? n - 1 : n
+  return n >= to && n < from ? n + 1 : n
+}
+
 const FG_ITEM_DEFAULTS: Record<string, () => Record<string, unknown>> = {
   'references': () => ({
     name: "",
@@ -18333,6 +19203,17 @@ function fgRemoveFileLabel(name: string): string {
 function fgDrag(input: EventTarget | null, on: boolean): void {
   ;(input as HTMLElement | null)?.parentElement?.toggleAttribute('data-fg-dragging', on)
 }
+function fgDropFirst(input: HTMLInputElement, event: { dataTransfer: DataTransfer | null; preventDefault(): void }): string {
+  var dropped = event.dataTransfer ? event.dataTransfer.files : null
+  if (input.multiple || !dropped || dropped.length < 2) return ''
+  event.preventDefault()
+  var first = dropped[0]!
+  var keep = new DataTransfer()
+  keep.items.add(first)
+  input.files = keep.files
+  input.dispatchEvent(new Event('change', { bubbles: true }))
+  return "Only one file fits here, so {name} was added.".split('{name}').join(first.name)
+}
 
 const FG_FILE_MULTIPLE: Record<string, boolean> = { 'account.avatar': false, 'attachments': true }
 
@@ -18370,7 +19251,7 @@ export default function KitchenSinkForm({
   // Stable React keys per item (the form object is cloned on every edit).
   const fgKeys = useRef<Record<string, number[]>>({})
   const fgNextKey = useRef(0)
-  const fgPendingFocus = useRef<{ path: string; index: number; move?: 'up' | 'down' } | null>(null)
+  const fgPendingFocus = useRef<{ path: string; index: number; move?: 'up' | 'down' | 'item' } | null>(null)
 
   // Polite aria-live region; cleared first so repeated text re-announces.
   function fgAnnounce(message: string): void {
@@ -18506,10 +19387,30 @@ export default function KitchenSinkForm({
     setField(path, fgComposePhone(fgPhoneCountryOf(path), number))
   }
 
+  // "Only one file fits here, …" per field path, until its next change.
+  const [fgFileNotes, setFgFileNotes] = useState<Record<string, string>>({})
+  function fgFileNote(path: string, note: string): void {
+    setFgFileNotes((notes) => {
+      const next = { ...notes }
+      if (note) next[path] = note
+      else delete next[path]
+      return next
+    })
+  }
+
+  function fgDropFiles(path: string, event: React.DragEvent<HTMLInputElement>): void {
+    fgDrag(event.currentTarget, false)
+    const note = fgDropFirst(event.currentTarget, event)
+    if (!note) return
+    fgFileNote(path, note)
+    fgAnnounce(note)
+  }
+
   function fgPickFiles(path: string, input: HTMLInputElement): void {
     const picked = Array.from(input.files ?? [])
     input.value = ''
     if (picked.length === 0) return
+    fgFileNote(path, '')
     touched.current.add(path)
     setField(path, FG_FILE_MULTIPLE[fgTpl(path)] ? [...fgFileList(form, path), ...picked] : picked.slice(0, 1))
   }
@@ -18518,6 +19419,7 @@ export default function KitchenSinkForm({
     const list = fgFileList(form, path)
     const file = list[index]
     if (file) fgReleaseThumb(file)
+    fgFileNote(path, '')
     touched.current.add(path)
     setField(path, list.filter((_, i) => i !== index))
   }
@@ -18566,6 +19468,69 @@ export default function KitchenSinkForm({
     fgAnnounce("{label} moved to position {n}".split('{label}').join(label).split('{n}').join(String(target + 1)))
   }
 
+  // Dragging items by their handle: the list being dragged in, the item and the one under it.
+  const [fgItemDrag, setFgItemDrag] = useState<{ path: string; from: number; at: number }>({ path: '', from: -1, at: -1 })
+
+  function fgItemElements(path: string): HTMLElement[] {
+    const repeater = fgRoot.current?.querySelector(\`[data-fg-repeater="\${path}"]\`)
+    return Array.from(repeater?.querySelectorAll<HTMLElement>(':scope > div > [data-fg-item]') ?? [])
+  }
+
+  function fgDragStart(event: React.DragEvent, path: string, index: number): void {
+    setFgItemDrag({ path, from: index, at: -1 })
+    if (!event.dataTransfer) return
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', fgItemLabel(path, index))
+  const item = fgItemElements(path)[index]
+  if (item) event.dataTransfer.setDragImage(item, 16, 16)
+  }
+
+  function fgDragEnd(): void {
+    setFgItemDrag({ path: '', from: -1, at: -1 })
+  }
+
+  function fgDragOver(event: React.DragEvent, path: string, index: number): void {
+    if (fgItemDrag.path !== path) return
+    event.preventDefault()
+    event.stopPropagation()
+    event.dataTransfer.dropEffect = 'move'
+    if (fgItemDrag.at !== index) setFgItemDrag({ ...fgItemDrag, at: index })
+  }
+
+  function fgDropItem(event: React.DragEvent, path: string, index: number): void {
+    if (fgItemDrag.path !== path) return
+    event.preventDefault()
+    event.stopPropagation()
+    const from = fgItemDrag.from
+    fgDragEnd()
+    fgMoveItemTo(path, from, index)
+  }
+
+  function fgDragMark(path: string, index: number): '' | undefined {
+    return fgItemDrag.path === path && fgItemDrag.from === index ? '' : undefined
+  }
+
+  function fgDropMark(path: string, index: number): 'before' | 'after' | undefined {
+    if (fgItemDrag.path !== path || fgItemDrag.at !== index || fgItemDrag.from === index) return undefined
+    return index < fgItemDrag.from ? 'before' : 'after'
+  }
+
+  /** Moves item \`from\` to \`to\` (the others close up); the moved item gets focus. */
+  function fgMoveItemTo(path: string, from: number, to: number): void {
+    const list = fgList(form, path)
+    if (from === to || to < 0 || to >= list.length) return
+    const label = fgItemLabel(path, from)
+    fgKeyAt(path, list.length - 1)
+    const keys = fgKeys.current[path]!
+    keys.splice(to, 0, keys.splice(from, 1)[0]!)
+    fgRemapItems(path, (n) => fgMovedIndex(n, from, to))
+    const next = [...list]
+    next.splice(to, 0, next.splice(from, 1)[0]!)
+    setField(path, next)
+    fgPendingFocus.current = { path, index: to, move: 'item' }
+    fgAnnounce("{label} moved to position {n}".split('{label}').join(label).split('{n}').join(String(to + 1)))
+  }
+
   function fgRemoveItem(path: string, index: number): void {
     const list = fgList(form, path)
     if (list.length <= (FG_ITEM_LIMITS[fgTpl(path)]?.min ?? 0)) return
@@ -18586,7 +19551,10 @@ export default function KitchenSinkForm({
     fgPendingFocus.current = null
     const repeater = fgRoot.current?.querySelector(\`[data-fg-repeater="\${pending.path}"]\`)
     const items = Array.from(repeater?.querySelectorAll<HTMLElement>(':scope > div > [data-fg-item]') ?? [])
-    if (pending.move) {
+    if (pending.move === 'item') {
+      // After a drop: the moved item itself.
+      items[pending.index]?.focus()
+    } else if (pending.move) {
       // After a move: the same button on the moved item, else its other one.
       const buttons = Array.from(items[pending.index]?.querySelectorAll<HTMLElement>('[data-fg-move]') ?? [])
       ;(buttons.find((b) => b.dataset['fgMove'] === pending.move) ?? buttons[0] ?? items[pending.index])?.focus()
@@ -18768,7 +19736,7 @@ export default function KitchenSinkForm({
                   <label className="fg-label" htmlFor="fg_account_avatar">Profile picture</label>
                   <div className="fg-file-drop">
                     <span className="fg-file-drop-text">Choose a file or drag it here</span>
-                    <input id="fg_account_avatar" type="file" className="fg-file-input" accept="image/*" aria-invalid={errors['account.avatar'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('account.avatar', e.target)} onDragEnter={(e) => fgDrag(e.currentTarget, true)} onDragLeave={(e) => fgDrag(e.currentTarget, false)} onDrop={(e) => fgDrag(e.currentTarget, false)} />
+                    <input id="fg_account_avatar" type="file" className="fg-file-input" accept="image/*" aria-invalid={errors['account.avatar'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('account.avatar', e.target)} onDragEnter={(e) => fgDrag(e.currentTarget, true)} onDragLeave={(e) => fgDrag(e.currentTarget, false)} onDrop={(e) => fgDropFiles('account.avatar', e)} />
                   </div>
                   {form.account.avatar.length > 0 && (
                     <ul className="fg-file-list">
@@ -18782,6 +19750,7 @@ export default function KitchenSinkForm({
                       ))}
                     </ul>
                   )}
+                  {fgFileNotes['account.avatar'] && <p className="fg-description" data-fg-file-note>{fgFileNotes['account.avatar']}</p>}
                   {errors['account.avatar'] && <p className="fg-error" role="alert">{errors['account.avatar']}</p>}
                 </div>
               </div>
@@ -18990,7 +19959,7 @@ export default function KitchenSinkForm({
             <legend className="fg-group-label">References</legend>
             <div className="fg-repeater-items">
               {form.references.map((item, i) => (
-                <fieldset key={fgKeyAt('references', i)} className="fg-repeater-item" data-fg-item tabIndex={-1}>
+                <fieldset key={fgKeyAt('references', i)} className="fg-repeater-item" data-fg-item tabIndex={-1} data-fg-drag={fgDragMark('references', i)} data-fg-drop={fgDropMark('references', i)} onDragOver={(e) => fgDragOver(e, 'references', i)} onDrop={(e) => fgDropItem(e, 'references', i)}>
                   <legend className="fg-repeater-item-label">{fgItemLabel('references', i)}</legend>
                   <div className="fg-grid">
                     <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
@@ -19276,6 +20245,7 @@ export default function KitchenSinkForm({
                     )}
                   </div>
                   <div className="fg-repeater-item-actions">
+                    {form.references.length > 1 && <span className="fg-repeater-handle" data-fg-handle draggable aria-hidden="true" title="Drag to reorder" onDragStart={(e) => fgDragStart(e, 'references', i)} onDragEnd={fgDragEnd}>⠿</span>}
                     {i > 0 && <button type="button" className="fg-repeater-move" data-fg-move="up" aria-label={fgMoveLabel('references', i, 'up')} onClick={() => fgMoveItem('references', i, -1)}>↑</button>}
                     {i < form.references.length - 1 && <button type="button" className="fg-repeater-move" data-fg-move="down" aria-label={fgMoveLabel('references', i, 'down')} onClick={() => fgMoveItem('references', i, 1)}>↓</button>}
                     <button type="button" className="fg-repeater-remove" aria-label={fgRemoveLabel('references', i)} onClick={() => fgRemoveItem('references', i)}>Remove</button>
@@ -19291,7 +20261,7 @@ export default function KitchenSinkForm({
             <label className="fg-label" htmlFor="fg_attachments">Attachments<span className="fg-required" aria-hidden="true">*</span></label>
             <div className="fg-file-drop">
               <span className="fg-file-drop-text">Choose files or drag them here</span>
-              <input id="fg_attachments" type="file" className="fg-file-input" accept=".pdf,.doc,.docx" multiple aria-invalid={errors['attachments'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('attachments', e.target)} onDragEnter={(e) => fgDrag(e.currentTarget, true)} onDragLeave={(e) => fgDrag(e.currentTarget, false)} onDrop={(e) => fgDrag(e.currentTarget, false)} />
+              <input id="fg_attachments" type="file" className="fg-file-input" accept=".pdf,.doc,.docx" multiple aria-invalid={errors['attachments'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('attachments', e.target)} onDragEnter={(e) => fgDrag(e.currentTarget, true)} onDragLeave={(e) => fgDrag(e.currentTarget, false)} onDrop={(e) => fgDropFiles('attachments', e)} />
             </div>
             {form.attachments.length > 0 && (
               <ul className="fg-file-list">
@@ -19304,6 +20274,7 @@ export default function KitchenSinkForm({
                 ))}
               </ul>
             )}
+            {fgFileNotes['attachments'] && <p className="fg-description" data-fg-file-note>{fgFileNotes['attachments']}</p>}
             <p className="fg-description">Up to 3 PDF or Word files, 5 MB each</p>
             {errors['attachments'] && <p className="fg-error" role="alert">{errors['attachments']}</p>}
           </div>
@@ -19980,6 +20951,17 @@ function fgRemoveFileLabel(name: string): string {
 function fgDrag(input: EventTarget | null, on: boolean): void {
   ;(input as HTMLElement | null)?.parentElement?.toggleAttribute('data-fg-dragging', on)
 }
+function fgDropFirst(input: HTMLInputElement, event: { dataTransfer: DataTransfer | null; preventDefault(): void }): string {
+  var dropped = event.dataTransfer ? event.dataTransfer.files : null
+  if (input.multiple || !dropped || dropped.length < 2) return ''
+  event.preventDefault()
+  var first = dropped[0]!
+  var keep = new DataTransfer()
+  keep.items.add(first)
+  input.files = keep.files
+  input.dispatchEvent(new Event('change', { bubbles: true }))
+  return "Only one file fits here, so {name} was added.".split('{name}').join(first.name)
+}
 const fgFileMultiple: Record<string, boolean> = { 'account.avatar': false, 'attachments': true }
 function fgFileList(path: string): File[] {
   return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form) as File[]
@@ -19990,11 +20972,21 @@ function fgSetFiles(path: string, files: File[]): void {
   const target = keys.reduce<Record<string, unknown>>((o, k) => o[k] as Record<string, unknown>, form as unknown as Record<string, unknown>)
   target[last] = files
 }
+// "Only one file fits here, …" per field path, until its next change.
+const fgFileNotes = reactive<Record<string, string>>({})
+function fgDropFiles(path: string, event: DragEvent): void {
+  fgDrag(event.currentTarget, false)
+  const note = fgDropFirst(event.currentTarget as HTMLInputElement, event)
+  if (!note) return
+  fgFileNotes[path] = note
+  fgAnnounce(note)
+}
 function fgPickFiles(path: string, event: Event): void {
   const input = event.target as HTMLInputElement
   const picked = Array.from(input.files ?? [])
   input.value = ''
   if (picked.length === 0) return
+  delete fgFileNotes[path]
   fgSetFiles(path, fgFileMultiple[fgTpl(path)] ? [...fgFileList(path), ...picked] : picked.slice(0, 1))
   touch(path)
 }
@@ -20002,6 +20994,7 @@ function fgRemoveFile(path: string, index: number): void {
   const list = fgFileList(path)
   const file = list[index]
   if (file) fgReleaseThumb(file)
+  delete fgFileNotes[path]
   fgSetFiles(path, list.filter((_, i) => i !== index))
   touch(path)
 }
@@ -20413,6 +21406,57 @@ async function fgMoveItem(path: string, index: number, delta: -1 | 1): Promise<v
   ;(buttons.find((b) => b.dataset['fgMove'] === (delta < 0 ? 'up' : 'down')) ?? buttons[0] ?? item)?.focus()
   fgAnnounce("{label} moved to position {n}".split('{label}').join(label).split('{n}').join(String(target + 1)))
 }
+// Dragging items by their handle: the list being dragged in, the item and the one under it.
+const fgItemDrag = reactive<{ path: string; from: number; at: number }>({ path: '', from: -1, at: -1 })
+function fgMovedIndex(n: number, from: number, to: number): number {
+  if (n === from) return to
+  if (from < to) return n > from && n <= to ? n - 1 : n
+  return n >= to && n < from ? n + 1 : n
+}
+function fgDragStart(event: DragEvent, path: string, index: number): void {
+  Object.assign(fgItemDrag, { path, from: index, at: -1 })
+  if (!event.dataTransfer) return
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', fgItemLabel(path, index))
+  const item = fgItemElements(path)[index]
+  if (item) event.dataTransfer.setDragImage(item, 16, 16)
+}
+function fgDragEnd(): void {
+  Object.assign(fgItemDrag, { path: '', from: -1, at: -1 })
+}
+function fgDragOver(event: DragEvent, path: string, index: number): void {
+  if (fgItemDrag.path !== path) return
+  event.preventDefault()
+  event.stopPropagation()
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+  fgItemDrag.at = index
+}
+function fgDropItem(event: DragEvent, path: string, index: number): void {
+  if (fgItemDrag.path !== path) return
+  event.preventDefault()
+  event.stopPropagation()
+  const from = fgItemDrag.from
+  fgDragEnd()
+  void fgMoveItemTo(path, from, index)
+}
+function fgDragMark(path: string, index: number): '' | undefined {
+  return fgItemDrag.path === path && fgItemDrag.from === index ? '' : undefined
+}
+function fgDropMark(path: string, index: number): 'before' | 'after' | undefined {
+  if (fgItemDrag.path !== path || fgItemDrag.at !== index || fgItemDrag.from === index) return undefined
+  return index < fgItemDrag.from ? 'before' : 'after'
+}
+/** Moves item \`from\` to \`to\` (the others close up); the moved item gets focus. */
+async function fgMoveItemTo(path: string, from: number, to: number): Promise<void> {
+  const list = fgList(path)
+  if (from === to || to < 0 || to >= list.length) return
+  const label = fgItemLabel(path, from)
+  fgRemapItems(path, (n) => fgMovedIndex(n, from, to))
+  list.splice(to, 0, list.splice(from, 1)[0]!)
+  await nextTick()
+  fgItemElements(path)[to]?.focus()
+  fgAnnounce("{label} moved to position {n}".split('{label}').join(label).split('{n}').join(String(to + 1)))
+}
 async function fgRemoveItem(path: string, index: number): Promise<void> {
   const list = fgList(path)
   if (list.length <= (fgItemLimits[fgTpl(path)]?.min ?? 0)) return
@@ -20694,7 +21738,7 @@ async function onSubmit(): Promise<void> {
                 <label class="form-label fw-semibold fs-6 mb-0" for="fg_account_avatar">Profile picture</label>
                 <div class="fg-file-drop position-relative d-flex align-items-center justify-content-center border border-2 rounded-3 p-4 text-center small text-body-secondary bg-body-tertiary">
                   <span class="fw-medium">Choose a file or drag it here</span>
-                  <input id="fg_account_avatar" type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept="image/*" :aria-invalid="errors['account.avatar'] ? 'true' : undefined" @change="fgPickFiles('account.avatar', $event)" @dragenter="fgDrag($event.currentTarget, true)" @dragleave="fgDrag($event.currentTarget, false)" @drop="fgDrag($event.currentTarget, false)">
+                  <input id="fg_account_avatar" type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept="image/*" :aria-invalid="errors['account.avatar'] ? 'true' : undefined" @change="fgPickFiles('account.avatar', $event)" @dragenter="fgDrag($event.currentTarget, true)" @dragleave="fgDrag($event.currentTarget, false)" @drop="fgDropFiles('account.avatar', $event)">
                 </div>
                 <ul v-if="form.account.avatar.length" class="list-group mt-2">
                   <li v-for="(file, fi) in form.account.avatar" :key="fi" class="list-group-item d-flex align-items-center gap-2">
@@ -20704,6 +21748,7 @@ async function onSubmit(): Promise<void> {
                     <button type="button" class="btn btn-sm btn-link link-danger p-0 text-decoration-none fs-5 lh-1" :aria-label="fgRemoveFileLabel(file.name)" @click="fgRemoveFile('account.avatar', fi)">×</button>
                   </li>
                 </ul>
+                <p v-if="fgFileNotes['account.avatar']" class="form-text mt-0" data-fg-file-note>{{ fgFileNotes['account.avatar'] }}</p>
                 <p v-if="errors['account.avatar']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['account.avatar'] }}</p>
               </div>
             </div>
@@ -20889,7 +21934,7 @@ async function onSubmit(): Promise<void> {
         <fieldset class="border rounded p-3 bg-body-tertiary" data-fg-repeater="references">
           <legend class="fw-semibold text-secondary small px-1">References</legend>
           <div class="d-flex flex-column gap-3">
-            <fieldset v-for="(item, i) in form.references" :key="fgKeyOf(item)" class="border rounded p-3" data-fg-item tabindex="-1">
+            <fieldset v-for="(item, i) in form.references" :key="fgKeyOf(item)" class="border rounded p-3" data-fg-item tabindex="-1" :data-fg-drag="fgDragMark('references', i)" :data-fg-drop="fgDropMark('references', i)" @dragover="fgDragOver($event, 'references', i)" @drop="fgDropItem($event, 'references', i)">
               <legend class="float-none w-auto px-1 fs-6 fw-semibold mb-0">{{ fgItemLabel('references', i) }}</legend>
               <div class="row g-3">
                 <div class="col-12 col-md-12">
@@ -21171,6 +22216,7 @@ async function onSubmit(): Promise<void> {
                 </div>
               </div>
               <div class="mt-2 d-flex align-items-center gap-2">
+                <span v-if="form.references.length > 1" class="px-1 fs-5 lh-1 text-body-secondary user-select-none fg-repeater-handle" data-fg-handle draggable="true" aria-hidden="true" title="Drag to reorder" @dragstart="fgDragStart($event, 'references', i)" @dragend="fgDragEnd()">⠿</span>
                 <button v-if="i > 0" type="button" class="btn btn-outline-secondary btn-sm" data-fg-move="up" :aria-label="fgMoveLabel('references', i, 'up')" @click="fgMoveItem('references', i, -1)">↑</button>
                 <button v-if="i < form.references.length - 1" type="button" class="btn btn-outline-secondary btn-sm" data-fg-move="down" :aria-label="fgMoveLabel('references', i, 'down')" @click="fgMoveItem('references', i, 1)">↓</button>
                 <button type="button" class="btn btn-link link-danger p-0 ms-auto" :aria-label="fgRemoveLabel('references', i)" @click="fgRemoveItem('references', i)">Remove</button>
@@ -21185,7 +22231,7 @@ async function onSubmit(): Promise<void> {
           <label class="form-label fw-semibold fs-6 mb-0" for="fg_attachments">Attachments<span class="text-danger ms-1" aria-hidden="true">*</span></label>
           <div class="fg-file-drop position-relative d-flex align-items-center justify-content-center border border-2 rounded-3 p-4 text-center small text-body-secondary bg-body-tertiary">
             <span class="fw-medium">Choose files or drag them here</span>
-            <input id="fg_attachments" type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept=".pdf,.doc,.docx" multiple :aria-invalid="errors['attachments'] ? 'true' : undefined" @change="fgPickFiles('attachments', $event)" @dragenter="fgDrag($event.currentTarget, true)" @dragleave="fgDrag($event.currentTarget, false)" @drop="fgDrag($event.currentTarget, false)">
+            <input id="fg_attachments" type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept=".pdf,.doc,.docx" multiple :aria-invalid="errors['attachments'] ? 'true' : undefined" @change="fgPickFiles('attachments', $event)" @dragenter="fgDrag($event.currentTarget, true)" @dragleave="fgDrag($event.currentTarget, false)" @drop="fgDropFiles('attachments', $event)">
           </div>
           <ul v-if="form.attachments.length" class="list-group mt-2">
             <li v-for="(file, fi) in form.attachments" :key="fi" class="list-group-item d-flex align-items-center gap-2">
@@ -21194,6 +22240,7 @@ async function onSubmit(): Promise<void> {
               <button type="button" class="btn btn-sm btn-link link-danger p-0 text-decoration-none fs-5 lh-1" :aria-label="fgRemoveFileLabel(file.name)" @click="fgRemoveFile('attachments', fi)">×</button>
             </li>
           </ul>
+          <p v-if="fgFileNotes['attachments']" class="form-text mt-0" data-fg-file-note>{{ fgFileNotes['attachments'] }}</p>
           <p class="form-text mt-0">Up to 3 PDF or Word files, 5 MB each</p>
           <p v-if="errors['attachments']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['attachments'] }}</p>
         </div>
@@ -21598,6 +22645,12 @@ async function onSubmit(): Promise<void> {
 .fg-dual input[type='range']:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
 .fg-dual input[type='range']:focus-visible::-moz-range-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
 
+/* Sortable items: the dragged item, where it would land */
+.fg-repeater-handle { cursor: grab; }
+[data-fg-item][data-fg-drag] { opacity: 0.5; }
+[data-fg-item][data-fg-drop="before"] { box-shadow: 0 -3px 0 0 var(--bs-primary); }
+[data-fg-item][data-fg-drop="after"] { box-shadow: 0 3px 0 0 var(--bs-primary); }
+
 /* Help tooltips */
 .fg-label-row { display: flex; align-items: center; gap: 0.375rem; }
 /* The bubble anchors to the row holding the tip (label row, checkbox row or
@@ -21896,6 +22949,17 @@ function fgRemoveFileLabel(name: string): string {
 function fgDrag(input: EventTarget | null, on: boolean): void {
   ;(input as HTMLElement | null)?.parentElement?.toggleAttribute('data-fg-dragging', on)
 }
+function fgDropFirst(input: HTMLInputElement, event: { dataTransfer: DataTransfer | null; preventDefault(): void }): string {
+  var dropped = event.dataTransfer ? event.dataTransfer.files : null
+  if (input.multiple || !dropped || dropped.length < 2) return ''
+  event.preventDefault()
+  var first = dropped[0]!
+  var keep = new DataTransfer()
+  keep.items.add(first)
+  input.files = keep.files
+  input.dispatchEvent(new Event('change', { bubbles: true }))
+  return "Only one file fits here, so {name} was added.".split('{name}').join(first.name)
+}
 const fgFileMultiple: Record<string, boolean> = { 'account.avatar': false, 'attachments': true }
 function fgFileList(path: string): File[] {
   return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form) as File[]
@@ -21906,11 +22970,21 @@ function fgSetFiles(path: string, files: File[]): void {
   const target = keys.reduce<Record<string, unknown>>((o, k) => o[k] as Record<string, unknown>, form as unknown as Record<string, unknown>)
   target[last] = files
 }
+// "Only one file fits here, …" per field path, until its next change.
+const fgFileNotes = reactive<Record<string, string>>({})
+function fgDropFiles(path: string, event: DragEvent): void {
+  fgDrag(event.currentTarget, false)
+  const note = fgDropFirst(event.currentTarget as HTMLInputElement, event)
+  if (!note) return
+  fgFileNotes[path] = note
+  fgAnnounce(note)
+}
 function fgPickFiles(path: string, event: Event): void {
   const input = event.target as HTMLInputElement
   const picked = Array.from(input.files ?? [])
   input.value = ''
   if (picked.length === 0) return
+  delete fgFileNotes[path]
   fgSetFiles(path, fgFileMultiple[fgTpl(path)] ? [...fgFileList(path), ...picked] : picked.slice(0, 1))
   touch(path)
 }
@@ -21918,6 +22992,7 @@ function fgRemoveFile(path: string, index: number): void {
   const list = fgFileList(path)
   const file = list[index]
   if (file) fgReleaseThumb(file)
+  delete fgFileNotes[path]
   fgSetFiles(path, list.filter((_, i) => i !== index))
   touch(path)
 }
@@ -22329,6 +23404,57 @@ async function fgMoveItem(path: string, index: number, delta: -1 | 1): Promise<v
   ;(buttons.find((b) => b.dataset['fgMove'] === (delta < 0 ? 'up' : 'down')) ?? buttons[0] ?? item)?.focus()
   fgAnnounce("{label} moved to position {n}".split('{label}').join(label).split('{n}').join(String(target + 1)))
 }
+// Dragging items by their handle: the list being dragged in, the item and the one under it.
+const fgItemDrag = reactive<{ path: string; from: number; at: number }>({ path: '', from: -1, at: -1 })
+function fgMovedIndex(n: number, from: number, to: number): number {
+  if (n === from) return to
+  if (from < to) return n > from && n <= to ? n - 1 : n
+  return n >= to && n < from ? n + 1 : n
+}
+function fgDragStart(event: DragEvent, path: string, index: number): void {
+  Object.assign(fgItemDrag, { path, from: index, at: -1 })
+  if (!event.dataTransfer) return
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', fgItemLabel(path, index))
+  const item = fgItemElements(path)[index]
+  if (item) event.dataTransfer.setDragImage(item, 16, 16)
+}
+function fgDragEnd(): void {
+  Object.assign(fgItemDrag, { path: '', from: -1, at: -1 })
+}
+function fgDragOver(event: DragEvent, path: string, index: number): void {
+  if (fgItemDrag.path !== path) return
+  event.preventDefault()
+  event.stopPropagation()
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+  fgItemDrag.at = index
+}
+function fgDropItem(event: DragEvent, path: string, index: number): void {
+  if (fgItemDrag.path !== path) return
+  event.preventDefault()
+  event.stopPropagation()
+  const from = fgItemDrag.from
+  fgDragEnd()
+  void fgMoveItemTo(path, from, index)
+}
+function fgDragMark(path: string, index: number): '' | undefined {
+  return fgItemDrag.path === path && fgItemDrag.from === index ? '' : undefined
+}
+function fgDropMark(path: string, index: number): 'before' | 'after' | undefined {
+  if (fgItemDrag.path !== path || fgItemDrag.at !== index || fgItemDrag.from === index) return undefined
+  return index < fgItemDrag.from ? 'before' : 'after'
+}
+/** Moves item \`from\` to \`to\` (the others close up); the moved item gets focus. */
+async function fgMoveItemTo(path: string, from: number, to: number): Promise<void> {
+  const list = fgList(path)
+  if (from === to || to < 0 || to >= list.length) return
+  const label = fgItemLabel(path, from)
+  fgRemapItems(path, (n) => fgMovedIndex(n, from, to))
+  list.splice(to, 0, list.splice(from, 1)[0]!)
+  await nextTick()
+  fgItemElements(path)[to]?.focus()
+  fgAnnounce("{label} moved to position {n}".split('{label}').join(label).split('{n}').join(String(to + 1)))
+}
 async function fgRemoveItem(path: string, index: number): Promise<void> {
   const list = fgList(path)
   if (list.length <= (fgItemLimits[fgTpl(path)]?.min ?? 0)) return
@@ -22610,7 +23736,7 @@ async function onSubmit(): Promise<void> {
                 <label class="text-sm font-semibold" for="fg_account_avatar">Profile picture</label>
                 <div class="relative flex min-h-[4.5rem] items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center text-sm text-gray-500 hover:border-indigo-500 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-300 data-[fg-dragging]:border-indigo-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">
                   <span class="font-medium">Choose a file or drag it here</span>
-                  <input id="fg_account_avatar" type="file" class="absolute inset-0 h-full w-full cursor-pointer opacity-0" accept="image/*" :aria-invalid="errors['account.avatar'] ? 'true' : undefined" @change="fgPickFiles('account.avatar', $event)" @dragenter="fgDrag($event.currentTarget, true)" @dragleave="fgDrag($event.currentTarget, false)" @drop="fgDrag($event.currentTarget, false)">
+                  <input id="fg_account_avatar" type="file" class="absolute inset-0 h-full w-full cursor-pointer opacity-0" accept="image/*" :aria-invalid="errors['account.avatar'] ? 'true' : undefined" @change="fgPickFiles('account.avatar', $event)" @dragenter="fgDrag($event.currentTarget, true)" @dragleave="fgDrag($event.currentTarget, false)" @drop="fgDropFiles('account.avatar', $event)">
                 </div>
                 <ul v-if="form.account.avatar.length" class="flex flex-col gap-1.5">
                   <li v-for="(file, fi) in form.account.avatar" :key="fi" class="flex items-center gap-2 rounded-md border border-gray-300 bg-gray-50 px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800/50">
@@ -22620,6 +23746,7 @@ async function onSubmit(): Promise<void> {
                     <button type="button" class="px-1.5 text-lg leading-none text-gray-500 hover:text-red-600" :aria-label="fgRemoveFileLabel(file.name)" @click="fgRemoveFile('account.avatar', fi)">×</button>
                   </li>
                 </ul>
+                <p v-if="fgFileNotes['account.avatar']" class="text-xs text-gray-500 dark:text-gray-400" data-fg-file-note>{{ fgFileNotes['account.avatar'] }}</p>
                 <p v-if="errors['account.avatar']" class="text-xs text-red-600" role="alert">{{ errors['account.avatar'] }}</p>
               </div>
             </div>
@@ -22813,7 +23940,7 @@ async function onSubmit(): Promise<void> {
         <fieldset class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50" data-fg-repeater="references">
           <legend class="px-1 text-sm font-semibold text-gray-500 dark:text-gray-400">References</legend>
           <div class="flex flex-col gap-4">
-            <fieldset v-for="(item, i) in form.references" :key="fgKeyOf(item)" class="min-w-0 rounded-lg border border-gray-300 p-4 dark:border-gray-600" data-fg-item tabindex="-1">
+            <fieldset v-for="(item, i) in form.references" :key="fgKeyOf(item)" class="min-w-0 rounded-lg border border-gray-300 p-4 dark:border-gray-600 data-[fg-drag]:opacity-50 data-[fg-drop=before]:shadow-[0_-3px_0_0_#4f46e5] data-[fg-drop=after]:shadow-[0_3px_0_0_#4f46e5]" data-fg-item tabindex="-1" :data-fg-drag="fgDragMark('references', i)" :data-fg-drop="fgDropMark('references', i)" @dragover="fgDragOver($event, 'references', i)" @drop="fgDropItem($event, 'references', i)">
               <legend class="px-1 text-sm font-semibold">{{ fgItemLabel('references', i) }}</legend>
               <div class="grid grid-cols-12 gap-4">
                 <div class="col-span-12 md:col-span-12">
@@ -23095,6 +24222,7 @@ async function onSubmit(): Promise<void> {
                 </div>
               </div>
               <div class="mt-3 flex items-center gap-2">
+                <span v-if="form.references.length > 1" class="cursor-grab select-none px-1 text-xl leading-none text-gray-500 dark:text-gray-400" data-fg-handle draggable="true" aria-hidden="true" title="Drag to reorder" @dragstart="fgDragStart($event, 'references', i)" @dragend="fgDragEnd()">⠿</span>
                 <button v-if="i > 0" type="button" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600" data-fg-move="up" :aria-label="fgMoveLabel('references', i, 'up')" @click="fgMoveItem('references', i, -1)">↑</button>
                 <button v-if="i < form.references.length - 1" type="button" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600" data-fg-move="down" :aria-label="fgMoveLabel('references', i, 'down')" @click="fgMoveItem('references', i, 1)">↓</button>
                 <button type="button" class="ms-auto text-sm text-red-600 underline hover:text-red-700 dark:text-red-400" :aria-label="fgRemoveLabel('references', i)" @click="fgRemoveItem('references', i)">Remove</button>
@@ -23109,7 +24237,7 @@ async function onSubmit(): Promise<void> {
           <label class="text-sm font-semibold" for="fg_attachments">Attachments<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
           <div class="relative flex min-h-[4.5rem] items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center text-sm text-gray-500 hover:border-indigo-500 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-300 data-[fg-dragging]:border-indigo-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">
             <span class="font-medium">Choose files or drag them here</span>
-            <input id="fg_attachments" type="file" class="absolute inset-0 h-full w-full cursor-pointer opacity-0" accept=".pdf,.doc,.docx" multiple :aria-invalid="errors['attachments'] ? 'true' : undefined" @change="fgPickFiles('attachments', $event)" @dragenter="fgDrag($event.currentTarget, true)" @dragleave="fgDrag($event.currentTarget, false)" @drop="fgDrag($event.currentTarget, false)">
+            <input id="fg_attachments" type="file" class="absolute inset-0 h-full w-full cursor-pointer opacity-0" accept=".pdf,.doc,.docx" multiple :aria-invalid="errors['attachments'] ? 'true' : undefined" @change="fgPickFiles('attachments', $event)" @dragenter="fgDrag($event.currentTarget, true)" @dragleave="fgDrag($event.currentTarget, false)" @drop="fgDropFiles('attachments', $event)">
           </div>
           <ul v-if="form.attachments.length" class="flex flex-col gap-1.5">
             <li v-for="(file, fi) in form.attachments" :key="fi" class="flex items-center gap-2 rounded-md border border-gray-300 bg-gray-50 px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800/50">
@@ -23118,6 +24246,7 @@ async function onSubmit(): Promise<void> {
               <button type="button" class="px-1.5 text-lg leading-none text-gray-500 hover:text-red-600" :aria-label="fgRemoveFileLabel(file.name)" @click="fgRemoveFile('attachments', fi)">×</button>
             </li>
           </ul>
+          <p v-if="fgFileNotes['attachments']" class="text-xs text-gray-500 dark:text-gray-400" data-fg-file-note>{{ fgFileNotes['attachments'] }}</p>
           <p class="text-xs text-gray-500 dark:text-gray-400">Up to 3 PDF or Word files, 5 MB each</p>
           <p v-if="errors['attachments']" class="text-xs text-red-600" role="alert">{{ errors['attachments'] }}</p>
         </div>
@@ -23814,6 +24943,17 @@ function fgRemoveFileLabel(name: string): string {
 function fgDrag(input: EventTarget | null, on: boolean): void {
   ;(input as HTMLElement | null)?.parentElement?.toggleAttribute('data-fg-dragging', on)
 }
+function fgDropFirst(input: HTMLInputElement, event: { dataTransfer: DataTransfer | null; preventDefault(): void }): string {
+  var dropped = event.dataTransfer ? event.dataTransfer.files : null
+  if (input.multiple || !dropped || dropped.length < 2) return ''
+  event.preventDefault()
+  var first = dropped[0]!
+  var keep = new DataTransfer()
+  keep.items.add(first)
+  input.files = keep.files
+  input.dispatchEvent(new Event('change', { bubbles: true }))
+  return "Only one file fits here, so {name} was added.".split('{name}').join(first.name)
+}
 const fgFileMultiple: Record<string, boolean> = { 'account.avatar': false, 'attachments': true }
 function fgFileList(path: string): File[] {
   return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form) as File[]
@@ -23824,11 +24964,21 @@ function fgSetFiles(path: string, files: File[]): void {
   const target = keys.reduce<Record<string, unknown>>((o, k) => o[k] as Record<string, unknown>, form as unknown as Record<string, unknown>)
   target[last] = files
 }
+// "Only one file fits here, …" per field path, until its next change.
+const fgFileNotes = reactive<Record<string, string>>({})
+function fgDropFiles(path: string, event: DragEvent): void {
+  fgDrag(event.currentTarget, false)
+  const note = fgDropFirst(event.currentTarget as HTMLInputElement, event)
+  if (!note) return
+  fgFileNotes[path] = note
+  fgAnnounce(note)
+}
 function fgPickFiles(path: string, event: Event): void {
   const input = event.target as HTMLInputElement
   const picked = Array.from(input.files ?? [])
   input.value = ''
   if (picked.length === 0) return
+  delete fgFileNotes[path]
   fgSetFiles(path, fgFileMultiple[fgTpl(path)] ? [...fgFileList(path), ...picked] : picked.slice(0, 1))
   touch(path)
 }
@@ -23836,6 +24986,7 @@ function fgRemoveFile(path: string, index: number): void {
   const list = fgFileList(path)
   const file = list[index]
   if (file) fgReleaseThumb(file)
+  delete fgFileNotes[path]
   fgSetFiles(path, list.filter((_, i) => i !== index))
   touch(path)
 }
@@ -24247,6 +25398,57 @@ async function fgMoveItem(path: string, index: number, delta: -1 | 1): Promise<v
   ;(buttons.find((b) => b.dataset['fgMove'] === (delta < 0 ? 'up' : 'down')) ?? buttons[0] ?? item)?.focus()
   fgAnnounce("{label} moved to position {n}".split('{label}').join(label).split('{n}').join(String(target + 1)))
 }
+// Dragging items by their handle: the list being dragged in, the item and the one under it.
+const fgItemDrag = reactive<{ path: string; from: number; at: number }>({ path: '', from: -1, at: -1 })
+function fgMovedIndex(n: number, from: number, to: number): number {
+  if (n === from) return to
+  if (from < to) return n > from && n <= to ? n - 1 : n
+  return n >= to && n < from ? n + 1 : n
+}
+function fgDragStart(event: DragEvent, path: string, index: number): void {
+  Object.assign(fgItemDrag, { path, from: index, at: -1 })
+  if (!event.dataTransfer) return
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', fgItemLabel(path, index))
+  const item = fgItemElements(path)[index]
+  if (item) event.dataTransfer.setDragImage(item, 16, 16)
+}
+function fgDragEnd(): void {
+  Object.assign(fgItemDrag, { path: '', from: -1, at: -1 })
+}
+function fgDragOver(event: DragEvent, path: string, index: number): void {
+  if (fgItemDrag.path !== path) return
+  event.preventDefault()
+  event.stopPropagation()
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+  fgItemDrag.at = index
+}
+function fgDropItem(event: DragEvent, path: string, index: number): void {
+  if (fgItemDrag.path !== path) return
+  event.preventDefault()
+  event.stopPropagation()
+  const from = fgItemDrag.from
+  fgDragEnd()
+  void fgMoveItemTo(path, from, index)
+}
+function fgDragMark(path: string, index: number): '' | undefined {
+  return fgItemDrag.path === path && fgItemDrag.from === index ? '' : undefined
+}
+function fgDropMark(path: string, index: number): 'before' | 'after' | undefined {
+  if (fgItemDrag.path !== path || fgItemDrag.at !== index || fgItemDrag.from === index) return undefined
+  return index < fgItemDrag.from ? 'before' : 'after'
+}
+/** Moves item \`from\` to \`to\` (the others close up); the moved item gets focus. */
+async function fgMoveItemTo(path: string, from: number, to: number): Promise<void> {
+  const list = fgList(path)
+  if (from === to || to < 0 || to >= list.length) return
+  const label = fgItemLabel(path, from)
+  fgRemapItems(path, (n) => fgMovedIndex(n, from, to))
+  list.splice(to, 0, list.splice(from, 1)[0]!)
+  await nextTick()
+  fgItemElements(path)[to]?.focus()
+  fgAnnounce("{label} moved to position {n}".split('{label}').join(label).split('{n}').join(String(to + 1)))
+}
 async function fgRemoveItem(path: string, index: number): Promise<void> {
   const list = fgList(path)
   if (list.length <= (fgItemLimits[fgTpl(path)]?.min ?? 0)) return
@@ -24528,7 +25730,7 @@ async function onSubmit(): Promise<void> {
                 <label class="fg-label" for="fg_account_avatar">Profile picture</label>
                 <div class="fg-file-drop">
                   <span class="fg-file-drop-text">Choose a file or drag it here</span>
-                  <input id="fg_account_avatar" type="file" class="fg-file-input" accept="image/*" :aria-invalid="errors['account.avatar'] ? 'true' : undefined" @change="fgPickFiles('account.avatar', $event)" @dragenter="fgDrag($event.currentTarget, true)" @dragleave="fgDrag($event.currentTarget, false)" @drop="fgDrag($event.currentTarget, false)">
+                  <input id="fg_account_avatar" type="file" class="fg-file-input" accept="image/*" :aria-invalid="errors['account.avatar'] ? 'true' : undefined" @change="fgPickFiles('account.avatar', $event)" @dragenter="fgDrag($event.currentTarget, true)" @dragleave="fgDrag($event.currentTarget, false)" @drop="fgDropFiles('account.avatar', $event)">
                 </div>
                 <ul v-if="form.account.avatar.length" class="fg-file-list">
                   <li v-for="(file, fi) in form.account.avatar" :key="fi" class="fg-file-item">
@@ -24538,6 +25740,7 @@ async function onSubmit(): Promise<void> {
                     <button type="button" class="fg-file-remove" :aria-label="fgRemoveFileLabel(file.name)" @click="fgRemoveFile('account.avatar', fi)">×</button>
                   </li>
                 </ul>
+                <p v-if="fgFileNotes['account.avatar']" class="fg-description" data-fg-file-note>{{ fgFileNotes['account.avatar'] }}</p>
                 <p v-if="errors['account.avatar']" class="fg-error" role="alert">{{ errors['account.avatar'] }}</p>
               </div>
             </div>
@@ -24731,7 +25934,7 @@ async function onSubmit(): Promise<void> {
         <fieldset class="fg-group" data-fg-repeater="references">
           <legend class="fg-group-label">References</legend>
           <div class="fg-repeater-items">
-            <fieldset v-for="(item, i) in form.references" :key="fgKeyOf(item)" class="fg-repeater-item" data-fg-item tabindex="-1">
+            <fieldset v-for="(item, i) in form.references" :key="fgKeyOf(item)" class="fg-repeater-item" data-fg-item tabindex="-1" :data-fg-drag="fgDragMark('references', i)" :data-fg-drop="fgDropMark('references', i)" @dragover="fgDragOver($event, 'references', i)" @drop="fgDropItem($event, 'references', i)">
               <legend class="fg-repeater-item-label">{{ fgItemLabel('references', i) }}</legend>
               <div class="fg-grid">
                 <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
@@ -25013,6 +26216,7 @@ async function onSubmit(): Promise<void> {
                 </div>
               </div>
               <div class="fg-repeater-item-actions">
+                <span v-if="form.references.length > 1" class="fg-repeater-handle" data-fg-handle draggable="true" aria-hidden="true" title="Drag to reorder" @dragstart="fgDragStart($event, 'references', i)" @dragend="fgDragEnd()">⠿</span>
                 <button v-if="i > 0" type="button" class="fg-repeater-move" data-fg-move="up" :aria-label="fgMoveLabel('references', i, 'up')" @click="fgMoveItem('references', i, -1)">↑</button>
                 <button v-if="i < form.references.length - 1" type="button" class="fg-repeater-move" data-fg-move="down" :aria-label="fgMoveLabel('references', i, 'down')" @click="fgMoveItem('references', i, 1)">↓</button>
                 <button type="button" class="fg-repeater-remove" :aria-label="fgRemoveLabel('references', i)" @click="fgRemoveItem('references', i)">Remove</button>
@@ -25027,7 +26231,7 @@ async function onSubmit(): Promise<void> {
           <label class="fg-label" for="fg_attachments">Attachments<span class="fg-required" aria-hidden="true">*</span></label>
           <div class="fg-file-drop">
             <span class="fg-file-drop-text">Choose files or drag them here</span>
-            <input id="fg_attachments" type="file" class="fg-file-input" accept=".pdf,.doc,.docx" multiple :aria-invalid="errors['attachments'] ? 'true' : undefined" @change="fgPickFiles('attachments', $event)" @dragenter="fgDrag($event.currentTarget, true)" @dragleave="fgDrag($event.currentTarget, false)" @drop="fgDrag($event.currentTarget, false)">
+            <input id="fg_attachments" type="file" class="fg-file-input" accept=".pdf,.doc,.docx" multiple :aria-invalid="errors['attachments'] ? 'true' : undefined" @change="fgPickFiles('attachments', $event)" @dragenter="fgDrag($event.currentTarget, true)" @dragleave="fgDrag($event.currentTarget, false)" @drop="fgDropFiles('attachments', $event)">
           </div>
           <ul v-if="form.attachments.length" class="fg-file-list">
             <li v-for="(file, fi) in form.attachments" :key="fi" class="fg-file-item">
@@ -25036,6 +26240,7 @@ async function onSubmit(): Promise<void> {
               <button type="button" class="fg-file-remove" :aria-label="fgRemoveFileLabel(file.name)" @click="fgRemoveFile('attachments', fi)">×</button>
             </li>
           </ul>
+          <p v-if="fgFileNotes['attachments']" class="fg-description" data-fg-file-note>{{ fgFileNotes['attachments'] }}</p>
           <p class="fg-description">Up to 3 PDF or Word files, 5 MB each</p>
           <p v-if="errors['attachments']" class="fg-error" role="alert">{{ errors['attachments'] }}</p>
         </div>
@@ -25486,6 +26691,11 @@ async function onSubmit(): Promise<void> {
 :where(.fg-html) :where(th, td) { padding: 0.25rem 0.5rem; border: 1px solid var(--fg-color-border); text-align: start; }
 :where(.fg-html) img { max-inline-size: 100%; block-size: auto; }
 :where(.fg-html) a { color: var(--fg-color-primary); }
+/* Sortable items: drag handle, the dragged item, where it would land */
+.fg-repeater-handle { padding: 0 0.25rem; color: var(--fg-color-muted); font-size: 1.25rem; line-height: 1; cursor: grab; user-select: none; }
+[data-fg-item][data-fg-drag] { opacity: 0.5; }
+[data-fg-item][data-fg-drop="before"] { box-shadow: 0 -3px 0 0 var(--fg-color-primary); }
+[data-fg-item][data-fg-drop="after"] { box-shadow: 0 3px 0 0 var(--fg-color-primary); }
 /* Save and continue later: the note above the form */
 .fg-draft { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.75rem; margin-block-end: var(--fg-space); padding: 0.5rem 0.75rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); color: var(--fg-color-muted); font-size: 0.875rem; }
 .fg-draft-text { flex: 1 1 16rem; margin: 0; }

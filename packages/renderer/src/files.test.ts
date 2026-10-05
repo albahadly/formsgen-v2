@@ -210,3 +210,37 @@ describe('sendSubmission', () => {
     expect(await offline).toEqual({ ok: false, status: 0 })
   })
 })
+
+describe('dropping several files on a field that takes one', () => {
+  const schema = (multiple: boolean): FormSchema => ({
+    $schema: 'formsgen/v2',
+    meta: { name: 'drop', locale: 'en', dir: 'ltr' },
+    tree: [{ id: 'cv', type: 'file', name: 'cv', props: { label: 'CV', multiple } }],
+  })
+  const drop = async (wrapper: ReturnType<typeof mount>, files: File[]) => {
+    const event = new Event('drop', { bubbles: true, cancelable: true }) as DragEvent
+    Object.defineProperty(event, 'dataTransfer', { value: { files } })
+    wrapper.get('input[type=file]').element.dispatchEvent(event)
+    await flushPromises()
+    return event
+  }
+
+  it('keeps the first and says so, until the next change', async () => {
+    const wrapper = mount(FormsGenForm, { props: { schema: schema(false) } })
+    const event = await drop(wrapper, [file('a.pdf', 'application/pdf'), file('b.pdf', 'application/pdf')])
+    expect(event.defaultPrevented).toBe(true)
+    expect(wrapper.findAll('.fg-file-name').map((n) => n.text())).toEqual(['a.pdf'])
+    expect(wrapper.get('[data-fg-file-note]').text()).toBe('Only one file fits here, so a.pdf was added.')
+    expect(wrapper.get('[data-fg-live]').text()).toBe('Only one file fits here, so a.pdf was added.')
+    await wrapper.get('.fg-file-remove').trigger('click')
+    expect(wrapper.find('[data-fg-file-note]').exists()).toBe(false)
+  })
+
+  it('leaves single drops and multiple-file fields to the browser', async () => {
+    const one = mount(FormsGenForm, { props: { schema: schema(false) } })
+    expect((await drop(one, [file('a.pdf', '')])).defaultPrevented).toBe(false)
+    const many = mount(FormsGenForm, { props: { schema: schema(true) } })
+    expect((await drop(many, [file('a.pdf', ''), file('b.pdf', '')])).defaultPrevented).toBe(false)
+    expect(many.find('[data-fg-file-note]').exists()).toBe(false)
+  })
+})

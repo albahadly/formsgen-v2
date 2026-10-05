@@ -1,0 +1,17 @@
+{
+  "name": "@formsgen/submit-server",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Sample server that receives and stores FormsGen form submissions (no dependencies)",
+  "bin": {
+    "formsgen-submit-server": "./server.mjs"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -19,8 +19,10 @@ const props = defineProps<{
   canRemove: boolean
   canMoveUp?: boolean
   canMoveDown?: boolean
+  /** Shows the drag handle (sortable, two items or more). */
+  canDrag?: boolean
 }>()
-const emit = defineEmits<{ remove: []; move: [delta: -1 | 1] }>()
+const emit = defineEmits<{ remove: []; move: [delta: -1 | 1]; grab: [event: DragEvent]; release: [] }>()
 
 const ctx = inject(FORM_CONTEXT)
 const messages = computed(() => ctx?.messages?.() ?? MESSAGES.en)
@@ -65,6 +67,16 @@ provide(ITEM_SCOPE, scope)
       v-if="canRemove || canMoveUp || canMoveDown"
       class="fg-repeater-item-actions"
     >
+      <span
+        v-if="canDrag"
+        class="fg-repeater-handle"
+        data-fg-handle
+        draggable="true"
+        aria-hidden="true"
+        :title="messages.dragItem"
+        @dragstart="emit('grab', $event)"
+        @dragend="emit('release')"
+      >⠿</span>
       <button
         v-if="canMoveUp"
         type="button"

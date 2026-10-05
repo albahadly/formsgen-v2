@@ -3,10 +3,12 @@
 // (and move up/down when props.sortable). Adding focuses the new item's
 // first control; removing focuses the item that took its place (or the add
 // button); moving keeps focus on the moved item. All are announced.
+// Sortable items can also be dragged by their handle and dropped on
+// another item, taking its place (the buttons stay the keyboard way).
 import { computed, inject, nextTick, ref, toRaw } from 'vue'
 import { FORM_CONTEXT } from '../context'
 import { MESSAGES, fill } from '../messages'
-import { nextItemKey, repeaterItemDefaults, repeaterItemLabel, repeaterLimits, repeaterSortable } from '../repeater'
+import { movedIndex, nextItemKey, repeaterItemDefaults, repeaterItemLabel, repeaterLimits, repeaterSortable } from '../repeater'
 import type { ElementNode } from '../schema'
 import FgRepeaterItem from './FgRepeaterItem.vue'
 
@@ -94,6 +96,55 @@ async function move(index: number, delta: -1 | 1): Promise<void> {
   ;(same ?? buttons[0] ?? item)?.focus()
   formCtx.announce?.(fill(messages.value.itemMoved, { label, n: target + 1 }))
 }
+
+// ---- drag and drop (per repeater: an inner list's drags never reach the outer one) ----
+const dragFrom = ref<number | null>(null)
+const dropAt = ref<number | null>(null)
+function onGrab(event: DragEvent, index: number): void {
+  dragFrom.value = index
+  if (!event.dataTransfer) return
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', itemLabel(index))
+  const item = itemElements()[index]
+  if (item) event.dataTransfer.setDragImage(item, 16, 16)
+}
+function onDragOver(event: DragEvent, index: number): void {
+  if (dragFrom.value === null) return
+  event.preventDefault()
+  event.stopPropagation()
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+  dropAt.value = index
+}
+function onDrop(event: DragEvent, index: number): void {
+  if (dragFrom.value === null) return
+  event.preventDefault()
+  event.stopPropagation()
+  const from = dragFrom.value
+  onRelease()
+  void moveTo(from, index)
+}
+function onRelease(): void {
+  dragFrom.value = null
+  dropAt.value = null
+}
+/** Where the dragged item would land: a line above or below the item under it. */
+function dropSide(index: number): 'before' | 'after' | undefined {
+  if (dropAt.value !== index || dragFrom.value === null || dragFrom.value === index) return undefined
+  return index < dragFrom.value ? 'before' : 'after'
+}
+
+/** Moves item `from` to `to` (the others close up); the moved item gets focus. */
+async function moveTo(from: number, to: number): Promise<void> {
+  if (from === to || to < 0 || to >= items.value.length) return
+  const label = itemLabel(from)
+  const next = [...items.value]
+  next.splice(to, 0, next.splice(from, 1)[0]!)
+  formCtx.moveItems?.(props.path, from, to)
+  formCtx.setValue(props.path, next)
+  await nextTick()
+  itemElements()[movedIndex(from, from, to)]?.focus()
+  formCtx.announce?.(fill(messages.value.itemMoved, { label, n: to + 1 }))
+}
 </script>
 
 <template>
@@ -119,8 +170,15 @@ async function move(index: number, delta: -1 | 1): Promise<void> {
         :can-remove="items.length > limits.min"
         :can-move-up="sortable && index > 0"
         :can-move-down="sortable && index < items.length - 1"
+        :can-drag="sortable && items.length > 1"
+        :data-fg-drag="dragFrom === index ? '' : undefined"
+        :data-fg-drop="dropSide(index)"
         @remove="remove(index)"
         @move="(delta) => move(index, delta)"
+        @grab="(event) => onGrab(event, index)"
+        @release="onRelease"
+        @dragover="(event: DragEvent) => onDragOver(event, index)"
+        @drop="(event: DragEvent) => onDrop(event, index)"
       />
     </div>
     <button
