@@ -3,7 +3,7 @@
 ## Status
 
 - **28a:** every field type inside repeater items, and reordering items (move up / move down). Commit: feat(phase-28a).
-- **28b:** repeaters inside repeaters, and groups/columns inside items. Not started yet.
+- **28b:** repeaters inside repeaters (two levels), and groups/columns inside items. Commit: feat(phase-28b).
 
 Still parked: npm publish.
 
@@ -105,7 +105,79 @@ All 12 runtimes produced **identical** results. The data shown on screen equals 
 
 **Builder Preview** passed the same move check: country, matrix answers, focus and the announcement.
 
+## 28b — what was built
+
+### Layout and one more level inside items
+
+A repeater item may now hold:
+- **groups and columns.** They are layout only. A group inside an item can't have a name, so the item's data stays flat. In the builder its Name field is replaced by a short note (en/ar).
+- **one inner repeater**, e.g. travellers → bags. Each traveller has its own bags.
+  - The inner repeater can depend on its outer item, e.g. show "Bags" only when that traveller ticked "Has bags".
+  - Its own fields can depend on their bag's siblings ("Handling note" only for a fragile bag) and on top-level fields.
+
+Still not allowed: tabs/steps inside items, a third level of repeaters, and inner-item conditions on the outer item's fields.
+
+**Where the rules live.** One renderer function, `itemPlacementProblem`, holds them. The parser uses it, and so do the builder's add, drop and keyboard-move checks (`fitsInItems`, `repeaterDepthAt`). The condition picker offers an inner item:
+- its own siblings ("Bags › Fragile");
+- top-level fields.
+
+**Data.** `travellers: [{ name, has_bags, phone, email, bags: [{ weight, size, fragile, note?, contents }] }]`. A hidden inner repeater is left out of its traveller's payload, and inner errors are part of submit and step gating.
+
+### Renderer
+
+- Item scopes use the template path without indexes (`travellers.bags`), so inner conditions resolve to the right bag.
+- Item defaults look through layout containers and hold inner repeaters' initial items.
+- Ids carry every index: `fg-weight-1-0`.
+- Item keys are unique on the page, so radio group names never collide across travellers.
+
+### Exports
+
+**Shared layer:**
+- `collectExportRepeaters` returns outer repeaters before their inner ones. Each has a template path (`travellers.bags`), `depth`, `parent` and `itemConditionChain`; item fields carry their container conditions.
+- `ItemAccess` takes a `RepeaterRef`. Inner items are `item2` / `j` inside `item` / `i`; the index tokens are `__i__` / `__j__`.
+- The payload, data types and defaults nest.
+- Runtime tables are keyed by template path, with `fgTpl` / `FgTpl` at lookup. `fgItemPaths` recurses into inner lists; `FG_INNER_REPEATERS` lists them.
+
+| Target | How |
+|---|---|
+| Vue / React | Inner `v-for` / `.map` over `item.bags` as `item2, j`. Inner visibility is evaluated per outer item (`fgOuterItem`). React also re-keys inner lists' item keys when outer items move or go. |
+| HTML | The inner `<template>` sits inside the outer one. Stamping an outer item also stamps the inner template's content (`fgStampNodes`). A new outer item creates its inner items (`fgInitRepeaters`). Handlers read the current path when they fire. Item conditions and validators get both indexes `(i, j)`. An outer item's own label and buttons are found with `:scope >`. |
+| Blazor | The inner list is a property of the outer item class (`List<FgTravellersBagsItem> Bags`). The outer item's markup pass rewrites both levels: `item2.X`, `item.Bags`, `{i}` / `{j}` ids. An outer repeater validates, counts and gates its inner items per visible outer item. Add-button refs are a dictionary keyed by list path. |
+
+### Fixes found along the way
+
+- **Blazor radio groups inside items shared one name.** `InputRadioGroup` without `Name` derives it from the bound expression (`item2.Size`). Every item's group was one group, so only one item could hold an answer. Radio groups now get an explicit `Name`, which follows the item inside repeaters (`FgItemId`).
+- **HTML: automatic semicolon insertion.** A generated line starting with `[` continued the previous statement (`Object.keys(...)["travellers"]`). Those lines now start with `;`.
+
+## Verification (28b)
+
+- **`pnpm verify`** passes with **394 tests** (134 renderer / 260 builder). New coverage:
+  - parser nesting rules;
+  - item defaults through layout;
+  - a nested renderer form: conditional inner repeater, unique ids, inner conditions, nested payload;
+  - builder add/drop rules, the layout-only note and nested condition sources;
+  - export structure (types, defaults) and nested markup in every target;
+  - the Blazor radio group name.
+- **Trip demo:**
+  - travellers (sortable, min 1, max 3) with name and has-bags in columns, and a Contact group with phone (country) and email;
+  - bags (sortable, min 0, max 2) shown only for travellers with bags;
+  - each bag has weight (kg, max 32) and size in columns, fragile, a conditional handling note, and content tags (max 2).
+- **Strict compilers:** React `tsc`, `vue-tsc` and the .NET 8 build of the Blazor export all pass for all 3 frameworks, with 0 errors and 0 warnings.
+- **12 runtimes:**
+  - bags hidden until ticked;
+  - inner ids;
+  - inner errors: max weight, required size, conditional note, too many tags;
+  - add bag (focus, max);
+  - a second traveller with its own bags and country;
+  - fixes;
+  - move traveller 2 up (their bags, country and answers go with them);
+  - move a bag up within a traveller;
+  - untick "Has bags" (those bags leave the payload);
+  - submit.
+- **Builder Preview:** the same nested moves, plus the canvas showing both levels.
+
 ## Backlog
 
-- 28b: repeaters inside repeaters; groups and columns inside items.
 - Drag-and-drop reordering (the buttons are the accessible baseline).
+- Conditions in an inner item on the outer item's fields; a third level of repeaters.
+- Named groups inside items (nested item objects).

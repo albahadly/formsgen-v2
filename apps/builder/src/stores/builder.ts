@@ -9,6 +9,8 @@ import {
   REPEATER_TYPE,
   SECTION_TYPES,
   allowedInRepeater,
+  isRepeater,
+  itemPlacementProblem,
   THEME_TOKEN_PATTERN,
   collectNames,
   findNodeById,
@@ -71,7 +73,7 @@ export const useBuilderStore = defineStore('builder', {
       let target = this.schema.tree
       const selected = this.selectedNode
       if (selected && getCoreElement(selected.type)?.isContainer) {
-        if (acceptsChildType(selected.type, type)) {
+        if (acceptsChildType(selected.type, type) && fitsInItems(node, repeaterDepthAt(this.schema.tree, selected.id))) {
           target = selected.children ??= []
         } else if (SECTION_CONTAINERS[selected.type]) {
           // Selected a tabs/steps host: drop into its first section.
@@ -319,6 +321,7 @@ export const useBuilderStore = defineStore('builder', {
       const grandparent = findParent(this.schema.tree, parent.id)
       const node = findNodeById(this.schema.tree, id)!
       if (!acceptsChildType(grandparent?.type ?? null, node.type)) return false
+      if (!fitsInItems(node, repeaterDepthAt(this.schema.tree, grandparent?.id ?? null))) return false
       const targetList = grandparent ? (grandparent.children ?? []) : this.schema.tree
       parent.children = (parent.children ?? []).filter((n) => n.id !== id)
       targetList.splice(targetList.findIndex((n) => n.id === parent.id) + 1, 0, node)
@@ -353,6 +356,25 @@ export const useBuilderStore = defineStore('builder', {
   },
 })
 
+/** How many repeaters enclose the list `parentId` provides (the parent included). */
+export function repeaterDepthAt(tree: ElementNode[], parentId: string | null): number {
+  let depth = 0
+  for (let node = parentId === null ? null : findNodeById(tree, parentId); node; node = findParent(tree, node.id)) {
+    if (isRepeater(node)) depth++
+  }
+  return depth
+}
+
+/**
+ * Whether a subtree may sit `depth` repeaters deep: no tabs/steps in items,
+ * repeaters at most two levels, no named groups inside items.
+ */
+export function fitsInItems(node: ElementNode, depth: number): boolean {
+  if (itemPlacementProblem(node, depth)) return false
+  const inner = depth + (isRepeater(node) ? 1 : 0)
+  return (node.children ?? []).every((child) => fitsInItems(child, inner))
+}
+
 /** Height of a node's subtree (a leaf is 1). */
 export function subtreeHeight(node: ElementNode): number {
   if (!node.children || node.children.length === 0) return 1
@@ -376,7 +398,8 @@ export const MAX_NESTING_DEPTH = 5
 /**
  * Type-level containment rules: tabs/steps hosts accept ONLY their section
  * type, section nodes live ONLY in their host, and nothing else nests a
- * section, and repeaters take leaf elements only (no containers, no tags).
+ * section; repeaters take anything but tabs/steps (fitsInItems adds the
+ * depth rules).
  * `parentType === null` means the root list.
  */
 export function acceptsChildType(parentType: string | null, childType: string): boolean {
@@ -400,6 +423,7 @@ export function canDropInto(
   const parent = targetParentId === null ? null : findNodeById(tree, targetParentId)
   if (targetParentId !== null && !parent) return false
   if (!acceptsChildType(parent?.type ?? null, node.type)) return false
+  if (!fitsInItems(node, repeaterDepthAt(tree, targetParentId))) return false
   if (targetParentId !== null) {
     if (targetParentId === node.id) return false
     if (node.children && findNodeById(node.children, targetParentId)) return false

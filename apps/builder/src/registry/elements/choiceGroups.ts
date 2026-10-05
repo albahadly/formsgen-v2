@@ -164,7 +164,9 @@ export const radioGroupElement: ElementDefinition = {
       fieldset(
         [
           legend(node, ctx),
-          `<InputRadioGroup @bind-Value="Model.${pascalMember(ctx.key)}">\n${indent(
+          // An explicit Name: the default comes from the bound expression, so
+          // every repeater item's group would share one (`item.Plan`).
+          `<InputRadioGroup Name="${ctx.id}" @bind-Value="Model.${pascalMember(ctx.key)}">\n${indent(
             optionsMarkup(node, ctx, 'blazor', (item, id, cls) =>
               `<InputRadio id="${id}" class="${cls}" Value="@(${JSON.stringify(item.value)})" />`,
             ),

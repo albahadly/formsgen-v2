@@ -2,25 +2,71 @@
 // array of item objects built from its children. Inside an item, data
 // paths carry the index (`people.0.name`), while conditions and same-as
 // rules name sibling fields by the template path (`people.name`) — they
-// resolve to the SAME item. Children: any value field or static element
-// (containers are not allowed inside items).
+// resolve to the SAME item. Children: any field or static element, layout
+// containers (unnamed groups, columns) and one more level of repeaters
+// (e.g. travellers → bags); tabs/steps can't go inside items.
 
 import { getCoreElement } from './elements'
 import type { ElementNode } from './schema'
 
 export const REPEATER_TYPE = 'repeater'
 
-/** Element types a repeater may not contain (besides containers). */
-export const REPEATER_EXCLUDED_TYPES: ReadonlySet<string> = new Set<string>()
+/** Element types a repeater item may not contain, at any depth. */
+export const REPEATER_EXCLUDED_TYPES: ReadonlySet<string> = new Set(['tabs', 'tab', 'steps', 'step'])
+
+/** Repeaters nest at most this deep (a repeater inside a repeater's item). */
+export const MAX_REPEATER_DEPTH = 2
 
 export function isRepeater(node: ElementNode | undefined | null): boolean {
   return node?.type === REPEATER_TYPE
 }
 
-/** May a node of `type` live inside a repeater? */
+/** May a node of `type` live inside a repeater item (type alone)? */
 export function allowedInRepeater(type: string): boolean {
-  const core = getCoreElement(type)
-  return Boolean(core) && !core!.isContainer && !REPEATER_EXCLUDED_TYPES.has(type)
+  return Boolean(getCoreElement(type)) && !REPEATER_EXCLUDED_TYPES.has(type)
+}
+
+/**
+ * Why a node can't sit inside `repeaterDepth` repeaters, or null when it
+ * can. `field` says which property is at fault.
+ */
+export function itemPlacementProblem(
+  node: { type: string; name?: string | undefined },
+  repeaterDepth: number,
+): { field: 'type' | 'name'; message: string } | null {
+  if (repeaterDepth === 0) return null
+  if (!allowedInRepeater(node.type)) return { field: 'type', message: `"${node.type}" cannot be placed inside a repeater` }
+  if (node.type === REPEATER_TYPE) {
+    return repeaterDepth >= MAX_REPEATER_DEPTH
+      ? { field: 'type', message: 'repeaters nest at most two levels deep' }
+      : null
+  }
+  if (getCoreElement(node.type)?.isContainer && node.name !== undefined) {
+    return { field: 'name', message: `a ${node.type} inside a repeater item can't have a name (item data stays flat)` }
+  }
+  return null
+}
+
+/** A data path without its item indexes: `crew.0.bags.2` → `crew.bags`. */
+export function templatePath(path: string): string {
+  return path
+    .split('.')
+    .filter((segment) => !/^\d+$/.test(segment))
+    .join('.')
+}
+
+/** The item indexes in a data path: `crew.0.bags.2.x` → [0, 2]. */
+export function pathIndexes(path: string): number[] {
+  return path
+    .split('.')
+    .filter((segment) => /^\d+$/.test(segment))
+    .map(Number)
+}
+
+let itemKeyCounter = 0
+/** A page-wide unique key for a new repeater item (radio group names use it). */
+export function nextItemKey(): number {
+  return itemKeyCounter++
 }
 
 function intProp(node: ElementNode, key: string): number | undefined {
@@ -37,14 +83,28 @@ export function repeaterLimits(node: ElementNode): { min: number; max: number; i
   return { min, max, initial }
 }
 
-/** A fresh item object: every named value child at its default. */
+/**
+ * A fresh item object: every value field at its default, looking through
+ * layout containers; an inner repeater holds its initial items.
+ */
 export function repeaterItemDefaults(node: ElementNode): Record<string, unknown> {
   const item: Record<string, unknown> = {}
-  for (const child of node.children ?? []) {
-    const core = getCoreElement(child.type)
-    if (!core || !core.hasValue || core.isContainer || !child.name) continue
-    item[child.name] = child.props['default'] !== undefined ? child.props['default'] : core.defaultValue(child)
+  const walk = (nodes: ElementNode[]): void => {
+    for (const child of nodes) {
+      const core = getCoreElement(child.type)
+      if (!core) continue
+      if (isRepeater(child)) {
+        if (child.name) {
+          item[child.name] = Array.from({ length: repeaterLimits(child).initial }, () => repeaterItemDefaults(child))
+        }
+      } else if (core.isContainer) {
+        walk(child.children ?? [])
+      } else if (core.hasValue && child.name) {
+        item[child.name] = child.props['default'] !== undefined ? child.props['default'] : core.defaultValue(child)
+      }
+    }
   }
+  walk(node.children ?? [])
   return item
 }
 

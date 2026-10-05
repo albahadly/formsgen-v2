@@ -259,26 +259,38 @@ describe('palette → canvas → properties workflow', () => {
     expect(wrapper.find('[data-testid="panel-canvas"] button.fg-button').text()).toBe('Reset')
   })
 
-  it('repeater: fields go inside, containers do not; preview adds items', async () => {
+  it('repeater: fields, layout and one inner repeater go inside; tabs and a third level do not', async () => {
     const { wrapper, store } = mountApp()
-    await wrapper.findAll('[data-testid="panel-palette"] [role="tab"]')[2]!.trigger('click')
+    const structure = () => wrapper.findAll('[data-testid="panel-palette"] [role="tab"]')[2]!.trigger('click')
+    const fields = () => wrapper.findAll('[data-testid="panel-palette"] [role="tab"]')[0]!.trigger('click')
+    await structure()
     await wrapper.get('[data-testid="palette-item-repeater"]').trigger('click')
     const repeater = store.schema.tree[0]!
     expect(repeater.type).toBe('repeater')
     expect(repeater.name).toBe('repeater')
-    await wrapper.get('[data-testid="palette-item-group"]').trigger('click') // refused inside
+    await wrapper.get('[data-testid="palette-item-group"]').trigger('click') // inside: layout only
+    expect(wrapper.find('[data-testid="name-layout-only"]').exists()).toBe(true)
     store.select(repeater.id)
-    await wrapper.findAll('[data-testid="panel-palette"] [role="tab"]')[0]!.trigger('click')
+    await wrapper.get('[data-testid="palette-item-tabs"]').trigger('click') // refused inside
+    store.select(repeater.id)
+    await fields()
     await wrapper.get('[data-testid="palette-item-text"]').trigger('click')
-    expect(repeater.children!.map((c) => c.type)).toEqual(['text'])
-    expect(store.schema.tree.map((n) => n.type)).toEqual(['repeater', 'group'])
+    store.select(repeater.id)
+    await structure()
+    await wrapper.get('[data-testid="palette-item-repeater"]').trigger('click') // an inner repeater
+    const inner = repeater.children![2]!
+    store.select(inner.id)
+    await wrapper.get('[data-testid="palette-item-repeater"]').trigger('click') // no third level
+    expect(repeater.children!.map((c) => c.type)).toEqual(['group', 'text', 'repeater'])
+    expect(store.schema.tree.map((n) => n.type)).toEqual(['repeater', 'tabs', 'repeater'])
     expect(wrapper.get('[data-testid="panel-canvas"]').text()).toContain('these fields repeat for every item')
     await wrapper.get('[data-testid="view-preview"]').trigger('click')
-    const preview = wrapper.get('[data-testid="panel-preview"]')
-    expect(preview.findAll('[data-fg-item]')).toHaveLength(1)
-    await preview.get('.fg-repeater-add').trigger('click')
+    const items = () => wrapper.get('[data-testid="panel-preview"]').findAll('[data-fg-item]').length
+    const before = items()
+    // the outer repeater's own add button comes after its items
+    await wrapper.get('[data-testid="panel-preview"]').findAll('.fg-repeater')[0]!.findAll('.fg-repeater-add').at(-1)!.trigger('click')
     await flushPromises()
-    expect(wrapper.get('[data-testid="panel-preview"]').findAll('[data-fg-item]')).toHaveLength(2)
+    expect(items()).toBe(before + 2) // a new outer item with its inner item
   })
 
   it('keyboard: Alt+Arrows move the selected element (DnD alternative)', async () => {

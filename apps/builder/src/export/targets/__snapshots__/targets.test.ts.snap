@@ -140,7 +140,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         <div class="col-12 col-md-12">
           <fieldset class="d-flex flex-column gap-1" aria-labelledby="fg_plan_legend">
             <legend class="form-label fw-semibold fs-6 mb-0"><span id="fg_plan_legend">Plan</span><span class="text-danger ms-1" aria-hidden="true">*</span><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_plan_tip">?</button><span role="tooltip" id="fg_plan_tip" class="fg-tip-text">You can switch plans at any time</span></span></legend>
-            <InputRadioGroup @bind-Value="Model.Plan">
+            <InputRadioGroup Name="fg_plan" @bind-Value="Model.Plan">
               <div class="d-flex flex-column gap-1">
                 <label class="form-check" for="fg_plan_free">
                   <InputRadio id="fg_plan_free" class="form-check-input" Value="@("free")" />
@@ -200,7 +200,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         <div class="col-12 col-md-12">
           <fieldset class="d-flex flex-column gap-1">
             <legend class="form-label fw-semibold fs-6 mb-0">Billing</legend>
-            <InputRadioGroup @bind-Value="Model.Billing">
+            <InputRadioGroup Name="fg_billing" @bind-Value="Model.Billing">
               <div class="btn-group flex-wrap">
                 <InputRadio id="fg_billing_monthly" class="btn-check" Value="@("monthly")" />
                 <label class="btn btn-outline-primary" for="fg_billing_monthly">Monthly</label>
@@ -619,7 +619,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
             </div>
             @if (Model.References.Count < 3)
             {
-                <button type="button" class="btn btn-outline-secondary mt-3" data-fg-add="references" @ref="fgAddRef_references" @onclick='() => FgAddItem(Model.References, "references", 3)'>Add reference</button>
+                <button type="button" class="btn btn-outline-secondary mt-3" data-fg-add="references" @ref='fgAddRefs["references"]' @onclick='() => FgAddItem(Model.References, "references", 3)'>Add reference</button>
             }
           </fieldset>
         </div>
@@ -1359,10 +1359,14 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
     }
 
     private static readonly string[] fgItemFields_references = { "Name", "Email" };
-    private ElementReference fgAddRef_references;
+    private readonly Dictionary<string, ElementReference> fgAddRefs = new();
 
+    private bool FgHasItemErrors(object item, string[] fields) =>
+        fields.Any(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any());
+
+    // An outer repeater's checks include its inner repeaters' items.
     private bool FgRepeaterHasErrors_references() =>
-        Model.References.Any(item => fgItemFields_references.Any(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any()));
+        Model.References.Any(item => FgHasItemErrors(item, fgItemFields_references));
 
     private bool FgValidateRepeater_references()
     {
@@ -1456,11 +1460,17 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
     private int FgItemErrorCount()
     {
         var count = 0;
-        foreach (var item in Model.References) count += fgItemFields_references.Count(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any());
+        foreach (var item in Model.References)
+        {
+            count += fgItemFields_references.Count(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any());
+        }
         return count;
     }
 
-    private static string FgItemLabel(string path, int index) => (path switch
+    /** A list path without item indexes: "travellers.2.bags" → "travellers.bags". */
+    private static string FgTpl(string path) => System.Text.RegularExpressions.Regex.Replace(path, @"\\.\\d+(?=\\.|$)", "");
+
+    private static string FgItemLabel(string path, int index) => (FgTpl(path) switch
     {
         "references" => "Reference {n}",
         _ => "{n}",
@@ -1509,12 +1519,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         {
             var path = fgFocusAdd;
             fgFocusAdd = null;
-            var addRef = path switch
-            {
-                "references" => fgAddRef_references,
-                _ => default,
-            };
-            if (addRef.Context != null) await addRef.FocusAsync();
+            if (fgAddRefs.TryGetValue(path, out var addRef) && addRef.Context != null) await addRef.FocusAsync();
         }
     }
 
@@ -2366,7 +2371,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         <div class="col-span-12 md:col-span-12">
           <fieldset class="flex flex-col gap-1.5" aria-labelledby="fg_plan_legend">
             <legend class="text-sm font-semibold"><span id="fg_plan_legend">Plan</span><span class="ms-0.5 text-red-600" aria-hidden="true">*</span><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_plan_tip">?</button><span role="tooltip" id="fg_plan_tip" class="fg-tip-text">You can switch plans at any time</span></span></legend>
-            <InputRadioGroup @bind-Value="Model.Plan">
+            <InputRadioGroup Name="fg_plan" @bind-Value="Model.Plan">
               <div class="flex flex-col gap-1.5">
                 <label class="inline-flex items-center gap-2 text-sm" for="fg_plan_free">
                   <InputRadio id="fg_plan_free" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" Value="@("free")" />
@@ -2426,7 +2431,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         <div class="col-span-12 md:col-span-12">
           <fieldset class="flex flex-col gap-1.5">
             <legend class="text-sm font-semibold">Billing</legend>
-            <InputRadioGroup @bind-Value="Model.Billing">
+            <InputRadioGroup Name="fg_billing" @bind-Value="Model.Billing">
               <div class="flex flex-wrap">
                 <label class="relative -ms-px cursor-pointer border border-gray-300 px-4 py-2 text-sm font-semibold first:ms-0 first:rounded-s-md last:rounded-e-md has-[:checked]:z-10 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-600 has-[:checked]:text-white has-[:focus-visible]:z-20 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-300 dark:border-gray-600" for="fg_billing_monthly">
                   <InputRadio id="fg_billing_monthly" class="sr-only" Value="@("monthly")" />
@@ -2853,7 +2858,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
             </div>
             @if (Model.References.Count < 3)
             {
-                <button type="button" class="mt-4 rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-add="references" @ref="fgAddRef_references" @onclick='() => FgAddItem(Model.References, "references", 3)'>Add reference</button>
+                <button type="button" class="mt-4 rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-add="references" @ref='fgAddRefs["references"]' @onclick='() => FgAddItem(Model.References, "references", 3)'>Add reference</button>
             }
           </fieldset>
         </div>
@@ -3593,10 +3598,14 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
     }
 
     private static readonly string[] fgItemFields_references = { "Name", "Email" };
-    private ElementReference fgAddRef_references;
+    private readonly Dictionary<string, ElementReference> fgAddRefs = new();
 
+    private bool FgHasItemErrors(object item, string[] fields) =>
+        fields.Any(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any());
+
+    // An outer repeater's checks include its inner repeaters' items.
     private bool FgRepeaterHasErrors_references() =>
-        Model.References.Any(item => fgItemFields_references.Any(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any()));
+        Model.References.Any(item => FgHasItemErrors(item, fgItemFields_references));
 
     private bool FgValidateRepeater_references()
     {
@@ -3690,11 +3699,17 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
     private int FgItemErrorCount()
     {
         var count = 0;
-        foreach (var item in Model.References) count += fgItemFields_references.Count(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any());
+        foreach (var item in Model.References)
+        {
+            count += fgItemFields_references.Count(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any());
+        }
         return count;
     }
 
-    private static string FgItemLabel(string path, int index) => (path switch
+    /** A list path without item indexes: "travellers.2.bags" → "travellers.bags". */
+    private static string FgTpl(string path) => System.Text.RegularExpressions.Regex.Replace(path, @"\\.\\d+(?=\\.|$)", "");
+
+    private static string FgItemLabel(string path, int index) => (FgTpl(path) switch
     {
         "references" => "Reference {n}",
         _ => "{n}",
@@ -3743,12 +3758,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         {
             var path = fgFocusAdd;
             fgFocusAdd = null;
-            var addRef = path switch
-            {
-                "references" => fgAddRef_references,
-                _ => default,
-            };
-            if (addRef.Context != null) await addRef.FocusAsync();
+            if (fgAddRefs.TryGetValue(path, out var addRef) && addRef.Context != null) await addRef.FocusAsync();
         }
     }
 
@@ -4600,7 +4610,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <fieldset class="fg-field" aria-labelledby="fg_plan_legend">
             <legend class="fg-label"><span id="fg_plan_legend">Plan</span><span class="fg-required" aria-hidden="true">*</span><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_plan_tip">?</button><span role="tooltip" id="fg_plan_tip" class="fg-tip-text">You can switch plans at any time</span></span></legend>
-            <InputRadioGroup @bind-Value="Model.Plan">
+            <InputRadioGroup Name="fg_plan" @bind-Value="Model.Plan">
               <div class="fg-options">
                 <label class="fg-option" for="fg_plan_free">
                   <InputRadio id="fg_plan_free" class="fg-checkbox" Value="@("free")" />
@@ -4660,7 +4670,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <fieldset class="fg-field">
             <legend class="fg-label">Billing</legend>
-            <InputRadioGroup @bind-Value="Model.Billing">
+            <InputRadioGroup Name="fg_billing" @bind-Value="Model.Billing">
               <div class="fg-options fg-options--buttons">
                 <label class="fg-option fg-option--button" for="fg_billing_monthly">
                   <InputRadio id="fg_billing_monthly" class="fg-sr-only" Value="@("monthly")" />
@@ -5087,7 +5097,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             </div>
             @if (Model.References.Count < 3)
             {
-                <button type="button" class="fg-button fg-button--secondary fg-repeater-add" data-fg-add="references" @ref="fgAddRef_references" @onclick='() => FgAddItem(Model.References, "references", 3)'>Add reference</button>
+                <button type="button" class="fg-button fg-button--secondary fg-repeater-add" data-fg-add="references" @ref='fgAddRefs["references"]' @onclick='() => FgAddItem(Model.References, "references", 3)'>Add reference</button>
             }
           </fieldset>
         </div>
@@ -5827,10 +5837,14 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
     }
 
     private static readonly string[] fgItemFields_references = { "Name", "Email" };
-    private ElementReference fgAddRef_references;
+    private readonly Dictionary<string, ElementReference> fgAddRefs = new();
 
+    private bool FgHasItemErrors(object item, string[] fields) =>
+        fields.Any(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any());
+
+    // An outer repeater's checks include its inner repeaters' items.
     private bool FgRepeaterHasErrors_references() =>
-        Model.References.Any(item => fgItemFields_references.Any(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any()));
+        Model.References.Any(item => FgHasItemErrors(item, fgItemFields_references));
 
     private bool FgValidateRepeater_references()
     {
@@ -5924,11 +5938,17 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
     private int FgItemErrorCount()
     {
         var count = 0;
-        foreach (var item in Model.References) count += fgItemFields_references.Count(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any());
+        foreach (var item in Model.References)
+        {
+            count += fgItemFields_references.Count(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any());
+        }
         return count;
     }
 
-    private static string FgItemLabel(string path, int index) => (path switch
+    /** A list path without item indexes: "travellers.2.bags" → "travellers.bags". */
+    private static string FgTpl(string path) => System.Text.RegularExpressions.Regex.Replace(path, @"\\.\\d+(?=\\.|$)", "");
+
+    private static string FgItemLabel(string path, int index) => (FgTpl(path) switch
     {
         "references" => "Reference {n}",
         _ => "{n}",
@@ -5977,12 +5997,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         {
             var path = fgFocusAdd;
             fgFocusAdd = null;
-            var addRef = path switch
-            {
-                "references" => fgAddRef_references,
-                _ => default,
-            };
-            if (addRef.Context != null) await addRef.FocusAsync();
+            if (fgAddRefs.TryGetValue(path, out var addRef) && addRef.Context != null) await addRef.FocusAsync();
         }
     }
 
@@ -7969,12 +7984,13 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
         if (el) el.hidden = !c.test()
       })
-      Object.keys(FG_REPEATERS).forEach(function (path) {
-        fgItemElements(path).forEach(function (item, i) {
-          Array.prototype.forEach.call(item.querySelectorAll('[data-fg-icond]'), function (el) {
-            el.hidden = !FG_ITEM_CONDITIONS[Number(el.getAttribute('data-fg-icond'))](i)
-          })
-        })
+      // Item conditions get the enclosing items' indexes (outer i, inner j).
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fg-icond]'), function (el) {
+        var indexes = []
+        for (var p = el.parentElement; p; p = p.parentElement) {
+          if (p.hasAttribute('data-fg-item')) indexes.unshift(Number(p.getAttribute('data-fg-index')))
+        }
+        el.hidden = !FG_ITEM_CONDITIONS[Number(el.getAttribute('data-fg-icond'))](indexes[0], indexes[1])
       })
     }
 
@@ -7982,9 +7998,22 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
     // ids and data paths is stamped on add and rewritten when an item above
     // is removed (errors and touched state move with their item).
     var FG_REPEATERS = {"references":{"key":"references","min":0,"max":3,"initial":1,"label":"Reference {n}"}}
+    var ITEM_TOKENS = ["__i__","__j__"]
+    /** Initial items and add buttons of the repeaters under root (a new item's inner ones). */
+    function fgInitRepeaters(root) {
+      Array.prototype.forEach.call(root.querySelectorAll('[data-fg-add]'), function (button) {
+        var path = button.getAttribute('data-fg-add')
+        for (var n = 0; n < FG_REPEATERS[fgTpl(path)].initial; n++) fgAddItem(path, false)
+        button.addEventListener('click', function () { fgAddItem(button.getAttribute('data-fg-add'), true) })
+      })
+    }
+    // Is a repeater (concrete path) shown? An inner one asks its outer item (i).
     var FG_REPEATER_VISIBLE = {
       "references": function () { return true },
     }
+    // Names of each repeater's inner repeaters (one level).
+    var FG_INNER_REPEATERS = {"references":[]}
+    // Item validators take the item indexes (an inner item: i, j).
     var FG_ITEM_VALIDATORS = {
       'references': {
         'name': function (i) {
@@ -8001,9 +8030,15 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       },
     }
     var FG_ITEM_CONDITIONS = [
-      function (i) { return (fgGet("references." + i + ".may_contact") === true) },
-      function (i) { return (fgGet("references." + i + ".may_contact") === true) },
+      function (i, j) { return (fgGet("references." + i + ".may_contact") === true) },
+      function (i, j) { return (fgGet("references." + i + ".may_contact") === true) },
     ]
+    function fgTpl(path) {
+      return path.replace(/\\.\\d+(?=\\.|$)/g, '')
+    }
+    function fgPathIndexes(path) {
+      return path.split('.').filter(function (s) { return /^\\d+$/.test(s) }).map(Number)
+    }
     function fgItemElements(path) {
       var list = document.querySelector('[data-fg-items="' + path + '"]')
       return list ? Array.prototype.slice.call(list.children) : []
@@ -8012,20 +8047,23 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       return fgItemElements(path).map(function (_, i) { return i })
     }
     function fgItemLabel(path, index) {
-      return FG_REPEATERS[path].label.split('{n}').join(String(index + 1))
+      return FG_REPEATERS[fgTpl(path)].label.split('{n}').join(String(index + 1))
     }
+    // Every item field path of a shown repeater, inner items included.
     function fgItemPaths(path) {
-      if (!FG_REPEATER_VISIBLE[path]()) return []
-      var fields = Object.keys(FG_ITEM_VALIDATORS[path] || {})
+      var template = fgTpl(path)
+      if (!FG_REPEATER_VISIBLE[template](path)) return []
+      var fields = Object.keys(FG_ITEM_VALIDATORS[template] || {})
       var out = []
       fgItemElements(path).forEach(function (_, i) {
         fields.forEach(function (field) { out.push(path + '.' + i + '.' + field) })
+        ;(FG_INNER_REPEATERS[template] || []).forEach(function (name) { out = out.concat(fgItemPaths(path + '.' + i + '.' + name)) })
       })
       return out
     }
     function fgAllPaths() {
       var out = Object.keys(FG_VALIDATORS)
-      Object.keys(FG_REPEATERS).forEach(function (path) { out = out.concat(fgItemPaths(path)) })
+      ;["references"].forEach(function (path) { out = out.concat(fgItemPaths(path)) })
       return out
     }
     function fgStepPaths(meta, index) {
@@ -8036,15 +8074,22 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
     function fgValidatorFor(path) {
       if (FG_VALIDATORS[path]) return FG_VALIDATORS[path]
       var match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
-      var validate = match && FG_ITEM_VALIDATORS[match[1]] && FG_ITEM_VALIDATORS[match[1]][match[3]]
+      var validate = match && FG_ITEM_VALIDATORS[fgTpl(match[1])] && FG_ITEM_VALIDATORS[fgTpl(match[1])][match[3]]
       if (!validate) return null
-      return function () { return validate(Number(match[2])) }
+      var indexes = fgPathIndexes(path)
+      return function () { return validate.apply(null, indexes) }
+    }
+    /** Elements below root, including inner repeaters' <template> contents. */
+    function fgStampNodes(root) {
+      var nodes = (root.nodeType === 1 ? [root] : []).concat(Array.prototype.slice.call(root.querySelectorAll('*')))
+      nodes.filter(function (el) { return el.tagName === 'TEMPLATE' }).forEach(function (t) { nodes = nodes.concat(fgStampNodes(t.content)) })
+      return nodes
     }
     /** Rewrites one item's index in every attribute below it. */
     function fgStampIndex(root, path, from, to) {
-      var key = FG_REPEATERS[path].key
+      var key = path.replace(/\\./g, '_')
       var swaps = [[path + '.' + from + '.', path + '.' + to + '.'], [key + '_' + from + '_', key + '_' + to + '_']]
-      var nodes = [root].concat(Array.prototype.slice.call(root.querySelectorAll('*')))
+      var nodes = fgStampNodes(root)
       nodes.forEach(function (el) {
         Array.prototype.forEach.call(el.attributes, function (attr) {
           var value = attr.value
@@ -8055,7 +8100,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
     }
     function fgRefreshItems(path) {
       var list = fgItemElements(path)
-      var meta = FG_REPEATERS[path]
+      var meta = FG_REPEATERS[fgTpl(path)]
       // Re-index in two passes (via a unique temporary index), so two items
       // never share radio group names on the way: that would uncheck an answer.
       ;['t', ''].forEach(function (pass) {
@@ -8067,12 +8112,13 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         })
       })
       list.forEach(function (item, index) {
-        item.querySelector('[data-fg-item-label]').textContent = fgItemLabel(path, index)
-        var remove = item.querySelector('[data-fg-remove]')
+        // The item's own label and buttons (an inner item has its own too).
+        item.querySelector(':scope > [data-fg-item-label]').textContent = fgItemLabel(path, index)
+        var remove = item.querySelector(':scope > div > [data-fg-remove]')
         remove.setAttribute('aria-label', "Remove {label}".split('{label}').join(fgItemLabel(path, index)))
         remove.hidden = list.length <= meta.min
-        var up = item.querySelector('[data-fg-move="up"]')
-        var down = item.querySelector('[data-fg-move="down"]')
+        var up = item.querySelector(':scope > div > [data-fg-move="up"]')
+        var down = item.querySelector(':scope > div > [data-fg-move="down"]')
         if (up) {
           up.hidden = index === 0
           up.setAttribute('aria-label', "Move {label} up".split('{label}').join(fgItemLabel(path, index)))
@@ -8106,24 +8152,27 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       [touched, fgTags, fgDates, fgFiles].forEach(function (store) { fgRemapKeys(store, path, to) })
     }
     function fgAddItem(path, focus) {
-      var meta = FG_REPEATERS[path]
+      var meta = FG_REPEATERS[fgTpl(path)]
       var list = document.querySelector('[data-fg-items="' + path + '"]')
       var template = document.querySelector('[data-fg-template="' + path + '"]')
       var index = list.children.length
       if (meta.max !== null && index >= meta.max) return
       var item = template.content.firstElementChild.cloneNode(true)
-      fgStampIndex(item, path, '__i__', index)
+      fgStampIndex(item, path, ITEM_TOKENS[fgPathIndexes(path).length], index)
       item.setAttribute('data-fg-index', String(index))
-      item.querySelector('[data-fg-remove]').addEventListener('click', function () {
-        fgRemoveItem(path, Number(item.getAttribute('data-fg-index')))
+      // Paths are read on click: an outer item's index may have changed since.
+      function listPath() { return item.parentNode.getAttribute('data-fg-items') }
+      item.querySelector(':scope > div > [data-fg-remove]').addEventListener('click', function () {
+        fgRemoveItem(listPath(), Number(item.getAttribute('data-fg-index')))
       })
-      Array.prototype.forEach.call(item.querySelectorAll('[data-fg-move]'), function (button) {
+      Array.prototype.forEach.call(item.querySelectorAll(':scope > div > [data-fg-move]'), function (button) {
         button.addEventListener('click', function () {
-          fgMoveItem(path, Number(item.getAttribute('data-fg-index')), button.getAttribute('data-fg-move') === 'up' ? -1 : 1)
+          fgMoveItem(listPath(), Number(item.getAttribute('data-fg-index')), button.getAttribute('data-fg-move') === 'up' ? -1 : 1)
         })
       })
       list.appendChild(item)
       fgWire(item)
+      fgInitRepeaters(item)
       fgRefreshItems(path)
       updateConditions()
       if (focus) {
@@ -8145,14 +8194,14 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       fgRefreshItems(path)
       updateConditions()
       var moved = fgItemElements(path)[target]
-      var same = moved.querySelector('[data-fg-move="' + (delta < 0 ? 'up' : 'down') + '"]')
-      var other = moved.querySelector('[data-fg-move="' + (delta < 0 ? 'down' : 'up') + '"]')
+      var same = moved.querySelector(':scope > div > [data-fg-move="' + (delta < 0 ? 'up' : 'down') + '"]')
+      var other = moved.querySelector(':scope > div > [data-fg-move="' + (delta < 0 ? 'down' : 'up') + '"]')
       ;(same && !same.hidden ? same : other && !other.hidden ? other : moved).focus()
       fgAnnounce("{label} moved to position {n}".split('{label}').join(label).split('{n}').join(String(target + 1)))
     }
     function fgRemoveItem(path, index) {
       var items = fgItemElements(path)
-      if (items.length <= FG_REPEATERS[path].min) return
+      if (items.length <= FG_REPEATERS[fgTpl(path)].min) return
       var label = fgItemLabel(path, index)
       fgRemapItems(path, function (n) { return n === index ? null : n > index ? n - 1 : n })
       items[index].remove()
@@ -8225,9 +8274,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
     var fgFiles = {}
     // Keyed by template path (items: "crew.cv"); see fgTpl.
     var FG_FILE_MULTIPLE = {"account.avatar":false,"attachments":true}
-    function fgTpl(path) {
-      return path.replace(/\\.\\d+(?=\\.|$)/g, '')
-    }
+
     function fgFileSize(bytes) {
       return bytes >= 1024 * 1024 ? (bytes / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB'
     }
@@ -8585,7 +8632,8 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         Object.keys(fgDates).forEach(function (path) { fgDates[path] = []; fgPaintDates(path) })
         Object.keys(touched).forEach(function (path) { delete touched[path] })
         Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })
-        Object.keys(FG_REPEATERS).forEach(function (path) {
+        // Top-level repeaters; inner ones go with their outer items.
+        ;["references"].forEach(function (path) {
           fgItemElements(path).forEach(function (item) { item.remove() })
           for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
         })
@@ -8623,10 +8671,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       console.log('Form submitted', data)
     })
 
-    Object.keys(FG_REPEATERS).forEach(function (path) {
-      for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
-      document.querySelector('[data-fg-add="' + path + '"]').addEventListener('click', function () { fgAddItem(path, true) })
-    })
+    fgInitRepeaters(document)
     updateConditions()
   })()
   </script>
@@ -9918,12 +9963,13 @@ exports[`html target > snapshot (tailwind) 1`] = `
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
         if (el) el.hidden = !c.test()
       })
-      Object.keys(FG_REPEATERS).forEach(function (path) {
-        fgItemElements(path).forEach(function (item, i) {
-          Array.prototype.forEach.call(item.querySelectorAll('[data-fg-icond]'), function (el) {
-            el.hidden = !FG_ITEM_CONDITIONS[Number(el.getAttribute('data-fg-icond'))](i)
-          })
-        })
+      // Item conditions get the enclosing items' indexes (outer i, inner j).
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fg-icond]'), function (el) {
+        var indexes = []
+        for (var p = el.parentElement; p; p = p.parentElement) {
+          if (p.hasAttribute('data-fg-item')) indexes.unshift(Number(p.getAttribute('data-fg-index')))
+        }
+        el.hidden = !FG_ITEM_CONDITIONS[Number(el.getAttribute('data-fg-icond'))](indexes[0], indexes[1])
       })
     }
 
@@ -9931,9 +9977,22 @@ exports[`html target > snapshot (tailwind) 1`] = `
     // ids and data paths is stamped on add and rewritten when an item above
     // is removed (errors and touched state move with their item).
     var FG_REPEATERS = {"references":{"key":"references","min":0,"max":3,"initial":1,"label":"Reference {n}"}}
+    var ITEM_TOKENS = ["__i__","__j__"]
+    /** Initial items and add buttons of the repeaters under root (a new item's inner ones). */
+    function fgInitRepeaters(root) {
+      Array.prototype.forEach.call(root.querySelectorAll('[data-fg-add]'), function (button) {
+        var path = button.getAttribute('data-fg-add')
+        for (var n = 0; n < FG_REPEATERS[fgTpl(path)].initial; n++) fgAddItem(path, false)
+        button.addEventListener('click', function () { fgAddItem(button.getAttribute('data-fg-add'), true) })
+      })
+    }
+    // Is a repeater (concrete path) shown? An inner one asks its outer item (i).
     var FG_REPEATER_VISIBLE = {
       "references": function () { return true },
     }
+    // Names of each repeater's inner repeaters (one level).
+    var FG_INNER_REPEATERS = {"references":[]}
+    // Item validators take the item indexes (an inner item: i, j).
     var FG_ITEM_VALIDATORS = {
       'references': {
         'name': function (i) {
@@ -9950,9 +10009,15 @@ exports[`html target > snapshot (tailwind) 1`] = `
       },
     }
     var FG_ITEM_CONDITIONS = [
-      function (i) { return (fgGet("references." + i + ".may_contact") === true) },
-      function (i) { return (fgGet("references." + i + ".may_contact") === true) },
+      function (i, j) { return (fgGet("references." + i + ".may_contact") === true) },
+      function (i, j) { return (fgGet("references." + i + ".may_contact") === true) },
     ]
+    function fgTpl(path) {
+      return path.replace(/\\.\\d+(?=\\.|$)/g, '')
+    }
+    function fgPathIndexes(path) {
+      return path.split('.').filter(function (s) { return /^\\d+$/.test(s) }).map(Number)
+    }
     function fgItemElements(path) {
       var list = document.querySelector('[data-fg-items="' + path + '"]')
       return list ? Array.prototype.slice.call(list.children) : []
@@ -9961,20 +10026,23 @@ exports[`html target > snapshot (tailwind) 1`] = `
       return fgItemElements(path).map(function (_, i) { return i })
     }
     function fgItemLabel(path, index) {
-      return FG_REPEATERS[path].label.split('{n}').join(String(index + 1))
+      return FG_REPEATERS[fgTpl(path)].label.split('{n}').join(String(index + 1))
     }
+    // Every item field path of a shown repeater, inner items included.
     function fgItemPaths(path) {
-      if (!FG_REPEATER_VISIBLE[path]()) return []
-      var fields = Object.keys(FG_ITEM_VALIDATORS[path] || {})
+      var template = fgTpl(path)
+      if (!FG_REPEATER_VISIBLE[template](path)) return []
+      var fields = Object.keys(FG_ITEM_VALIDATORS[template] || {})
       var out = []
       fgItemElements(path).forEach(function (_, i) {
         fields.forEach(function (field) { out.push(path + '.' + i + '.' + field) })
+        ;(FG_INNER_REPEATERS[template] || []).forEach(function (name) { out = out.concat(fgItemPaths(path + '.' + i + '.' + name)) })
       })
       return out
     }
     function fgAllPaths() {
       var out = Object.keys(FG_VALIDATORS)
-      Object.keys(FG_REPEATERS).forEach(function (path) { out = out.concat(fgItemPaths(path)) })
+      ;["references"].forEach(function (path) { out = out.concat(fgItemPaths(path)) })
       return out
     }
     function fgStepPaths(meta, index) {
@@ -9985,15 +10053,22 @@ exports[`html target > snapshot (tailwind) 1`] = `
     function fgValidatorFor(path) {
       if (FG_VALIDATORS[path]) return FG_VALIDATORS[path]
       var match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
-      var validate = match && FG_ITEM_VALIDATORS[match[1]] && FG_ITEM_VALIDATORS[match[1]][match[3]]
+      var validate = match && FG_ITEM_VALIDATORS[fgTpl(match[1])] && FG_ITEM_VALIDATORS[fgTpl(match[1])][match[3]]
       if (!validate) return null
-      return function () { return validate(Number(match[2])) }
+      var indexes = fgPathIndexes(path)
+      return function () { return validate.apply(null, indexes) }
+    }
+    /** Elements below root, including inner repeaters' <template> contents. */
+    function fgStampNodes(root) {
+      var nodes = (root.nodeType === 1 ? [root] : []).concat(Array.prototype.slice.call(root.querySelectorAll('*')))
+      nodes.filter(function (el) { return el.tagName === 'TEMPLATE' }).forEach(function (t) { nodes = nodes.concat(fgStampNodes(t.content)) })
+      return nodes
     }
     /** Rewrites one item's index in every attribute below it. */
     function fgStampIndex(root, path, from, to) {
-      var key = FG_REPEATERS[path].key
+      var key = path.replace(/\\./g, '_')
       var swaps = [[path + '.' + from + '.', path + '.' + to + '.'], [key + '_' + from + '_', key + '_' + to + '_']]
-      var nodes = [root].concat(Array.prototype.slice.call(root.querySelectorAll('*')))
+      var nodes = fgStampNodes(root)
       nodes.forEach(function (el) {
         Array.prototype.forEach.call(el.attributes, function (attr) {
           var value = attr.value
@@ -10004,7 +10079,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
     }
     function fgRefreshItems(path) {
       var list = fgItemElements(path)
-      var meta = FG_REPEATERS[path]
+      var meta = FG_REPEATERS[fgTpl(path)]
       // Re-index in two passes (via a unique temporary index), so two items
       // never share radio group names on the way: that would uncheck an answer.
       ;['t', ''].forEach(function (pass) {
@@ -10016,12 +10091,13 @@ exports[`html target > snapshot (tailwind) 1`] = `
         })
       })
       list.forEach(function (item, index) {
-        item.querySelector('[data-fg-item-label]').textContent = fgItemLabel(path, index)
-        var remove = item.querySelector('[data-fg-remove]')
+        // The item's own label and buttons (an inner item has its own too).
+        item.querySelector(':scope > [data-fg-item-label]').textContent = fgItemLabel(path, index)
+        var remove = item.querySelector(':scope > div > [data-fg-remove]')
         remove.setAttribute('aria-label', "Remove {label}".split('{label}').join(fgItemLabel(path, index)))
         remove.hidden = list.length <= meta.min
-        var up = item.querySelector('[data-fg-move="up"]')
-        var down = item.querySelector('[data-fg-move="down"]')
+        var up = item.querySelector(':scope > div > [data-fg-move="up"]')
+        var down = item.querySelector(':scope > div > [data-fg-move="down"]')
         if (up) {
           up.hidden = index === 0
           up.setAttribute('aria-label', "Move {label} up".split('{label}').join(fgItemLabel(path, index)))
@@ -10055,24 +10131,27 @@ exports[`html target > snapshot (tailwind) 1`] = `
       [touched, fgTags, fgDates, fgFiles].forEach(function (store) { fgRemapKeys(store, path, to) })
     }
     function fgAddItem(path, focus) {
-      var meta = FG_REPEATERS[path]
+      var meta = FG_REPEATERS[fgTpl(path)]
       var list = document.querySelector('[data-fg-items="' + path + '"]')
       var template = document.querySelector('[data-fg-template="' + path + '"]')
       var index = list.children.length
       if (meta.max !== null && index >= meta.max) return
       var item = template.content.firstElementChild.cloneNode(true)
-      fgStampIndex(item, path, '__i__', index)
+      fgStampIndex(item, path, ITEM_TOKENS[fgPathIndexes(path).length], index)
       item.setAttribute('data-fg-index', String(index))
-      item.querySelector('[data-fg-remove]').addEventListener('click', function () {
-        fgRemoveItem(path, Number(item.getAttribute('data-fg-index')))
+      // Paths are read on click: an outer item's index may have changed since.
+      function listPath() { return item.parentNode.getAttribute('data-fg-items') }
+      item.querySelector(':scope > div > [data-fg-remove]').addEventListener('click', function () {
+        fgRemoveItem(listPath(), Number(item.getAttribute('data-fg-index')))
       })
-      Array.prototype.forEach.call(item.querySelectorAll('[data-fg-move]'), function (button) {
+      Array.prototype.forEach.call(item.querySelectorAll(':scope > div > [data-fg-move]'), function (button) {
         button.addEventListener('click', function () {
-          fgMoveItem(path, Number(item.getAttribute('data-fg-index')), button.getAttribute('data-fg-move') === 'up' ? -1 : 1)
+          fgMoveItem(listPath(), Number(item.getAttribute('data-fg-index')), button.getAttribute('data-fg-move') === 'up' ? -1 : 1)
         })
       })
       list.appendChild(item)
       fgWire(item)
+      fgInitRepeaters(item)
       fgRefreshItems(path)
       updateConditions()
       if (focus) {
@@ -10094,14 +10173,14 @@ exports[`html target > snapshot (tailwind) 1`] = `
       fgRefreshItems(path)
       updateConditions()
       var moved = fgItemElements(path)[target]
-      var same = moved.querySelector('[data-fg-move="' + (delta < 0 ? 'up' : 'down') + '"]')
-      var other = moved.querySelector('[data-fg-move="' + (delta < 0 ? 'down' : 'up') + '"]')
+      var same = moved.querySelector(':scope > div > [data-fg-move="' + (delta < 0 ? 'up' : 'down') + '"]')
+      var other = moved.querySelector(':scope > div > [data-fg-move="' + (delta < 0 ? 'down' : 'up') + '"]')
       ;(same && !same.hidden ? same : other && !other.hidden ? other : moved).focus()
       fgAnnounce("{label} moved to position {n}".split('{label}').join(label).split('{n}').join(String(target + 1)))
     }
     function fgRemoveItem(path, index) {
       var items = fgItemElements(path)
-      if (items.length <= FG_REPEATERS[path].min) return
+      if (items.length <= FG_REPEATERS[fgTpl(path)].min) return
       var label = fgItemLabel(path, index)
       fgRemapItems(path, function (n) { return n === index ? null : n > index ? n - 1 : n })
       items[index].remove()
@@ -10174,9 +10253,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
     var fgFiles = {}
     // Keyed by template path (items: "crew.cv"); see fgTpl.
     var FG_FILE_MULTIPLE = {"account.avatar":false,"attachments":true}
-    function fgTpl(path) {
-      return path.replace(/\\.\\d+(?=\\.|$)/g, '')
-    }
+
     function fgFileSize(bytes) {
       return bytes >= 1024 * 1024 ? (bytes / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB'
     }
@@ -10534,7 +10611,8 @@ exports[`html target > snapshot (tailwind) 1`] = `
         Object.keys(fgDates).forEach(function (path) { fgDates[path] = []; fgPaintDates(path) })
         Object.keys(touched).forEach(function (path) { delete touched[path] })
         Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })
-        Object.keys(FG_REPEATERS).forEach(function (path) {
+        // Top-level repeaters; inner ones go with their outer items.
+        ;["references"].forEach(function (path) {
           fgItemElements(path).forEach(function (item) { item.remove() })
           for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
         })
@@ -10572,10 +10650,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
       console.log('Form submitted', data)
     })
 
-    Object.keys(FG_REPEATERS).forEach(function (path) {
-      for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
-      document.querySelector('[data-fg-add="' + path + '"]').addEventListener('click', function () { fgAddItem(path, true) })
-    })
+    fgInitRepeaters(document)
     updateConditions()
   })()
   </script>
@@ -12025,12 +12100,13 @@ exports[`html target > snapshot (vanilla) 1`] = `
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
         if (el) el.hidden = !c.test()
       })
-      Object.keys(FG_REPEATERS).forEach(function (path) {
-        fgItemElements(path).forEach(function (item, i) {
-          Array.prototype.forEach.call(item.querySelectorAll('[data-fg-icond]'), function (el) {
-            el.hidden = !FG_ITEM_CONDITIONS[Number(el.getAttribute('data-fg-icond'))](i)
-          })
-        })
+      // Item conditions get the enclosing items' indexes (outer i, inner j).
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fg-icond]'), function (el) {
+        var indexes = []
+        for (var p = el.parentElement; p; p = p.parentElement) {
+          if (p.hasAttribute('data-fg-item')) indexes.unshift(Number(p.getAttribute('data-fg-index')))
+        }
+        el.hidden = !FG_ITEM_CONDITIONS[Number(el.getAttribute('data-fg-icond'))](indexes[0], indexes[1])
       })
     }
 
@@ -12038,9 +12114,22 @@ exports[`html target > snapshot (vanilla) 1`] = `
     // ids and data paths is stamped on add and rewritten when an item above
     // is removed (errors and touched state move with their item).
     var FG_REPEATERS = {"references":{"key":"references","min":0,"max":3,"initial":1,"label":"Reference {n}"}}
+    var ITEM_TOKENS = ["__i__","__j__"]
+    /** Initial items and add buttons of the repeaters under root (a new item's inner ones). */
+    function fgInitRepeaters(root) {
+      Array.prototype.forEach.call(root.querySelectorAll('[data-fg-add]'), function (button) {
+        var path = button.getAttribute('data-fg-add')
+        for (var n = 0; n < FG_REPEATERS[fgTpl(path)].initial; n++) fgAddItem(path, false)
+        button.addEventListener('click', function () { fgAddItem(button.getAttribute('data-fg-add'), true) })
+      })
+    }
+    // Is a repeater (concrete path) shown? An inner one asks its outer item (i).
     var FG_REPEATER_VISIBLE = {
       "references": function () { return true },
     }
+    // Names of each repeater's inner repeaters (one level).
+    var FG_INNER_REPEATERS = {"references":[]}
+    // Item validators take the item indexes (an inner item: i, j).
     var FG_ITEM_VALIDATORS = {
       'references': {
         'name': function (i) {
@@ -12057,9 +12146,15 @@ exports[`html target > snapshot (vanilla) 1`] = `
       },
     }
     var FG_ITEM_CONDITIONS = [
-      function (i) { return (fgGet("references." + i + ".may_contact") === true) },
-      function (i) { return (fgGet("references." + i + ".may_contact") === true) },
+      function (i, j) { return (fgGet("references." + i + ".may_contact") === true) },
+      function (i, j) { return (fgGet("references." + i + ".may_contact") === true) },
     ]
+    function fgTpl(path) {
+      return path.replace(/\\.\\d+(?=\\.|$)/g, '')
+    }
+    function fgPathIndexes(path) {
+      return path.split('.').filter(function (s) { return /^\\d+$/.test(s) }).map(Number)
+    }
     function fgItemElements(path) {
       var list = document.querySelector('[data-fg-items="' + path + '"]')
       return list ? Array.prototype.slice.call(list.children) : []
@@ -12068,20 +12163,23 @@ exports[`html target > snapshot (vanilla) 1`] = `
       return fgItemElements(path).map(function (_, i) { return i })
     }
     function fgItemLabel(path, index) {
-      return FG_REPEATERS[path].label.split('{n}').join(String(index + 1))
+      return FG_REPEATERS[fgTpl(path)].label.split('{n}').join(String(index + 1))
     }
+    // Every item field path of a shown repeater, inner items included.
     function fgItemPaths(path) {
-      if (!FG_REPEATER_VISIBLE[path]()) return []
-      var fields = Object.keys(FG_ITEM_VALIDATORS[path] || {})
+      var template = fgTpl(path)
+      if (!FG_REPEATER_VISIBLE[template](path)) return []
+      var fields = Object.keys(FG_ITEM_VALIDATORS[template] || {})
       var out = []
       fgItemElements(path).forEach(function (_, i) {
         fields.forEach(function (field) { out.push(path + '.' + i + '.' + field) })
+        ;(FG_INNER_REPEATERS[template] || []).forEach(function (name) { out = out.concat(fgItemPaths(path + '.' + i + '.' + name)) })
       })
       return out
     }
     function fgAllPaths() {
       var out = Object.keys(FG_VALIDATORS)
-      Object.keys(FG_REPEATERS).forEach(function (path) { out = out.concat(fgItemPaths(path)) })
+      ;["references"].forEach(function (path) { out = out.concat(fgItemPaths(path)) })
       return out
     }
     function fgStepPaths(meta, index) {
@@ -12092,15 +12190,22 @@ exports[`html target > snapshot (vanilla) 1`] = `
     function fgValidatorFor(path) {
       if (FG_VALIDATORS[path]) return FG_VALIDATORS[path]
       var match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
-      var validate = match && FG_ITEM_VALIDATORS[match[1]] && FG_ITEM_VALIDATORS[match[1]][match[3]]
+      var validate = match && FG_ITEM_VALIDATORS[fgTpl(match[1])] && FG_ITEM_VALIDATORS[fgTpl(match[1])][match[3]]
       if (!validate) return null
-      return function () { return validate(Number(match[2])) }
+      var indexes = fgPathIndexes(path)
+      return function () { return validate.apply(null, indexes) }
+    }
+    /** Elements below root, including inner repeaters' <template> contents. */
+    function fgStampNodes(root) {
+      var nodes = (root.nodeType === 1 ? [root] : []).concat(Array.prototype.slice.call(root.querySelectorAll('*')))
+      nodes.filter(function (el) { return el.tagName === 'TEMPLATE' }).forEach(function (t) { nodes = nodes.concat(fgStampNodes(t.content)) })
+      return nodes
     }
     /** Rewrites one item's index in every attribute below it. */
     function fgStampIndex(root, path, from, to) {
-      var key = FG_REPEATERS[path].key
+      var key = path.replace(/\\./g, '_')
       var swaps = [[path + '.' + from + '.', path + '.' + to + '.'], [key + '_' + from + '_', key + '_' + to + '_']]
-      var nodes = [root].concat(Array.prototype.slice.call(root.querySelectorAll('*')))
+      var nodes = fgStampNodes(root)
       nodes.forEach(function (el) {
         Array.prototype.forEach.call(el.attributes, function (attr) {
           var value = attr.value
@@ -12111,7 +12216,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
     }
     function fgRefreshItems(path) {
       var list = fgItemElements(path)
-      var meta = FG_REPEATERS[path]
+      var meta = FG_REPEATERS[fgTpl(path)]
       // Re-index in two passes (via a unique temporary index), so two items
       // never share radio group names on the way: that would uncheck an answer.
       ;['t', ''].forEach(function (pass) {
@@ -12123,12 +12228,13 @@ exports[`html target > snapshot (vanilla) 1`] = `
         })
       })
       list.forEach(function (item, index) {
-        item.querySelector('[data-fg-item-label]').textContent = fgItemLabel(path, index)
-        var remove = item.querySelector('[data-fg-remove]')
+        // The item's own label and buttons (an inner item has its own too).
+        item.querySelector(':scope > [data-fg-item-label]').textContent = fgItemLabel(path, index)
+        var remove = item.querySelector(':scope > div > [data-fg-remove]')
         remove.setAttribute('aria-label', "Remove {label}".split('{label}').join(fgItemLabel(path, index)))
         remove.hidden = list.length <= meta.min
-        var up = item.querySelector('[data-fg-move="up"]')
-        var down = item.querySelector('[data-fg-move="down"]')
+        var up = item.querySelector(':scope > div > [data-fg-move="up"]')
+        var down = item.querySelector(':scope > div > [data-fg-move="down"]')
         if (up) {
           up.hidden = index === 0
           up.setAttribute('aria-label', "Move {label} up".split('{label}').join(fgItemLabel(path, index)))
@@ -12162,24 +12268,27 @@ exports[`html target > snapshot (vanilla) 1`] = `
       [touched, fgTags, fgDates, fgFiles].forEach(function (store) { fgRemapKeys(store, path, to) })
     }
     function fgAddItem(path, focus) {
-      var meta = FG_REPEATERS[path]
+      var meta = FG_REPEATERS[fgTpl(path)]
       var list = document.querySelector('[data-fg-items="' + path + '"]')
       var template = document.querySelector('[data-fg-template="' + path + '"]')
       var index = list.children.length
       if (meta.max !== null && index >= meta.max) return
       var item = template.content.firstElementChild.cloneNode(true)
-      fgStampIndex(item, path, '__i__', index)
+      fgStampIndex(item, path, ITEM_TOKENS[fgPathIndexes(path).length], index)
       item.setAttribute('data-fg-index', String(index))
-      item.querySelector('[data-fg-remove]').addEventListener('click', function () {
-        fgRemoveItem(path, Number(item.getAttribute('data-fg-index')))
+      // Paths are read on click: an outer item's index may have changed since.
+      function listPath() { return item.parentNode.getAttribute('data-fg-items') }
+      item.querySelector(':scope > div > [data-fg-remove]').addEventListener('click', function () {
+        fgRemoveItem(listPath(), Number(item.getAttribute('data-fg-index')))
       })
-      Array.prototype.forEach.call(item.querySelectorAll('[data-fg-move]'), function (button) {
+      Array.prototype.forEach.call(item.querySelectorAll(':scope > div > [data-fg-move]'), function (button) {
         button.addEventListener('click', function () {
-          fgMoveItem(path, Number(item.getAttribute('data-fg-index')), button.getAttribute('data-fg-move') === 'up' ? -1 : 1)
+          fgMoveItem(listPath(), Number(item.getAttribute('data-fg-index')), button.getAttribute('data-fg-move') === 'up' ? -1 : 1)
         })
       })
       list.appendChild(item)
       fgWire(item)
+      fgInitRepeaters(item)
       fgRefreshItems(path)
       updateConditions()
       if (focus) {
@@ -12201,14 +12310,14 @@ exports[`html target > snapshot (vanilla) 1`] = `
       fgRefreshItems(path)
       updateConditions()
       var moved = fgItemElements(path)[target]
-      var same = moved.querySelector('[data-fg-move="' + (delta < 0 ? 'up' : 'down') + '"]')
-      var other = moved.querySelector('[data-fg-move="' + (delta < 0 ? 'down' : 'up') + '"]')
+      var same = moved.querySelector(':scope > div > [data-fg-move="' + (delta < 0 ? 'up' : 'down') + '"]')
+      var other = moved.querySelector(':scope > div > [data-fg-move="' + (delta < 0 ? 'down' : 'up') + '"]')
       ;(same && !same.hidden ? same : other && !other.hidden ? other : moved).focus()
       fgAnnounce("{label} moved to position {n}".split('{label}').join(label).split('{n}').join(String(target + 1)))
     }
     function fgRemoveItem(path, index) {
       var items = fgItemElements(path)
-      if (items.length <= FG_REPEATERS[path].min) return
+      if (items.length <= FG_REPEATERS[fgTpl(path)].min) return
       var label = fgItemLabel(path, index)
       fgRemapItems(path, function (n) { return n === index ? null : n > index ? n - 1 : n })
       items[index].remove()
@@ -12281,9 +12390,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
     var fgFiles = {}
     // Keyed by template path (items: "crew.cv"); see fgTpl.
     var FG_FILE_MULTIPLE = {"account.avatar":false,"attachments":true}
-    function fgTpl(path) {
-      return path.replace(/\\.\\d+(?=\\.|$)/g, '')
-    }
+
     function fgFileSize(bytes) {
       return bytes >= 1024 * 1024 ? (bytes / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB'
     }
@@ -12641,7 +12748,8 @@ exports[`html target > snapshot (vanilla) 1`] = `
         Object.keys(fgDates).forEach(function (path) { fgDates[path] = []; fgPaintDates(path) })
         Object.keys(touched).forEach(function (path) { delete touched[path] })
         Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })
-        Object.keys(FG_REPEATERS).forEach(function (path) {
+        // Top-level repeaters; inner ones go with their outer items.
+        ;["references"].forEach(function (path) {
           fgItemElements(path).forEach(function (item) { item.remove() })
           for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
         })
@@ -12679,10 +12787,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
       console.log('Form submitted', data)
     })
 
-    Object.keys(FG_REPEATERS).forEach(function (path) {
-      for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
-      document.querySelector('[data-fg-add="' + path + '"]').addEventListener('click', function () { fgAddItem(path, true) })
-    })
+    fgInitRepeaters(document)
     updateConditions()
   })()
   </script>
@@ -13017,9 +13122,15 @@ const FG_ITEM_LABELS: Record<string, string> = {
   'references': "Reference {n}",
 }
 
-const FG_REPEATER_VISIBLE: Record<string, (data: FormData) => boolean> = {
+/** Is a repeater (concrete path) shown? An inner one also asks its outer item. */
+const FG_REPEATER_VISIBLE: Record<string, (data: FormData, path: string) => boolean> = {
   'references': (_data: FormData) => true,
 }
+
+/** Names of each repeater's inner repeaters (one level). */
+const FG_INNER_REPEATERS: Record<string, string[]> = {"references":[]}
+
+/** The outer item an inner list (\`travellers.2.bags\`) belongs to. */
 
 const itemValidators: Record<string, Record<string, (item: Record<string, unknown>, data: FormData) => string | null>> = {
   'references': {
@@ -13042,18 +13153,22 @@ function fgList(data: FormData, path: string): Record<string, unknown>[] {
 }
 
 function fgItemLabel(path: string, index: number): string {
-  return (FG_ITEM_LABELS[path] ?? '').split('{n}').join(String(index + 1))
+  return (FG_ITEM_LABELS[fgTpl(path)] ?? '').split('{n}').join(String(index + 1))
 }
 
 function fgRemoveLabel(path: string, index: number): string {
   return "Remove {label}".split('{label}').join(fgItemLabel(path, index))
 }
 
-/** Every item field path of a visible repeater (validation, step gates). */
+/** Every item field path of a visible repeater, inner items included (validation, step gates). */
 function fgItemPaths(data: FormData, path: string): string[] {
-  if (!FG_REPEATER_VISIBLE[path]?.(data)) return []
-  const fields = Object.keys(itemValidators[path] ?? {})
-  return fgList(data, path).flatMap((_, i) => fields.map((field) => \`\${path}.\${i}.\${field}\`))
+  const template = fgTpl(path)
+  if (!FG_REPEATER_VISIBLE[template]?.(data, path)) return []
+  const fields = Object.keys(itemValidators[template] ?? {})
+  return fgList(data, path).flatMap((_, i) => [
+    ...fields.map((field) => \`\${path}.\${i}.\${field}\`),
+    ...(FG_INNER_REPEATERS[template] ?? []).flatMap((name) => fgItemPaths(data, \`\${path}.\${i}.\${name}\`)),
+  ])
 }
 
 /** Validator for a field path, including item paths like "people.2.name". */
@@ -13062,7 +13177,7 @@ function fgValidatorFor(path: string): ((data: FormData) => string | null) | und
   if (direct) return direct
   const match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
   if (!match) return undefined
-  const validate = itemValidators[match[1]!]?.[match[3]!]
+  const validate = itemValidators[fgTpl(match[1]!)]?.[match[3]!]
   if (!validate) return undefined
   return (data) => {
     const item = fgList(data, match[1]!)[Number(match[2])]
@@ -13072,7 +13187,7 @@ function fgValidatorFor(path: string): ((data: FormData) => string | null) | und
 
 /** All field paths to validate on submit (items included). */
 function fgAllPaths(data: FormData): string[] {
-  return [...Object.keys(validators), ...Object.keys(itemValidators).flatMap((path) => fgItemPaths(data, path))]
+  return [...Object.keys(validators), ...["references"].flatMap((path) => fgItemPaths(data, path))]
 }
 
 /**
@@ -13353,8 +13468,8 @@ export default function KitchenSinkForm({
 
   function fgAddItem(path: string): void {
     const list = fgList(form, path)
-    if (list.length >= (FG_ITEM_LIMITS[path]?.max ?? Number.POSITIVE_INFINITY)) return
-    setField(path, [...list, FG_ITEM_DEFAULTS[path]!()])
+    if (list.length >= (FG_ITEM_LIMITS[fgTpl(path)]?.max ?? Number.POSITIVE_INFINITY)) return
+    setField(path, [...list, FG_ITEM_DEFAULTS[fgTpl(path)]!()])
     fgPendingFocus.current = { path, index: list.length }
     fgAnnounce("{label} added".split('{label}').join(fgItemLabel(path, list.length)))
   }
@@ -13382,7 +13497,7 @@ export default function KitchenSinkForm({
 
   function fgRemoveItem(path: string, index: number): void {
     const list = fgList(form, path)
-    if (list.length <= (FG_ITEM_LIMITS[path]?.min ?? 0)) return
+    if (list.length <= (FG_ITEM_LIMITS[fgTpl(path)]?.min ?? 0)) return
     const label = fgItemLabel(path, index)
     fgKeyAt(path, list.length - 1)
     fgKeys.current[path]!.splice(index, 1)
@@ -14792,9 +14907,15 @@ const FG_ITEM_LABELS: Record<string, string> = {
   'references': "Reference {n}",
 }
 
-const FG_REPEATER_VISIBLE: Record<string, (data: FormData) => boolean> = {
+/** Is a repeater (concrete path) shown? An inner one also asks its outer item. */
+const FG_REPEATER_VISIBLE: Record<string, (data: FormData, path: string) => boolean> = {
   'references': (_data: FormData) => true,
 }
+
+/** Names of each repeater's inner repeaters (one level). */
+const FG_INNER_REPEATERS: Record<string, string[]> = {"references":[]}
+
+/** The outer item an inner list (\`travellers.2.bags\`) belongs to. */
 
 const itemValidators: Record<string, Record<string, (item: Record<string, unknown>, data: FormData) => string | null>> = {
   'references': {
@@ -14817,18 +14938,22 @@ function fgList(data: FormData, path: string): Record<string, unknown>[] {
 }
 
 function fgItemLabel(path: string, index: number): string {
-  return (FG_ITEM_LABELS[path] ?? '').split('{n}').join(String(index + 1))
+  return (FG_ITEM_LABELS[fgTpl(path)] ?? '').split('{n}').join(String(index + 1))
 }
 
 function fgRemoveLabel(path: string, index: number): string {
   return "Remove {label}".split('{label}').join(fgItemLabel(path, index))
 }
 
-/** Every item field path of a visible repeater (validation, step gates). */
+/** Every item field path of a visible repeater, inner items included (validation, step gates). */
 function fgItemPaths(data: FormData, path: string): string[] {
-  if (!FG_REPEATER_VISIBLE[path]?.(data)) return []
-  const fields = Object.keys(itemValidators[path] ?? {})
-  return fgList(data, path).flatMap((_, i) => fields.map((field) => \`\${path}.\${i}.\${field}\`))
+  const template = fgTpl(path)
+  if (!FG_REPEATER_VISIBLE[template]?.(data, path)) return []
+  const fields = Object.keys(itemValidators[template] ?? {})
+  return fgList(data, path).flatMap((_, i) => [
+    ...fields.map((field) => \`\${path}.\${i}.\${field}\`),
+    ...(FG_INNER_REPEATERS[template] ?? []).flatMap((name) => fgItemPaths(data, \`\${path}.\${i}.\${name}\`)),
+  ])
 }
 
 /** Validator for a field path, including item paths like "people.2.name". */
@@ -14837,7 +14962,7 @@ function fgValidatorFor(path: string): ((data: FormData) => string | null) | und
   if (direct) return direct
   const match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
   if (!match) return undefined
-  const validate = itemValidators[match[1]!]?.[match[3]!]
+  const validate = itemValidators[fgTpl(match[1]!)]?.[match[3]!]
   if (!validate) return undefined
   return (data) => {
     const item = fgList(data, match[1]!)[Number(match[2])]
@@ -14847,7 +14972,7 @@ function fgValidatorFor(path: string): ((data: FormData) => string | null) | und
 
 /** All field paths to validate on submit (items included). */
 function fgAllPaths(data: FormData): string[] {
-  return [...Object.keys(validators), ...Object.keys(itemValidators).flatMap((path) => fgItemPaths(data, path))]
+  return [...Object.keys(validators), ...["references"].flatMap((path) => fgItemPaths(data, path))]
 }
 
 /**
@@ -15128,8 +15253,8 @@ export default function KitchenSinkForm({
 
   function fgAddItem(path: string): void {
     const list = fgList(form, path)
-    if (list.length >= (FG_ITEM_LIMITS[path]?.max ?? Number.POSITIVE_INFINITY)) return
-    setField(path, [...list, FG_ITEM_DEFAULTS[path]!()])
+    if (list.length >= (FG_ITEM_LIMITS[fgTpl(path)]?.max ?? Number.POSITIVE_INFINITY)) return
+    setField(path, [...list, FG_ITEM_DEFAULTS[fgTpl(path)]!()])
     fgPendingFocus.current = { path, index: list.length }
     fgAnnounce("{label} added".split('{label}').join(fgItemLabel(path, list.length)))
   }
@@ -15157,7 +15282,7 @@ export default function KitchenSinkForm({
 
   function fgRemoveItem(path: string, index: number): void {
     const list = fgList(form, path)
-    if (list.length <= (FG_ITEM_LIMITS[path]?.min ?? 0)) return
+    if (list.length <= (FG_ITEM_LIMITS[fgTpl(path)]?.min ?? 0)) return
     const label = fgItemLabel(path, index)
     fgKeyAt(path, list.length - 1)
     fgKeys.current[path]!.splice(index, 1)
@@ -16575,9 +16700,15 @@ const FG_ITEM_LABELS: Record<string, string> = {
   'references': "Reference {n}",
 }
 
-const FG_REPEATER_VISIBLE: Record<string, (data: FormData) => boolean> = {
+/** Is a repeater (concrete path) shown? An inner one also asks its outer item. */
+const FG_REPEATER_VISIBLE: Record<string, (data: FormData, path: string) => boolean> = {
   'references': (_data: FormData) => true,
 }
+
+/** Names of each repeater's inner repeaters (one level). */
+const FG_INNER_REPEATERS: Record<string, string[]> = {"references":[]}
+
+/** The outer item an inner list (\`travellers.2.bags\`) belongs to. */
 
 const itemValidators: Record<string, Record<string, (item: Record<string, unknown>, data: FormData) => string | null>> = {
   'references': {
@@ -16600,18 +16731,22 @@ function fgList(data: FormData, path: string): Record<string, unknown>[] {
 }
 
 function fgItemLabel(path: string, index: number): string {
-  return (FG_ITEM_LABELS[path] ?? '').split('{n}').join(String(index + 1))
+  return (FG_ITEM_LABELS[fgTpl(path)] ?? '').split('{n}').join(String(index + 1))
 }
 
 function fgRemoveLabel(path: string, index: number): string {
   return "Remove {label}".split('{label}').join(fgItemLabel(path, index))
 }
 
-/** Every item field path of a visible repeater (validation, step gates). */
+/** Every item field path of a visible repeater, inner items included (validation, step gates). */
 function fgItemPaths(data: FormData, path: string): string[] {
-  if (!FG_REPEATER_VISIBLE[path]?.(data)) return []
-  const fields = Object.keys(itemValidators[path] ?? {})
-  return fgList(data, path).flatMap((_, i) => fields.map((field) => \`\${path}.\${i}.\${field}\`))
+  const template = fgTpl(path)
+  if (!FG_REPEATER_VISIBLE[template]?.(data, path)) return []
+  const fields = Object.keys(itemValidators[template] ?? {})
+  return fgList(data, path).flatMap((_, i) => [
+    ...fields.map((field) => \`\${path}.\${i}.\${field}\`),
+    ...(FG_INNER_REPEATERS[template] ?? []).flatMap((name) => fgItemPaths(data, \`\${path}.\${i}.\${name}\`)),
+  ])
 }
 
 /** Validator for a field path, including item paths like "people.2.name". */
@@ -16620,7 +16755,7 @@ function fgValidatorFor(path: string): ((data: FormData) => string | null) | und
   if (direct) return direct
   const match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
   if (!match) return undefined
-  const validate = itemValidators[match[1]!]?.[match[3]!]
+  const validate = itemValidators[fgTpl(match[1]!)]?.[match[3]!]
   if (!validate) return undefined
   return (data) => {
     const item = fgList(data, match[1]!)[Number(match[2])]
@@ -16630,7 +16765,7 @@ function fgValidatorFor(path: string): ((data: FormData) => string | null) | und
 
 /** All field paths to validate on submit (items included). */
 function fgAllPaths(data: FormData): string[] {
-  return [...Object.keys(validators), ...Object.keys(itemValidators).flatMap((path) => fgItemPaths(data, path))]
+  return [...Object.keys(validators), ...["references"].flatMap((path) => fgItemPaths(data, path))]
 }
 
 /**
@@ -16911,8 +17046,8 @@ export default function KitchenSinkForm({
 
   function fgAddItem(path: string): void {
     const list = fgList(form, path)
-    if (list.length >= (FG_ITEM_LIMITS[path]?.max ?? Number.POSITIVE_INFINITY)) return
-    setField(path, [...list, FG_ITEM_DEFAULTS[path]!()])
+    if (list.length >= (FG_ITEM_LIMITS[fgTpl(path)]?.max ?? Number.POSITIVE_INFINITY)) return
+    setField(path, [...list, FG_ITEM_DEFAULTS[fgTpl(path)]!()])
     fgPendingFocus.current = { path, index: list.length }
     fgAnnounce("{label} added".split('{label}').join(fgItemLabel(path, list.length)))
   }
@@ -16940,7 +17075,7 @@ export default function KitchenSinkForm({
 
   function fgRemoveItem(path: string, index: number): void {
     const list = fgList(form, path)
-    if (list.length <= (FG_ITEM_LIMITS[path]?.min ?? 0)) return
+    if (list.length <= (FG_ITEM_LIMITS[fgTpl(path)]?.min ?? 0)) return
     const label = fgItemLabel(path, index)
     fgKeyAt(path, list.length - 1)
     fgKeys.current[path]!.splice(index, 1)
@@ -18422,7 +18557,7 @@ function revalidate(path: string): void {
 
 function validateAll(): boolean {
   let ok = true
-  for (const path of [...Object.keys(validators), ...Object.keys(fgItemValidators).flatMap(fgItemPaths)]) {
+  for (const path of [...Object.keys(validators), ...["references"].flatMap(fgItemPaths)]) {
     touched.add(path)
     runValidator(path)
     if (errors[path]) ok = false
@@ -18547,9 +18682,12 @@ const fgItemLimits: Record<string, { min: number; max: number }> = {
 const fgItemLabels: Record<string, string> = {
   'references': "Reference {n}",
 }
-const fgRepeaterVisible: Record<string, () => boolean> = {
-  'references': () => true,
+/** Is a repeater (concrete path) shown? An inner one also asks its outer item. */
+const fgRepeaterVisible: Record<string, (path: string) => boolean> = {
+  'references': (_path) => true,
 }
+/** Names of each repeater's inner repeaters (one level). */
+const fgInnerRepeaters: Record<string, string[]> = {"references":[]}
 const fgItemValidators: Record<string, Record<string, (item: Record<string, unknown>) => string | null>> = {
   'references': {
     'name': function (item: Record<string, unknown>) {
@@ -18569,8 +18707,9 @@ const fgItemValidators: Record<string, Record<string, (item: Record<string, unkn
 function fgList(path: string): Record<string, unknown>[] {
   return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form) as Record<string, unknown>[]
 }
+/** The outer item an inner list (\`travellers.2.bags\`) belongs to. */
 function fgItemLabel(path: string, index: number): string {
-  return (fgItemLabels[path] ?? '').split('{n}').join(String(index + 1))
+  return (fgItemLabels[fgTpl(path)] ?? '').split('{n}').join(String(index + 1))
 }
 function fgRemoveLabel(path: string, index: number): string {
   return "Remove {label}".split('{label}').join(fgItemLabel(path, index))
@@ -18579,15 +18718,19 @@ function fgRemoveLabel(path: string, index: number): string {
 function fgItemValidator(path: string): (() => string | null) | undefined {
   const match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
   if (!match) return undefined
-  const validate = fgItemValidators[match[1]!]?.[match[3]!]
+  const validate = fgItemValidators[fgTpl(match[1]!)]?.[match[3]!]
   const item = fgList(match[1]!)[Number(match[2])]
   return validate && item ? () => validate(item) : undefined
 }
-/** Every item field path of a repeater (for validation and step gates). */
+/** Every item field path of a repeater, inner items included (validation, step gates). */
 function fgItemPaths(path: string): string[] {
-  if (!fgRepeaterVisible[path]?.()) return []
-  const fields = Object.keys(fgItemValidators[path] ?? {})
-  return fgList(path).flatMap((_, i) => fields.map((field) => \`\${path}.\${i}.\${field}\`))
+  const template = fgTpl(path)
+  if (!fgRepeaterVisible[template]?.(path)) return []
+  const fields = Object.keys(fgItemValidators[template] ?? {})
+  return fgList(path).flatMap((_, i) => [
+    ...fields.map((field) => \`\${path}.\${i}.\${field}\`),
+    ...(fgInnerRepeaters[template] ?? []).flatMap((name) => fgItemPaths(\`\${path}.\${i}.\${name}\`)),
+  ])
 }
 const fgItemKeys = new WeakMap<object, number>()
 let fgNextItemKey = 0
@@ -18635,8 +18778,8 @@ function fgShiftItems(path: string, removed: number): void {
 }
 async function fgAddItem(path: string): Promise<void> {
   const list = fgList(path)
-  if (list.length >= (fgItemLimits[path]?.max ?? Number.POSITIVE_INFINITY)) return
-  list.push(fgItemDefaults[path]!())
+  if (list.length >= (fgItemLimits[fgTpl(path)]?.max ?? Number.POSITIVE_INFINITY)) return
+  list.push(fgItemDefaults[fgTpl(path)]!())
   await nextTick()
   const item = fgItemElements(path)[list.length - 1]
   const control = item?.querySelector<HTMLElement>('input:not([type=hidden]), select, textarea')
@@ -18662,7 +18805,7 @@ async function fgMoveItem(path: string, index: number, delta: -1 | 1): Promise<v
 }
 async function fgRemoveItem(path: string, index: number): Promise<void> {
   const list = fgList(path)
-  if (list.length <= (fgItemLimits[path]?.min ?? 0)) return
+  if (list.length <= (fgItemLimits[fgTpl(path)]?.min ?? 0)) return
   const label = fgItemLabel(path, index)
   fgShiftItems(path, index)
   list.splice(index, 1)
@@ -20200,7 +20343,7 @@ function revalidate(path: string): void {
 
 function validateAll(): boolean {
   let ok = true
-  for (const path of [...Object.keys(validators), ...Object.keys(fgItemValidators).flatMap(fgItemPaths)]) {
+  for (const path of [...Object.keys(validators), ...["references"].flatMap(fgItemPaths)]) {
     touched.add(path)
     runValidator(path)
     if (errors[path]) ok = false
@@ -20325,9 +20468,12 @@ const fgItemLimits: Record<string, { min: number; max: number }> = {
 const fgItemLabels: Record<string, string> = {
   'references': "Reference {n}",
 }
-const fgRepeaterVisible: Record<string, () => boolean> = {
-  'references': () => true,
+/** Is a repeater (concrete path) shown? An inner one also asks its outer item. */
+const fgRepeaterVisible: Record<string, (path: string) => boolean> = {
+  'references': (_path) => true,
 }
+/** Names of each repeater's inner repeaters (one level). */
+const fgInnerRepeaters: Record<string, string[]> = {"references":[]}
 const fgItemValidators: Record<string, Record<string, (item: Record<string, unknown>) => string | null>> = {
   'references': {
     'name': function (item: Record<string, unknown>) {
@@ -20347,8 +20493,9 @@ const fgItemValidators: Record<string, Record<string, (item: Record<string, unkn
 function fgList(path: string): Record<string, unknown>[] {
   return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form) as Record<string, unknown>[]
 }
+/** The outer item an inner list (\`travellers.2.bags\`) belongs to. */
 function fgItemLabel(path: string, index: number): string {
-  return (fgItemLabels[path] ?? '').split('{n}').join(String(index + 1))
+  return (fgItemLabels[fgTpl(path)] ?? '').split('{n}').join(String(index + 1))
 }
 function fgRemoveLabel(path: string, index: number): string {
   return "Remove {label}".split('{label}').join(fgItemLabel(path, index))
@@ -20357,15 +20504,19 @@ function fgRemoveLabel(path: string, index: number): string {
 function fgItemValidator(path: string): (() => string | null) | undefined {
   const match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
   if (!match) return undefined
-  const validate = fgItemValidators[match[1]!]?.[match[3]!]
+  const validate = fgItemValidators[fgTpl(match[1]!)]?.[match[3]!]
   const item = fgList(match[1]!)[Number(match[2])]
   return validate && item ? () => validate(item) : undefined
 }
-/** Every item field path of a repeater (for validation and step gates). */
+/** Every item field path of a repeater, inner items included (validation, step gates). */
 function fgItemPaths(path: string): string[] {
-  if (!fgRepeaterVisible[path]?.()) return []
-  const fields = Object.keys(fgItemValidators[path] ?? {})
-  return fgList(path).flatMap((_, i) => fields.map((field) => \`\${path}.\${i}.\${field}\`))
+  const template = fgTpl(path)
+  if (!fgRepeaterVisible[template]?.(path)) return []
+  const fields = Object.keys(fgItemValidators[template] ?? {})
+  return fgList(path).flatMap((_, i) => [
+    ...fields.map((field) => \`\${path}.\${i}.\${field}\`),
+    ...(fgInnerRepeaters[template] ?? []).flatMap((name) => fgItemPaths(\`\${path}.\${i}.\${name}\`)),
+  ])
 }
 const fgItemKeys = new WeakMap<object, number>()
 let fgNextItemKey = 0
@@ -20413,8 +20564,8 @@ function fgShiftItems(path: string, removed: number): void {
 }
 async function fgAddItem(path: string): Promise<void> {
   const list = fgList(path)
-  if (list.length >= (fgItemLimits[path]?.max ?? Number.POSITIVE_INFINITY)) return
-  list.push(fgItemDefaults[path]!())
+  if (list.length >= (fgItemLimits[fgTpl(path)]?.max ?? Number.POSITIVE_INFINITY)) return
+  list.push(fgItemDefaults[fgTpl(path)]!())
   await nextTick()
   const item = fgItemElements(path)[list.length - 1]
   const control = item?.querySelector<HTMLElement>('input:not([type=hidden]), select, textarea')
@@ -20440,7 +20591,7 @@ async function fgMoveItem(path: string, index: number, delta: -1 | 1): Promise<v
 }
 async function fgRemoveItem(path: string, index: number): Promise<void> {
   const list = fgList(path)
-  if (list.length <= (fgItemLimits[path]?.min ?? 0)) return
+  if (list.length <= (fgItemLimits[fgTpl(path)]?.min ?? 0)) return
   const label = fgItemLabel(path, index)
   fgShiftItems(path, index)
   list.splice(index, 1)
@@ -21986,7 +22137,7 @@ function revalidate(path: string): void {
 
 function validateAll(): boolean {
   let ok = true
-  for (const path of [...Object.keys(validators), ...Object.keys(fgItemValidators).flatMap(fgItemPaths)]) {
+  for (const path of [...Object.keys(validators), ...["references"].flatMap(fgItemPaths)]) {
     touched.add(path)
     runValidator(path)
     if (errors[path]) ok = false
@@ -22111,9 +22262,12 @@ const fgItemLimits: Record<string, { min: number; max: number }> = {
 const fgItemLabels: Record<string, string> = {
   'references': "Reference {n}",
 }
-const fgRepeaterVisible: Record<string, () => boolean> = {
-  'references': () => true,
+/** Is a repeater (concrete path) shown? An inner one also asks its outer item. */
+const fgRepeaterVisible: Record<string, (path: string) => boolean> = {
+  'references': (_path) => true,
 }
+/** Names of each repeater's inner repeaters (one level). */
+const fgInnerRepeaters: Record<string, string[]> = {"references":[]}
 const fgItemValidators: Record<string, Record<string, (item: Record<string, unknown>) => string | null>> = {
   'references': {
     'name': function (item: Record<string, unknown>) {
@@ -22133,8 +22287,9 @@ const fgItemValidators: Record<string, Record<string, (item: Record<string, unkn
 function fgList(path: string): Record<string, unknown>[] {
   return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form) as Record<string, unknown>[]
 }
+/** The outer item an inner list (\`travellers.2.bags\`) belongs to. */
 function fgItemLabel(path: string, index: number): string {
-  return (fgItemLabels[path] ?? '').split('{n}').join(String(index + 1))
+  return (fgItemLabels[fgTpl(path)] ?? '').split('{n}').join(String(index + 1))
 }
 function fgRemoveLabel(path: string, index: number): string {
   return "Remove {label}".split('{label}').join(fgItemLabel(path, index))
@@ -22143,15 +22298,19 @@ function fgRemoveLabel(path: string, index: number): string {
 function fgItemValidator(path: string): (() => string | null) | undefined {
   const match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
   if (!match) return undefined
-  const validate = fgItemValidators[match[1]!]?.[match[3]!]
+  const validate = fgItemValidators[fgTpl(match[1]!)]?.[match[3]!]
   const item = fgList(match[1]!)[Number(match[2])]
   return validate && item ? () => validate(item) : undefined
 }
-/** Every item field path of a repeater (for validation and step gates). */
+/** Every item field path of a repeater, inner items included (validation, step gates). */
 function fgItemPaths(path: string): string[] {
-  if (!fgRepeaterVisible[path]?.()) return []
-  const fields = Object.keys(fgItemValidators[path] ?? {})
-  return fgList(path).flatMap((_, i) => fields.map((field) => \`\${path}.\${i}.\${field}\`))
+  const template = fgTpl(path)
+  if (!fgRepeaterVisible[template]?.(path)) return []
+  const fields = Object.keys(fgItemValidators[template] ?? {})
+  return fgList(path).flatMap((_, i) => [
+    ...fields.map((field) => \`\${path}.\${i}.\${field}\`),
+    ...(fgInnerRepeaters[template] ?? []).flatMap((name) => fgItemPaths(\`\${path}.\${i}.\${name}\`)),
+  ])
 }
 const fgItemKeys = new WeakMap<object, number>()
 let fgNextItemKey = 0
@@ -22199,8 +22358,8 @@ function fgShiftItems(path: string, removed: number): void {
 }
 async function fgAddItem(path: string): Promise<void> {
   const list = fgList(path)
-  if (list.length >= (fgItemLimits[path]?.max ?? Number.POSITIVE_INFINITY)) return
-  list.push(fgItemDefaults[path]!())
+  if (list.length >= (fgItemLimits[fgTpl(path)]?.max ?? Number.POSITIVE_INFINITY)) return
+  list.push(fgItemDefaults[fgTpl(path)]!())
   await nextTick()
   const item = fgItemElements(path)[list.length - 1]
   const control = item?.querySelector<HTMLElement>('input:not([type=hidden]), select, textarea')
@@ -22226,7 +22385,7 @@ async function fgMoveItem(path: string, index: number, delta: -1 | 1): Promise<v
 }
 async function fgRemoveItem(path: string, index: number): Promise<void> {
   const list = fgList(path)
-  if (list.length <= (fgItemLimits[path]?.min ?? 0)) return
+  if (list.length <= (fgItemLimits[fgTpl(path)]?.min ?? 0)) return
   const label = fgItemLabel(path, index)
   fgShiftItems(path, index)
   list.splice(index, 1)

@@ -4,6 +4,7 @@
 import { computed, inject, provide, reactive, watch } from 'vue'
 import { FORM_CONTEXT, ITEM_SCOPE } from '../context'
 import { MESSAGES, fill } from '../messages'
+import { templatePath } from '../repeater'
 import type { ElementNode } from '../schema'
 import FgNode from './FgNode.vue'
 
@@ -24,11 +25,17 @@ const emit = defineEmits<{ remove: []; move: [delta: -1 | 1] }>()
 const ctx = inject(FORM_CONTEXT)
 const messages = computed(() => ctx?.messages?.() ?? MESSAGES.en)
 
-const scope = reactive({ template: props.path, actual: `${props.path}.${props.index}`, index: props.index, key: props.itemKey })
+// Conditions name siblings by template path (no indexes): `crew.bags.x`.
+const scope = reactive({
+  template: templatePath(props.path),
+  actual: `${props.path}.${props.index}`,
+  index: props.index,
+  key: props.itemKey,
+})
 watch(
   () => [props.path, props.index] as const,
   ([path, index]) => {
-    scope.template = path
+    scope.template = templatePath(path)
     scope.actual = `${path}.${index}`
     scope.index = index
   },

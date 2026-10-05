@@ -65,25 +65,32 @@ function optionsOf(node: ElementNode): ConditionOption[] {
 export function listConditionSources(tree: ElementNode[], excludeId: string): ConditionSource[] {
   const sources: ConditionSource[] = []
   // Fields inside a repeater exist once per item: only fields of the SAME
-  // repeater (resolved to the same item at runtime) may reference them.
-  const parent = findParent(tree, excludeId)
-  const ownRepeater = parent && isRepeater(parent) ? parent : null
+  // repeater (resolved to the same item at runtime) may reference them. The
+  // nearest repeater ancestor counts (layout containers may sit between);
+  // an outer repeater's own fields are out of reach from an inner item.
+  const ancestors: ElementNode[] = []
+  for (let parent = findParent(tree, excludeId); parent; parent = findParent(tree, parent.id)) ancestors.push(parent)
+  const ownRepeater = ancestors.find((a) => isRepeater(a)) ?? null
   let prefix = ''
-  const walk = (nodes: ElementNode[], base: string): void => {
+  const walk = (nodes: ElementNode[], base: string, collect: boolean): void => {
     for (const node of nodes) {
       if (node.id === excludeId) continue
       const core = getCoreElement(node.type)
       if (!core) continue
       if (isRepeater(node)) {
-        if (node.id === ownRepeater?.id && node.name) {
+        if (!node.name) continue
+        if (node.id === ownRepeater?.id) {
           const label = node.props['label']
           prefix = `${typeof label === 'string' && label !== '' ? label : node.name} › `
-          walk(node.children ?? [], joinPath(base, node.name))
+          walk(node.children ?? [], joinPath(base, node.name), true)
           prefix = ''
+        } else if (ancestors.some((a) => a.id === node.id)) {
+          // An outer repeater: pass through to the inner one, collecting nothing.
+          walk(node.children ?? [], joinPath(base, node.name), false)
         }
       } else if (core.isContainer) {
-        walk(node.children ?? [], node.name ? joinPath(base, node.name) : base)
-      } else if (core.hasValue && node.name) {
+        walk(node.children ?? [], node.name ? joinPath(base, node.name) : base, collect)
+      } else if (collect && core.hasValue && node.name) {
         const label = node.props['label']
         sources.push({
           path: joinPath(base, node.name),
@@ -94,7 +101,7 @@ export function listConditionSources(tree: ElementNode[], excludeId: string): Co
       }
     }
   }
-  walk(tree, '')
+  walk(tree, '', true)
   return sources
 }
 

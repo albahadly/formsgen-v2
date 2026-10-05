@@ -3,7 +3,8 @@ import { computed } from 'vue'
 import { t, tOr, tText } from '@/i18n'
 import { getElement } from '@/registry'
 import type { PanelControl } from '@/registry/types'
-import { useBuilderStore } from '@/stores/builder'
+import { findParent, getCoreElement, isRepeater } from '@formsgen/renderer'
+import { repeaterDepthAt, useBuilderStore } from '@/stores/builder'
 import ControlAppearance from './controls/ControlAppearance.vue'
 import ControlColspan from './controls/ControlColspan.vue'
 import ControlCountry from './controls/ControlCountry.vue'
@@ -19,6 +20,12 @@ import ControlValidation from './controls/ControlValidation.vue'
 const store = useBuilderStore()
 const node = computed(() => store.selectedNode)
 const definition = computed(() => (node.value ? getElement(node.value.type) : undefined))
+// A group inside a repeater item is layout only (item data stays flat).
+const layoutOnly = computed(() => {
+  const current = node.value
+  if (!current || isRepeater(current) || !getCoreElement(current.type)?.isContainer) return false
+  return repeaterDepthAt(store.schema.tree, findParent(store.schema.tree, current.id)?.id ?? null) > 0
+})
 
 function key(control: PanelControl, index: number): string {
   return 'prop' in control ? `${control.kind}-${control.prop}` : `${control.kind}-${index}`
@@ -100,6 +107,13 @@ function key(control: PanelControl, index: number): string {
             :prop="control.prop"
             :label="control.label"
           />
+          <p
+            v-else-if="control.kind === 'name' && layoutOnly"
+            class="text-xs text-gray-500"
+            data-testid="name-layout-only"
+          >
+            {{ t('panel.layoutOnlyInItem') }}
+          </p>
           <ControlName
             v-else-if="control.kind === 'name'"
             :node="node"

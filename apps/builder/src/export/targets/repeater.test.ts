@@ -1,7 +1,7 @@
 import { parseFormSchema, type ElementNode, type FormSchema } from '@formsgen/renderer'
 import { describe, expect, it } from 'vitest'
 import { listConditionSources } from '@/conditions/sources'
-import { acceptsChildType } from '@/stores/builder'
+import { acceptsChildType, canDropInto } from '@/stores/builder'
 import { getCssAdapter, type CssFrameworkId } from '../css'
 import { defaultsObject, formDataType } from '../structure'
 import { getTarget } from './index'
@@ -37,12 +37,18 @@ const out = (target: string, fw: CssFrameworkId = 'vanilla') =>
     .join('\n')
 
 describe('repeater in the builder', () => {
-  it('accepts every field and static element, but no containers', () => {
-    for (const type of ['text', 'heading', 'tags', 'file', 'imageupload', 'rangeslider', 'daterange', 'dates', 'matrix', 'phone']) {
+  it('accepts every field, static element, layout container and one inner repeater; never tabs/steps', () => {
+    for (const type of ['text', 'heading', 'tags', 'file', 'imageupload', 'rangeslider', 'daterange', 'dates', 'matrix', 'phone', 'group', 'columns', 'repeater']) {
       expect(acceptsChildType('repeater', type), type).toBe(true)
     }
-    expect(acceptsChildType('repeater', 'group')).toBe(false)
-    expect(acceptsChildType('repeater', 'repeater')).toBe(false)
+    expect(acceptsChildType('repeater', 'tabs')).toBe(false)
+    expect(acceptsChildType('repeater', 'steps')).toBe(false)
+    const tree: ElementNode[] = [{ ...people, children: [{ id: 'in', type: 'repeater', name: 'inner', props: {}, children: [] }] }]
+    const third: ElementNode = { id: 'x', type: 'repeater', name: 'x', props: {} }
+    expect(canDropInto(tree, third, 'p')).toBe(true) // a second level
+    expect(canDropInto(tree, third, 'in')).toBe(false) // never a third
+    expect(canDropInto(tree, { id: 'g', type: 'group', name: 'grp', props: {} }, 'p')).toBe(false) // named group
+    expect(canDropInto(tree, { id: 'g2', type: 'group', props: {}, children: [{ id: 't', type: 'tabs', props: {} }] }, 'p')).toBe(false)
   })
 
   it('condition sources: siblings inside the same repeater, never items from outside', () => {
@@ -105,6 +111,7 @@ describe('repeater in every target', () => {
     expect(razor).toContain('case FgPeopleItem item:')
     expect(razor).toContain('if (!((Equals(item.HasPet, true)))) return null;')
     expect(razor).toContain('if ((Equals(item.HasPet, true))) item0["pet"] = item.Pet;')
+    expect(razor).toContain('for (var n0 = 0; n0 < Model.People.Count; n0++)')
   })
 })
 
@@ -149,3 +156,96 @@ describe('sortable repeaters (move up / move down)', () => {
     expect(gen('blazor', sortable, 'vanilla', 'ar')).toContain('نقل {label} إلى الأعلى')
   })
 })
+
+describe('nested repeaters and layout inside items', () => {
+  const trips: ElementNode = {
+    id: 't',
+    type: 'repeater',
+    name: 'travellers',
+    props: { label: 'Travellers', initialItems: 1 },
+    children: [
+      {
+        id: 'c',
+        type: 'columns',
+        props: { count: 2 },
+        children: [
+          { id: 'n', type: 'text', name: 'name', props: { label: 'Name' }, validation: [{ rule: 'required' }] },
+          { id: 'h', type: 'checkbox', name: 'has_bags', props: { label: 'Has bags' } },
+        ],
+      },
+      {
+        id: 'b',
+        type: 'repeater',
+        name: 'bags',
+        props: { label: 'Bags', initialItems: 1, minItems: 0 },
+        conditions: [[{ field: 'travellers.has_bags', operator: 'equals', value: true }]],
+        children: [{ id: 'w', type: 'number', name: 'weight', props: { label: 'Weight' }, validation: [{ rule: 'required' }] }],
+      },
+    ],
+  }
+  const gen = (target: string) => {
+    const result = parseFormSchema({ $schema: 'formsgen/v2', meta: { name: 'trip', locale: 'en', dir: 'ltr' }, tree: [trips] })
+    if (!result.ok) throw new Error(result.errors.join('\n'))
+    return getTarget(target)!
+      .generate({ schema: result.schema, css: getCssAdapter('vanilla') })
+      .map((f) => f.content)
+      .join('\n')
+  }
+  const tripSchema = () => {
+    const result = parseFormSchema({ $schema: 'formsgen/v2', meta: { name: 'trip', locale: 'en', dir: 'ltr' }, tree: [trips] })
+    if (!result.ok) throw new Error(result.errors.join('\n'))
+    return result.schema
+  }
+
+  it('the data shape nests inner items; fields inside columns stay on the item', () => {
+    expect(defaultsObject(tripSchema())).toEqual({ travellers: [{ name: '', has_bags: false, bags: [{ weight: null }] }] })
+    const type = formDataType(tripSchema())
+    expect(type).toMatch(/travellers: Array<\{\s*name: string\s*has_bags: boolean\s*bags: Array<\{\s*weight: number \| null\s*\}>\s*\}>/)
+  })
+
+  it('vue and react loop inner items as item2/j inside item/i', () => {
+    const vue = gen('vue-standalone')
+    expect(vue).toContain('v-for="(item2, j) in item.bags" :key="fgKeyOf(item2)"')
+    expect(vue).toContain(`v-if='(item.has_bags === true)'`)
+    expect(vue).toContain(`:id="('fg_travellers_' + i + '_bags_') + j + '_weight'"`)
+    expect(vue).toContain(`'travellers.bags': (path) => {`)
+    expect(vue).toContain('"bags": item.bags.map((item2) => ({ "weight": item2.weight }))')
+    const react = gen('react')
+    expect(react).toContain('{item.bags.map((item2, j) => (')
+    expect(react).toContain(`key={fgKeyAt(('travellers.' + i + '.bags'), j)}`)
+  })
+
+  it('html nests the inner <template> and stamps it with the outer item', () => {
+    const html = gen('html')
+    expect(html).toContain('<template data-fg-template="travellers.__i__.bags">')
+    expect(html).toContain('id="fg_travellers___i___bags___j___weight"')
+    expect(html).toContain('fgItemIndexes("travellers." + i + ".bags").map(function (j)')
+    expect(html).toContain("'weight': function (i, j) {")
+  })
+
+  it('blazor keeps the inner list on the outer item class and validates it per visible item', () => {
+    const razor = gen('blazor')
+    expect(razor).toContain('public List<FgTravellersBagsItem> Bags { get; set; } = new() { new(), };')
+    expect(razor).not.toContain('public List<FgTravellersBagsItem> TravellersBags')
+    expect(razor).toContain('@foreach (var (item2, j) in item.Bags.Select((x, n) => (x, n)).ToList())')
+    expect(razor).toContain('id="@($"fg_travellers_{i}_bags_{j}_weight")"')
+    expect(razor).toContain('if ((Equals(item.HasBags, true))) foreach (var item2 in item.Bags)')
+    expect(razor).toContain('if ((Equals(item.HasBags, true))) item0["bags"] = list1;')
+    // radio groups in items get their own name (the default would be shared: "item.Plan")
+    const radios = getTarget('blazor')!
+      .generate({ schema: schema([{ ...people, children: [{ id: 'pl', type: 'radiogroup', name: 'plan', props: { label: 'Plan', items: [{ value: 'a', label: 'A' }] } }] }]), css: getCssAdapter('vanilla') })
+      .map((f) => f.content)
+      .join('\n')
+    expect(radios).toContain('<InputRadioGroup Name="@($"fg_people_{FgItemId(item)}_plan")" @bind-Value="item.Plan">')
+  })
+
+  it('condition sources: an inner field sees its own item and the top level; the inner repeater sees the outer item', () => {
+    const tree = [{ id: 'trip', type: 'text', name: 'trip', props: { label: 'Trip' } }, trips] as ElementNode[]
+    expect(listConditionSources(tree, 'w').map((x) => x.path)).toEqual(['trip'])
+    const withFragile = structuredClone(tree)
+    ;(withFragile[1]!.children![1]!.children ??= []).push({ id: 'f', type: 'checkbox', name: 'fragile', props: { label: 'Fragile' } })
+    expect(listConditionSources(withFragile, 'w').map((x) => `${x.path} | ${x.label}`)).toEqual(['trip | Trip', 'travellers.bags.fragile | Bags › Fragile'])
+    expect(listConditionSources(tree, 'b').map((x) => x.path)).toEqual(['trip', 'travellers.name', 'travellers.has_bags'])
+  })
+})
+

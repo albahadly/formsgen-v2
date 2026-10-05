@@ -91,16 +91,27 @@ export interface ExportItemField {
   templatePath: string
   /** Identifier-safe key of the template path (`people_name`). */
   key: string
+  /** Item-scoped condition groups: layout containers' inside the item, then the field's own. */
+  conditions: ConditionGroups[]
 }
 
 export interface ExportRepeater {
   node: ElementNode
-  /** Data path of the item array, e.g. "people" or "account.people". */
+  /**
+   * Template path of the item array, without item indexes: "people",
+   * "account.people", or for an inner repeater "travellers.bags".
+   */
   path: string
-  /** Identifier-safe key, e.g. "account_people". */
+  /** Identifier-safe key, e.g. "account_people" / "travellers_bags". */
   key: string
-  /** Own + inherited condition groups of the repeater itself. */
+  /** 1 for a top-level repeater, 2 for one inside another's item. */
+  depth: number
+  /** The outer repeater's template path (depth 2), else null. */
+  parent: string | null
+  /** Root-scoped condition groups (for an inner repeater: its outer repeater's). */
   conditionChain: ConditionGroups[]
+  /** Depth 2: conditions between the outer item and this repeater (outer-item scoped). */
+  itemConditionChain: ConditionGroups[]
   fields: ExportItemField[]
   /** Static (valueless) children are rendered but carry no data. */
   limits: { min: number; max: number; initial: number }
@@ -110,41 +121,91 @@ export interface ExportRepeater {
   addText: string
 }
 
-/** Every repeater in the schema with its item fields (rules localized). */
+/** The placeholder for an item index in rendered paths/ids, per depth. */
+export const ITEM_TOKENS = ['__i__', '__j__'] as const
+
+/** A repeater as seen from markup/runtime code: template path, depth, outer repeater. */
+export interface RepeaterRef {
+  path: string
+  depth: number
+  parent: string | null
+}
+
+/** A repeater path that may carry index tokens (`travellers.__i__.bags`) → its ref. */
+export function repeaterRef(path: string): RepeaterRef {
+  const segments = path.split('.').filter((s) => !(ITEM_TOKENS as readonly string[]).includes(s) && !/^\d+$/.test(s))
+  const depth = path.split('.').filter((s) => (ITEM_TOKENS as readonly string[]).includes(s) || /^\d+$/.test(s)).length + 1
+  return {
+    path: segments.join('.'),
+    depth,
+    parent: depth > 1 ? segments.slice(0, -1).join('.') : null,
+  }
+}
+
+/**
+ * Every repeater in the schema with its item fields (rules localized),
+ * outer repeaters before their inner ones. Item fields are found through
+ * layout containers; an inner repeater's fields belong to it alone.
+ */
 export function collectExportRepeaters(schema: FormSchema): ExportRepeater[] {
   const localize = localizer(schema)
   const messages = resolveMessages(schema.meta.locale)
   const repeaters: ExportRepeater[] = []
+  const addRepeater = (
+    node: ElementNode,
+    path: string,
+    outer: ExportRepeater | null,
+    chain: ConditionGroups[],
+    itemChain: ConditionGroups[],
+  ): void => {
+    const fields: ExportItemField[] = []
+    const inner: Array<{ node: ElementNode; chain: ConditionGroups[] }> = []
+    const collect = (nodes: ElementNode[], conditions: ConditionGroups[]): void => {
+      for (const child of nodes) {
+        const childCore = getCoreElement(child.type)
+        if (!childCore) continue
+        const own = child.conditions?.length ? [...conditions, child.conditions] : conditions
+        if (isRepeater(child)) {
+          if (child.name) inner.push({ node: child, chain: own })
+        } else if (childCore.isContainer) {
+          collect(child.children ?? [], own)
+        } else if (childCore.hasValue && child.name) {
+          const templatePath = joinPath(path, child.name)
+          fields.push({ node: localize(child), name: child.name, templatePath, key: pathKey(templatePath), conditions: own })
+        }
+      }
+    }
+    collect(node.children ?? [], [])
+    const addText = node.props['addText']
+    const repeater: ExportRepeater = {
+      node,
+      path,
+      key: pathKey(path),
+      depth: outer ? 2 : 1,
+      parent: outer?.path ?? null,
+      conditionChain: chain,
+      itemConditionChain: itemChain,
+      fields,
+      limits: repeaterLimits(node),
+      itemDefaults: repeaterItemDefaults(node),
+      itemLabel:
+        typeof node.props['itemLabel'] === 'string' && node.props['itemLabel'] !== ''
+          ? (node.props['itemLabel'] as string)
+          : messages.item,
+      addText: typeof addText === 'string' && addText !== '' ? addText : messages.addItem,
+    }
+    repeaters.push(repeater)
+    for (const child of inner) {
+      addRepeater(child.node, joinPath(path, child.node.name!), repeater, chain, child.chain)
+    }
+  }
   const walk = (nodes: ElementNode[], parentPath: string, inherited: ConditionGroups[]): void => {
     for (const node of nodes) {
       const chain = node.conditions?.length ? [...inherited, node.conditions] : inherited
       const core = getCoreElement(node.type)
       if (!core) continue
       if (isRepeater(node)) {
-        if (!node.name) continue
-        const path = joinPath(parentPath, node.name)
-        const fields: ExportItemField[] = []
-        for (const child of node.children ?? []) {
-          const childCore = getCoreElement(child.type)
-          if (!childCore?.hasValue || childCore.isContainer || !child.name) continue
-          const templatePath = joinPath(path, child.name)
-          fields.push({ node: localize(child), name: child.name, templatePath, key: pathKey(templatePath) })
-        }
-        const addText = node.props['addText']
-        repeaters.push({
-          node,
-          path,
-          key: pathKey(path),
-          conditionChain: chain,
-          fields,
-          limits: repeaterLimits(node),
-          itemDefaults: repeaterItemDefaults(node),
-          itemLabel:
-            typeof node.props['itemLabel'] === 'string' && node.props['itemLabel'] !== ''
-              ? (node.props['itemLabel'] as string)
-              : messages.item,
-          addText: typeof addText === 'string' && addText !== '' ? addText : messages.addItem,
-        })
+        if (node.name) addRepeater(node, joinPath(parentPath, node.name), null, chain, [])
       } else if (core.isContainer) {
         walk(node.children ?? [], node.name ? joinPath(parentPath, node.name) : parentPath, chain)
       }
@@ -193,7 +254,8 @@ export function defaultsObject(schema: FormSchema): Record<string, unknown> {
     }
     target[segments[segments.length - 1] as string] = fieldDefault(field.node) ?? null
   }
-  for (const repeater of collectExportRepeaters(schema)) {
+  // Inner repeaters live inside their outer items' defaults.
+  for (const repeater of collectExportRepeaters(schema).filter((r) => r.depth === 1)) {
     const segments = repeater.path.split('.')
     let target = out
     for (const segment of segments.slice(0, -1)) {
@@ -437,17 +499,23 @@ export function formDataType(schema: FormSchema): string {
       fieldTsType(field.node)
   }
   const repeaterTypes = new Map<string, TypeTree>()
+  // Outer repeaters come first, so an inner one finds its outer item type.
   for (const repeater of collectExportRepeaters(schema)) {
+    const item: TypeTree = {}
+    for (const field of repeater.fields) item[field.name] = fieldTsType(field.node)
+    const marker = `__repeater_${repeater.key}`
+    repeaterTypes.set(marker, item)
+    const name = repeater.path.split('.').pop()!
+    if (repeater.parent !== null) {
+      repeaterTypes.get(`__repeater_${pathKey(repeater.parent)}`)![name] = marker
+      continue
+    }
     const segments = repeater.path.split('.')
     let target = root
     for (const segment of segments.slice(0, -1)) {
       target = (target[segment] ??= {}) as TypeTree
     }
-    const item: TypeTree = {}
-    for (const field of repeater.fields) item[field.name] = fieldTsType(field.node)
-    const marker = `__repeater_${repeater.key}`
-    target[segments[segments.length - 1] as string] = marker
-    repeaterTypes.set(marker, item)
+    target[name] = marker
   }
   const render = (tree: TypeTree, indent: number): string => {
     const pad = '  '.repeat(indent)

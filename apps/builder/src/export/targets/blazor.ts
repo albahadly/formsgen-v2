@@ -12,6 +12,7 @@ import {
   isRepeater,
   joinPath,
   resolveMessages,
+  type ConditionGroups,
   type ElementNode,
 } from '@formsgen/renderer'
 import { errorsTextFunctionCs, stepAnnouncements } from '../announce'
@@ -27,20 +28,27 @@ import {
 } from '../csharp'
 import { collectExportFields, collectExportRepeaters } from '../logic'
 import {
-  ITEM_TOKEN,
   renderTree,
   stepButtonLabels,
   type RenderedRepeater,
   type RenderedSectionHost,
 } from '../markup'
-import { blazorItemMarkup, repeaterLegend } from '../repeaterMarkup'
+import { ITEM_VARS, blazorItemMarkup, repeaterLegend } from '../repeaterMarkup'
 import {
+  ITEM_TOKENS,
   collectSectionHosts,
   fieldDefault,
   hasResetButton,
   pathKey,
+  repeaterRef,
   resolveSubmitButton,
+  type ExportRepeater,
 } from '../structure'
+
+/** A repeater's path with its outer item's token: `travellers.__i__.bags`. */
+function tokenPath(r: ExportRepeater): string {
+  return r.depth === 1 ? r.path : `${r.parent}.${ITEM_TOKENS[0]}${r.path.slice(r.parent!.length)}`
+}
 import { scopeForBlazor } from '../css/blazorScope'
 import { dialCodes, exportStylesheet, hasDateRange, hasMatrix, hasRangeSlider, phoneCountryFields, phoneDefaults } from '../composite'
 import { formRootClass, pinnedSchemeAttr } from '../css/themeBridge'
@@ -73,12 +81,10 @@ export const blazorTarget: ExportTarget = {
     const typedFields = [
       ...fields,
       ...repeaters.flatMap((r) =>
-        r.fields.map((f) => ({
-          node: f.node,
-          path: `${r.path}.${ITEM_TOKEN}.${f.name}`,
-          key: `${r.key}_${ITEM_TOKEN}_${f.name}`,
-          conditionChain: [],
-        })),
+        r.fields.map((f) => {
+          const path = `${tokenPath(r)}.${ITEM_TOKENS[r.depth - 1]}.${f.name}`
+          return { node: f.node, path, key: pathKey(path), conditionChain: [] }
+        }),
       ),
     ]
     // Repeaters with item rules (FgItemError has a case only for these).
@@ -89,10 +95,21 @@ export const blazorTarget: ExportTarget = {
     const hasRepeaters = repeaters.length > 0
     const itemClass = (r: (typeof repeaters)[number]): string => `Fg${pascalMember(r.key)}Item`
     const repeaterMember = (r: (typeof repeaters)[number]): string => pascalMember(r.key)
-    /** Condition key (dots → underscores) to C#: the repeater's items read `item.X`. */
-    const itemCsAccessor = (r: (typeof repeaters)[number]) => (key: string): string => {
-      const child = r.fields.find((f) => key === `${r.key}_${f.name}`)
-      return child ? `item.${pascalMember(child.name)}` : `Model.${pascalMember(key)}`
+    /** Condition key (dots → underscores) to C#: the repeater's items read `<itemVar>.X`. */
+    const itemCsAccessor =
+      (r: (typeof repeaters)[number], itemVar = 'item') =>
+      (key: string): string => {
+        const child = r.fields.find((f) => key === `${r.key}_${f.name}`)
+        return child ? `${itemVar}.${pascalMember(child.name)}` : `Model.${pascalMember(key)}`
+      }
+    /** A condition chain as one C# expression ('' when there is none). */
+    const csChain = (chain: ConditionGroups[], access: (key: string) => string): string =>
+      chain.length === 1 ? csConditions(chain[0]!, access) : chain.map((g) => `(${csConditions(g, access)})`).join(' && ')
+    const innerOf = (r: (typeof repeaters)[number]) => repeaters.filter((x) => x.parent === r.path)
+    /** Depth 2: is the inner repeater shown for the outer item `item`? */
+    const innerVisible = (r: (typeof repeaters)[number]): string => {
+      const outer = repeaters.find((x) => x.path === r.parent)!
+      return csChain(r.itemConditionChain, itemCsAccessor(outer)) || 'true'
     }
     const repeaterVisible = (r: (typeof repeaters)[number]): string =>
       r.conditionChain.length
@@ -149,22 +166,25 @@ export const blazorTarget: ExportTarget = {
     // Repeating sections: @foreach over the item list; fields bind to
     // `item`, ids embed the index; @ref lets add/remove move focus.
     const renderRepeater = (r: RenderedRepeater): string => {
-      const repeater = repeaters.find((x) => x.path === r.path)!
-      const list = `Model.${repeaterMember(repeater)}`
+      const repeater = repeaters.find((x) => x.path === r.template)!
+      // An inner list is `Model.TravellersIBags` here; the outer item's pass
+      // (blazorItemMarkup) makes it `item.Bags` and fills in the indexes.
+      const list = `Model.${pascalMember(pathKey(r.path))}`
+      const { item: itemVar, index: i } = ITEM_VARS[r.depth - 1]!
       const fieldsArg = `fgItemFields_${repeater.key}`
-      const removeButton = `<button type="button" class="${css.classes('repeaterRemove')}" aria-label='@FgRemoveLabel("${r.path}", i)' @onclick='() => FgRemoveItem(${list}, "${r.path}", i, ${r.limits.min}, ${fieldsArg})'>${r.messages.removeItem}</button>`
+      const removeButton = `<button type="button" class="${css.classes('repeaterRemove')}" aria-label='@FgRemoveLabel("${r.path}", ${i})' @onclick='() => FgRemoveItem(${list}, "${r.path}", ${i}, ${r.limits.min}, ${fieldsArg})'>${r.messages.removeItem}</button>`
       // Sortable: move buttons (up from the 2nd item, down until the last);
       // the row shows while any button can, remove only above the minimum.
       const shownAbove = r.sortable ? Math.min(r.limits.min, 1) : r.limits.min
       const removeBtn = r.sortable
         ? `<div class="${css.classes('repeaterItemActions')}">
-                @if (i > 0)
+                @if (${i} > 0)
                 {
-                    <button type="button" class="${css.classes('repeaterMove')}" data-fg-move="up" aria-label='@FgMoveLabel("${r.path}", i, true)' @ref="fgMoveUpRefs[item]" @onclick='() => FgMoveItem(${list}, "${r.path}", i, -1)'>↑</button>
+                    <button type="button" class="${css.classes('repeaterMove')}" data-fg-move="up" aria-label='@FgMoveLabel("${r.path}", ${i}, true)' @ref="fgMoveUpRefs[${itemVar}]" @onclick='() => FgMoveItem(${list}, "${r.path}", ${i}, -1)'>↑</button>
                 }
-                @if (i < ${list}.Count - 1)
+                @if (${i} < ${list}.Count - 1)
                 {
-                    <button type="button" class="${css.classes('repeaterMove')}" data-fg-move="down" aria-label='@FgMoveLabel("${r.path}", i, false)' @ref="fgMoveDownRefs[item]" @onclick='() => FgMoveItem(${list}, "${r.path}", i, 1)'>↓</button>
+                    <button type="button" class="${css.classes('repeaterMove')}" data-fg-move="down" aria-label='@FgMoveLabel("${r.path}", ${i}, false)' @ref="fgMoveDownRefs[${itemVar}]" @onclick='() => FgMoveItem(${list}, "${r.path}", ${i}, 1)'>↓</button>
                 }
                 ${r.limits.min > 0 ? `@if (${list}.Count > ${r.limits.min})
                 {
@@ -174,18 +194,22 @@ export const blazorTarget: ExportTarget = {
         : `<div class="${css.classes('repeaterItemActions')}">
                 ${removeButton}
             </div>`
-      const addBtn = `<button type="button" class="${css.classes('repeaterAdd')}" data-fg-add="${r.path}" @ref="fgAddRef_${repeater.key}" @onclick='() => FgAddItem(${list}, "${r.path}", ${Number.isFinite(r.limits.max) ? r.limits.max : 'int.MaxValue'})'>${r.addText}</button>`
-      const item = blazorItemMarkup(
-        r.itemHtml,
-        repeater.key,
-        repeater.fields.map((f) => f.name),
-      )
+      const addBtn = `<button type="button" class="${css.classes('repeaterAdd')}" data-fg-add="${r.path}" @ref='fgAddRefs["${r.path}"]' @onclick='() => FgAddItem(${list}, "${r.path}", ${Number.isFinite(r.limits.max) ? r.limits.max : 'int.MaxValue'})'>${r.addText}</button>`
+      // A top-level repeater rewrites its own item markup and its inner
+      // repeaters' (left untouched at depth 2) in one pass.
+      const item =
+        r.depth === 2
+          ? r.itemHtml
+          : blazorItemMarkup(r.itemHtml, [
+              { tokenPath: repeater.path, depth: 1, fields: repeater.fields.map((f) => f.name) },
+              ...innerOf(repeater).map((x) => ({ tokenPath: tokenPath(x), depth: 2, fields: x.fields.map((f) => f.name) })),
+            ])
       return `<fieldset class="${css.classes('group')}" data-fg-repeater="${r.path}">${repeaterLegend(css, r, 'class')}
   <div class="${css.classes('repeaterItems')}">
-    @foreach (var (item, i) in ${list}.Select((x, n) => (x, n)).ToList())
+    @foreach (var (${itemVar}, ${i}) in ${list}.Select((x, n) => (x, n)).ToList())
     {
-        <fieldset @key="item" class="${css.classes('repeaterItem')}" data-fg-item tabindex="-1" @ref="fgItemRefs[item]">
-            <legend class="${css.classes('repeaterItemLabel')}">@FgItemLabel("${r.path}", i)</legend>
+        <fieldset @key="${itemVar}" class="${css.classes('repeaterItem')}" data-fg-item tabindex="-1" @ref="fgItemRefs[${itemVar}]">
+            <legend class="${css.classes('repeaterItemLabel')}">@FgItemLabel("${r.path}", ${i})</legend>
 ${indentBlock(item, 3)}
             ${shownAbove > 0 ? `@if (${list}.Count > ${shownAbove})
             {
@@ -212,8 +236,9 @@ ${indentBlock(item, 3)}
       renderSections,
       renderRepeater,
       itemOptions: (path) => {
-        const repeater = repeaters.find((x) => x.path === path)!
-        return { conditionExpr: (groups) => csConditions(groups, itemCsAccessor(repeater)) }
+        const ref = repeaterRef(path)
+        const repeater = repeaters.find((x) => x.path === ref.path)!
+        return { conditionExpr: (groups) => csConditions(groups, itemCsAccessor(repeater, ITEM_VARS[ref.depth - 1]!.item)) }
       },
     })
 
@@ -273,7 +298,9 @@ ${indentBlock(item, 3)}
       })
       .join('\n\n')
 
+    // Inner repeaters are lists on their outer item class, not on the model.
     const repeaterProperties = repeaters
+      .filter((r) => r.depth === 1)
       .map(
         (r) =>
           `        public List<${itemClass(r)}> ${repeaterMember(r)} { get; set; } = new() { ${Array.from({ length: r.limits.initial }, () => 'new(), ').join('')}};`,
@@ -284,12 +311,16 @@ ${indentBlock(item, 3)}
         (r) => `
     public class ${itemClass(r)}
     {
-${r.fields
-  .map((f) => {
+${[
+  ...r.fields.map((f) => {
     const kind = csFieldKind(f.node.type)
     return `        public ${csType(kind)} ${pascalMember(f.name)} { get; set; }${csInit(kind, fieldDefault(f.node), f.node)}`
-  })
-  .join('\n')}
+  }),
+  ...innerOf(r).map(
+    (x) =>
+      `        public List<${itemClass(x)}> ${pascalMember(x.path.slice(r.path.length + 1))} { get; set; } = new() { ${Array.from({ length: x.limits.initial }, () => 'new(), ').join('')}};`,
+  ),
+].join('\n')}
     }
 `,
       )
@@ -318,6 +349,35 @@ ${r.fields
             : member
     const payloadStatements: string[] = []
     let dictCounter = 0
+    /**
+     * Statements building one repeater's item list (an inner repeater's within
+     * its outer item); `listPath` is the C# interpolation of the list's data
+     * path, e.g. "travellers" or "travellers.{n0}.bags". Returns the list var.
+     */
+    const emitItems = (r: ExportRepeater, items: string, itemVar: string, listPath: string, pad: string): string => {
+      const list = `list${dictCounter}`
+      const index = `n${dictCounter}`
+      const entry = `item${dictCounter++}`
+      payloadStatements.push(`${pad}var ${list} = new List<Dictionary<string, object?>>();`)
+      payloadStatements.push(`${pad}for (var ${index} = 0; ${index} < ${items}.Count; ${index}++)\n${pad}{`)
+      payloadStatements.push(`${pad}    var ${itemVar} = ${items}[${index}];`)
+      payloadStatements.push(`${pad}    var ${entry} = new Dictionary<string, object?>();`)
+      for (const f of r.fields) {
+        const member = `${itemVar}.${pascalMember(f.name)}`
+        const value = payloadValue(f.node.type, member, `$"${listPath}.{${index}}.${f.name}"`)
+        const assign = `${entry}[${csStr(f.name)}] = ${value};`
+        const cond = csChain(f.conditions, itemCsAccessor(r, itemVar))
+        payloadStatements.push(cond ? `${pad}    if (${cond}) ${assign}` : `${pad}    ${assign}`)
+      }
+      for (const inner of innerOf(r)) {
+        const name = inner.path.slice(r.path.length + 1)
+        const innerList = emitItems(inner, `${itemVar}.${pascalMember(name)}`, 'item2', `${listPath}.{${index}}.${name}`, `${pad}    `)
+        const cond = csChain(inner.itemConditionChain, itemCsAccessor(r, itemVar))
+        payloadStatements.push(`${pad}    ${cond ? `if (${cond}) ` : ''}${entry}[${csStr(name)}] = ${innerList};`)
+      }
+      payloadStatements.push(`${pad}    ${list}.Add(${entry});\n${pad}}`)
+      return list
+    }
     const buildPayload = (nodes: ElementNode[], parentPath: string, dict: string): void => {
       for (const node of nodes) {
         const core = getCoreElement(node.type)
@@ -328,25 +388,7 @@ ${r.fields
         if (isRepeater(node)) {
           const repeater = repeaters.find((r) => r.path === (node.name ? joinPath(parentPath, node.name) : ''))
           if (!repeater) continue
-          const list = `list${dictCounter}`
-          const index = `n${dictCounter}`
-          const entry = `item${dictCounter++}`
-          const items = `Model.${repeaterMember(repeater)}`
-          payloadStatements.push(`        var ${list} = new List<Dictionary<string, object?>>();`)
-          payloadStatements.push(`        for (var ${index} = 0; ${index} < ${items}.Count; ${index}++)\n        {`)
-          payloadStatements.push(`            var item = ${items}[${index}];`)
-          payloadStatements.push(`            var ${entry} = new Dictionary<string, object?>();`)
-          for (const f of repeater.fields) {
-            const member = `item.${pascalMember(f.name)}`
-            const value = payloadValue(f.node.type, member, `$"${repeater.path}.{${index}}.${f.name}"`)
-            const assign = `${entry}[${csStr(f.name)}] = ${value};`
-            payloadStatements.push(
-              f.node.conditions?.length
-                ? `            if (${csConditions(f.node.conditions, itemCsAccessor(repeater))}) ${assign}`
-                : `            ${assign}`,
-            )
-          }
-          payloadStatements.push(`            ${list}.Add(${entry});\n        }`)
+          const list = emitItems(repeater, `Model.${repeaterMember(repeater)}`, 'item', repeater.path, '        ')
           payloadStatements.push(
             ownCond ? `        if (${ownCond}) ${dict}[${csStr(node.name!)}] = ${list};` : `        ${dict}[${csStr(node.name!)}] = ${list};`,
           )
@@ -460,7 +502,10 @@ ${r.fields
     {
         fgDeferredFields.Clear();
         fgMessages.Clear();
-        FgValidateMembers(fgAllMembers);${repeaters.map((r) => `\n        FgValidateRepeater_${r.key}();`).join('')}
+        FgValidateMembers(fgAllMembers);${repeaters
+          .filter((r) => r.depth === 1)
+          .map((r) => `\n        FgValidateRepeater_${r.key}();`)
+          .join('')}
     }
 
     private object? FgValue(string name) => name switch
@@ -692,22 +737,39 @@ ${fields.map((f) => `        ${csStr(pascalMember(f.key))},`).join('\n')}
     const repeaterBlock = hasRepeaters
       ? `
 ${repeaters
-  .map(
-    (r) => `    private static readonly string[] fgItemFields_${r.key} = { ${r.fields
-      .filter(itemChecked)
-      .map((f) => csStr(pascalMember(f.name)))
-      .join(', ')} };
-    private ElementReference fgAddRef_${r.key};
+  .map((r) => `    private static readonly string[] fgItemFields_${r.key} = { ${r.fields
+    .filter(itemChecked)
+    .map((f) => csStr(pascalMember(f.name)))
+    .join(', ')} };`)
+  .join('\n')}
+    private readonly Dictionary<string, ElementReference> fgAddRefs = new();
 
+    private bool FgHasItemErrors(object item, string[] fields) =>
+        fields.Any(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any());
+${repeaters
+  .filter((r) => r.depth === 1)
+  .map(
+    (r) => `
+    // An outer repeater's checks include its inner repeaters' items.
     private bool FgRepeaterHasErrors_${r.key}() =>
-        Model.${repeaterMember(r)}.Any(item => fgItemFields_${r.key}.Any(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any()));
+        Model.${repeaterMember(r)}.Any(item => FgHasItemErrors(item, fgItemFields_${r.key})${innerOf(r)
+          .map((x) => ` || item.${pascalMember(x.path.slice(r.path.length + 1))}.Any(item2 => FgHasItemErrors(item2, fgItemFields_${x.key}))`)
+          .join('')});
 
     private bool FgValidateRepeater_${r.key}()
     {
 ${repeaterVisible(r) === 'true' ? '' : `        if (!(${repeaterVisible(r)})) return true;\n`}        var ok = true;
         foreach (var item in Model.${repeaterMember(r)})
         {
-            foreach (var name in fgItemFields_${r.key}) ok &= FgValidateItemField(new FieldIdentifier(item, name), false);
+            foreach (var name in fgItemFields_${r.key}) ok &= FgValidateItemField(new FieldIdentifier(item, name), false);${innerOf(r)
+              .map(
+                (x) => `
+            ${innerVisible(x) === 'true' ? '' : `if (${innerVisible(x)}) `}foreach (var item2 in item.${pascalMember(x.path.slice(r.path.length + 1))})
+            {
+                foreach (var name in fgItemFields_${x.key}) ok &= FgValidateItemField(new FieldIdentifier(item2, name), false);
+            }`,
+              )
+              .join('')}
         }
         fgEdit.NotifyValidationStateChanged();
         return ok;
@@ -781,8 +843,8 @@ ${r.fields
   .map((f) => {
     const kind = csFieldKind(f.node.type)
     const member = `item.${pascalMember(f.name)}`
-    const guard = f.node.conditions?.length
-      ? `                        if (!(${csConditions(f.node.conditions, itemCsAccessor(r))})) return null;\n`
+    const guard = f.conditions.length
+      ? `                        if (!(${csChain(f.conditions, itemCsAccessor(r))})) return null;\n`
       : ''
     // "required" first, then the built-in checks, then the other rules.
     const rules = f.node.validation ?? []
@@ -820,15 +882,24 @@ ${r.fields
     {
         var count = 0;
 ${repeaters
+  .filter((r) => r.depth === 1)
   .map(
     (r) =>
-      `        foreach (var item in Model.${repeaterMember(r)}) count += fgItemFields_${r.key}.Count(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any());`,
+      `        foreach (var item in Model.${repeaterMember(r)})\n        {\n            count += fgItemFields_${r.key}.Count(n => fgEdit.GetValidationMessages(new FieldIdentifier(item, n)).Any());${innerOf(r)
+        .map(
+          (x) =>
+            `\n            foreach (var item2 in item.${pascalMember(x.path.slice(r.path.length + 1))}) count += fgItemFields_${x.key}.Count(n => fgEdit.GetValidationMessages(new FieldIdentifier(item2, n)).Any());`,
+        )
+        .join('')}\n        }`,
   )
   .join('\n')}
         return count;
     }
 
-    private static string FgItemLabel(string path, int index) => (path switch
+    /** A list path without item indexes: "travellers.2.bags" → "travellers.bags". */
+    private static string FgTpl(string path) => System.Text.RegularExpressions.Regex.Replace(path, @"\\.\\d+(?=\\.|$)", "");
+
+    private static string FgItemLabel(string path, int index) => (FgTpl(path) switch
     {
 ${repeaters.map((r) => `        ${csStr(r.path)} => ${csStr(r.itemLabel)},`).join('\n')}
         _ => "{n}",
@@ -881,12 +952,7 @@ ${repeaters.map((r) => `        ${csStr(r.path)} => ${csStr(r.itemLabel)},`).joi
         {
             var path = fgFocusAdd;
             fgFocusAdd = null;
-            var addRef = path switch
-            {
-${repeaters.map((r) => `                ${csStr(r.path)} => fgAddRef_${r.key},`).join('\n')}
-                _ => default,
-            };
-            if (addRef.Context != null) await addRef.FocusAsync();
+            if (fgAddRefs.TryGetValue(path, out var addRef) && addRef.Context != null) await addRef.FocusAsync();
         }
     }
 `

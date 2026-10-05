@@ -6,7 +6,7 @@
 import { computed, inject, nextTick, ref, toRaw } from 'vue'
 import { FORM_CONTEXT } from '../context'
 import { MESSAGES, fill } from '../messages'
-import { repeaterItemDefaults, repeaterItemLabel, repeaterLimits, repeaterSortable } from '../repeater'
+import { nextItemKey, repeaterItemDefaults, repeaterItemLabel, repeaterLimits, repeaterSortable } from '../repeater'
 import type { ElementNode } from '../schema'
 import FgRepeaterItem from './FgRepeaterItem.vue'
 
@@ -34,13 +34,13 @@ const addText = computed(() => {
 const itemLabel = (index: number): string => repeaterItemLabel(props.node, index, messages.value.item)
 
 // Stable keys per item object, so removing an item never re-keys the rest.
+// Unique on the page, so nested items' radio group names never collide.
 const keys = new WeakMap<object, number>()
-let nextKey = 0
 function keyOf(item: Record<string, unknown>): number {
   const raw = toRaw(item)
   let key = keys.get(raw)
   if (key === undefined) {
-    key = nextKey++
+    key = nextItemKey()
     keys.set(raw, key)
   }
   return key

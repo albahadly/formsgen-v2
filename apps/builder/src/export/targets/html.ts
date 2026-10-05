@@ -19,14 +19,13 @@ import {
   visibilityFunctions,
 } from '../logic'
 import {
-  ITEM_TOKEN,
   renderTree,
   stepButtonLabels,
   type RenderedRepeater,
   type RenderedSectionHost,
 } from '../markup'
 import { repeaterLegend } from '../repeaterMarkup'
-import { collectSectionHosts, collectTemplateFields, hasResetButton, resolveSubmitButton, tplHelper } from '../structure'
+import { ITEM_TOKENS, collectSectionHosts, collectTemplateFields, hasResetButton, repeaterRef, resolveSubmitButton, tplHelper, type RepeaterRef } from '../structure'
 import { esc } from '@/registry/emitters/shared'
 import { formRootClass, pinnedSchemeAttr } from '../css/themeBridge'
 import type { ExportTarget } from './types'
@@ -50,9 +49,18 @@ export const htmlTarget: ExportTarget = {
     const repeaters = collectExportRepeaters(schema)
     const hasRepeaters = repeaters.length > 0
     // Item fields are read from the DOM by their indexed path.
+    // Item paths at run time: "travellers." + i + ".name", or for an inner
+    // repeater "travellers." + i + ".bags." + j + ".weight".
+    const listExpr = (r: RepeaterRef): string =>
+      r.depth === 1
+        ? JSON.stringify(r.path)
+        : `${JSON.stringify(`${r.parent}.`)} + i + ${JSON.stringify(r.path.slice(r.parent!.length))}`
     const items: ItemAccess = {
-      map: (path, body) => `fgItemIndexes(${JSON.stringify(path)}).map(function (i) { return ${body} })`,
-      read: (template, path) => `fgGet(${JSON.stringify(`${path}.`)} + i + ${JSON.stringify(template.slice(path.length))})`,
+      map: (r, body) => `fgItemIndexes(${listExpr(r)}).map(function (${r.depth === 1 ? 'i' : 'j'}) { return ${body} })`,
+      read: (template, r) =>
+        r.depth === 1
+          ? `fgGet(${JSON.stringify(`${r.path}.`)} + i + ${JSON.stringify(template.slice(r.path.length))})`
+          : `fgGet(${JSON.stringify(`${r.parent}.`)} + i + ${JSON.stringify(`${r.path.slice(r.parent!.length)}.`)} + j + ${JSON.stringify(template.slice(r.path.length))})`,
     }
     const hosts = collectSectionHosts(schema)
     const messages = resolveMessages(schema.meta.locale)
@@ -132,7 +140,7 @@ ${indentBlock(r.itemHtml, 3)}
       renderSections,
       renderRepeater,
       itemOptions: (path) => ({
-        accessor: scopedAccessor(accessor, items, path),
+        accessor: scopedAccessor(accessor, items, repeaterRef(path)),
         conditionAttr: (_node, expr) => {
           itemConditionTests.push(expr)
           return ` data-fg-icond="${itemConditionTests.length - 1}"`
@@ -332,7 +340,8 @@ function fgWirePhone(root) {
         })` : ''}${compositeReset}
         Object.keys(touched).forEach(function (path) { delete touched[path] })
         Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })${hasRepeaters ? `
-        Object.keys(FG_REPEATERS).forEach(function (path) {
+        // Top-level repeaters; inner ones go with their outer items.
+        ;${JSON.stringify(repeaters.filter((r) => r.depth === 1).map((r) => r.path))}.forEach(function (path) {
           fgItemElements(path).forEach(function (item) { item.remove() })
           for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
         })` : ''}
@@ -351,7 +360,7 @@ function fgWirePhone(root) {
       return `var fgFiles = {}
 // Keyed by template path (items: "crew.cv"); see fgTpl.
 var FG_FILE_MULTIPLE = ${JSON.stringify(Object.fromEntries(uploadFields(typedFields).map((f) => [f.path, fileLimits(f.node).multiple])))}
-${tplHelper(false)}
+${hasRepeaters ? '' : tplHelper(false)}
 function fgFileSize(bytes) {
   return bytes >= 1024 * 1024 ? (bytes / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB'
 }
@@ -436,18 +445,41 @@ function fgWireFiles(root) {
 // ids and data paths is stamped on add and rewritten when an item above
 // is removed (errors and touched state move with their item).
 var FG_REPEATERS = ${JSON.stringify(repeaterMeta).replace(/</g, '\\u003c')}
+var ITEM_TOKENS = ${JSON.stringify(ITEM_TOKENS)}
+/** Initial items and add buttons of the repeaters under root (a new item's inner ones). */
+function fgInitRepeaters(root) {
+  Array.prototype.forEach.call(root.querySelectorAll('[data-fg-add]'), function (button) {
+    var path = button.getAttribute('data-fg-add')
+    for (var n = 0; n < FG_REPEATERS[fgTpl(path)].initial; n++) fgAddItem(path, false)
+    button.addEventListener('click', function () { fgAddItem(button.getAttribute('data-fg-add'), true) })
+  })
+}
+// Is a repeater (concrete path) shown? An inner one asks its outer item (i).
 var FG_REPEATER_VISIBLE = {
 ${repeaters
-  .map(
-    (r) =>
-      `  ${JSON.stringify(r.path)}: function () { return ${r.conditionChain.length ? r.conditionChain.map((g) => `(${compileConditions(g, accessor)})`).join(' && ') : 'true'} },`,
-  )
+  .map((r) => {
+    if (r.depth === 1) {
+      return `  ${JSON.stringify(r.path)}: function () { return ${r.conditionChain.length ? r.conditionChain.map((g) => `(${compileConditions(g, accessor)})`).join(' && ') : 'true'} },`
+    }
+    const outer = scopedAccessor(accessor, items, { path: r.parent!, depth: 1, parent: null })
+    const cond = r.itemConditionChain.length ? r.itemConditionChain.map((g) => `(${compileConditions(g, outer)})`).join(' && ') : 'true'
+    return `  ${JSON.stringify(r.path)}: function (path) { var i = fgPathIndexes(path)[0]; return ${cond} },`
+  })
   .join('\n')}
 }
-var FG_ITEM_VALIDATORS = ${itemValidatorsLiteral(repeaters, accessor, items, () => 'i', messages)}
+// Names of each repeater's inner repeaters (one level).
+var FG_INNER_REPEATERS = ${JSON.stringify(
+        Object.fromEntries(repeaters.map((r) => [r.path, repeaters.filter((x) => x.parent === r.path).map((x) => x.path.slice(r.path.length + 1))])),
+      )}
+// Item validators take the item indexes (an inner item: i, j).
+var FG_ITEM_VALIDATORS = ${itemValidatorsLiteral(repeaters, accessor, items, (r) => (r.depth === 1 ? 'i' : 'i, j'), messages)}
 var FG_ITEM_CONDITIONS = [
-${itemConditionTests.map((expr) => `  function (i) { return ${expr} },`).join('\n')}
+${itemConditionTests.map((expr) => `  function (i, j) { return ${expr} },`).join('\n')}
 ]
+${tplHelper(false)}
+function fgPathIndexes(path) {
+  return path.split('.').filter(function (s) { return /^\\d+$/.test(s) }).map(Number)
+}
 function fgItemElements(path) {
   var list = document.querySelector('[data-fg-items="' + path + '"]')
   return list ? Array.prototype.slice.call(list.children) : []
@@ -456,20 +488,23 @@ function fgItemIndexes(path) {
   return fgItemElements(path).map(function (_, i) { return i })
 }
 function fgItemLabel(path, index) {
-  return FG_REPEATERS[path].label.split('{n}').join(String(index + 1))
+  return FG_REPEATERS[fgTpl(path)].label.split('{n}').join(String(index + 1))
 }
+// Every item field path of a shown repeater, inner items included.
 function fgItemPaths(path) {
-  if (!FG_REPEATER_VISIBLE[path]()) return []
-  var fields = Object.keys(FG_ITEM_VALIDATORS[path] || {})
+  var template = fgTpl(path)
+  if (!FG_REPEATER_VISIBLE[template](path)) return []
+  var fields = Object.keys(FG_ITEM_VALIDATORS[template] || {})
   var out = []
   fgItemElements(path).forEach(function (_, i) {
     fields.forEach(function (field) { out.push(path + '.' + i + '.' + field) })
+    ;(FG_INNER_REPEATERS[template] || []).forEach(function (name) { out = out.concat(fgItemPaths(path + '.' + i + '.' + name)) })
   })
   return out
 }
 function fgAllPaths() {
   var out = Object.keys(FG_VALIDATORS)
-  Object.keys(FG_REPEATERS).forEach(function (path) { out = out.concat(fgItemPaths(path)) })
+  ;${JSON.stringify(repeaters.filter((r) => r.depth === 1).map((r) => r.path))}.forEach(function (path) { out = out.concat(fgItemPaths(path)) })
   return out
 }
 function fgStepPaths(meta, index) {
@@ -480,15 +515,22 @@ function fgStepPaths(meta, index) {
 function fgValidatorFor(path) {
   if (FG_VALIDATORS[path]) return FG_VALIDATORS[path]
   var match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
-  var validate = match && FG_ITEM_VALIDATORS[match[1]] && FG_ITEM_VALIDATORS[match[1]][match[3]]
+  var validate = match && FG_ITEM_VALIDATORS[fgTpl(match[1])] && FG_ITEM_VALIDATORS[fgTpl(match[1])][match[3]]
   if (!validate) return null
-  return function () { return validate(Number(match[2])) }
+  var indexes = fgPathIndexes(path)
+  return function () { return validate.apply(null, indexes) }
+}
+/** Elements below root, including inner repeaters' <template> contents. */
+function fgStampNodes(root) {
+  var nodes = (root.nodeType === 1 ? [root] : []).concat(Array.prototype.slice.call(root.querySelectorAll('*')))
+  nodes.filter(function (el) { return el.tagName === 'TEMPLATE' }).forEach(function (t) { nodes = nodes.concat(fgStampNodes(t.content)) })
+  return nodes
 }
 /** Rewrites one item's index in every attribute below it. */
 function fgStampIndex(root, path, from, to) {
-  var key = FG_REPEATERS[path].key
+  var key = path.replace(/\\./g, '_')
   var swaps = [[path + '.' + from + '.', path + '.' + to + '.'], [key + '_' + from + '_', key + '_' + to + '_']]
-  var nodes = [root].concat(Array.prototype.slice.call(root.querySelectorAll('*')))
+  var nodes = fgStampNodes(root)
   nodes.forEach(function (el) {
     Array.prototype.forEach.call(el.attributes, function (attr) {
       var value = attr.value
@@ -499,7 +541,7 @@ function fgStampIndex(root, path, from, to) {
 }
 function fgRefreshItems(path) {
   var list = fgItemElements(path)
-  var meta = FG_REPEATERS[path]
+  var meta = FG_REPEATERS[fgTpl(path)]
   // Re-index in two passes (via a unique temporary index), so two items
   // never share radio group names on the way: that would uncheck an answer.
   ;['t', ''].forEach(function (pass) {
@@ -511,14 +553,15 @@ function fgRefreshItems(path) {
     })
   })
   list.forEach(function (item, index) {
-    item.querySelector('[data-fg-item-label]').textContent = fgItemLabel(path, index)
-    var remove = item.querySelector('[data-fg-remove]')
+    // The item's own label and buttons (an inner item has its own too).
+    item.querySelector(':scope > [data-fg-item-label]').textContent = fgItemLabel(path, index)
+    var remove = item.querySelector(':scope > div > [data-fg-remove]')
     remove.setAttribute('aria-label', ${JSON.stringify(messages.removeItemLabel)}.split('{label}').join(fgItemLabel(path, index)))
     remove.hidden = list.length <= meta.min${
       repeaters.some((r) => r.node.props['sortable'] === true)
         ? `
-    var up = item.querySelector('[data-fg-move="up"]')
-    var down = item.querySelector('[data-fg-move="down"]')
+    var up = item.querySelector(':scope > div > [data-fg-move="up"]')
+    var down = item.querySelector(':scope > div > [data-fg-move="down"]')
     if (up) {
       up.hidden = index === 0
       up.setAttribute('aria-label', ${JSON.stringify(messages.moveItemUp)}.split('{label}').join(fgItemLabel(path, index)))
@@ -554,28 +597,31 @@ function fgRemapItems(path, to) {
   [${itemStores.join(', ')}].forEach(function (store) { fgRemapKeys(store, path, to) })
 }
 function fgAddItem(path, focus) {
-  var meta = FG_REPEATERS[path]
+  var meta = FG_REPEATERS[fgTpl(path)]
   var list = document.querySelector('[data-fg-items="' + path + '"]')
   var template = document.querySelector('[data-fg-template="' + path + '"]')
   var index = list.children.length
   if (meta.max !== null && index >= meta.max) return
   var item = template.content.firstElementChild.cloneNode(true)
-  fgStampIndex(item, path, '${ITEM_TOKEN}', index)
+  fgStampIndex(item, path, ITEM_TOKENS[fgPathIndexes(path).length], index)
   item.setAttribute('data-fg-index', String(index))
-  item.querySelector('[data-fg-remove]').addEventListener('click', function () {
-    fgRemoveItem(path, Number(item.getAttribute('data-fg-index')))
+  // Paths are read on click: an outer item's index may have changed since.
+  function listPath() { return item.parentNode.getAttribute('data-fg-items') }
+  item.querySelector(':scope > div > [data-fg-remove]').addEventListener('click', function () {
+    fgRemoveItem(listPath(), Number(item.getAttribute('data-fg-index')))
   })
 ${
   repeaters.some((r) => r.node.props['sortable'] === true)
-    ? `  Array.prototype.forEach.call(item.querySelectorAll('[data-fg-move]'), function (button) {
+    ? `  Array.prototype.forEach.call(item.querySelectorAll(':scope > div > [data-fg-move]'), function (button) {
     button.addEventListener('click', function () {
-      fgMoveItem(path, Number(item.getAttribute('data-fg-index')), button.getAttribute('data-fg-move') === 'up' ? -1 : 1)
+      fgMoveItem(listPath(), Number(item.getAttribute('data-fg-index')), button.getAttribute('data-fg-move') === 'up' ? -1 : 1)
     })
   })`
     : ''
 }
   list.appendChild(item)
   fgWire(item)
+  fgInitRepeaters(item)
   fgRefreshItems(path)
   updateConditions()
   if (focus) {
@@ -599,8 +645,8 @@ function fgMoveItem(path, index, delta) {
   fgRefreshItems(path)
   updateConditions()
   var moved = fgItemElements(path)[target]
-  var same = moved.querySelector('[data-fg-move="' + (delta < 0 ? 'up' : 'down') + '"]')
-  var other = moved.querySelector('[data-fg-move="' + (delta < 0 ? 'down' : 'up') + '"]')
+  var same = moved.querySelector(':scope > div > [data-fg-move="' + (delta < 0 ? 'up' : 'down') + '"]')
+  var other = moved.querySelector(':scope > div > [data-fg-move="' + (delta < 0 ? 'down' : 'up') + '"]')
   ;(same && !same.hidden ? same : other && !other.hidden ? other : moved).focus()
   fgAnnounce(${JSON.stringify(messages.itemMoved)}.split('{label}').join(label).split('{n}').join(String(target + 1)))
 }
@@ -608,7 +654,7 @@ function fgMoveItem(path, index, delta) {
     : ''
 }function fgRemoveItem(path, index) {
   var items = fgItemElements(path)
-  if (items.length <= FG_REPEATERS[path].min) return
+  if (items.length <= FG_REPEATERS[fgTpl(path)].min) return
   var label = fgItemLabel(path, index)
   fgRemapItems(path, function (n) { return n === index ? null : n > index ? n - 1 : n })
   items[index].remove()
@@ -622,13 +668,7 @@ function fgMoveItem(path, index, delta) {
 }`
     }
     // Initial items, created once everything they wire into is defined.
-    const repeaterInit = hasRepeaters
-      ? `    Object.keys(FG_REPEATERS).forEach(function (path) {
-      for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
-      document.querySelector('[data-fg-add="' + path + '"]').addEventListener('click', function () { fgAddItem(path, true) })
-    })
-`
-      : ''
+    const repeaterInit = hasRepeaters ? `    fgInitRepeaters(document)\n` : ''
 
     const uploadRuntime = hasUploads ? htmlUploadRuntime() : ''
     if (hasUploads) wires.push('fgWireFiles')
@@ -737,12 +777,13 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
         if (el) el.hidden = !c.test()
       })${hasRepeaters ? `
-      Object.keys(FG_REPEATERS).forEach(function (path) {
-        fgItemElements(path).forEach(function (item, i) {
-          Array.prototype.forEach.call(item.querySelectorAll('[data-fg-icond]'), function (el) {
-            el.hidden = !FG_ITEM_CONDITIONS[Number(el.getAttribute('data-fg-icond'))](i)
-          })
-        })
+      // Item conditions get the enclosing items' indexes (outer i, inner j).
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fg-icond]'), function (el) {
+        var indexes = []
+        for (var p = el.parentElement; p; p = p.parentElement) {
+          if (p.hasAttribute('data-fg-item')) indexes.unshift(Number(p.getAttribute('data-fg-index')))
+        }
+        el.hidden = !FG_ITEM_CONDITIONS[Number(el.getAttribute('data-fg-icond'))](indexes[0], indexes[1])
       })` : ''}
     }
 ${hasRepeaters ? `

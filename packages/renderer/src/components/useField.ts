@@ -1,6 +1,7 @@
 import { computed, inject } from 'vue'
 import { FORM_CONTEXT, ITEM_SCOPE, type FormContext } from '../context'
 import { floatsLabel } from '../labels'
+import { pathIndexes } from '../repeater'
 import type { ElementNode } from '../schema'
 
 export interface FieldProps {
@@ -29,7 +30,10 @@ export function useField(props: FieldProps) {
   const required = computed(
     () => props.node.validation?.some((r) => r.rule === 'required') ?? false,
   )
-  const fieldId = computed(() => (scope ? `fg-${props.node.id}-${scope.index}` : `fg-${props.node.id}`))
+  // Inside items the id carries every index (nested items: `fg-x-0-2`).
+  const fieldId = computed(() =>
+    scope ? `fg-${props.node.id}-${pathIndexes(scope.actual).join('-')}` : `fg-${props.node.id}`,
+  )
   const errorId = computed(() => `${fieldId.value}-error`)
   /**
    * Radio group name: inside an item it follows the item, not its index, so

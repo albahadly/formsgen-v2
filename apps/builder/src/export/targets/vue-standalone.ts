@@ -24,7 +24,7 @@ import {
   type RenderedRepeater,
   type RenderedSectionHost,
 } from '../markup'
-import { repeaterLegend, vueItemMarkup } from '../repeaterMarkup'
+import { ITEM_VARS, repeaterLegend, vueItemMarkup } from '../repeaterMarkup'
 import {
   collectSectionHosts,
   collectTemplateFields,
@@ -33,6 +33,7 @@ import {
   hasResetButton,
   resolveSubmitButton,
   toJsLiteral,
+  repeaterRef,
   tplHelper,
 } from '../structure'
 import { formRootClass, pinnedSchemeAttr } from '../css/themeBridge'
@@ -60,10 +61,16 @@ export const vueStandaloneTarget: ExportTarget = {
     const hosts = collectSectionHosts(schema)
     const messages = resolveMessages(schema.meta.locale)
     const repeaters = collectExportRepeaters(schema)
+    // Depth 1 items are `item` (of form.x); an inner repeater's are `item2` (of item.y).
     const items: ItemAccess = {
-      map: (path, body) => `form.${path}.map((item) => ${body})`,
-      read: (template, path) => `item.${template.slice(path.length + 1)}`,
+      map: (r, body) =>
+        r.depth === 1
+          ? `form.${r.path}.map((item) => ${body})`
+          : `item.${r.path.slice(r.parent!.length + 1)}.map((item2) => ${body})`,
+      read: (template, r) => `${ITEM_VARS[r.depth - 1]!.item}.${template.slice(r.path.length + 1)}`,
     }
+    /** Validators and visibility take the item as a parameter named `item`. */
+    const itemParam: ItemAccess = { ...items, read: (template, r) => `item[${JSON.stringify(template.slice(r.path.length + 1))}]` }
 
     // Submit button: configurable text/placement/style (meta.submitButton).
     // With exactly ONE gating wizard, the submit replaces Next on its last
@@ -108,6 +115,8 @@ export const vueStandaloneTarget: ExportTarget = {
     // fields bind to `item`, their paths/ids carry the index `i`.
     const renderRepeater = (r: RenderedRepeater): string => {
       const list = `form.${r.path}`
+      // Loop variables of this depth (an inner repeater nests item2/j in item/i).
+      const { item, index: i } = ITEM_VARS[r.depth - 1]!
       // The actions row shows while any of its buttons can: remove above the
       // minimum, move whenever there are two items (sortable repeaters).
       const shownAbove = r.sortable ? Math.min(r.limits.min, 1) : r.limits.min
@@ -115,17 +124,17 @@ export const vueStandaloneTarget: ExportTarget = {
       const remove = r.sortable && r.limits.min > 0 ? ` v-if="${list}.length > ${r.limits.min}"` : ''
       const moves = r.sortable
         ? `
-        <button v-if="i > 0" type="button" class="${css.classes('repeaterMove')}" data-fg-move="up" :aria-label="fgMoveLabel('${r.path}', i, 'up')" @click="fgMoveItem('${r.path}', i, -1)">↑</button>
-        <button v-if="i < ${list}.length - 1" type="button" class="${css.classes('repeaterMove')}" data-fg-move="down" :aria-label="fgMoveLabel('${r.path}', i, 'down')" @click="fgMoveItem('${r.path}', i, 1)">↓</button>`
+        <button v-if="${i} > 0" type="button" class="${css.classes('repeaterMove')}" data-fg-move="up" :aria-label="fgMoveLabel('${r.path}', ${i}, 'up')" @click="fgMoveItem('${r.path}', ${i}, -1)">↑</button>
+        <button v-if="${i} < ${list}.length - 1" type="button" class="${css.classes('repeaterMove')}" data-fg-move="down" :aria-label="fgMoveLabel('${r.path}', ${i}, 'down')" @click="fgMoveItem('${r.path}', ${i}, 1)">↓</button>`
         : ''
       const add = Number.isFinite(r.limits.max) ? ` v-if="${list}.length < ${r.limits.max}"` : ''
       return `<fieldset class="${css.classes('group')}" data-fg-repeater="${r.path}">${repeaterLegend(css, r, 'class')}
   <div class="${css.classes('repeaterItems')}">
-    <fieldset v-for="(item, i) in ${list}" :key="fgKeyOf(item)" class="${css.classes('repeaterItem')}" data-fg-item tabindex="-1">
-      <legend class="${css.classes('repeaterItemLabel')}">{{ fgItemLabel('${r.path}', i) }}</legend>
-${indentBlock(vueItemMarkup(r.itemHtml, r.path), 3)}
+    <fieldset v-for="(${item}, ${i}) in ${list}" :key="fgKeyOf(${item})" class="${css.classes('repeaterItem')}" data-fg-item tabindex="-1">
+      <legend class="${css.classes('repeaterItemLabel')}">{{ fgItemLabel('${r.path}', ${i}) }}</legend>
+${indentBlock(vueItemMarkup(r.itemHtml, r.path, r.depth), 3)}
       <div${actions} class="${css.classes('repeaterItemActions')}">${moves}
-        <button${remove} type="button" class="${css.classes('repeaterRemove')}" :aria-label="fgRemoveLabel('${r.path}', i)" @click="fgRemoveItem('${r.path}', i)">${r.messages.removeItem}</button>
+        <button${remove} type="button" class="${css.classes('repeaterRemove')}" :aria-label="fgRemoveLabel('${r.path}', ${i})" @click="fgRemoveItem('${r.path}', ${i})">${r.messages.removeItem}</button>
       </div>
     </fieldset>
   </div>
@@ -141,7 +150,7 @@ ${indentBlock(vueItemMarkup(r.itemHtml, r.path), 3)}
       conditionAttr: (_node, expr) => ` v-if='${expr.replace(/'/g, '&#39;')}'`,
       renderSections,
       renderRepeater,
-      itemOptions: (path) => ({ accessor: scopedAccessor(accessor, items, path) }),
+      itemOptions: (path) => ({ accessor: scopedAccessor(accessor, items, repeaterRef(path)) }),
     })
 
     // Section state + per-step validation gates + submit error jump.
@@ -286,18 +295,27 @@ ${repeaters.map((r) => `  '${r.path}': { min: ${r.limits.min}, max: ${fmtMax(r.l
 const fgItemLabels: Record<string, string> = {
 ${repeaters.map((r) => `  '${r.path}': ${JSON.stringify(r.itemLabel)},`).join('\n')}
 }
-const fgRepeaterVisible: Record<string, () => boolean> = {
+/** Is a repeater (concrete path) shown? An inner one also asks its outer item. */
+const fgRepeaterVisible: Record<string, (path: string) => boolean> = {
 ${repeaters
-  .map(
-    (r) =>
-      `  '${r.path}': () => ${r.conditionChain.length ? r.conditionChain.map((g) => `(${compileConditions(g, accessor)})`).join(' && ') : 'true'},`,
-  )
+  .map((r) => {
+    if (r.depth === 1) {
+      return `  '${r.path}': (_path) => ${r.conditionChain.length ? r.conditionChain.map((g) => `(${compileConditions(g, accessor)})`).join(' && ') : 'true'},`
+    }
+    const outer = scopedAccessor(accessor, itemParam, { path: r.parent!, depth: 1, parent: null })
+    const cond = r.itemConditionChain.length ? r.itemConditionChain.map((g) => `(${compileConditions(g, outer)})`).join(' && ') : 'true'
+    return `  '${r.path}': (path) => {\n    const item = fgOuterItem(path)\n    return !!item && ${cond}\n  },`
+  })
   .join('\n')}
 }
+/** Names of each repeater's inner repeaters (one level). */
+const fgInnerRepeaters: Record<string, string[]> = ${JSON.stringify(
+            Object.fromEntries(repeaters.map((r) => [r.path, repeaters.filter((x) => x.parent === r.path).map((x) => x.path.slice(r.path.length + 1))])),
+          )}
 const fgItemValidators: Record<string, Record<string, (item: Record<string, unknown>) => string | null>> = ${itemValidatorsLiteral(
             repeaters,
             accessor,
-            { ...items, read: (template, path) => `item[${JSON.stringify(template.slice(path.length + 1))}]` },
+            itemParam,
             () => 'item: Record<string, unknown>',
             messages,
           )}
@@ -305,8 +323,13 @@ const fgItemValidators: Record<string, Record<string, (item: Record<string, unkn
 function fgList(path: string): Record<string, unknown>[] {
   return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form) as Record<string, unknown>[]
 }
+/** The outer item an inner list (\`travellers.2.bags\`) belongs to. */
+function fgOuterItem(path: string): Record<string, unknown> | undefined {
+  const match = /^(.+)\\.(\\d+)\\.[^.]+$/.exec(path)
+  return match ? fgList(match[1]!)[Number(match[2])] : undefined
+}
 function fgItemLabel(path: string, index: number): string {
-  return (fgItemLabels[path] ?? '').split('{n}').join(String(index + 1))
+  return (fgItemLabels[fgTpl(path)] ?? '').split('{n}').join(String(index + 1))
 }
 function fgRemoveLabel(path: string, index: number): string {
   return ${JSON.stringify(messages.removeItemLabel)}.split('{label}').join(fgItemLabel(path, index))
@@ -315,15 +338,19 @@ function fgRemoveLabel(path: string, index: number): string {
 function fgItemValidator(path: string): (() => string | null) | undefined {
   const match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
   if (!match) return undefined
-  const validate = fgItemValidators[match[1]!]?.[match[3]!]
+  const validate = fgItemValidators[fgTpl(match[1]!)]?.[match[3]!]
   const item = fgList(match[1]!)[Number(match[2])]
   return validate && item ? () => validate(item) : undefined
 }
-/** Every item field path of a repeater (for validation and step gates). */
+/** Every item field path of a repeater, inner items included (validation, step gates). */
 function fgItemPaths(path: string): string[] {
-  if (!fgRepeaterVisible[path]?.()) return []
-  const fields = Object.keys(fgItemValidators[path] ?? {})
-  return fgList(path).flatMap((_, i) => fields.map((field) => \`\${path}.\${i}.\${field}\`))
+  const template = fgTpl(path)
+  if (!fgRepeaterVisible[template]?.(path)) return []
+  const fields = Object.keys(fgItemValidators[template] ?? {})
+  return fgList(path).flatMap((_, i) => [
+    ...fields.map((field) => \`\${path}.\${i}.\${field}\`),
+    ...(fgInnerRepeaters[template] ?? []).flatMap((name) => fgItemPaths(\`\${path}.\${i}.\${name}\`)),
+  ])
 }
 const fgItemKeys = new WeakMap<object, number>()
 let fgNextItemKey = 0
@@ -371,8 +398,8 @@ function fgShiftItems(path: string, removed: number): void {
 }
 async function fgAddItem(path: string): Promise<void> {
   const list = fgList(path)
-  if (list.length >= (fgItemLimits[path]?.max ?? Number.POSITIVE_INFINITY)) return
-  list.push(fgItemDefaults[path]!())
+  if (list.length >= (fgItemLimits[fgTpl(path)]?.max ?? Number.POSITIVE_INFINITY)) return
+  list.push(fgItemDefaults[fgTpl(path)]!())
   await nextTick()
   const item = fgItemElements(path)[list.length - 1]
   const control = item?.querySelector<HTMLElement>('input:not([type=hidden]), select, textarea')
@@ -402,7 +429,7 @@ async function fgMoveItem(path: string, index: number, delta: -1 | 1): Promise<v
     : ''
 }async function fgRemoveItem(path: string, index: number): Promise<void> {
   const list = fgList(path)
-  if (list.length <= (fgItemLimits[path]?.min ?? 0)) return
+  if (list.length <= (fgItemLimits[fgTpl(path)]?.min ?? 0)) return
   const label = fgItemLabel(path, index)
   fgShiftItems(path, index)
   list.splice(index, 1)
@@ -428,7 +455,7 @@ async function fgMoveItem(path: string, index: number, delta: -1 | 1): Promise<v
     const hasUploads = uploadFields(typedFields).length > 0
     // Path helpers for the per-type handlers (unused ones are pruned).
     const pathHelpers =
-      hasUploads || tagsFields.length > 0 || datesFields.length > 0 || phoneFields.length > 0
+      hasUploads || tagsFields.length > 0 || datesFields.length > 0 || phoneFields.length > 0 || repeaters.length > 0
         ? `${tplHelper(true)}
 function fgGet(path: string): unknown {
   return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form)
@@ -533,7 +560,7 @@ function revalidate(path: string): void {
 
 function validateAll(): boolean {
   let ok = true
-  for (const path of [...Object.keys(validators)${repeaters.length ? ', ...Object.keys(fgItemValidators).flatMap(fgItemPaths)' : ''}]) {
+  for (const path of [...Object.keys(validators)${repeaters.length ? `, ...${JSON.stringify(repeaters.filter((r) => r.depth === 1).map((r) => r.path))}.flatMap(fgItemPaths)` : ''}]) {
     touched.add(path)
     runValidator(path)
     if (errors[path]) ok = false

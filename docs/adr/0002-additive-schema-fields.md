@@ -29,6 +29,7 @@ Bumping `$schema` to `formsgen/v3` would make every existing document fail `pars
 | Props `tooltip` (every field), `prefix` / `suffix` (text-likes, number); `meta.fieldSize` (`sm`\|`md`\|`lg`) and `style.size: 'md'` (explicit medium) | 27a | no tooltip / add-ons; medium fields. `meta.fieldSize` is validated by the parser |
 | `layout.colSpanSm` (phones) and `layout.colSpanLg` (desktops) beside `colSpan` (tablets up); `meta.floatingLabels` (boolean) | 27b | phones full width, desktops = `colSpan`; labels above controls. All spans are validated (1, 2, 3, 4, 6, 12) |
 | Repeater prop `sortable` (boolean, move up / move down). Repeater children may now be any field type (tags, uploads, range slider, date range, multiple dates, matrix, phone with country); containers are still not allowed | 28a | no move buttons. Older builds' parsers reject the newly allowed child types inside a repeater |
+| Repeater items may hold unnamed groups/columns (layout only) and one inner repeater (two levels); an inner repeater's conditions may name its outer item's fields (`travellers.has_bags`), an inner field's its own siblings (`travellers.bags.fragile`) | 28b | n/a: older builds' parsers reject containers inside a repeater. The parser enforces: no tabs/steps in items, at most two repeater levels, no named group inside an item |
 
 ## Alternatives considered
 

@@ -23,7 +23,7 @@ import type { EmitterLang } from '@/registry/types'
 import { compileConditions } from './compile'
 import type { CssFrameworkAdapter } from './css'
 import { esc } from '@/registry/emitters/shared'
-import { isRequired, pathKey } from './structure'
+import { ITEM_TOKENS, isRequired, pathKey, repeaterRef } from './structure'
 
 export interface MarkupOptions {
   lang: EmitterLang
@@ -69,12 +69,21 @@ export interface MarkupOptions {
 }
 
 /** Stands for the item index inside repeater item templates. */
-export const ITEM_TOKEN = '__i__'
+export const ITEM_TOKEN = ITEM_TOKENS[0]
 
 export interface RenderedRepeater {
   node: ElementNode
-  /** Data path of the item array (no index), e.g. "people". */
+  /**
+   * Data path of the item array: "people", or for an inner repeater the
+   * path with the outer item's token, "travellers.__i__.bags".
+   */
   path: string
+  /** The path without item tokens ("travellers.bags"), as ExportRepeater.path. */
+  template: string
+  /** 1 for a top-level repeater, 2 inside another repeater's item. */
+  depth: number
+  /** This depth's index token in `itemHtml` (`__i__` / `__j__`). */
+  token: string
   /** Identifier-safe key for generated names. */
   key: string
   /** The item's grid markup, with ITEM_TOKEN for the index. */
@@ -255,8 +264,10 @@ export function renderTree(schema: FormSchema, rootOptions: MarkupOptions): stri
         inner = comment(`repeating section "${esc(node.name ?? node.id)}" is not supported by this target yet`)
       } else {
         const itemOptions: MarkupOptions = { ...options, ...options.itemOptions?.(repeaterPath) }
+        const depth = repeaterRef(repeaterPath).depth
+        const token = ITEM_TOKENS[depth - 1]!
         const itemHtml = `<div ${classAttr}="${css.classes('grid')}">\n${indentBlock(
-          renderNodes(node.children ?? [], `${repeaterPath}.${ITEM_TOKEN}`, 12, itemOptions),
+          renderNodes(node.children ?? [], `${repeaterPath}.${token}`, 12, itemOptions),
           1,
         )}\n</div>`
         const label = node.props['label']
@@ -265,6 +276,9 @@ export function renderTree(schema: FormSchema, rootOptions: MarkupOptions): stri
         inner = options.renderRepeater({
           node,
           path: repeaterPath,
+          template: repeaterRef(repeaterPath).path,
+          depth,
+          token,
           key: pathKey(repeaterPath),
           itemHtml,
           messages,

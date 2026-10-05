@@ -5,7 +5,7 @@
 
 import { getValueByPath, isVisible } from './conditions'
 import { getCoreElement } from './elements'
-import { isRepeater, resolveScoped, type ItemScope } from './repeater'
+import { isRepeater, resolveScoped, templatePath, type ItemScope } from './repeater'
 import type { ElementNode } from './schema'
 
 export interface VisibleField {
@@ -52,7 +52,7 @@ export function collectVisibleFields(
       repeaterItems(data, path).forEach((_, index) => {
         const itemPath = `${path}.${index}`
         fields.push(
-          ...collectVisibleFields(node.children ?? [], data, itemPath, { template: path, actual: itemPath, index }),
+          ...collectVisibleFields(node.children ?? [], data, itemPath, { template: templatePath(path), actual: itemPath, index }),
         )
       })
     } else if (core.isContainer) {
@@ -88,7 +88,7 @@ export function pickVisibleData(
       const path = joinPath(parentPath, node.name)
       out[node.name] = repeaterItems(data, path).map((_, index) => {
         const itemPath = `${path}.${index}`
-        return pickVisibleData(node.children ?? [], data, itemPath, { template: path, actual: itemPath, index })
+        return pickVisibleData(node.children ?? [], data, itemPath, { template: templatePath(path), actual: itemPath, index })
       })
     } else if (core.isContainer) {
       if (node.name) {

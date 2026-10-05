@@ -12,6 +12,7 @@ import {
   getCoreElement,
   isRepeater,
   joinPath,
+  type ConditionGroups,
   type MessageCatalog,
   type ElementNode,
   type FormSchema,
@@ -23,6 +24,7 @@ import {
   pathKey,
   type ExportField,
   type ExportRepeater,
+  type RepeaterRef,
 } from './structure'
 
 /**
@@ -31,17 +33,22 @@ import {
  * (`people.name`) from the current item inside such an expression.
  */
 export interface ItemAccess {
-  map: (repeaterPath: string, body: string) => string
-  read: (templatePath: string, repeaterPath: string) => string
+  /** Maps the repeater's items (an inner repeater: within the outer item) to `body`. */
+  map: (repeater: RepeaterRef, body: string) => string
+  /** Reads an item field by template path (`people.name`) inside `map`'s body. */
+  read: (templatePath: string, repeater: RepeaterRef) => string
 }
 
 /** Root accessor that sends the repeater's template paths to the item. */
-export function scopedAccessor(
-  accessor: ValueAccessor,
-  items: ItemAccess,
-  repeaterPath: string,
-): ValueAccessor {
-  return (path) => (path.startsWith(`${repeaterPath}.`) ? items.read(path, repeaterPath) : accessor(path))
+export function scopedAccessor(accessor: ValueAccessor, items: ItemAccess, repeater: RepeaterRef): ValueAccessor {
+  return (path) => (path.startsWith(`${repeater.path}.`) ? items.read(path, repeater) : accessor(path))
+}
+
+/** Every group of a chain must pass (`true` for none). */
+function chainExpr(chain: ConditionGroups[], accessor: ValueAccessor): string {
+  return chain.length === 1
+    ? compileConditions(chain[0]!, accessor)
+    : chain.map((groups) => `(${compileConditions(groups, accessor)})`).join(' && ')
 }
 
 /**
@@ -57,16 +64,14 @@ export function itemValidatorsLiteral(
   messages: MessageCatalog = MESSAGES.en,
 ): string {
   const blocks = repeaters.map((repeater) => {
-    const scoped = scopedAccessor(accessor, items, repeater.path)
+    const scoped = scopedAccessor(accessor, items, repeater)
     const entries = repeater.fields
       .filter((f) => needsValidator(f.node))
       .map((f) => {
-        const guard = f.node.conditions?.length
-          ? `if (!(${compileConditions(f.node.conditions, scoped)})) return null\n      `
-          : ''
+        const guard = f.conditions.length ? `if (!(${chainExpr(f.conditions, scoped)})) return null\n      ` : ''
         const body = compileValidator(
           f.node.validation ?? [],
-          items.read(f.templatePath, repeater.path),
+          items.read(f.templatePath, repeater),
           scoped,
           builtinCheckExpr(f.node, messages),
         )
@@ -172,20 +177,7 @@ export function payloadExpr(
 
       if (isRepeater(node)) {
         if (!node.name || !items) continue
-        const repeaterPath = joinPath(parentPath, node.name)
-        const scoped = scopedAccessor(accessor, items, repeaterPath)
-        const itemEntries: string[] = []
-        for (const child of node.children ?? []) {
-          const childCore = getCoreElement(child.type)
-          if (!childCore?.hasValue || childCore.isContainer || !child.name) continue
-          const read = items.read(joinPath(repeaterPath, child.name), repeaterPath)
-          itemEntries.push(
-            child.conditions?.length
-              ? `...(${compileConditions(child.conditions, scoped)} ? { ${JSON.stringify(child.name)}: ${read} } : {})`
-              : `${JSON.stringify(child.name)}: ${read}`,
-          )
-        }
-        const list = items.map(repeaterPath, `({ ${itemEntries.join(', ')} })`)
+        const list = itemList(node, { path: joinPath(parentPath, node.name), depth: 1, parent: null })
         entries.push(
           ownCond
             ? `${pad}...(${ownCond} ? { ${JSON.stringify(node.name)}: ${list} } : {}),`
@@ -223,6 +215,35 @@ export function payloadExpr(
       }
     }
     return entries
+  }
+
+  /**
+   * One repeater's items as an array expression: each item an object of its
+   * visible fields (through layout containers) and inner repeaters' lists.
+   */
+  function itemList(node: ElementNode, repeater: RepeaterRef): string {
+    const scoped = scopedAccessor(accessor, items!, repeater)
+    const itemEntries = (nodes: ElementNode[]): string[] => {
+      const out: string[] = []
+      for (const child of nodes) {
+        const childCore = getCoreElement(child.type)
+        if (!childCore) continue
+        const cond = child.conditions?.length ? compileConditions(child.conditions, scoped) : null
+        const conditional = (entry: string): string => (cond ? `...(${cond} ? { ${entry} } : {})` : entry)
+        if (isRepeater(child)) {
+          if (!child.name) continue
+          const inner = itemList(child, { path: joinPath(repeater.path, child.name), depth: repeater.depth + 1, parent: repeater.path })
+          out.push(conditional(`${JSON.stringify(child.name)}: ${inner}`))
+        } else if (childCore.isContainer) {
+          const inner = itemEntries(child.children ?? [])
+          if (inner.length) out.push(cond ? `...(${cond} ? { ${inner.join(', ')} } : {})` : inner.join(', '))
+        } else if (childCore.hasValue && child.name) {
+          out.push(conditional(`${JSON.stringify(child.name)}: ${items!.read(joinPath(repeater.path, child.name), repeater)}`))
+        }
+      }
+      return out
+    }
+    return items!.map(repeater, `({ ${itemEntries(node.children ?? []).join(', ')} })`)
   }
 
   const entries = walkEntries(schema.tree, '', 1)

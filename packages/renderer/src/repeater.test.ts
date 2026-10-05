@@ -2,7 +2,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import FormsGenForm from './components/FormsGenForm.vue'
 import { parseFormSchema } from './parse'
-import { repeaterLimits, resolveScoped } from './repeater'
+import { repeaterItemDefaults, repeaterLimits, resolveScoped, templatePath } from './repeater'
 import { buildDefaultData } from './tree'
 import type { ElementNode, FormSchema } from './schema'
 
@@ -55,7 +55,7 @@ describe('repeater helpers', () => {
     })
   })
 
-  it('the parser requires a name and rejects containers inside (any field is fine)', () => {
+  it('the parser: repeaters need a name; items take layout and one inner repeater, never tabs/steps', () => {
     const result = parseFormSchema(
       schema([
         { id: 'a', type: 'repeater', props: {}, children: [] },
@@ -65,9 +65,16 @@ describe('repeater helpers', () => {
           name: 'b',
           props: {},
           children: [
-            { id: 'c', type: 'group', props: {} },
-            { id: 'd', type: 'tags', name: 'd', props: {} },
-            { id: 'e', type: 'text', name: 'e', props: {} },
+            { id: 'c', type: 'group', props: {}, children: [{ id: 'c1', type: 'tags', name: 'c1', props: {} }] },
+            { id: 'd', type: 'group', name: 'named', props: {} },
+            { id: 'e', type: 'columns', props: {}, children: [{ id: 'e1', type: 'tabs', props: {} }] },
+            {
+              id: 'f',
+              type: 'repeater',
+              name: 'inner',
+              props: {},
+              children: [{ id: 'g', type: 'repeater', name: 'deeper', props: {} }],
+            },
           ],
         },
       ]),
@@ -76,8 +83,31 @@ describe('repeater helpers', () => {
     if (result.ok) return
     expect(result.errors).toEqual([
       'tree[0].name: a repeater needs a name (its items are stored under it)',
-      'tree[1].children[0].type: "group" cannot be placed inside a repeater',
+      "tree[1].children[1].name: a group inside a repeater item can't have a name (item data stays flat)",
+      'tree[1].children[2].children[0].type: "tabs" cannot be placed inside a repeater',
+      'tree[1].children[3].children[0].type: repeaters nest at most two levels deep',
     ])
+  })
+
+  it('item defaults look through layout containers and hold inner repeaters', () => {
+    const node: ElementNode = {
+      id: 't',
+      type: 'repeater',
+      name: 'trips',
+      props: {},
+      children: [
+        { id: 'g', type: 'group', props: {}, children: [{ id: 'n', type: 'text', name: 'name', props: {} }] },
+        {
+          id: 'b',
+          type: 'repeater',
+          name: 'bags',
+          props: { initialItems: 2 },
+          children: [{ id: 'w', type: 'number', name: 'weight', props: {} }],
+        },
+      ],
+    }
+    expect(repeaterItemDefaults(node)).toEqual({ name: '', bags: [{ weight: null }, { weight: null }] })
+    expect(templatePath('trips.0.bags.3')).toBe('trips.bags')
   })
 })
 
@@ -212,5 +242,80 @@ describe('<FormsGenForm> with a repeater', () => {
     expect(wrapper.findAll('[data-fg-item]').map((item) => item.get('input[type=radio]').attributes('name'))).not.toContain(undefined)
     wrapper.unmount()
   })
-})
 
+  it('nested repeaters: per-item scopes, unique ids, item-scoped conditions and nested payload', async () => {
+    const travellers: ElementNode = {
+      id: 't',
+      type: 'repeater',
+      name: 'travellers',
+      props: { label: 'Travellers', itemLabel: 'Traveller {n}', initialItems: 2 },
+      children: [
+        { id: 'tn', type: 'text', name: 'name', props: { label: 'Name' } },
+        { id: 'hb', type: 'checkbox', name: 'has_bags', props: { label: 'Has bags' } },
+        {
+          id: 'bags',
+          type: 'repeater',
+          name: 'bags',
+          props: { label: 'Bags', itemLabel: 'Bag {n}', minItems: 0, initialItems: 1 },
+          conditions: [[{ field: 'travellers.has_bags', operator: 'equals', value: true }]],
+          children: [
+            {
+              id: 'cols',
+              type: 'columns',
+              props: { count: 2 },
+              children: [
+                { id: 'w', type: 'number', name: 'weight', props: { label: 'Weight' }, validation: [{ rule: 'required' }] },
+                { id: 'f', type: 'checkbox', name: 'fragile', props: { label: 'Fragile' } },
+              ],
+            },
+            {
+              id: 'note',
+              type: 'text',
+              name: 'note',
+              props: { label: 'Handling note' },
+              conditions: [[{ field: 'travellers.bags.fragile', operator: 'equals', value: true }]],
+            },
+          ],
+        },
+      ],
+    }
+    const wrapper = mountForm([travellers])
+    const outer = () => wrapper.findAll('[data-fg-item]').filter((el) => el.element.parentElement?.closest('[data-fg-item]') === null)
+    // bags show only for the traveller who has them
+    await outer()[1]!.get('input[type=checkbox]').setValue(true)
+    expect(outer()[0]!.text()).not.toContain('Bag 1')
+    expect(outer()[1]!.text()).toContain('Bag 1')
+    const ids = wrapper.findAll('input').map((i) => i.attributes('id')).filter(Boolean)
+    expect(new Set(ids).size).toBe(ids.length)
+    expect(ids).toContain('fg-w-1-0')
+    // an inner condition reads the inner item's sibling
+    await outer()[1]!.get('.fg-repeater-add').trigger('click')
+    await flushPromises()
+    const fragile = () => outer()[1]!.findAll('input[type=checkbox]').slice(1)
+    await fragile()[1]!.setValue(true)
+    expect(outer()[1]!.findAll('[data-fg-item]')[0]!.text()).not.toContain('Handling note')
+    expect(outer()[1]!.findAll('[data-fg-item]')[1]!.text()).toContain('Handling note')
+    await wrapper.get('form').trigger('submit')
+    expect(wrapper.emitted('submit')).toBeUndefined() // both bags need a weight
+    const weights = outer()[1]!.findAll('input[type=number]')
+    await weights[0]!.setValue('12')
+    await weights[1]!.setValue('3')
+    await wrapper.get('form').trigger('submit')
+    expect(wrapper.emitted('submit')?.[0]).toEqual([
+      {
+        travellers: [
+          { name: '', has_bags: false },
+          {
+            name: '',
+            has_bags: true,
+            bags: [
+              { weight: 12, fragile: false },
+              { weight: 3, fragile: true, note: '' },
+            ],
+          },
+        ],
+      },
+    ])
+    wrapper.unmount()
+  })
+})
