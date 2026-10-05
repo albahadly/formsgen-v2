@@ -11,6 +11,8 @@ const props = defineProps<{
   placeholder?: string | undefined
   /** A textarea (e.g. paragraph text). */
   multiline?: boolean | undefined
+  /** Small help text under the control. */
+  hint?: string | undefined
 }>()
 
 const store = useBuilderStore()
@@ -30,6 +32,7 @@ const value = computed({
       class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal text-gray-900"
       :placeholder="placeholder ? tText(placeholder) : undefined"
       :data-testid="`control-${prop}`"
+      :dir="prop === 'html' ? 'ltr' : undefined"
     />
     <input
       v-else
@@ -39,5 +42,10 @@ const value = computed({
       :placeholder="placeholder ? tText(placeholder) : undefined"
       :data-testid="`control-${prop}`"
     >
+    <span
+      v-if="hint"
+      class="text-[11px] font-normal text-gray-500"
+      :data-testid="`control-${prop}-hint`"
+    >{{ tText(hint) }}</span>
   </label>
 </template>

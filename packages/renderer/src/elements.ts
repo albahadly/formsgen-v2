@@ -48,6 +48,7 @@ export const STATIC_TYPES: ReadonlySet<string> = new Set([
   'image',
   'link',
   'quote',
+  'html',
   'button',
 ])
 
@@ -91,6 +92,8 @@ export const coreElements: Record<string, CoreElementMeta> = {
   image: meta('image', false, false, () => undefined),
   link: meta('link', false, false, () => undefined),
   quote: meta('quote', false, false, () => undefined),
+  // The author's HTML, sanitized (safeHtml.ts).
+  html: meta('html', false, false, () => undefined),
   button: meta('button', false, false, () => undefined),
   group: meta('group', false, true, () => undefined),
   columns: meta('columns', false, true, () => undefined),

@@ -26,6 +26,7 @@ const CLASSES: Record<Slot, string> = {
   range: 'form-range',
   heading: 'fw-semibold',
   paragraph: 'text-secondary',
+  htmlBlock: '',
   richText: '',
   richBlock: 'mb-2',
   richList: 'mb-2',

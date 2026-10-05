@@ -30,6 +30,9 @@ const CLASSES: Record<Slot, string> = {
   range: 'w-full accent-indigo-600',
   heading: 'font-semibold',
   paragraph: 'text-sm text-gray-600 dark:text-gray-300',
+  // Preflight resets lists, tables and headings; give the author's plain HTML its usual shape.
+  htmlBlock:
+    'text-sm [&_a]:underline [&_ul]:list-disc [&_ul]:ps-5 [&_ol]:list-decimal [&_ol]:ps-5 [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg [&_h1]:font-semibold [&_h2]:font-semibold [&_h3]:font-semibold [&_h4]:font-semibold [&_th]:border [&_th]:px-2 [&_th]:py-1 [&_th]:text-start [&_td]:border [&_td]:px-2 [&_td]:py-1',
   richText: 'space-y-2',
   richBlock: '',
   richList: 'list-disc ps-5',

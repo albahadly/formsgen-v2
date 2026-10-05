@@ -25,6 +25,7 @@ import {
   linkElement,
   paragraphElement,
   quoteElement,
+  htmlElement,
 } from './elements/staticElements'
 import { textElement } from './elements/text'
 import { textareaElement } from './elements/textarea'
@@ -103,6 +104,7 @@ for (const def of [
   headingElement,
   paragraphElement,
   quoteElement,
+  htmlElement,
   imageElement,
   linkElement,
   buttonElement,

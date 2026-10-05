@@ -60,6 +60,8 @@ export type Slot =
   | 'image'
   | 'link'
   | 'quote'
+  /** An HTML block's container (the author's markup goes inside). */
+  | 'htmlBlock'
   | 'quoteText'
   | 'quoteCite'
   | 'buttonDanger'

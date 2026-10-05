@@ -506,6 +506,18 @@ function booking(lang: TemplateLocale): FormSchema {
       validation: [{ rule: 'required' }],
     },
     {
+      id: 'tpl-book-rates',
+      type: 'html',
+      props: {
+        html: L(
+          tx(
+            '<table><caption>Nightly rates</caption><thead><tr><th>Room</th><th>Price</th></tr></thead><tbody><tr><td>Standard</td><td>$90</td></tr><tr><td>Deluxe</td><td>$140</td></tr><tr><td>Suite</td><td>$220</td></tr></tbody></table><p><small>Breakfast and taxes included. <a href="https://example.com/rates" target="_blank">Full price list</a></small></p>',
+            '<table><caption>أسعار الليلة</caption><thead><tr><th>الغرفة</th><th>السعر</th></tr></thead><tbody><tr><td>عادية</td><td>35 ر.ع</td></tr><tr><td>فاخرة</td><td>55 ر.ع</td></tr><tr><td>جناح</td><td>85 ر.ع</td></tr></tbody></table><p><small>يشمل الإفطار والضرائب. <a href="https://example.com/rates" target="_blank">قائمة الأسعار كاملة</a></small></p>',
+          ),
+        ),
+      },
+    },
+    {
       id: 'tpl-book-budget',
       type: 'rangeslider',
       name: 'budget',
@@ -826,7 +838,12 @@ export function listTemplates(lang: TemplateLocale): FormTemplate[] {
     {
       id: 'booking',
       title: pick(tx('Hotel booking', 'حجز فندق')),
-      description: pick(tx('Stay dates, room choice, budget range and extras.', 'تواريخ الإقامة واختيار الغرفة ونطاق الميزانية والإضافات.')),
+      description: pick(
+        tx(
+          'Stay dates, room choice with a rates table (HTML block), budget range and extras.',
+          'تواريخ الإقامة واختيار الغرفة مع جدول أسعار (كتلة HTML) ونطاق الميزانية والإضافات.',
+        ),
+      ),
       schema: booking(lang),
     },
     {

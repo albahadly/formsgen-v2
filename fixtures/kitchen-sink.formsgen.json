@@ -334,6 +334,13 @@
       "props": { "text": "Forms are conversations.", "cite": "FormsGen" }
     },
     {
+      "id": "ks-html",
+      "type": "html",
+      "props": {
+        "html": "<h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style=\"color: #b91c1c\">Closed on holidays. {{ not.vue }} @razor {jsx}</p><script>alert(1)</script><a href=\"javascript:alert(1)\" onclick=\"x()\">unsafe link</a>"
+      }
+    },
+    {
       "id": "ks-docs-link",
       "type": "link",
       "props": { "text": "Read the docs", "href": "https://example.com/docs", "newTab": true }

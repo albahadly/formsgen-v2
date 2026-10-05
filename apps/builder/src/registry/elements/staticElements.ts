@@ -2,6 +2,7 @@
 // quote. Link and image URLs are emitted only when safe (isSafeUrl).
 
 import { isMarkdownParagraph, isSafeUrl, type ElementNode } from '@formsgen/renderer'
+import { htmlBlockMarkup } from '@/export/htmlBlock'
 import { richTextMarkup } from '@/export/richText'
 import { esc } from '../emitters/shared'
 import { appearanceSection, type ElementDefinition, type EmitCtx, type EmitterLang } from '../types'
@@ -111,9 +112,14 @@ export const dividerElement: ElementDefinition = {
 
 const classAttrFor = (jsx: boolean): string => (jsx ? 'className' : 'class')
 
-const imageMarkup = (node: ElementNode, ctx: EmitCtx, jsx: boolean): string => {
+const imageMarkup = (node: ElementNode, ctx: EmitCtx, jsx: boolean, vue = false): string => {
   const src = node.props['src']
-  const srcAttr = isSafeUrl(src) ? ` src="${esc(src.trim())}"` : ''
+  // Vue: bound, so the SFC compiler doesn't turn a relative src into a build-time import.
+  const srcAttr = !isSafeUrl(src)
+    ? ''
+    : vue
+      ? ` :src="${esc(`'${src.trim().replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`)}"`
+      : ` src="${esc(src.trim())}"`
   const width = Number(node.props['width'])
   const widthAttr = Number.isFinite(width) && width > 0 ? ` width="${Math.round(width)}"` : ''
   return `<img ${classAttrFor(jsx)}="${ctx.css.classes('image')}"${srcAttr} alt="${esc(String(node.props['alt'] ?? ''))}"${widthAttr} loading="lazy"${jsx ? ' />' : '>'}`
@@ -140,7 +146,7 @@ export const imageElement: ElementDefinition = {
     { title: 'Conditions', controls: [{ kind: 'conditions' }] },
   ],
   export: {
-    vue: (node, ctx) => imageMarkup(node, ctx, false),
+    vue: (node, ctx) => imageMarkup(node, ctx, false, true),
     html: (node, ctx) => imageMarkup(node, ctx, false),
     react: (node, ctx) => imageMarkup(node, ctx, true),
     blazor: (node, ctx) => imageMarkup(node, ctx, false),
@@ -220,5 +226,37 @@ export const quoteElement: ElementDefinition = {
     html: (node, ctx) => quoteMarkup(node, ctx, false),
     react: (node, ctx) => quoteMarkup(node, ctx, true),
     blazor: (node, ctx) => quoteMarkup(node, ctx, false),
+  },
+}
+
+export const htmlElement: ElementDefinition = {
+  type: 'html',
+  category: 'static',
+  label: 'HTML block',
+  description: 'Your own HTML (safe tags only)',
+  icon: '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M8.7 16.6 4.1 12l4.6-4.6L7.3 6l-6 6 6 6zm6.6 0 4.6-4.6-4.6-4.6L16.7 6l6 6-6 6zM13.4 4l1.9.5-4.7 15.5-1.9-.5z"/></svg>',
+  defaultProps: { html: '<p>Write <strong>HTML</strong> here.</p>' },
+  propertyPanel: [
+    {
+      title: 'Properties',
+      controls: [
+        {
+          kind: 'text',
+          prop: 'html',
+          label: 'HTML',
+          multiline: true,
+          hint: 'Scripts, styles, frames, form controls and event attributes are removed; links and images need safe URLs.',
+        },
+      ],
+    },
+    { title: 'Layout', controls: [{ kind: 'colspan' }] },
+    appearanceSection(['className']),
+    { title: 'Conditions', controls: [{ kind: 'conditions' }] },
+  ],
+  export: {
+    vue: (node, ctx) => htmlBlockMarkup(node, ctx, 'vue'),
+    html: (node, ctx) => htmlBlockMarkup(node, ctx, 'html'),
+    react: (node, ctx) => htmlBlockMarkup(node, ctx, 'react'),
+    blazor: (node, ctx) => htmlBlockMarkup(node, ctx, 'blazor'),
   },
 }

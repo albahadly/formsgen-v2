@@ -3,8 +3,10 @@ import { computed, inject } from 'vue'
 import { FORM_CONTEXT } from '../../context'
 import { isSafeUrl } from '../../elements'
 import { isMarkdownParagraph, parseMarkdown } from '../../markdown'
+import { parseSafeHtml } from '../../safeHtml'
 import { MESSAGES } from '../../messages'
 import type { ElementNode } from '../../schema'
+import FgHtmlBlock from './FgHtmlBlock'
 import FgRichText from './FgRichText'
 
 const props = defineProps<{ node: ElementNode }>()
@@ -18,6 +20,8 @@ const prop = (key: string): string => {
 const text = computed(() => prop('text'))
 /** Simple formatting (props.format = 'markdown'): bold, italics, links, lists. */
 const blocks = computed(() => (isMarkdownParagraph(props.node) ? parseMarkdown(text.value) : null))
+/** HTML block: the author's HTML, reduced to allowed tags and attributes. */
+const htmlNodes = computed(() => (props.node.type === 'html' ? parseSafeHtml(prop('html')) : null))
 /** style.tone: text color (line color for a divider). */
 const toneClass = computed(() => (props.node.style?.tone ? `fg-tone-${props.node.style.tone}` : undefined))
 const level = computed(() => {
@@ -41,6 +45,10 @@ const cite = computed(() => prop('cite'))
     class="fg-divider"
     :class="toneClass"
   >
+  <FgHtmlBlock
+    v-else-if="htmlNodes"
+    :nodes="htmlNodes"
+  />
   <FgRichText
     v-else-if="blocks"
     :class="toneClass"

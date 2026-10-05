@@ -425,6 +425,8 @@ const ar: Record<string, string> = {
   'element.hidden.description': 'قيمة ثابتة تُرسل مع النموذج',
   'element.quote.label': 'اقتباس',
   'element.quote.description': 'اقتباس مع مصدر اختياري',
+  'element.html.label': 'كتلة HTML',
+  'element.html.description': 'HTML خاص بك (وسوم آمنة فقط)',
   'element.image.label': 'صورة',
   'element.image.description': 'صورة من رابط',
   'element.link.label': 'رابط نصي',
@@ -484,6 +486,7 @@ const arText: Record<string, string> = {
   Description: 'الوصف',
   Options: 'الخيارات',
   Text: 'النص',
+  HTML: 'HTML',
   Min: 'الحد الأدنى',
   Max: 'الحد الأقصى',
   'Min (input attribute)': 'الحد الأدنى (سمة الحقل)',
@@ -546,6 +549,8 @@ const arText: Record<string, string> = {
   'Items shown at start': 'عدد العناصر في البداية',
   'Let people reorder items': 'السماح بإعادة ترتيب العناصر',
   'Several answers per row': 'عدة إجابات لكل صف',
+  'Scripts, styles, frames, form controls and event attributes are removed; links and images need safe URLs.':
+    'تُزال السكربتات والأنماط والإطارات وعناصر النماذج وسمات الأحداث؛ وتحتاج الروابط والصور إلى عناوين آمنة.',
   'Simple formatting: **bold**, *italics*, [link](https://…), - lists': 'تنسيق بسيط: **غامق**، *مائل*، [رابط](https://…)، - قوائم',
   // export dialog
   'JSON schema': 'مخطط JSON',

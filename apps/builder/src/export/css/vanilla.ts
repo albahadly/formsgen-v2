@@ -26,6 +26,7 @@ const CLASSES: Record<Slot, string> = {
   range: 'fg-range',
   heading: 'fg-heading',
   paragraph: 'fg-paragraph',
+  htmlBlock: 'fg-html',
   richText: 'fg-rich-text',
   richBlock: '',
   richList: '',
@@ -152,6 +153,21 @@ function baseStylesheet(theme: ThemeTokens | undefined): string {
 .fg-range { inline-size: 100%; accent-color: var(--fg-color-primary); }
 .fg-heading { margin: 0; }
 .fg-paragraph { margin: 0; color: var(--fg-color-muted); }
+/* HTML blocks: light defaults; the author's own classes and styles win */
+.fg-html { overflow-wrap: anywhere; }
+:where(.fg-html) > :first-child { margin-block-start: 0; }
+:where(.fg-html) > :last-child { margin-block-end: 0; }
+:where(.fg-html) :where(p, ul, ol, dl, table, blockquote, figure, pre, details) { margin-block: 0.5em; }
+:where(.fg-html) :where(h1, h2, h3, h4, h5, h6) { margin-block: 0.75em 0.375em; font-weight: 600; line-height: 1.3; }
+:where(.fg-html) h1 { font-size: 1.5em; }
+:where(.fg-html) h2 { font-size: 1.3em; }
+:where(.fg-html) h3 { font-size: 1.15em; }
+:where(.fg-html) ul { list-style: disc; padding-inline-start: 1.25em; }
+:where(.fg-html) ol { list-style: decimal; padding-inline-start: 1.25em; }
+:where(.fg-html) table { border-collapse: collapse; }
+:where(.fg-html) :where(th, td) { padding: 0.25rem 0.5rem; border: 1px solid var(--fg-color-border); text-align: start; }
+:where(.fg-html) img { max-inline-size: 100%; block-size: auto; }
+:where(.fg-html) a { color: var(--fg-color-primary); }
 .fg-rich-text > * { margin: 0; }
 .fg-rich-text > * + * { margin-block-start: 0.5em; }
 .fg-rich-text ul, .fg-rich-text ol { padding-inline-start: 1.25em; }
