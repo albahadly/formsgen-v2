@@ -31,6 +31,7 @@ import { collectExportFields, collectExportRepeaters } from '../logic'
 import { postsUploads, uploadStatusMarkup } from '../uploadRuntime'
 import { CALC_HELPERS_CS, calcSteps, formulaCs, type FormulaAccess } from '../calc'
 import { answerHelpersCs, usesAnswers } from '../answers'
+import { blazorDraftBlock, draftBar, usesDraft } from '../draft'
 import {
   renderTree,
   stepButtonLabels,
@@ -782,14 +783,15 @@ ${fields.map((f) => `        ${csStr(pascalMember(f.key))},`).join('\n')}
 
     // Reset buttons: a fresh model (initializers hold the defaults) and a
     // fresh EditContext, so no stale messages or touched state remain.
+    const resetLines = `        Model = new();
+        FgInitEdit();${steps.length ? '\n        FgCalc();' : ''}${hasRepeaters ? '\n        fgItemRefs.Clear();' : ''}
+        fgDeferredFields.Clear();
+        ResultJson = null;${tagsKeys.length ? '\n        foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";' : ''}${typedFields.some((f) => f.node.type === 'dates') ? '\n        foreach (var key in fgDateDrafts.Keys.ToList()) fgDateDrafts[key] = "";' : ''}${phoneCountryFields(typedFields).length ? '\n        fgPhoneCountry.Clear();' : ''}`
     const resetBlock = hasResetButton(schema)
       ? `
     private async Task FgReset()
     {
-        Model = new();
-        FgInitEdit();${hasRepeaters ? '\n        fgItemRefs.Clear();' : ''}
-        fgDeferredFields.Clear();
-        ResultJson = null;${tagsKeys.length ? '\n        foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";' : ''}${typedFields.some((f) => f.node.type === 'dates') ? '\n        foreach (var key in fgDateDrafts.Keys.ToList()) fgDateDrafts[key] = "";' : ''}${phoneCountryFields(typedFields).length ? '\n        fgPhoneCountry.Clear();' : ''}
+${resetLines}
         await FgAnnounce(${csStr(messages.formReset)});
     }
 `
@@ -1193,8 +1195,11 @@ ${progress ? `
 
         public double From { get; set; }
         public double To { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
         public double ShownFrom { get; private set; }
+        [System.Text.Json.Serialization.JsonIgnore]
         public double ShownTo { get; private set; }
+        [System.Text.Json.Serialization.JsonIgnore]
         public int Version { get; private set; }
 
         public void Redraw()
@@ -1348,15 +1353,26 @@ ${Object.entries(dialCodes(typedFields, schema.meta.locale)).map(([code, dial]) 
     private static string FgComposePhone(string country, string number) =>
         string.IsNullOrWhiteSpace(number) ? "" : "+" + FgDial[country] + " " + number;
 
+    // The chosen country, else the one whose code starts the value ("+44 …";
+    // the field's own first, as for restored answers), else the default.
+    private string FgPhoneCountryOf(string member, string value)
+    {
+        if (fgPhoneCountry.TryGetValue(member, out var chosen)) return chosen;
+        var fallback = fgPhoneCountry[member];
+        if (value.StartsWith("+" + FgDial[fallback] + " ")) return fallback;
+        foreach (var (code, dial) in FgDial) if (value.StartsWith("+" + dial + " ")) return code;
+        return fallback;
+    }
+
     private string FgPhoneSetCountry(string member, string value, ChangeEventArgs e)
     {
-        var typed = FgPhoneNumber(value, fgPhoneCountry[member]);
-        fgPhoneCountry[member] = Convert.ToString(e.Value) ?? fgPhoneCountry[member];
+        var typed = FgPhoneNumber(value, FgPhoneCountryOf(member, value));
+        fgPhoneCountry[member] = Convert.ToString(e.Value) ?? FgPhoneCountryOf(member, value);
         return FgComposePhone(fgPhoneCountry[member], typed);
     }
 
-    private string FgPhoneInput(string member, ChangeEventArgs e) =>
-        FgComposePhone(fgPhoneCountry[member], Convert.ToString(e.Value) ?? "");
+    private string FgPhoneInput(string member, string value, ChangeEventArgs e) =>
+        FgComposePhone(FgPhoneCountryOf(member, value), Convert.ToString(e.Value) ?? "");
 `
         : '',
       dateMembers.length
@@ -1386,11 +1402,12 @@ ${Object.entries(dialCodes(typedFields, schema.meta.locale)).map(([code, dial]) 
         : '',
     ].join('')
 
+    const saveDraft = usesDraft(schema)
     const afterRenderBlock =
-      hasRepeaters || hasUploads || hasSlider
+      hasRepeaters || hasUploads || hasSlider || saveDraft
         ? `
     protected override async Task OnAfterRenderAsync(bool firstRender)
-    {${hasRepeaters ? '\n        await FgFocusRepeaters();' : ''}${hasUploads ? '\n        await FgFocusUploads();' : ''}${hasSlider ? '\n        await FgFocusDual();' : ''}
+    {${hasRepeaters ? '\n        await FgFocusRepeaters();' : ''}${hasUploads ? '\n        await FgFocusUploads();' : ''}${hasSlider ? '\n        await FgFocusDual();' : ''}${saveDraft ? '\n        // Saved answers: restored after the first render, kept after later ones.\n        if (firstRender) await FgDraftLoad();\n        else await FgDraftSave();' : ''}
     }
 `
         : ''
@@ -1398,7 +1415,8 @@ ${Object.entries(dialCodes(typedFields, schema.meta.locale)).map(([code, dial]) 
     const answerBlock = usesAnswers(schema.tree)
       ? answerHelpersCs({ range: hasRangeSlider(schema), dateRange: hasDateRange(schema), uploads: typedFields.some((f) => FILE_TYPES.has(f.node.type)) })
       : ''
-    const helperBlocks = `${calcBlock}${answerBlock}${editContextBlock}${announceBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}${repeaterBlock}${uploadBlock}${compositeBlock}${afterRenderBlock}${resetBlock}`
+    const draftBlock = saveDraft ? blazorDraftBlock(schema, `${name}Model`, messages, { uploads: hasUploads, calc: steps.length > 0, resetLines }) : ''
+    const helperBlocks = `${calcBlock}${answerBlock}${editContextBlock}${announceBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}${repeaterBlock}${uploadBlock}${compositeBlock}${afterRenderBlock}${resetBlock}${draftBlock}`
 
     const formBinding = 'EditContext="fgEdit" OnSubmit="FgSubmit"'
     const extraUsings = '@using System.Linq\n@using Microsoft.AspNetCore.Components.Forms\n'
@@ -1406,7 +1424,9 @@ ${Object.entries(dialCodes(typedFields, schema.meta.locale)).map(([code, dial]) 
     const submitUrl = schema.meta.submit?.url
     const httpInject = submitUrl ? '@inject HttpClient Http\n' : ''
     const submitCall = !submitUrl
-      ? ''
+      ? saveDraft
+        ? '        await FgDraftForget();\n'
+        : ''
       : progress
         ? `        fgUploadState = "uploading";
         fgUploadPercent = 0;
@@ -1437,15 +1457,15 @@ ${Object.entries(dialCodes(typedFields, schema.meta.locale)).map(([code, dial]) 
         {
         }
         fgUploadState = ok ? "done" : "failed";
-        fgUploadPercent = ok ? 100 : 0;
+        fgUploadPercent = ok ? 100 : 0;${saveDraft ? '\n        if (ok) await FgDraftForget();' : ''}
         await FgAnnounce(ok ? ${csStr(messages.submitted)} : ${csStr(messages.uploadFailed)});\n`
       : hasUploads
         ? `        // multipart: a JSON "data" part + one part per file
         using var body = new System.Net.Http.MultipartFormDataContent();
         body.Add(FgPart(new System.Net.Http.StringContent(JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json"), "data"));
         foreach (var (path, file) in parts) body.Add(FgFilePart(file, path));
-        await Http.${schema.meta.submit?.method === 'PUT' ? 'PutAsync' : 'PostAsync'}(${csStr(submitUrl)}, body);\n`
-        : `        await Http.${schema.meta.submit?.method === 'PUT' ? 'PutAsJsonAsync' : 'PostAsJsonAsync'}(${csStr(submitUrl)}, payload);\n`
+        ${saveDraft ? 'using var response = ' : ''}await Http.${schema.meta.submit?.method === 'PUT' ? 'PutAsync' : 'PostAsync'}(${csStr(submitUrl)}, body);\n${saveDraft ? '        if (response.IsSuccessStatusCode) await FgDraftForget();\n' : ''}`
+        : `        ${saveDraft ? 'using var response = ' : ''}await Http.${schema.meta.submit?.method === 'PUT' ? 'PutAsJsonAsync' : 'PostAsJsonAsync'}(${csStr(submitUrl)}, payload);\n${saveDraft ? '        // Sent: the answers kept in this browser go.\n        if (response.IsSuccessStatusCode) await FgDraftForget();\n' : ''}`
 
     // Bottom actions row: omitted when the wizard embeds the submit.
     const actionsBlock = embeddedHost
@@ -1465,9 +1485,9 @@ ${Object.entries(dialCodes(typedFields, schema.meta.locale)).map(([code, dial]) 
     const draft = `@* Generated by FormsGen (.NET 8). *@
 @using System.ComponentModel.DataAnnotations
 @using System.Text.Json
-${extraUsings}${submitUrl ? '@using System.Net.Http.Json\n' : ''}${httpInject}
+${extraUsings}${submitUrl ? '@using System.Net.Http.Json\n' : ''}${httpInject}${saveDraft ? '@inject Microsoft.JSInterop.IJSRuntime FgJs\n' : ''}
 <EditForm ${formBinding} novalidate dir="${schema.meta.dir}">
-    <div class="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
+    <div class="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">${saveDraft ? `\n${indentBlock(draftBar('blazor', schema, css, messages), 2)}` : ''}
     <div class="${css.classes('grid')}">
 ${indentBlock(markup, 2)}
     </div>

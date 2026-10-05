@@ -4,7 +4,7 @@
 
 - **32a:** calculated fields. Commit: feat(phase-32a).
 - **32b:** answers inside text. Commit: feat(phase-32b).
-- **32c:** save and continue later. Not started.
+- **32c:** save and continue later. Commit: feat(phase-32c).
 
 ## 32a: calculated fields
 
@@ -179,3 +179,74 @@ The scenario:
 5. Submit.
 
 All 12 runtimes produce identical results.
+
+## 32c: save and continue later
+
+### What people see
+
+A form setting, **Save and continue later** (الحفظ والمتابعة لاحقًا), in Settings. When it is on, the visitor's answers are kept in their own browser (localStorage) as they fill the form. A reload, a closed tab or a crash doesn't lose them.
+
+A short note sits above the form:
+- while filling: "Your answers are saved on this device until you send the form.";
+- on return: "Welcome back! Your saved answers were restored.";
+- with upload fields, it adds: "Files aren’t saved; choose them again before sending." Files can't be kept this way.
+
+A **Clear saved answers** button appears once something is kept. It forgets the answers, starts the form over and announces "Saved answers cleared."
+
+The answers are removed when the form is sent:
+- with a submit URL, only once the server accepted it (2xx). After a failed send they stay;
+- without one, on a valid submit.
+
+Changing an answer afterwards keeps the answers again. Going back to the starting answers (a reset, or undoing every change) removes them.
+
+Texts are in English and Arabic (`draftOn`, `draftRestored`, `draftNoFiles`, `draftClear`, `draftCleared`).
+
+### How it works
+
+**Storage.** One entry per form, `formsgen:<meta.name>:draft`, holding `{"v": version, "data": answers}`. The version is a hash of the form's data shape (field names, types and nesting; labels don't count) plus the writer: `lib`, `vue`, `react`, `html` or `blazor`. A draft saved before the form changed, or by another kind of export on the same site, is ignored rather than forced into a different shape. Storage that is missing, blocked or full is ignored, and the form works as before.
+
+**When it saves.** On every change, skipping writes of unchanged text. Answers equal to the starting ones remove the entry instead.
+
+| Runtime | Saved | Restored |
+|---|---|---|
+| Renderer (`FormsGenForm`) | Its data, files left out (`draftJson`) | At setup, then `update:modelValue` once mounted. Prop `draftStorage` picks the storage: omitted means localStorage, `null` keeps nothing. The builder preview passes memory storage, so it never writes to the builder's localStorage |
+| Vue | `form`, files left out | After mount |
+| React | `form`, files left out | In an effect after mount, so there is no server/client mismatch. The pre-restore state's save is skipped (safe under StrictMode) |
+| HTML | Every control's value by id (checked for boxes, chosen options for multi-selects), the phone country, each list's item count, and the tags/dates chips | Items are added first (outer lists before inner ones), then controls are set, then input events fire so sliders, conditions, calculations and answers catch up. Saving runs at the end of `updateConditions()` |
+| Blazor | The model through System.Text.Json; upload lists are written as `[]` (`FgNoFiles` converter) | After the first render through `IJSRuntime` (`localStorage.getItem`/`setItem`/`removeItem`). Later renders save when the JSON changed |
+
+The renderer's draft API (`draftVersion`, `draftJson`, `readDraft`, `writeDraft`, `removeDraft`, `memoryStorage`, `browserStorage`) is exported.
+
+### Fixes found along the way
+
+- **Blazor:** the two-handle slider's display-only properties (`ShownFrom`, `ShownTo`, `Version`) are now `[JsonIgnore]`. They change on every new model and would make two equal models differ.
+- **Blazor:** reset buttons now recompute calculated fields (`FgCalc()`) after the fresh model.
+
+### Verification (32c)
+
+**`pnpm verify`** passes with **465 tests** (170 renderer / 295 builder). New coverage:
+- the draft version (labels ignored; names and types count);
+- files left out;
+- storage that throws;
+- a renderer form that saves as answers change, forgets them when back at the start, restores and clears, ignores another version's draft, forgets after a valid submit, keeps again after a failed upload, and says files aren't kept;
+- the JS storage helpers;
+- each target's output, including forgetting only after a 2xx response;
+- the restored-phone country helper.
+
+**Strict compilers:** React `tsc`, `vue-tsc` and the .NET 8 build pass with 0 errors and 0 warnings, for two demos:
+- one with a submit URL and an upload field;
+- one with no URL and a reset button.
+
+**12 runtimes, all identical.** The demo has text, email, select, radio, a checkbox with a conditional textarea, a checkbox list, a multi-select, a number, a two-handle slider, a date range with calculated nights, multiple dates, tags, a phone with country, a matrix, a repeater with two guests, and a file. The scenario:
+1. Fill everything and reload. Every answer, chip, item, slider position, phone country and the conditional field come back, without the file. The note says "Welcome back!".
+2. A send the server rejects (500) keeps the answers.
+3. An accepted send removes them; the note goes back and the button hides.
+4. Change an answer: kept again.
+5. **Clear saved answers**: removed, the form is back to the start with one guest, "Saved answers cleared." is announced, and a reload restores nothing.
+
+**HTML reset check:** the no-URL demo's reset button removes the answers. A valid submit removes them too.
+
+**Fix found along the way:** a restored phone number showed "+447700900123" under the default country in Vue, React and Blazor. The chosen country isn't part of the answer. When none was picked, the country is now taken from the number's code (the field's own country first), via `fgPhoneFrom` / `FgPhoneCountryOf`.
+
+**Builder:** the Settings switch and its hint; the preview shows the note and the clear button and keeps preview answers in memory only. Nothing is written to the builder's own localStorage.
+

@@ -388,7 +388,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
                               <div class="d-flex flex-column gap-1">
                                 <label class="form-label fw-semibold fs-6 mb-0" for="@($"fg_references_{i}_phone")">Their phone</label>
                                 <div class="input-group">
-                                  <select class="form-select flex-grow-0 w-50" aria-label="Country code" value='@fgPhoneCountry[FgItemKey(item, "ReferencesIPhone", "Phone")]' @onchange='e => { item.Phone = FgPhoneSetCountry(FgItemKey(item, "ReferencesIPhone", "Phone"), item.Phone, e); FgChanged(FgItemKey(item, "ReferencesIPhone", "Phone")); }'>
+                                  <select class="form-select flex-grow-0 w-50" aria-label="Country code" value='@FgPhoneCountryOf(FgItemKey(item, "ReferencesIPhone", "Phone"), item.Phone)' @onchange='e => { item.Phone = FgPhoneSetCountry(FgItemKey(item, "ReferencesIPhone", "Phone"), item.Phone, e); FgChanged(FgItemKey(item, "ReferencesIPhone", "Phone")); }'>
                                     <option value="AF">Afghanistan (+93)</option>
                                     <option value="AX">Åland Islands (+358)</option>
                                     <option value="AL">Albania (+355)</option>
@@ -633,7 +633,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
                                     <option value="ZM">Zambia (+260)</option>
                                     <option value="ZW">Zimbabwe (+263)</option>
                                   </select>
-                                  <input id="@($"fg_references_{i}_phone")" type="tel" class="form-control" autocomplete="tel-national" value='@FgPhoneNumber(item.Phone, fgPhoneCountry[FgItemKey(item, "ReferencesIPhone", "Phone")])' @onchange='e => { item.Phone = FgPhoneInput(FgItemKey(item, "ReferencesIPhone", "Phone"), e); FgChanged(FgItemKey(item, "ReferencesIPhone", "Phone")); }' />
+                                  <input id="@($"fg_references_{i}_phone")" type="tel" class="form-control" autocomplete="tel-national" value='@FgPhoneNumber(item.Phone, FgPhoneCountryOf(FgItemKey(item, "ReferencesIPhone", "Phone"), item.Phone))' @onchange='e => { item.Phone = FgPhoneInput(FgItemKey(item, "ReferencesIPhone", "Phone"), item.Phone, e); FgChanged(FgItemKey(item, "ReferencesIPhone", "Phone")); }' />
                                 </div>
                                 <ValidationMessage For="@(() => item.Phone)" class="invalid-feedback d-block mt-0" />
                               </div>
@@ -726,7 +726,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
               <div class="d-flex flex-column gap-1">
                 <label class="form-label fw-semibold fs-6 mb-0" for="fg_contact_phone">Phone number</label>
                 <div class="input-group">
-                  <select class="form-select flex-grow-0 w-50" aria-label="Country code" value='@fgPhoneCountry["ContactPhone"]' @onchange='e => { Model.ContactPhone = FgPhoneSetCountry("ContactPhone", Model.ContactPhone, e); FgChanged("ContactPhone"); }'>
+                  <select class="form-select flex-grow-0 w-50" aria-label="Country code" value='@FgPhoneCountryOf("ContactPhone", Model.ContactPhone)' @onchange='e => { Model.ContactPhone = FgPhoneSetCountry("ContactPhone", Model.ContactPhone, e); FgChanged("ContactPhone"); }'>
                     <option value="AF">Afghanistan (+93)</option>
                     <option value="AX">Åland Islands (+358)</option>
                     <option value="AL">Albania (+355)</option>
@@ -971,7 +971,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
                     <option value="ZM">Zambia (+260)</option>
                     <option value="ZW">Zimbabwe (+263)</option>
                   </select>
-                  <input id="fg_contact_phone" type="tel" class="form-control" autocomplete="tel-national" value='@FgPhoneNumber(Model.ContactPhone, fgPhoneCountry["ContactPhone"])' @onchange='e => { Model.ContactPhone = FgPhoneInput("ContactPhone", e); FgChanged("ContactPhone"); }' />
+                  <input id="fg_contact_phone" type="tel" class="form-control" autocomplete="tel-national" value='@FgPhoneNumber(Model.ContactPhone, FgPhoneCountryOf("ContactPhone", Model.ContactPhone))' @onchange='e => { Model.ContactPhone = FgPhoneInput("ContactPhone", Model.ContactPhone, e); FgChanged("ContactPhone"); }' />
                 </div>
                 <ValidationMessage For="@(() => Model.ContactPhone)" class="invalid-feedback d-block mt-0" />
               </div>
@@ -1745,8 +1745,11 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
 
         public double From { get; set; }
         public double To { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
         public double ShownFrom { get; private set; }
+        [System.Text.Json.Serialization.JsonIgnore]
         public double ShownTo { get; private set; }
+        [System.Text.Json.Serialization.JsonIgnore]
         public int Version { get; private set; }
 
         public void Redraw()
@@ -2117,15 +2120,26 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
     private static string FgComposePhone(string country, string number) =>
         string.IsNullOrWhiteSpace(number) ? "" : "+" + FgDial[country] + " " + number;
 
+    // The chosen country, else the one whose code starts the value ("+44 …";
+    // the field's own first, as for restored answers), else the default.
+    private string FgPhoneCountryOf(string member, string value)
+    {
+        if (fgPhoneCountry.TryGetValue(member, out var chosen)) return chosen;
+        var fallback = fgPhoneCountry[member];
+        if (value.StartsWith("+" + FgDial[fallback] + " ")) return fallback;
+        foreach (var (code, dial) in FgDial) if (value.StartsWith("+" + dial + " ")) return code;
+        return fallback;
+    }
+
     private string FgPhoneSetCountry(string member, string value, ChangeEventArgs e)
     {
-        var typed = FgPhoneNumber(value, fgPhoneCountry[member]);
-        fgPhoneCountry[member] = Convert.ToString(e.Value) ?? fgPhoneCountry[member];
+        var typed = FgPhoneNumber(value, FgPhoneCountryOf(member, value));
+        fgPhoneCountry[member] = Convert.ToString(e.Value) ?? FgPhoneCountryOf(member, value);
         return FgComposePhone(fgPhoneCountry[member], typed);
     }
 
-    private string FgPhoneInput(string member, ChangeEventArgs e) =>
-        FgComposePhone(fgPhoneCountry[member], Convert.ToString(e.Value) ?? "");
+    private string FgPhoneInput(string member, string value, ChangeEventArgs e) =>
+        FgComposePhone(FgPhoneCountryOf(member, value), Convert.ToString(e.Value) ?? "");
 
     private readonly FgStore<string> fgDateDrafts = new(_ => "");
 
@@ -2160,6 +2174,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
     {
         Model = new();
         FgInitEdit();
+        FgCalc();
         fgItemRefs.Clear();
         fgDeferredFields.Clear();
         ResultJson = null;
@@ -2781,7 +2796,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
                               <div class="flex flex-col gap-1.5">
                                 <label class="text-sm font-semibold" for="@($"fg_references_{i}_phone")">Their phone</label>
                                 <div class="flex items-center gap-2 [&>*]:min-w-0">
-                                  <select class="w-auto min-w-0 max-w-[45%] shrink rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" aria-label="Country code" value='@fgPhoneCountry[FgItemKey(item, "ReferencesIPhone", "Phone")]' @onchange='e => { item.Phone = FgPhoneSetCountry(FgItemKey(item, "ReferencesIPhone", "Phone"), item.Phone, e); FgChanged(FgItemKey(item, "ReferencesIPhone", "Phone")); }'>
+                                  <select class="w-auto min-w-0 max-w-[45%] shrink rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" aria-label="Country code" value='@FgPhoneCountryOf(FgItemKey(item, "ReferencesIPhone", "Phone"), item.Phone)' @onchange='e => { item.Phone = FgPhoneSetCountry(FgItemKey(item, "ReferencesIPhone", "Phone"), item.Phone, e); FgChanged(FgItemKey(item, "ReferencesIPhone", "Phone")); }'>
                                     <option value="AF">Afghanistan (+93)</option>
                                     <option value="AX">Åland Islands (+358)</option>
                                     <option value="AL">Albania (+355)</option>
@@ -3026,7 +3041,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
                                     <option value="ZM">Zambia (+260)</option>
                                     <option value="ZW">Zimbabwe (+263)</option>
                                   </select>
-                                  <input id="@($"fg_references_{i}_phone")" type="tel" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" autocomplete="tel-national" value='@FgPhoneNumber(item.Phone, fgPhoneCountry[FgItemKey(item, "ReferencesIPhone", "Phone")])' @onchange='e => { item.Phone = FgPhoneInput(FgItemKey(item, "ReferencesIPhone", "Phone"), e); FgChanged(FgItemKey(item, "ReferencesIPhone", "Phone")); }' />
+                                  <input id="@($"fg_references_{i}_phone")" type="tel" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" autocomplete="tel-national" value='@FgPhoneNumber(item.Phone, FgPhoneCountryOf(FgItemKey(item, "ReferencesIPhone", "Phone"), item.Phone))' @onchange='e => { item.Phone = FgPhoneInput(FgItemKey(item, "ReferencesIPhone", "Phone"), item.Phone, e); FgChanged(FgItemKey(item, "ReferencesIPhone", "Phone")); }' />
                                 </div>
                                 <ValidationMessage For="@(() => item.Phone)" class="text-xs text-red-600" />
                               </div>
@@ -3119,7 +3134,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
               <div class="flex flex-col gap-1.5">
                 <label class="text-sm font-semibold" for="fg_contact_phone">Phone number</label>
                 <div class="flex items-center gap-2 [&>*]:min-w-0">
-                  <select class="w-auto min-w-0 max-w-[45%] shrink rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" aria-label="Country code" value='@fgPhoneCountry["ContactPhone"]' @onchange='e => { Model.ContactPhone = FgPhoneSetCountry("ContactPhone", Model.ContactPhone, e); FgChanged("ContactPhone"); }'>
+                  <select class="w-auto min-w-0 max-w-[45%] shrink rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" aria-label="Country code" value='@FgPhoneCountryOf("ContactPhone", Model.ContactPhone)' @onchange='e => { Model.ContactPhone = FgPhoneSetCountry("ContactPhone", Model.ContactPhone, e); FgChanged("ContactPhone"); }'>
                     <option value="AF">Afghanistan (+93)</option>
                     <option value="AX">Åland Islands (+358)</option>
                     <option value="AL">Albania (+355)</option>
@@ -3364,7 +3379,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
                     <option value="ZM">Zambia (+260)</option>
                     <option value="ZW">Zimbabwe (+263)</option>
                   </select>
-                  <input id="fg_contact_phone" type="tel" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" autocomplete="tel-national" value='@FgPhoneNumber(Model.ContactPhone, fgPhoneCountry["ContactPhone"])' @onchange='e => { Model.ContactPhone = FgPhoneInput("ContactPhone", e); FgChanged("ContactPhone"); }' />
+                  <input id="fg_contact_phone" type="tel" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" autocomplete="tel-national" value='@FgPhoneNumber(Model.ContactPhone, FgPhoneCountryOf("ContactPhone", Model.ContactPhone))' @onchange='e => { Model.ContactPhone = FgPhoneInput("ContactPhone", Model.ContactPhone, e); FgChanged("ContactPhone"); }' />
                 </div>
                 <ValidationMessage For="@(() => Model.ContactPhone)" class="text-xs text-red-600" />
               </div>
@@ -4138,8 +4153,11 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
 
         public double From { get; set; }
         public double To { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
         public double ShownFrom { get; private set; }
+        [System.Text.Json.Serialization.JsonIgnore]
         public double ShownTo { get; private set; }
+        [System.Text.Json.Serialization.JsonIgnore]
         public int Version { get; private set; }
 
         public void Redraw()
@@ -4510,15 +4528,26 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
     private static string FgComposePhone(string country, string number) =>
         string.IsNullOrWhiteSpace(number) ? "" : "+" + FgDial[country] + " " + number;
 
+    // The chosen country, else the one whose code starts the value ("+44 …";
+    // the field's own first, as for restored answers), else the default.
+    private string FgPhoneCountryOf(string member, string value)
+    {
+        if (fgPhoneCountry.TryGetValue(member, out var chosen)) return chosen;
+        var fallback = fgPhoneCountry[member];
+        if (value.StartsWith("+" + FgDial[fallback] + " ")) return fallback;
+        foreach (var (code, dial) in FgDial) if (value.StartsWith("+" + dial + " ")) return code;
+        return fallback;
+    }
+
     private string FgPhoneSetCountry(string member, string value, ChangeEventArgs e)
     {
-        var typed = FgPhoneNumber(value, fgPhoneCountry[member]);
-        fgPhoneCountry[member] = Convert.ToString(e.Value) ?? fgPhoneCountry[member];
+        var typed = FgPhoneNumber(value, FgPhoneCountryOf(member, value));
+        fgPhoneCountry[member] = Convert.ToString(e.Value) ?? FgPhoneCountryOf(member, value);
         return FgComposePhone(fgPhoneCountry[member], typed);
     }
 
-    private string FgPhoneInput(string member, ChangeEventArgs e) =>
-        FgComposePhone(fgPhoneCountry[member], Convert.ToString(e.Value) ?? "");
+    private string FgPhoneInput(string member, string value, ChangeEventArgs e) =>
+        FgComposePhone(FgPhoneCountryOf(member, value), Convert.ToString(e.Value) ?? "");
 
     private readonly FgStore<string> fgDateDrafts = new(_ => "");
 
@@ -4553,6 +4582,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
     {
         Model = new();
         FgInitEdit();
+        FgCalc();
         fgItemRefs.Clear();
         fgDeferredFields.Clear();
         ResultJson = null;
@@ -5174,7 +5204,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
                               <div class="fg-field">
                                 <label class="fg-label" for="@($"fg_references_{i}_phone")">Their phone</label>
                                 <div class="fg-pair">
-                                  <select class="fg-select fg-phone-country" aria-label="Country code" value='@fgPhoneCountry[FgItemKey(item, "ReferencesIPhone", "Phone")]' @onchange='e => { item.Phone = FgPhoneSetCountry(FgItemKey(item, "ReferencesIPhone", "Phone"), item.Phone, e); FgChanged(FgItemKey(item, "ReferencesIPhone", "Phone")); }'>
+                                  <select class="fg-select fg-phone-country" aria-label="Country code" value='@FgPhoneCountryOf(FgItemKey(item, "ReferencesIPhone", "Phone"), item.Phone)' @onchange='e => { item.Phone = FgPhoneSetCountry(FgItemKey(item, "ReferencesIPhone", "Phone"), item.Phone, e); FgChanged(FgItemKey(item, "ReferencesIPhone", "Phone")); }'>
                                     <option value="AF">Afghanistan (+93)</option>
                                     <option value="AX">Åland Islands (+358)</option>
                                     <option value="AL">Albania (+355)</option>
@@ -5419,7 +5449,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
                                     <option value="ZM">Zambia (+260)</option>
                                     <option value="ZW">Zimbabwe (+263)</option>
                                   </select>
-                                  <input id="@($"fg_references_{i}_phone")" type="tel" class="fg-input" autocomplete="tel-national" value='@FgPhoneNumber(item.Phone, fgPhoneCountry[FgItemKey(item, "ReferencesIPhone", "Phone")])' @onchange='e => { item.Phone = FgPhoneInput(FgItemKey(item, "ReferencesIPhone", "Phone"), e); FgChanged(FgItemKey(item, "ReferencesIPhone", "Phone")); }' />
+                                  <input id="@($"fg_references_{i}_phone")" type="tel" class="fg-input" autocomplete="tel-national" value='@FgPhoneNumber(item.Phone, FgPhoneCountryOf(FgItemKey(item, "ReferencesIPhone", "Phone"), item.Phone))' @onchange='e => { item.Phone = FgPhoneInput(FgItemKey(item, "ReferencesIPhone", "Phone"), item.Phone, e); FgChanged(FgItemKey(item, "ReferencesIPhone", "Phone")); }' />
                                 </div>
                                 <ValidationMessage For="@(() => item.Phone)" class="fg-error" />
                               </div>
@@ -5512,7 +5542,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
               <div class="fg-field">
                 <label class="fg-label" for="fg_contact_phone">Phone number</label>
                 <div class="fg-pair">
-                  <select class="fg-select fg-phone-country" aria-label="Country code" value='@fgPhoneCountry["ContactPhone"]' @onchange='e => { Model.ContactPhone = FgPhoneSetCountry("ContactPhone", Model.ContactPhone, e); FgChanged("ContactPhone"); }'>
+                  <select class="fg-select fg-phone-country" aria-label="Country code" value='@FgPhoneCountryOf("ContactPhone", Model.ContactPhone)' @onchange='e => { Model.ContactPhone = FgPhoneSetCountry("ContactPhone", Model.ContactPhone, e); FgChanged("ContactPhone"); }'>
                     <option value="AF">Afghanistan (+93)</option>
                     <option value="AX">Åland Islands (+358)</option>
                     <option value="AL">Albania (+355)</option>
@@ -5757,7 +5787,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
                     <option value="ZM">Zambia (+260)</option>
                     <option value="ZW">Zimbabwe (+263)</option>
                   </select>
-                  <input id="fg_contact_phone" type="tel" class="fg-input" autocomplete="tel-national" value='@FgPhoneNumber(Model.ContactPhone, fgPhoneCountry["ContactPhone"])' @onchange='e => { Model.ContactPhone = FgPhoneInput("ContactPhone", e); FgChanged("ContactPhone"); }' />
+                  <input id="fg_contact_phone" type="tel" class="fg-input" autocomplete="tel-national" value='@FgPhoneNumber(Model.ContactPhone, FgPhoneCountryOf("ContactPhone", Model.ContactPhone))' @onchange='e => { Model.ContactPhone = FgPhoneInput("ContactPhone", Model.ContactPhone, e); FgChanged("ContactPhone"); }' />
                 </div>
                 <ValidationMessage For="@(() => Model.ContactPhone)" class="fg-error" />
               </div>
@@ -6531,8 +6561,11 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
 
         public double From { get; set; }
         public double To { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
         public double ShownFrom { get; private set; }
+        [System.Text.Json.Serialization.JsonIgnore]
         public double ShownTo { get; private set; }
+        [System.Text.Json.Serialization.JsonIgnore]
         public int Version { get; private set; }
 
         public void Redraw()
@@ -6903,15 +6936,26 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
     private static string FgComposePhone(string country, string number) =>
         string.IsNullOrWhiteSpace(number) ? "" : "+" + FgDial[country] + " " + number;
 
+    // The chosen country, else the one whose code starts the value ("+44 …";
+    // the field's own first, as for restored answers), else the default.
+    private string FgPhoneCountryOf(string member, string value)
+    {
+        if (fgPhoneCountry.TryGetValue(member, out var chosen)) return chosen;
+        var fallback = fgPhoneCountry[member];
+        if (value.StartsWith("+" + FgDial[fallback] + " ")) return fallback;
+        foreach (var (code, dial) in FgDial) if (value.StartsWith("+" + dial + " ")) return code;
+        return fallback;
+    }
+
     private string FgPhoneSetCountry(string member, string value, ChangeEventArgs e)
     {
-        var typed = FgPhoneNumber(value, fgPhoneCountry[member]);
-        fgPhoneCountry[member] = Convert.ToString(e.Value) ?? fgPhoneCountry[member];
+        var typed = FgPhoneNumber(value, FgPhoneCountryOf(member, value));
+        fgPhoneCountry[member] = Convert.ToString(e.Value) ?? FgPhoneCountryOf(member, value);
         return FgComposePhone(fgPhoneCountry[member], typed);
     }
 
-    private string FgPhoneInput(string member, ChangeEventArgs e) =>
-        FgComposePhone(fgPhoneCountry[member], Convert.ToString(e.Value) ?? "");
+    private string FgPhoneInput(string member, string value, ChangeEventArgs e) =>
+        FgComposePhone(FgPhoneCountryOf(member, value), Convert.ToString(e.Value) ?? "");
 
     private readonly FgStore<string> fgDateDrafts = new(_ => "");
 
@@ -6946,6 +6990,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
     {
         Model = new();
         FgInitEdit();
+        FgCalc();
         fgItemRefs.Clear();
         fgDeferredFields.Clear();
         ResultJson = null;
@@ -11600,6 +11645,10 @@ exports[`html target > snapshot (vanilla) 1`] = `
   :where(.fg-html) :where(th, td) { padding: 0.25rem 0.5rem; border: 1px solid var(--fg-color-border); text-align: start; }
   :where(.fg-html) img { max-inline-size: 100%; block-size: auto; }
   :where(.fg-html) a { color: var(--fg-color-primary); }
+  /* Save and continue later: the note above the form */
+  .fg-draft { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.75rem; margin-block-end: var(--fg-space); padding: 0.5rem 0.75rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); color: var(--fg-color-muted); font-size: 0.875rem; }
+  .fg-draft-text { flex: 1 1 16rem; margin: 0; }
+  .fg-draft-clear { padding: 0; border: 0; background: none; color: var(--fg-color-primary); font: inherit; text-decoration: underline; cursor: pointer; }
   /* Calculated fields: read-only, looks set apart from inputs */
   .fg-calculated { background: var(--fg-color-surface); font-variant-numeric: tabular-nums; cursor: default; }
   .fg-rich-text > * { margin: 0; }
@@ -14414,6 +14463,13 @@ function fgPhoneNumber(value: string, country: string): string {
 function fgComposePhone(country: string, number: string): string {
   return number.trim() === '' ? '' : '+' + FG_DIAL[country] + ' ' + number
 }
+// The country whose code starts the value ("+44 …"; the field's own first), as
+// for restored answers; the fallback when none does.
+function fgPhoneFrom(value: unknown, fallback: string): string {
+  if (typeof value !== 'string' || value.indexOf('+' + FG_DIAL[fallback] + ' ') === 0) return fallback
+  for (var code in FG_DIAL) if (value.indexOf('+' + FG_DIAL[code] + ' ') === 0) return code
+  return fallback
+}
 // Starting country per field (template path).
 const FG_PHONE_DEFAULTS: Record<string, string> = {"contact_phone":"OM","references.phone":"GB"}
 
@@ -14604,7 +14660,8 @@ export default function KitchenSinkForm({
   }
 
   function fgPhoneCountryOf(path: string): string {
-    return phoneCountry[path] ?? FG_PHONE_DEFAULTS[fgTpl(path)]!
+    const value = path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form)
+    return phoneCountry[path] ?? fgPhoneFrom(value, FG_PHONE_DEFAULTS[fgTpl(path)]!)
   }
 
   function fgPhoneSetCountry(path: string, current: string, next: string): void {
@@ -16318,6 +16375,13 @@ function fgPhoneNumber(value: string, country: string): string {
 function fgComposePhone(country: string, number: string): string {
   return number.trim() === '' ? '' : '+' + FG_DIAL[country] + ' ' + number
 }
+// The country whose code starts the value ("+44 …"; the field's own first), as
+// for restored answers; the fallback when none does.
+function fgPhoneFrom(value: unknown, fallback: string): string {
+  if (typeof value !== 'string' || value.indexOf('+' + FG_DIAL[fallback] + ' ') === 0) return fallback
+  for (var code in FG_DIAL) if (value.indexOf('+' + FG_DIAL[code] + ' ') === 0) return code
+  return fallback
+}
 // Starting country per field (template path).
 const FG_PHONE_DEFAULTS: Record<string, string> = {"contact_phone":"OM","references.phone":"GB"}
 
@@ -16508,7 +16572,8 @@ export default function KitchenSinkForm({
   }
 
   function fgPhoneCountryOf(path: string): string {
-    return phoneCountry[path] ?? FG_PHONE_DEFAULTS[fgTpl(path)]!
+    const value = path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form)
+    return phoneCountry[path] ?? fgPhoneFrom(value, FG_PHONE_DEFAULTS[fgTpl(path)]!)
   }
 
   function fgPhoneSetCountry(path: string, current: string, next: string): void {
@@ -18230,6 +18295,13 @@ function fgPhoneNumber(value: string, country: string): string {
 function fgComposePhone(country: string, number: string): string {
   return number.trim() === '' ? '' : '+' + FG_DIAL[country] + ' ' + number
 }
+// The country whose code starts the value ("+44 …"; the field's own first), as
+// for restored answers; the fallback when none does.
+function fgPhoneFrom(value: unknown, fallback: string): string {
+  if (typeof value !== 'string' || value.indexOf('+' + FG_DIAL[fallback] + ' ') === 0) return fallback
+  for (var code in FG_DIAL) if (value.indexOf('+' + FG_DIAL[code] + ' ') === 0) return code
+  return fallback
+}
 // Starting country per field (template path).
 const FG_PHONE_DEFAULTS: Record<string, string> = {"contact_phone":"OM","references.phone":"GB"}
 
@@ -18420,7 +18492,8 @@ export default function KitchenSinkForm({
   }
 
   function fgPhoneCountryOf(path: string): string {
-    return phoneCountry[path] ?? FG_PHONE_DEFAULTS[fgTpl(path)]!
+    const value = path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form)
+    return phoneCountry[path] ?? fgPhoneFrom(value, FG_PHONE_DEFAULTS[fgTpl(path)]!)
   }
 
   function fgPhoneSetCountry(path: string, current: string, next: string): void {
@@ -20180,11 +20253,18 @@ function fgPhoneNumber(value: string, country: string): string {
 function fgComposePhone(country: string, number: string): string {
   return number.trim() === '' ? '' : '+' + FG_DIAL[country] + ' ' + number
 }
+// The country whose code starts the value ("+44 …"; the field's own first), as
+// for restored answers; the fallback when none does.
+function fgPhoneFrom(value: unknown, fallback: string): string {
+  if (typeof value !== 'string' || value.indexOf('+' + FG_DIAL[fallback] + ' ') === 0) return fallback
+  for (var code in FG_DIAL) if (value.indexOf('+' + FG_DIAL[code] + ' ') === 0) return code
+  return fallback
+}
 // Starting country per field (template path); the chosen one per field path.
 const FG_PHONE_DEFAULTS: Record<string, string> = {"contact_phone":"OM","references.phone":"GB"}
 const fgPhoneCountry = reactive<Record<string, string>>({})
 function fgPhoneCountryOf(path: string): string {
-  return fgPhoneCountry[path] ?? FG_PHONE_DEFAULTS[fgTpl(path)]!
+  return fgPhoneCountry[path] ?? fgPhoneFrom(fgGet(path), FG_PHONE_DEFAULTS[fgTpl(path)]!)
 }
 function fgPhoneSetCountry(path: string, event: Event): void {
   const typed = fgPhoneNumber(fgGet(path) as string, fgPhoneCountryOf(path))
@@ -22089,11 +22169,18 @@ function fgPhoneNumber(value: string, country: string): string {
 function fgComposePhone(country: string, number: string): string {
   return number.trim() === '' ? '' : '+' + FG_DIAL[country] + ' ' + number
 }
+// The country whose code starts the value ("+44 …"; the field's own first), as
+// for restored answers; the fallback when none does.
+function fgPhoneFrom(value: unknown, fallback: string): string {
+  if (typeof value !== 'string' || value.indexOf('+' + FG_DIAL[fallback] + ' ') === 0) return fallback
+  for (var code in FG_DIAL) if (value.indexOf('+' + FG_DIAL[code] + ' ') === 0) return code
+  return fallback
+}
 // Starting country per field (template path); the chosen one per field path.
 const FG_PHONE_DEFAULTS: Record<string, string> = {"contact_phone":"OM","references.phone":"GB"}
 const fgPhoneCountry = reactive<Record<string, string>>({})
 function fgPhoneCountryOf(path: string): string {
-  return fgPhoneCountry[path] ?? FG_PHONE_DEFAULTS[fgTpl(path)]!
+  return fgPhoneCountry[path] ?? fgPhoneFrom(fgGet(path), FG_PHONE_DEFAULTS[fgTpl(path)]!)
 }
 function fgPhoneSetCountry(path: string, event: Event): void {
   const typed = fgPhoneNumber(fgGet(path) as string, fgPhoneCountryOf(path))
@@ -24000,11 +24087,18 @@ function fgPhoneNumber(value: string, country: string): string {
 function fgComposePhone(country: string, number: string): string {
   return number.trim() === '' ? '' : '+' + FG_DIAL[country] + ' ' + number
 }
+// The country whose code starts the value ("+44 …"; the field's own first), as
+// for restored answers; the fallback when none does.
+function fgPhoneFrom(value: unknown, fallback: string): string {
+  if (typeof value !== 'string' || value.indexOf('+' + FG_DIAL[fallback] + ' ') === 0) return fallback
+  for (var code in FG_DIAL) if (value.indexOf('+' + FG_DIAL[code] + ' ') === 0) return code
+  return fallback
+}
 // Starting country per field (template path); the chosen one per field path.
 const FG_PHONE_DEFAULTS: Record<string, string> = {"contact_phone":"OM","references.phone":"GB"}
 const fgPhoneCountry = reactive<Record<string, string>>({})
 function fgPhoneCountryOf(path: string): string {
-  return fgPhoneCountry[path] ?? FG_PHONE_DEFAULTS[fgTpl(path)]!
+  return fgPhoneCountry[path] ?? fgPhoneFrom(fgGet(path), FG_PHONE_DEFAULTS[fgTpl(path)]!)
 }
 function fgPhoneSetCountry(path: string, event: Event): void {
   const typed = fgPhoneNumber(fgGet(path) as string, fgPhoneCountryOf(path))
@@ -25392,6 +25486,10 @@ async function onSubmit(): Promise<void> {
 :where(.fg-html) :where(th, td) { padding: 0.25rem 0.5rem; border: 1px solid var(--fg-color-border); text-align: start; }
 :where(.fg-html) img { max-inline-size: 100%; block-size: auto; }
 :where(.fg-html) a { color: var(--fg-color-primary); }
+/* Save and continue later: the note above the form */
+.fg-draft { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.75rem; margin-block-end: var(--fg-space); padding: 0.5rem 0.75rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); color: var(--fg-color-muted); font-size: 0.875rem; }
+.fg-draft-text { flex: 1 1 16rem; margin: 0; }
+.fg-draft-clear { padding: 0; border: 0; background: none; color: var(--fg-color-primary); font: inherit; text-decoration: underline; cursor: pointer; }
 /* Calculated fields: read-only, looks set apart from inputs */
 .fg-calculated { background: var(--fg-color-surface); font-variant-numeric: tabular-nums; cursor: default; }
 .fg-rich-text > * { margin: 0; }

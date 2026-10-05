@@ -76,6 +76,9 @@ export function parseFormSchema(input: unknown): ParseResult {
     if (meta['floatingLabels'] !== undefined && typeof meta['floatingLabels'] !== 'boolean') {
       errors.push('meta.floatingLabels: expected a boolean')
     }
+    if (meta['saveDraft'] !== undefined && typeof meta['saveDraft'] !== 'boolean') {
+      errors.push('meta.saveDraft: expected a boolean')
+    }
     const fieldSize = meta['fieldSize']
     if (fieldSize !== undefined && !['sm', 'md', 'lg'].includes(fieldSize as string)) {
       errors.push('meta.fieldSize: expected one of sm, md, lg')

@@ -109,6 +109,7 @@ function onKeydown(event: KeyboardEvent): void {
           class="rounded-lg bg-white p-5 shadow-sm"
           data-fg-theme="light"
           :schema="selected.schema"
+          :draft-storage="null"
         />
       </section>
 

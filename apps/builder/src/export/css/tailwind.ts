@@ -110,6 +110,10 @@ const CLASSES: Record<Slot, string> = {
   matrixRadio: 'h-4 w-4 accent-indigo-600',
   phoneCountry:
     'w-auto min-w-0 max-w-[45%] shrink rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800',
+  draft:
+    'mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-600 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-300',
+  draftText: 'm-0 flex-[1_1_16rem]',
+  draftClear: 'font-medium text-indigo-600 underline underline-offset-2 hover:text-indigo-500 dark:text-indigo-400',
   affixGroup:
     'flex [&>:not(:first-child)]:-ms-px [&>:not(:first-child)]:rounded-s-none [&>:not(:last-child)]:rounded-e-none',
   affix:

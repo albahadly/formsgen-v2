@@ -48,6 +48,8 @@ export interface FormMeta {
   fieldSize?: ControlSize | undefined
   /** Labels float inside single-line controls (see labels.ts). */
   floatingLabels?: boolean | undefined
+  /** Save and continue later: answers are kept in the visitor's browser until sent (see draft.ts). */
+  saveDraft?: boolean | undefined
 }
 
 export type RuleName =

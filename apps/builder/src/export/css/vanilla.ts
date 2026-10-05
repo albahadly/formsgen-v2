@@ -93,6 +93,9 @@ const CLASSES: Record<Slot, string> = {
   matrixCell: '',
   matrixRadio: '',
   phoneCountry: 'fg-select fg-phone-country',
+  draft: 'fg-draft',
+  draftText: 'fg-draft-text',
+  draftClear: 'fg-draft-clear',
   affixGroup: 'fg-affix-group',
   affix: 'fg-affix',
   floating: 'fg-floating',
@@ -169,6 +172,10 @@ function baseStylesheet(theme: ThemeTokens | undefined): string {
 :where(.fg-html) :where(th, td) { padding: 0.25rem 0.5rem; border: 1px solid var(--fg-color-border); text-align: start; }
 :where(.fg-html) img { max-inline-size: 100%; block-size: auto; }
 :where(.fg-html) a { color: var(--fg-color-primary); }
+/* Save and continue later: the note above the form */
+.fg-draft { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.75rem; margin-block-end: var(--fg-space); padding: 0.5rem 0.75rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); color: var(--fg-color-muted); font-size: 0.875rem; }
+.fg-draft-text { flex: 1 1 16rem; margin: 0; }
+.fg-draft-clear { padding: 0; border: 0; background: none; color: var(--fg-color-primary); font: inherit; text-decoration: underline; cursor: pointer; }
 /* Calculated fields: read-only, looks set apart from inputs */
 .fg-calculated { background: var(--fg-color-surface); font-variant-numeric: tabular-nums; cursor: default; }
 .fg-rich-text > * { margin: 0; }

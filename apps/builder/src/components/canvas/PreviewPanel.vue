@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FormsGenForm, describeFiles, pinsLightScheme } from '@formsgen/renderer'
+import { FormsGenForm, describeFiles, memoryStorage, pinsLightScheme } from '@formsgen/renderer'
 import { computed, ref } from 'vue'
 import { t } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'
@@ -10,6 +10,8 @@ const ui = useUiStore()
 
 const formData = ref<Record<string, unknown>>({})
 const submitted = ref<Record<string, unknown> | null>(null)
+// "Save and continue later" keeps preview answers in memory only (never the builder's localStorage).
+const previewDrafts = memoryStorage()
 
 // Remount the form when the schema changes so defaults re-apply cleanly.
 const formKey = computed(() => JSON.stringify(builder.schema.tree).length + ui.previewTheme)
@@ -38,6 +40,7 @@ const submittedJson = computed(() =>
         v-model="formData"
         class="rounded-lg p-6 shadow-sm"
         :schema="builder.schema"
+        :draft-storage="previewDrafts"
         :data-fg-theme="pinsLightScheme(builder.schema.meta.theme) ? 'light' : ui.previewTheme"
         :viewport="ui.device === 'mobile' ? 'sm' : ui.device === 'tablet' ? 'md' : undefined"
         @submit="onSubmit"

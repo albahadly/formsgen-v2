@@ -153,6 +153,13 @@ function fgPhoneNumber(value${t(': string')}, country${t(': string')})${t(': str
 }
 function fgComposePhone(country${t(': string')}, number${t(': string')})${t(': string')} {
   return number.trim() === '' ? '' : '+' + FG_DIAL[country] + ' ' + number
+}
+// The country whose code starts the value ("+44 …"; the field's own first), as
+// for restored answers; the fallback when none does.
+function fgPhoneFrom(value${t(': unknown')}, fallback${t(': string')})${t(': string')} {
+  if (typeof value !== 'string' || value.indexOf('+' + FG_DIAL[fallback] + ' ') === 0) return fallback
+  for (var code in FG_DIAL) if (value.indexOf('+' + FG_DIAL[code] + ' ') === 0) return code
+  return fallback
 }`
 }
 

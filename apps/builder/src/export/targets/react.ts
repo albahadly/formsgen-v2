@@ -7,6 +7,7 @@ import { errorsTextFunction, stepAnnouncementsLiteral, submittedText } from '../
 import { FILE_HELPERS_TS, RUNTIME_HELPERS_TS, pruneUnusedHelpers } from '../compile'
 import { calcSteps, reactCalcBlock } from '../calc'
 import { answerHelpers, usesAnswers } from '../answers'
+import { draftBar, draftHelpers, reactDraftHandlers, reactDraftHooks, usesDraft } from '../draft'
 import { postsUploads, reactUploadHandlers, reactUploadModule, uploadFields, uploadStatusMarkup, uploadTextHelper } from '../uploadRuntime'
 import {
   MATRIX_TOGGLE_TS,
@@ -311,7 +312,8 @@ ${indentBlock(reactItemMarkup(r.itemHtml, r.path, r.depth), 4)}
         : '',
       hasPhone
         ? `  function fgPhoneCountryOf(path: string): string {
-    return phoneCountry[path] ?? FG_PHONE_DEFAULTS[fgTpl(path)]!
+    const value = path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form)
+    return phoneCountry[path] ?? fgPhoneFrom(value, FG_PHONE_DEFAULTS[fgTpl(path)]!)
   }
 
   function fgPhoneSetCountry(path: string, current: string, next: string): void {
@@ -543,18 +545,21 @@ ${
       : ''
 
     // Reset buttons: back to INITIAL, no errors, announced.
-    const resetHandler = hasResetButton(schema)
-      ? `  function fgReset(): void {
-    setForm(${steps.length ? 'fgCalc(INITIAL)' : 'INITIAL'})
+    // Back to INITIAL (reset buttons, clearing saved answers).
+    const resetLines = `    setForm(${steps.length ? 'fgCalc(INITIAL)' : 'INITIAL'})
     setErrors({})
     touched.current.clear()${hasRepeaters ? '\n    fgKeys.current = {}' : ''}
-    setResult(null)${hasTags ? '\n    setTagDrafts({})' : ''}${hasDateList ? '\n    setDateDrafts({})' : ''}${hasPhone ? '\n    setPhoneCountry({})' : ''}
+    setResult(null)${hasTags ? '\n    setTagDrafts({})' : ''}${hasDateList ? '\n    setDateDrafts({})' : ''}${hasPhone ? '\n    setPhoneCountry({})' : ''}`
+    const resetHandler = hasResetButton(schema)
+      ? `  function fgReset(): void {
+${resetLines}
     fgAnnounce(${JSON.stringify(messages.formReset)})
   }`
       : ''
 
     const hasUploads = uploadFields(typedFields).length > 0
     const submitUrl = schema.meta.submit?.url
+    const draft = usesDraft(schema)
     const submitBlock = progress
       ? `    setFgUpload({ state: 'uploading', percent: 0 })
     // multipart: a JSON "data" part + one part per file; XMLHttpRequest reports upload progress
@@ -564,7 +569,7 @@ ${
       fgMultipart(data),
       (percent) => setFgUpload({ state: 'uploading', percent }),
       (ok) => {
-        setFgUpload(ok ? { state: 'done', percent: 100 } : { state: 'failed', percent: 0 })
+        setFgUpload(ok ? { state: 'done', percent: 100 } : { state: 'failed', percent: 0 })${draft ? '\n        if (ok) fgDraftForget(form)' : ''}
         fgAnnounce(ok ? ${submittedText(messages)} : ${JSON.stringify(messages.uploadFailed)})
       },
     )\n`
@@ -572,7 +577,9 @@ ${
       ? `    fetch(${JSON.stringify(submitUrl)}, {
       method: ${JSON.stringify(schema.meta.submit?.method ?? 'POST')},
       ${hasUploads ? '// multipart: a JSON "data" part + one part per file\n      body: fgMultipart(data),' : "headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify(data),"}
-    }).catch((error) => console.error('Submit failed', error))\n`
+    })${draft ? '\n      // Sent: the answers kept in this browser go.\n      .then((response) => { if (response.ok) fgDraftForget(form) })' : ''}.catch((error) => console.error('Submit failed', error))\n`
+      : draft
+      ? '    fgDraftForget(form)\n'
       : ''
 
     const stylesheet = exportStylesheet(css, schema)
@@ -594,7 +601,7 @@ ${
 import React, { useEffect, useRef, useState } from 'react'
 ${cssImport}
 ${RUNTIME_HELPERS_TS}${hasMultiMatrix(schema) ? `\n${MATRIX_TOGGLE_TS}` : ''}${steps.length ? `\n${reactCalcBlock(steps)}` : ''}${usesAnswers(schema.tree) ? `\n${answerHelpers(true)}` : ''}
-${hasUploads ? `${FILE_HELPERS_TS}\n` : ''}
+${hasUploads ? `${FILE_HELPERS_TS}\n` : ''}${draft ? `${draftHelpers(schema, 'react', true)}\n` : ''}
 type FormData = ${formDataType(schema)}
 
 const INITIAL: FormData = ${toJsLiteral(defaults)}
@@ -627,7 +634,7 @@ export default function ${name}({
   const [fgUpload, setFgUpload] = useState<{ state: '' | 'uploading' | 'done' | 'failed'; percent: number }>({ state: '', percent: 0 })` : ''}
   const touched = useRef(new Set<string>())
   const [fgAnnouncement, setFgAnnouncement] = useState('')
-${sectionHooks ? `${sectionHooks}\n` : ''}${tagsState ? `${tagsState}\n` : ''}${compositeState ? `${compositeState}\n` : ''}${repeaterHooks ? `${repeaterHooks}\n` : ''}
+${draft ? `${reactDraftHooks(steps.length > 0)}\n` : ''}${sectionHooks ? `${sectionHooks}\n` : ''}${tagsState ? `${tagsState}\n` : ''}${compositeState ? `${compositeState}\n` : ''}${repeaterHooks ? `${repeaterHooks}\n` : ''}
   // Polite aria-live region; cleared first so repeated text re-announces.
   function fgAnnounce(message: string): void {
     setFgAnnouncement('')
@@ -702,7 +709,7 @@ ${stepHandlers ? `\n${stepHandlers}\n` : ''}
     touched.current.add(path)
     validateField(path, form)
   }
-${tagsHandlers ? `\n${tagsHandlers}\n` : ''}${compositeHandlers ? `\n${compositeHandlers}\n` : ''}${hasUploads ? `\n${reactUploadHandlers(typedFields)}\n` : ''}${repeaterHandlers ? `\n${repeaterHandlers}\n` : ''}${resetHandler ? `\n${resetHandler}\n` : ''}
+${tagsHandlers ? `\n${tagsHandlers}\n` : ''}${compositeHandlers ? `\n${compositeHandlers}\n` : ''}${hasUploads ? `\n${reactUploadHandlers(typedFields)}\n` : ''}${repeaterHandlers ? `\n${repeaterHandlers}\n` : ''}${resetHandler ? `\n${resetHandler}\n` : ''}${draft ? `\n${reactDraftHandlers(messages, resetLines)}\n` : ''}
   function handleSubmit(event: React.FormEvent): void {
     event.preventDefault()${progress ? "\n    if (fgUpload.state === 'uploading') return" : ''}
     const nextErrors: Record<string, string> = {}
@@ -723,7 +730,7 @@ ${jumpBlock ? `${jumpBlock}\n` : ''}      fgAnnounce(fgErrorsText(Object.keys(ne
 ${submitBlock}  }
 
   return (
-    <form${hasRepeaters ? ' ref={fgRoot}' : ''} className="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} dir="${schema.meta.dir}" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
+    <form${hasRepeaters ? ' ref={fgRoot}' : ''} className="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} dir="${schema.meta.dir}" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>${draft ? `\n${indentBlock(draftBar('react', schema, css, messages), 3)}` : ''}
       <div className="${css.classes('grid')}">
 ${indentBlock(markup, 4)}
       </div>

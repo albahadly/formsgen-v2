@@ -110,6 +110,16 @@ export interface MessageCatalog {
   countryCode: string
   /** Accessible name of a field's help-tooltip button. */
   moreInfo: string
+  /** Save and continue later: the note while answers are kept on the device. */
+  draftOn: string
+  /** …after saved answers were restored. */
+  draftRestored: string
+  /** Added when the form has upload fields. */
+  draftNoFiles: string
+  /** The button that forgets the saved answers and starts over. */
+  draftClear: string
+  /** Announced after clearing. */
+  draftCleared: string
 }
 
 const en: MessageCatalog = {
@@ -169,6 +179,11 @@ const en: MessageCatalog = {
   removeDate: 'Remove {date}',
   countryCode: 'Country code',
   moreInfo: 'More information',
+  draftOn: 'Your answers are saved on this device until you send the form.',
+  draftRestored: 'Welcome back! Your saved answers were restored.',
+  draftNoFiles: 'Files aren’t saved; choose them again before sending.',
+  draftClear: 'Clear saved answers',
+  draftCleared: 'Saved answers cleared.',
 }
 
 const ar: MessageCatalog = {
@@ -231,6 +246,11 @@ const ar: MessageCatalog = {
   removeDate: 'إزالة {date}',
   countryCode: 'رمز الدولة',
   moreInfo: 'مزيد من المعلومات',
+  draftOn: 'تُحفَظ إجاباتك على هذا الجهاز حتى ترسل النموذج.',
+  draftRestored: 'مرحبًا بعودتك! تمت استعادة إجاباتك المحفوظة.',
+  draftNoFiles: 'لا تُحفَظ الملفات؛ اخترها مرة أخرى قبل الإرسال.',
+  draftClear: 'مسح الإجابات المحفوظة',
+  draftCleared: 'تم مسح الإجابات المحفوظة.',
 }
 
 export const MESSAGES: Readonly<Record<'en' | 'ar', MessageCatalog>> = { en, ar }

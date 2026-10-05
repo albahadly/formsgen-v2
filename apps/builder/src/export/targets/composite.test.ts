@@ -208,7 +208,7 @@ describe('matrix and phone country in every code target', () => {
     expect(out('vue-standalone', inRepeater)).toContain(`:value="fgPhoneCountryOf(('people.' + i + '.phone'))"`)
     expect(out('vue-standalone', inRepeater)).toContain('const FG_PHONE_DEFAULTS: Record<string, string> = {"people.phone":"AE"}')
     expect(out('react', inRepeater)).toContain(`value={fgPhoneCountryOf(('people.' + i + '.phone'))}`)
-    expect(out('blazor', inRepeater)).toContain(`value='@fgPhoneCountry[FgItemKey(item, "PeopleIPhone", "Phone")]'`)
+    expect(out('blazor', inRepeater)).toContain(`value='@FgPhoneCountryOf(FgItemKey(item, "PeopleIPhone", "Phone"), item.Phone)'`)
     expect(out('blazor', inRepeater)).toContain('FgPhoneDefaults = new() { ["PeopleIPhone"] = "AE" }')
   })
 })

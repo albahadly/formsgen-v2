@@ -36,5 +36,6 @@ Read the latest handoff before starting any phase (Phase Standard, REBUILD_PROMP
 | 29 | Drag-and-drop uploads and an upload progress bar (29a); matrix with several answers per row, formatted text, examples showing repeaters (29b) | ✅ Complete | [phase-29-uploads-matrix-text.md](./phase-29-uploads-matrix-text.md) |
 | 30 | HTML block: a static element holding the author's own HTML, reduced to safe tags and attributes in the renderer and every export | ✅ Complete | [phase-30-html-block.md](./phase-30-html-block.md) |
 | 31 | Reopen exported forms: code exports carry the project, ZIPs include the `.formsgen.json`, and Open reads JSON, export ZIPs and exported files | ✅ Complete | [phase-31-reopen-exports.md](./phase-31-reopen-exports.md) |
+| 32 | Smarter forms: calculated fields (32a), answers inside text (32b), save and continue later (32c) | ✅ Complete | [phase-32-smarter-forms.md](./phase-32-smarter-forms.md) |
 
-**All 11 planned phases are complete**, plus 10b and 12–31 from the backlog. Remaining backlog: npm publish of `@formsgen/renderer` (parked by user); see the "Not done" list in [phase-16-arabic-messages.md](./phase-16-arabic-messages.md).
+**All 11 planned phases are complete**, plus 10b and 12–32 from the backlog. Remaining backlog: npm publish of `@formsgen/renderer` (parked by user); see the "Not done" list in [phase-16-arabic-messages.md](./phase-16-arabic-messages.md).

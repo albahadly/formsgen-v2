@@ -57,6 +57,11 @@ const floatingLabels = computed({
   set: (v: boolean) => builder.updateMeta({ floatingLabels: v || undefined }),
 })
 
+const saveDraft = computed({
+  get: () => builder.schema.meta.saveDraft === true,
+  set: (v: boolean) => builder.updateMeta({ saveDraft: v || undefined }),
+})
+
 const submitUrl = computed({
   get: () => builder.schema.meta.submit?.url ?? '',
   set: (v: string) =>
@@ -221,6 +226,20 @@ function onKeydown(event: KeyboardEvent): void {
           >
           {{ t('settings.floatingLabels') }}
         </label>
+        <div class="flex flex-col gap-1">
+          <label class="inline-flex items-center gap-2 text-xs font-medium text-gray-600">
+            <input
+              v-model="saveDraft"
+              type="checkbox"
+              class="h-4 w-4 accent-indigo-600"
+              data-testid="settings-save-draft"
+            >
+            {{ t('settings.saveDraft') }}
+          </label>
+          <p class="ms-6 text-xs text-gray-500">
+            {{ t('settings.saveDraftHint') }}
+          </p>
+        </div>
 
         <div class="grid grid-cols-[1fr_auto] gap-3">
           <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">

@@ -8,6 +8,7 @@ import { errorsTextFunction, jsTemplate, stepAnnouncements, submittedText } from
 import { FILE_HELPERS, RUNTIME_HELPERS, compileConditions } from '../compile'
 import { calcSteps, htmlCalcBlock } from '../calc'
 import { htmlAnswerPainter, usesAnswers } from '../answers'
+import { draftBar, draftHelpers, htmlDraftRuntime, usesDraft } from '../draft'
 import { fieldsByPath, listSeparator } from '@formsgen/renderer'
 import { postsUploads, uploadFields, uploadStatusMarkup, uploadTextHelper } from '../uploadRuntime'
 import { exportStylesheet, hasDateRange, hasDates, hasMatrix, hasRangeSlider, phoneCountryFields } from '../composite'
@@ -191,6 +192,8 @@ ${indentBlock(r.itemHtml, 3)}
     const steps = calcSteps(schema)
     // Answers inside text: <span data-fg-answer> painted with every update.
     const answers = usesAnswers(schema.tree)
+    // Save and continue later: answers kept in this browser until sent.
+    const draft = usesDraft(schema)
     const hasUploads = uploadFields(typedFields).length > 0
     const submitUrl = schema.meta.submit?.url
     // Upload forms that post show progress; submit waits for the upload.
@@ -201,14 +204,16 @@ ${indentBlock(r.itemHtml, 3)}
       fgSend(${JSON.stringify(submitUrl)}, ${JSON.stringify(schema.meta.submit?.method ?? 'POST')}, fgMultipart(data), function (percent) {
         fgUploadPaint('uploading', percent)
       }, function (ok) {
-        fgUploadPaint(ok ? 'done' : 'failed', ok ? 100 : 0)
+        fgUploadPaint(ok ? 'done' : 'failed', ok ? 100 : 0)${draft ? '\n        if (ok) fgDraftForget()' : ''}
         fgAnnounce(ok ? ${submittedText(messages)} : ${JSON.stringify(messages.uploadFailed)})
       })\n`
       : submitUrl
       ? `      fetch(${JSON.stringify(submitUrl)}, {
         method: ${JSON.stringify(schema.meta.submit?.method ?? 'POST')},
         ${hasUploads ? '// multipart: a JSON "data" part + one part per file\n        body: fgMultipart(data),' : "headers: { 'Content-Type': 'application/json' },\n        body: JSON.stringify(data),"}
-      }).catch(function (error) { console.error('Submit failed', error) })\n`
+      })${draft ? '\n        // Sent: the answers kept in this browser go.\n        .then(function (response) { if (response.ok) fgDraftForget() })' : ''}.catch(function (error) { console.error('Submit failed', error) })\n`
+      : draft
+      ? '      fgDraftForget()\n'
       : ''
 
     // Reset buttons: native form reset (restores the markup defaults) plus
@@ -346,10 +351,9 @@ function fgWirePhone(root) {
       hasDateList ? "\n        Object.keys(fgDates).forEach(function (path) { fgDates[path] = []; fgPaintDates(path) })" : '',
     ].join('')
 
-    const resetScript = hasResetButton(schema)
-      ? `    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-reset]'), function (button) {
-      button.addEventListener('click', function () {
-        form.reset()
+    // Reset buttons and "Clear saved answers": native form reset (restores
+    // the markup defaults) plus chips, errors, touched state and items.
+    const resetBody = `        form.reset()
         Object.keys(fgTags).forEach(function (path) { fgTags[path] = [] })
         fgEach(document, '[data-fg-kind="tags"]', function (wrap) { if (wrap.fgPaint) wrap.fgPaint() })${hasUploads ? `
         Object.keys(fgFiles).forEach(function (path) {
@@ -365,7 +369,22 @@ function fgWirePhone(root) {
         })` : ''}
         document.getElementById('fg-result').hidden = true
         updateConditions()
+`
+    const resetScript = draft
+      ? `    function fgResetForm() {
+${resetBody.replace(/^ {2}/gm, '')}    }
+${hasResetButton(schema) ? `    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-reset]'), function (button) {
+      button.addEventListener('click', function () {
+        fgResetForm()
         fgAnnounce(${JSON.stringify(messages.formReset)})
+      })
+    })
+` : ''}
+`
+      : hasResetButton(schema)
+      ? `    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-reset]'), function (button) {
+      button.addEventListener('click', function () {
+${resetBody}        fgAnnounce(${JSON.stringify(messages.formReset)})
       })
     })
 
@@ -831,7 +850,7 @@ ${steps.length ? `    ${htmlCalcBlock(steps).split('\n').join('\n    ')}\n` : ''
       FG_CONDITIONS.forEach(function (c) {
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
         if (el) el.hidden = !c.test()
-      })${hasRepeaters ? `
+      })${draft ? '\n      fgDraftSave()' : ''}${hasRepeaters ? `
       // Item conditions get the enclosing items' indexes (outer i, inner j).
       Array.prototype.forEach.call(document.querySelectorAll('[data-fg-icond]'), function (el) {
         var indexes = []
@@ -1029,7 +1048,7 @@ ${wires.map((w) => `      ${w}(root)`).join('\n')}
       if (path && touched[path]) validateField(path)
     }
 
-${progress ? `${uploadProgressScript()}\n` : ''}${resetScript}    form.addEventListener('submit', function (event) {
+${progress ? `${uploadProgressScript()}\n` : ''}${resetScript}${draft ? `    ${draftHelpers(schema, 'html', false).split('\n').join('\n    ')}\n    ${htmlDraftRuntime(messages, { dates: hasDateList, repeaters: hasRepeaters }).split('\n').join('\n    ')}\n\n` : ''}    form.addEventListener('submit', function (event) {
       event.preventDefault()${progress ? "\n      if (fgUploadState === 'uploading') return" : ''}
       var failed = 0
       ${hasRepeaters ? 'fgAllPaths()' : 'Object.keys(FG_VALIDATORS)'}.forEach(function (path) {
@@ -1057,7 +1076,7 @@ ${progress ? `${uploadProgressScript()}\n` : ''}${resetScript}    form.addEventL
       console.log('Form submitted', data)
 ${submitBlock}    })
 
-${repeaterInit}    updateConditions()
+${repeaterInit}    updateConditions()${draft ? '\n    fgDraftStart()' : ''}
   })()
   </script>`
 
@@ -1070,7 +1089,7 @@ ${repeaterInit}    updateConditions()
 ${headAssets}${headAssets && styleTag ? '\n' : ''}${styleTag}
 </head>
 <body>
-  <form id="fg-form" class="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} novalidate>
+  <form id="fg-form" class="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} novalidate>${draft ? `\n${indentBlock(draftBar('html', schema, css, messages), 2)}` : ''}
     <div class="${css.classes('grid')}">
 ${indentBlock(markup, 3)}
     </div>

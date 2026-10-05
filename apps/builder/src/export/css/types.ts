@@ -109,6 +109,10 @@ export type Slot =
   | 'matrixRadio'
   /** Phone field's country-code select (beside the number input). */
   | 'phoneCountry'
+  /** Save and continue later: the note above the form, its text and the clear button. */
+  | 'draft'
+  | 'draftText'
+  | 'draftClear'
   /** Text add-ons around a control (prefix/suffix) and their row. */
   | 'affixGroup'
   | 'affix'

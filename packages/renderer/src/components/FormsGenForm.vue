@@ -4,6 +4,7 @@ import { getValueByPath } from '../conditions'
 import { FORM_CONTEXT, type FormContext } from '../context'
 import { fill, pluralText, resolveMessages } from '../messages'
 import { cloneData, firstFieldError, type UploadStatus } from '../files'
+import { browserStorage, draftDropsFiles, draftJson, draftVersion, readDraft, removeDraft, writeDraft, type DraftStorage } from '../draft'
 import { pinsLightScheme, themeInlineStyle } from '../theme'
 import { analyzeFormulas, calculatedDecimals, calculatedValue, calculationOrder } from '../formula'
 import { fieldsByPath, listSeparator, pipeText } from '../pipe'
@@ -24,6 +25,11 @@ const props = defineProps<{
    * failure; the submit button is disabled while uploading.
    */
   upload?: UploadStatus | null | undefined
+  /**
+   * Where meta.saveDraft keeps the answers: the browser's localStorage when
+   * omitted; null keeps nothing (the builder preview passes memory storage).
+   */
+  draftStorage?: DraftStorage | null | undefined
 }>()
 
 const emit = defineEmits<{
@@ -124,10 +130,52 @@ function applyCalculations(): void {
 }
 applyCalculations()
 
+// ---- save and continue later (meta.saveDraft, see draft.ts) ----
+const draftOn = computed(() => props.schema.meta.saveDraft === true)
+const draftStore = props.draftStorage === undefined ? browserStorage() : props.draftStorage
+const draftVer = computed(() => draftVersion(props.schema.tree, 'lib'))
+const draftHasFiles = computed(() => draftDropsFiles(props.schema.tree))
+/** The answers as the form starts (and resets): nothing worth keeping. */
+const draftPristine = draftJson(data)
+/** The last answers saved or found saved (skips writing the same text twice). */
+let draftLast = draftPristine
+/** '' nothing kept; 'saved' answers kept; 'restored' kept answers came back. */
+const draftState = ref<'' | 'saved' | 'restored'>('')
+if (draftOn.value) {
+  const saved = readDraft(draftStore, props.schema.meta.name, draftVer.value)
+  if (saved) {
+    for (const key of Object.keys(data)) if (key in saved) data[key] = saved[key]
+    applyCalculations()
+    draftLast = draftJson(data)
+    draftState.value = 'restored'
+    onMounted(() => emit('update:modelValue', cloneData(data)))
+  }
+}
+function saveDraft(): void {
+  if (!draftOn.value) return
+  const json = draftJson(data)
+  if (json === draftLast) return
+  draftLast = json
+  if (json === draftPristine) {
+    removeDraft(draftStore, props.schema.meta.name)
+    draftState.value = ''
+  } else if (writeDraft(draftStore, props.schema.meta.name, draftVer.value, json) && draftState.value === '') {
+    draftState.value = 'saved'
+  }
+}
+/** The form was sent: nothing is kept (until the answers change again). */
+function forgetDraft(): void {
+  if (!draftOn.value) return
+  removeDraft(draftStore, props.schema.meta.name)
+  draftLast = draftJson(data)
+  draftState.value = ''
+}
+
 watch(
   data,
   () => {
     applyCalculations()
+    saveDraft()
     emit('update:modelValue', cloneData(data))
     // Live re-validation for fields the user already interacted with.
     for (const path of touched) validateField(path)
@@ -286,8 +334,8 @@ context.shiftItems = (repeaterPath, removed) =>
   remapItems(repeaterPath, (i) => (i === removed ? null : i > removed ? i - 1 : i))
 context.swapItems = (repeaterPath, a, b) => remapItems(repeaterPath, (i) => (i === a ? b : i === b ? a : i))
 
-/** Reset buttons: back to the initial values, no errors shown. */
-context.reset = () => {
+/** Back to the initial values, no errors shown; `message` is announced. */
+function resetForm(message: string): void {
   const initial = initialData()
   for (const key of Object.keys(data)) delete data[key]
   Object.assign(data, initial)
@@ -296,8 +344,16 @@ context.reset = () => {
     touched.clear()
     submitted.value = false
     for (const key of Object.keys(errors)) errors[key] = null
-    announce(messages.value.formReset)
+    announce(message)
   })
+}
+/** Reset buttons. */
+context.reset = () => resetForm(messages.value.formReset)
+
+/** "Clear saved answers": forget them and start over. */
+function clearDraft(): void {
+  forgetDraft()
+  resetForm(messages.value.draftCleared)
 }
 
 const uploadPercent = computed(() => Math.round(Math.min(1, Math.max(0, props.upload?.progress ?? 0)) * 100))
@@ -307,7 +363,12 @@ watch(
   (state) => {
     if (state === 'uploading') announce(messages.value.uploadStarted)
     else if (state === 'done') announce(messages.value.submitted)
-    else if (state === 'failed') announce(messages.value.uploadFailed)
+    else if (state === 'failed') {
+      announce(messages.value.uploadFailed)
+      // Not sent after all: keep the answers again.
+      draftLast = ''
+      saveDraft()
+    }
   },
 )
 
@@ -318,6 +379,7 @@ function onSubmit(): void {
   submitAttempts.value++
   if (ok) {
     announce(messages.value.submitted)
+    forgetDraft()
     emit('submit', pickVisibleData(props.schema.tree, data))
   } else {
     announce(
@@ -338,6 +400,26 @@ function onSubmit(): void {
     @submit.prevent="onSubmit"
     @pointerdown.capture="onPointerDown"
   >
+    <div
+      v-if="draftOn"
+      class="fg-draft"
+      data-fg-draft
+    >
+      <p class="fg-draft-text">
+        {{ draftState === 'restored' ? messages.draftRestored : messages.draftOn }}<template v-if="draftHasFiles">
+          {{ messages.draftNoFiles }}
+        </template>
+      </p>
+      <button
+        v-if="draftState !== ''"
+        type="button"
+        class="fg-draft-clear"
+        data-fg-draft-clear
+        @click="clearDraft"
+      >
+        {{ messages.draftClear }}
+      </button>
+    </div>
     <div class="fg-grid">
       <FgNode
         v-for="node in schema.tree"

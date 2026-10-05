@@ -77,7 +77,7 @@ function countryEmitters(): Record<EmitterLang, (node: ElementNode, ctx: EmitCtx
         [
           labelFor(node, ctx),
           // @onchange on the number (not per keystroke), like InputText.
-          `<div class="${ctx.css.classes('pair')}">\n    <select class="${ctx.css.classes('phoneCountry')}" aria-label="${esc(ctx.messages.countryCode)}" value='@fgPhoneCountry["${member}"]' @onchange='e => { ${m} = FgPhoneSetCountry("${member}", ${m}, e); FgChanged("${member}"); }'>\n      ${options(node, ctx, false)}\n    </select>\n    <input id="${ctx.id}" type="tel" class="${ctx.css.classes('input')}"${telAttrs(node)} value='@FgPhoneNumber(${m}, fgPhoneCountry["${member}"])' @onchange='e => { ${m} = FgPhoneInput("${member}", e); FgChanged("${member}"); }' />\n  </div>`,
+          `<div class="${ctx.css.classes('pair')}">\n    <select class="${ctx.css.classes('phoneCountry')}" aria-label="${esc(ctx.messages.countryCode)}" value='@FgPhoneCountryOf("${member}", ${m})' @onchange='e => { ${m} = FgPhoneSetCountry("${member}", ${m}, e); FgChanged("${member}"); }'>\n      ${options(node, ctx, false)}\n    </select>\n    <input id="${ctx.id}" type="tel" class="${ctx.css.classes('input')}"${telAttrs(node)} value='@FgPhoneNumber(${m}, FgPhoneCountryOf("${member}", ${m}))' @onchange='e => { ${m} = FgPhoneInput("${member}", ${m}, e); FgChanged("${member}"); }' />\n  </div>`,
           descriptionFor(node, ctx),
           blazorValidationMessage(ctx),
         ],
