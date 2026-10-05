@@ -7,6 +7,8 @@ import { fileLimits, resolveMessages, type ElementNode } from '@formsgen/rendere
 import { errorsTextFunction, jsTemplate, stepAnnouncements, submittedText } from '../announce'
 import { FILE_HELPERS, RUNTIME_HELPERS, compileConditions } from '../compile'
 import { calcSteps, htmlCalcBlock } from '../calc'
+import { htmlAnswerPainter, usesAnswers } from '../answers'
+import { fieldsByPath, listSeparator } from '@formsgen/renderer'
 import { postsUploads, uploadFields, uploadStatusMarkup, uploadTextHelper } from '../uploadRuntime'
 import { exportStylesheet, hasDateRange, hasDates, hasMatrix, hasRangeSlider, phoneCountryFields } from '../composite'
 import {
@@ -187,6 +189,8 @@ ${indentBlock(r.itemHtml, 3)}
     const typedFields = collectTemplateFields(schema)
     // Calculated fields: recomputed at the start of every updateConditions().
     const steps = calcSteps(schema)
+    // Answers inside text: <span data-fg-answer> painted with every update.
+    const answers = usesAnswers(schema.tree)
     const hasUploads = uploadFields(typedFields).length > 0
     const submitUrl = schema.meta.submit?.url
     // Upload forms that post show progress; submit waits for the upload.
@@ -823,7 +827,7 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
       return validate ? Boolean(validate()) : false
     }
 
-${steps.length ? `    ${htmlCalcBlock(steps).split('\n').join('\n    ')}\n` : ''}    function updateConditions() {${steps.length ? '\n      fgCalcAll()' : ''}
+${steps.length ? `    ${htmlCalcBlock(steps).split('\n').join('\n    ')}\n` : ''}${answers ? `    ${htmlAnswerPainter(fieldsByPath(schema.tree), messages, listSeparator(schema.meta.locale)).split('\n').join('\n    ')}\n` : ''}    function updateConditions() {${steps.length ? '\n      fgCalcAll()' : ''}${answers ? '\n      fgPaintAnswers()' : ''}
       FG_CONDITIONS.forEach(function (c) {
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
         if (el) el.hidden = !c.test()

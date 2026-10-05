@@ -141,6 +141,7 @@ export {
   type FormulaInfo,
 } from './formula'
 export { collectCalculated } from './runtime'
+export { answerText, fieldsByPath, hasPipes, listSeparator, pipeParts, pipeText, type PipePart } from './pipe'
 export { VOID_TAGS, decodeEntities, htmlText, parseSafeHtml, safeStyle, type HtmlNode } from './safeHtml'
 export { isMarkdownParagraph, markdownText, parseInline, parseMarkdown, type MdBlock, type MdInline } from './markdown'
 export { MATRIX_TYPE, matrixColumns, matrixDefault, matrixMultiple, matrixRows, toggleMatrixCell, type MatrixOption } from './matrix'

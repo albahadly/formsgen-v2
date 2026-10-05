@@ -112,3 +112,11 @@ describe('pruneUnusedHelpers', () => {
     expect(pruneUnusedHelpers(code)).toBe(`function fgUsed(): number {\n  return fgInner()\n}\n// only inner\nfunction fgInner(): number {\n  return 1\n}\nconsole.log(fgUsed())\n`)
   })
 })
+
+describe('pruneUnusedHelpers (self-recursion)', () => {
+  it('drops a helper that only calls itself', async () => {
+    const { pruneUnusedHelpers } = await import('./compile')
+    const code = 'function fgA(v) {\n  return Array.isArray(v) && v.some(fgA)\n}\nfunction fgB() {\n  return 1\n}\nconsole.log(fgB())\n'
+    expect(pruneUnusedHelpers(code)).toBe('function fgB() {\n  return 1\n}\nconsole.log(fgB())\n')
+  })
+})

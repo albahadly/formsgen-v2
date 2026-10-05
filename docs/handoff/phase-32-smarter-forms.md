@@ -3,7 +3,7 @@
 ## Status
 
 - **32a:** calculated fields. Commit: feat(phase-32a).
-- **32b:** answers inside text. Not started.
+- **32b:** answers inside text. Commit: feat(phase-32b).
 - **32c:** save and continue later. Not started.
 
 ## 32a: calculated fields
@@ -105,3 +105,77 @@ The scenario:
 All 12 runtimes produce identical results.
 
 **Builder:** the booking example computes 3 nights → $360.00, a typo is flagged at once, and the insert buttons fix the formula.
+
+## 32b: answers inside text
+
+### What people see
+
+Labels, descriptions, headings and paragraphs (formatted ones too) can show answers given earlier in the form, as people type:
+- "Welcome, **{first_name|guest}**!" shows "Welcome, guest!" until a name is typed, then "Welcome, Ana!";
+- "How old is {guests.gname|this guest}?" inside a repeating section reads that item's own name, and follows the item when it moves.
+
+| Answer | Shown as |
+|---|---|
+| Text, email, date… | As typed |
+| Select / radio / checkbox list / multi-select | The option labels ("Deluxe", "Towels, Flowers") |
+| Checkbox / switch | Yes / No (نعم / لا) |
+| Lists (tags, dates, files) | Joined with ", ", or "، " in Arabic; files by name |
+| Date range / two-handle slider | "from – to", or empty until both ends are set |
+| Calculated field | With its decimals |
+| Matrix | Nothing |
+| Empty | The fallback after `|`, or nothing |
+
+**Safety.** Answers are inserted as text, never as markup. A name like `<b>x</b> {{1+1}} @x {y}` shows exactly as typed in every target. In formatted paragraphs the text is parsed first, so an answer can't add bold or links. `{first_name}` is never taken as italics, even with its underscore.
+
+**Mistakes stay visible.** A reference that isn't a field, or an item's field used outside its item, stays as typed.
+
+**Builder.** The Label, Heading and Paragraph boxes show the hint "Use {field} to show an answer, e.g. Hello, {name|there}!" (en/ar). The registration example's last step says "Almost done, {full_name|friend}! We will send a confirmation to {email|your email}."
+
+### How it works
+
+**Renderer.** `pipeText` / `answerText` (pipe.ts) go through `FormContext.pipe(text, scope)`, which `useField`, `FgFieldLabel`, `FgFloat` and `FgStatic` call. Formatted paragraphs are parsed, then answers go into their text nodes.
+
+**Exports.** `EmitCtx.pipe(text)` (export/answers.ts) turns the text into markup for the language: static parts are escaped and answers become expressions in the right scope.
+
+| Target | Answer |
+|---|---|
+| Vue | `{{ fgOr(fgPick(form.room, {…}, ", "), 'fallback') }}`, inside items `item.x`. `{` in static text is an entity, so formatted text no longer needs `v-pre` |
+| React | `{fgOr(fgAnswer(form.first_name, ", "), "guest")}` |
+| HTML | `<span data-fg-answer="guests.__i__.gname" data-fg-fallback="…">`, painted by `fgPaintAnswers()` in every `updateConditions()`. Item stamping fills in the index |
+| Blazor | `@(FgOr(FgPick(Model.Room, new Dictionary<string, string> { … }, ", "), "…"))`, inside items `item.X` |
+
+The helpers (`fgAnswer`, `fgPick`, `fgYesNo`, `fgOr` and their C# versions) mirror the renderer's `answerText`.
+
+### Fix found along the way
+
+Unused-helper pruning kept a helper that only called itself (`fgIsEmpty`). A React export with no required rules and no conditions therefore failed strict TypeScript (TS6133). Pruning now ignores a helper's references to itself.
+
+### Verification (32b)
+
+**`pnpm verify`** passes with **448 tests** (161 renderer / 287 builder). New coverage:
+- splitting references;
+- formatting each kind of answer (Arabic included);
+- a renderer form updating its heading, label, description, formatted text, item labels and item text;
+- unknown references staying as typed;
+- hostile input inserted as text;
+- each target's output;
+- the JS helpers against the renderer's formatting;
+- pruning a self-recursive helper.
+
+**Strict compilers:** React `tsc`, `vue-tsc` and the .NET 8 build pass with 0 errors and 0 warnings, for the demo and for the kitchen-sink fixture, whose formatted intro now says "Hi {full_name|there}!".
+
+**12 runtimes.** The demo has:
+- a heading and an email label using the name;
+- a description using the room's option label;
+- a formatted summary with the name (bold), the room (italics), the nights (calculated), VIP Yes/No, the extras' labels and the dates;
+- guests whose age label and note use their own name;
+- unknown references.
+
+The scenario:
+1. Check the fallbacks first.
+2. Fill everything in.
+3. Move Guest 2 up: their texts follow them.
+4. Type a hostile name: it shows literally, with no tags created.
+5. Submit.
+
+All 12 runtimes produce identical results.

@@ -38,6 +38,8 @@ export interface FormContext {
   swapItems?(repeaterPath: string, a: number, b: number): void
   /** Restore the initial values and clear errors (reset buttons). */
   reset?(): void
+  /** Text with answers inserted ({field}, {field|fallback}); scope: the item it sits in. */
+  pipe?(text: string, scope: ItemScope | null): string
   /** Built-in texts for the form's locale (English when absent). */
   messages?(): MessageCatalog
   /** The form's locale (meta.locale), e.g. for country names. */

@@ -30,6 +30,7 @@ import {
 import { collectExportFields, collectExportRepeaters } from '../logic'
 import { postsUploads, uploadStatusMarkup } from '../uploadRuntime'
 import { CALC_HELPERS_CS, calcSteps, formulaCs, type FormulaAccess } from '../calc'
+import { answerHelpersCs, usesAnswers } from '../answers'
 import {
   renderTree,
   stepButtonLabels,
@@ -281,6 +282,7 @@ ${indentBlock(item, 3)}
       lang: 'blazor',
       css,
       accessor,
+      csAccessor: (path) => `Model.${memberOf(path)}`,
       conditionAttr: () => '',
       // Conditions in markup are C#, not JS.
       conditionExpr: (groups) => csConditions(groups, (key) => `Model.${pascalMember(key)}`),
@@ -290,7 +292,10 @@ ${indentBlock(item, 3)}
       itemOptions: (path) => {
         const ref = repeaterRef(path)
         const repeater = repeaters.find((x) => x.path === ref.path)!
-        return { conditionExpr: (groups) => csConditions(groups, itemCsAccessor(repeater, ITEM_VARS[ref.depth - 1]!.item)) }
+        return {
+          conditionExpr: (groups) => csConditions(groups, itemCsAccessor(repeater, ITEM_VARS[ref.depth - 1]!.item)),
+          csAccessor: (p) => itemCsAccessor(repeater, ITEM_VARS[ref.depth - 1]!.item)(pathKey(p)),
+        }
       },
     })
 
@@ -1390,7 +1395,10 @@ ${Object.entries(dialCodes(typedFields, schema.meta.locale)).map(([code, dial]) 
 `
         : ''
 
-    const helperBlocks = `${calcBlock}${editContextBlock}${announceBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}${repeaterBlock}${uploadBlock}${compositeBlock}${afterRenderBlock}${resetBlock}`
+    const answerBlock = usesAnswers(schema.tree)
+      ? answerHelpersCs({ range: hasRangeSlider(schema), dateRange: hasDateRange(schema), uploads: typedFields.some((f) => FILE_TYPES.has(f.node.type)) })
+      : ''
+    const helperBlocks = `${calcBlock}${answerBlock}${editContextBlock}${announceBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}${repeaterBlock}${uploadBlock}${compositeBlock}${afterRenderBlock}${resetBlock}`
 
     const formBinding = 'EditContext="fgEdit" OnSubmit="FgSubmit"'
     const extraUsings = '@using System.Linq\n@using Microsoft.AspNetCore.Components.Forms\n'

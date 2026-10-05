@@ -21,10 +21,12 @@ export function useField(props: FieldProps) {
     set: (v: unknown) => ctx.setValue(props.path, v),
   })
   const error = computed(() => ctx.getError(props.path))
-  const label = computed(() => String(props.node.props['label'] ?? ''))
+  // Answers inside text ({field}) are inserted by the form.
+  const piped = (text: string): string => (ctx.pipe ? ctx.pipe(text, scope) : text)
+  const label = computed(() => piped(String(props.node.props['label'] ?? '')))
   const description = computed(() => {
     const d = props.node.props['description']
-    return typeof d === 'string' && d !== '' ? d : null
+    return typeof d === 'string' && d !== '' ? piped(d) : null
   })
   const placeholder = computed(() => String(props.node.props['placeholder'] ?? ''))
   const required = computed(

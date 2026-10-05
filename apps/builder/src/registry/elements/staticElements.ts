@@ -4,8 +4,8 @@
 import { isMarkdownParagraph, isSafeUrl, type ElementNode } from '@formsgen/renderer'
 import { htmlBlockMarkup } from '@/export/htmlBlock'
 import { richTextMarkup } from '@/export/richText'
-import { esc } from '../emitters/shared'
-import { appearanceSection, type ElementDefinition, type EmitCtx, type EmitterLang } from '../types'
+import { esc, textMarkup } from '../emitters/shared'
+import { ANSWER_HINT, appearanceSection, type ElementDefinition, type EmitCtx, type EmitterLang } from '../types'
 
 function headingTag(node: ElementNode): string {
   const level = Number(node.props['level'] ?? 2)
@@ -14,7 +14,7 @@ function headingTag(node: ElementNode): string {
 
 const headingMarkup = (node: ElementNode, ctx: EmitCtx, classAttr: string): string => {
   const tag = headingTag(node)
-  return `<${tag} ${classAttr}="${ctx.css.classes('heading')}">${esc(String(node.props['text'] ?? ''))}</${tag}>`
+  return `<${tag} ${classAttr}="${ctx.css.classes('heading')}">${textMarkup(node, ctx, 'text')}</${tag}>`
 }
 
 export const headingElement: ElementDefinition = {
@@ -28,7 +28,7 @@ export const headingElement: ElementDefinition = {
     {
       title: 'Properties',
       controls: [
-        { kind: 'text', prop: 'text', label: 'Text' },
+        { kind: 'text', prop: 'text', label: 'Text', hint: ANSWER_HINT },
         {
           kind: 'select',
           prop: 'level',
@@ -55,7 +55,7 @@ export const headingElement: ElementDefinition = {
 }
 
 const paragraphMarkup = (node: ElementNode, ctx: EmitCtx, classAttr: string): string =>
-  `<p ${classAttr}="${ctx.css.classes('paragraph')}">${esc(String(node.props['text'] ?? ''))}</p>`
+  `<p ${classAttr}="${ctx.css.classes('paragraph')}">${textMarkup(node, ctx, 'text')}</p>`
 
 /** Plain text, or simple formatting (bold, italics, links, lists) when props.format is 'markdown'. */
 const paragraphFor =
@@ -74,7 +74,7 @@ export const paragraphElement: ElementDefinition = {
     {
       title: 'Properties',
       controls: [
-        { kind: 'text', prop: 'text', label: 'Text', multiline: true },
+        { kind: 'text', prop: 'text', label: 'Text', multiline: true, hint: ANSWER_HINT },
         { kind: 'toggle', prop: 'format', label: 'Simple formatting: **bold**, *italics*, [link](https://…), - lists', on: 'markdown' },
       ],
     },

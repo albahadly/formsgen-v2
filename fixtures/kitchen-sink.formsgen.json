@@ -25,7 +25,7 @@
       "type": "paragraph",
       "props": {
         "format": "markdown",
-        "text": "Fields marked * are **required**. See the [docs](https://example.com/docs):\n- *one* answer per row in Rating\n- several in Usage"
+        "text": "Hi {full_name|there}! Fields marked * are **required**. See the [docs](https://example.com/docs):\n- *one* answer per row in Rating\n- several in Usage"
       }
     },
     {

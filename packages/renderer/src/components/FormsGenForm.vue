@@ -6,6 +6,7 @@ import { fill, pluralText, resolveMessages } from '../messages'
 import { cloneData, firstFieldError, type UploadStatus } from '../files'
 import { pinsLightScheme, themeInlineStyle } from '../theme'
 import { analyzeFormulas, calculatedDecimals, calculatedValue, calculationOrder } from '../formula'
+import { fieldsByPath, listSeparator, pipeText } from '../pipe'
 import { resolveScoped } from '../repeater'
 import { collectCalculated, collectVisibleFields, pickVisibleData, scopedLookup, setValueByPath } from '../runtime'
 import type { FormSchema } from '../schema'
@@ -244,6 +245,18 @@ function announce(message: string): void {
   })
 }
 context.announce = announce
+
+// Answers inside text ({field}, {field|fallback}).
+const pipeFields = computed(() => fieldsByPath(props.schema.tree))
+context.pipe = (text, scope) =>
+  pipeText(
+    text,
+    pipeFields.value,
+    scope?.template ?? '',
+    (path) => getValueByPath(data, resolveScoped(path, scope)),
+    messages.value,
+    listSeparator(props.schema.meta.locale),
+  )
 
 /**
  * A repeater item was removed: later items move up one index, so their

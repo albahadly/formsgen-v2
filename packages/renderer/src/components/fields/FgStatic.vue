@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
-import { FORM_CONTEXT } from '../../context'
+import { FORM_CONTEXT, ITEM_SCOPE } from '../../context'
 import { isSafeUrl } from '../../elements'
-import { isMarkdownParagraph, parseMarkdown } from '../../markdown'
+import { isMarkdownParagraph, parseMarkdown, type MdBlock, type MdInline } from '../../markdown'
 import { parseSafeHtml } from '../../safeHtml'
 import { MESSAGES } from '../../messages'
 import type { ElementNode } from '../../schema'
@@ -11,15 +11,25 @@ import FgRichText from './FgRichText'
 
 const props = defineProps<{ node: ElementNode }>()
 const ctx = inject(FORM_CONTEXT, null)
+const scope = inject(ITEM_SCOPE, null)
 const messages = computed(() => ctx?.messages?.() ?? MESSAGES.en)
 
 const prop = (key: string): string => {
   const value = props.node.props[key]
   return typeof value === 'string' ? value : ''
 }
-const text = computed(() => prop('text'))
+/** Answers inside text ({field}) are inserted by the form (headings, paragraphs). */
+const pipe = (text: string): string => (ctx?.pipe ? ctx.pipe(text, scope) : text)
+const text = computed(() => (props.node.type === 'heading' || props.node.type === 'paragraph' ? pipe(prop('text')) : prop('text')))
 /** Simple formatting (props.format = 'markdown'): bold, italics, links, lists. */
-const blocks = computed(() => (isMarkdownParagraph(props.node) ? parseMarkdown(text.value) : null))
+// Formatted: parsed first, then answers go into the text nodes (as text).
+const pipeInline = (nodes: MdInline[]): MdInline[] =>
+  nodes.map((n) => (n.t === 'text' ? { t: 'text', v: pipe(n.v) } : n.t === 'br' ? n : { ...n, c: pipeInline(n.c) }))
+const blocks = computed<MdBlock[] | null>(() =>
+  isMarkdownParagraph(props.node)
+    ? parseMarkdown(prop('text')).map((b) => (b.t === 'p' ? { t: 'p', c: pipeInline(b.c) } : { t: b.t, items: b.items.map(pipeInline) }))
+    : null,
+)
 /** HTML block: the author's HTML, reduced to allowed tags and attributes. */
 const htmlNodes = computed(() => (props.node.type === 'html' ? parseSafeHtml(prop('html')) : null))
 /** style.tone: text color (line color for a divider). */

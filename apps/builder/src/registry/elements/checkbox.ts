@@ -1,6 +1,5 @@
 import {
   descriptionFor,
-  esc,
   fieldWrap,
   htmlDataAttrs,
   htmlError,
@@ -9,13 +8,14 @@ import {
   reactError,
   reactFieldWrap,
   vueError,
+  textMarkup,
   tipFor,
 } from '../emitters/shared'
 import { commonFieldSections, type ElementDefinition, type EmitCtx } from '../types'
 import type { ElementNode } from '@formsgen/renderer'
 
 function checkboxLabel(node: ElementNode, ctx: EmitCtx, jsx = false): string {
-  const text = esc(String(node.props['label'] ?? ''))
+  const text = textMarkup(node, ctx, 'label')
   const classAttr = jsx ? 'className' : 'class'
   const forAttr = jsx ? 'htmlFor' : 'for'
   const req = ctx.required

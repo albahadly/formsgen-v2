@@ -18,7 +18,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         </div>
         <div class="col-12 col-md-12">
           <div class="text-secondary">
-            <p class="mb-2">Fields marked * are <strong>required</strong>. See the <a class="link-primary" href="https://example.com/docs">docs</a>:</p>
+            <p class="mb-2">Hi @(FgOr(FgAnswer(Model.FullName, ", "), "there"))! Fields marked * are <strong>required</strong>. See the <a class="link-primary" href="https://example.com/docs">docs</a>:</p>
             <ul class="mb-2">
               <li><em>one</em> answer per row in Rating</li>
               <li>several in Usage</li>
@@ -1157,6 +1157,30 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         value is double number ? number.ToString("F" + decimals, System.Globalization.CultureInfo.InvariantCulture) : "";
 
     private static double FgDaysRange(object? value) => value is FgDateRange range ? FgDay(range.To) - FgDay(range.From) : double.NaN;
+
+    // Answers inside text: a value as text ("" when empty).
+    private static string FgAnswer(object? value, string sep) => value switch
+    {
+        null => "",
+        string text => text,
+        double number => number.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        int number => number.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        FgDateRange range => string.IsNullOrEmpty(range.From) || string.IsNullOrEmpty(range.To) ? "" : range.From + " – " + range.To,
+        FgRange range => range.From.ToString(System.Globalization.CultureInfo.InvariantCulture) + " – " + range.To.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        IEnumerable<FgUpload> files => string.Join(sep, files.Select(f => f.Name)),
+        IEnumerable<string> list => string.Join(sep, list),
+        _ => Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? "",
+    };
+
+    private static string FgPick(object? value, Dictionary<string, string> labels, string sep) => value switch
+    {
+        string text when text == "" => "",
+        string text => labels.TryGetValue(text, out var label) ? label : text,
+        IEnumerable<string> list => string.Join(sep, list.Select(v => labels.TryGetValue(v, out var label) ? label : v)),
+        _ => "",
+    };
+
+    private static string FgOr(string text, string fallback) => text == "" ? fallback : text;
 
     private EditContext fgEdit = default!;
     private ValidationMessageStore fgMessages = default!;
@@ -2379,7 +2403,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         </div>
         <div class="col-span-12 md:col-span-12">
           <div class="text-sm text-gray-600 dark:text-gray-300 space-y-2">
-            <p>Fields marked * are <strong>required</strong>. See the <a class="font-medium text-indigo-600 underline underline-offset-2 dark:text-indigo-400" href="https://example.com/docs">docs</a>:</p>
+            <p>Hi @(FgOr(FgAnswer(Model.FullName, ", "), "there"))! Fields marked * are <strong>required</strong>. See the <a class="font-medium text-indigo-600 underline underline-offset-2 dark:text-indigo-400" href="https://example.com/docs">docs</a>:</p>
             <ul class="list-disc ps-5">
               <li><em>one</em> answer per row in Rating</li>
               <li>several in Usage</li>
@@ -3526,6 +3550,30 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         value is double number ? number.ToString("F" + decimals, System.Globalization.CultureInfo.InvariantCulture) : "";
 
     private static double FgDaysRange(object? value) => value is FgDateRange range ? FgDay(range.To) - FgDay(range.From) : double.NaN;
+
+    // Answers inside text: a value as text ("" when empty).
+    private static string FgAnswer(object? value, string sep) => value switch
+    {
+        null => "",
+        string text => text,
+        double number => number.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        int number => number.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        FgDateRange range => string.IsNullOrEmpty(range.From) || string.IsNullOrEmpty(range.To) ? "" : range.From + " – " + range.To,
+        FgRange range => range.From.ToString(System.Globalization.CultureInfo.InvariantCulture) + " – " + range.To.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        IEnumerable<FgUpload> files => string.Join(sep, files.Select(f => f.Name)),
+        IEnumerable<string> list => string.Join(sep, list),
+        _ => Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? "",
+    };
+
+    private static string FgPick(object? value, Dictionary<string, string> labels, string sep) => value switch
+    {
+        string text when text == "" => "",
+        string text => labels.TryGetValue(text, out var label) ? label : text,
+        IEnumerable<string> list => string.Join(sep, list.Select(v => labels.TryGetValue(v, out var label) ? label : v)),
+        _ => "",
+    };
+
+    private static string FgOr(string text, string fallback) => text == "" ? fallback : text;
 
     private EditContext fgEdit = default!;
     private ValidationMessageStore fgMessages = default!;
@@ -4748,7 +4796,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         </div>
         <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div class="fg-paragraph fg-rich-text">
-            <p>Fields marked * are <strong>required</strong>. See the <a class="fg-link" href="https://example.com/docs">docs</a>:</p>
+            <p>Hi @(FgOr(FgAnswer(Model.FullName, ", "), "there"))! Fields marked * are <strong>required</strong>. See the <a class="fg-link" href="https://example.com/docs">docs</a>:</p>
             <ul>
               <li><em>one</em> answer per row in Rating</li>
               <li>several in Usage</li>
@@ -5895,6 +5943,30 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         value is double number ? number.ToString("F" + decimals, System.Globalization.CultureInfo.InvariantCulture) : "";
 
     private static double FgDaysRange(object? value) => value is FgDateRange range ? FgDay(range.To) - FgDay(range.From) : double.NaN;
+
+    // Answers inside text: a value as text ("" when empty).
+    private static string FgAnswer(object? value, string sep) => value switch
+    {
+        null => "",
+        string text => text,
+        double number => number.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        int number => number.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        FgDateRange range => string.IsNullOrEmpty(range.From) || string.IsNullOrEmpty(range.To) ? "" : range.From + " – " + range.To,
+        FgRange range => range.From.ToString(System.Globalization.CultureInfo.InvariantCulture) + " – " + range.To.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        IEnumerable<FgUpload> files => string.Join(sep, files.Select(f => f.Name)),
+        IEnumerable<string> list => string.Join(sep, list),
+        _ => Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? "",
+    };
+
+    private static string FgPick(object? value, Dictionary<string, string> labels, string sep) => value switch
+    {
+        string text when text == "" => "",
+        string text => labels.TryGetValue(text, out var label) ? label : text,
+        IEnumerable<string> list => string.Join(sep, list.Select(v => labels.TryGetValue(v, out var label) ? label : v)),
+        _ => "",
+    };
+
+    private static string FgOr(string text, string fallback) => text == "" ? fallback : text;
 
     private EditContext fgEdit = default!;
     private ValidationMessageStore fgMessages = default!;
@@ -7153,7 +7225,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       </div>
       <div class="col-12 col-md-12">
         <div class="text-secondary">
-          <p class="mb-2">Fields marked * are <strong>required</strong>. See the <a class="link-primary" href="https://example.com/docs">docs</a>:</p>
+          <p class="mb-2">Hi <span data-fg-answer="full_name" data-fg-fallback="there">there</span>! Fields marked * are <strong>required</strong>. See the <a class="link-primary" href="https://example.com/docs">docs</a>:</p>
           <ul class="mb-2">
             <li><em>one</em> answer per row in Rating</li>
             <li>several in Usage</li>
@@ -8489,8 +8561,87 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
     function fgCalcAll() {
       fgSetCalc('seat_cost', 2, ((fgNum(fgGet('seats')) * 25) * ((fgNum(fgGet('seats')) >= 10 ? 1 : 0) !== 0 ? 0.8 : 1)))
     }
+    // Answers inside text: a value as text ('' when empty).
+    function fgAnswer(v, sep) {
+      if (v === null || v === undefined || v === '') return ''
+      if (Array.isArray(v)) return v.map((x) => (x && typeof x === 'object' && 'name' in x ? String(x.name) : String(x))).join(sep)
+      if (typeof v === 'object') {
+        const r = v
+        const from = r.from === null || r.from === undefined ? '' : String(r.from)
+        const to = r.to === null || r.to === undefined ? '' : String(r.to)
+        return from !== '' && to !== '' ? from + ' – ' + to : ''
+      }
+      return String(v)
+    }
+    function fgPick(v, labels, sep) {
+      if (v === null || v === undefined || v === '') return ''
+      return (Array.isArray(v) ? v : [v]).map((x) => labels[String(x)] ?? String(x)).join(sep)
+    }
+    function fgYesNo(v, yes, no) {
+      return v === true ? yes : v === false ? no : ''
+    }
+    function fgOr(text, fallback) {
+      return text === '' ? fallback : text
+    }
+    // Answer formatting by template path ("people.pname").
+    var FG_ANSWER_FORMAT = {
+      "full_name": function (v) { return fgAnswer(v, ", ") },
+      "email": function (v) { return fgAnswer(v, ", ") },
+      "website": function (v) { return fgAnswer(v, ", ") },
+      "seats": function (v) { return fgAnswer(v, ", ") },
+      "seat_cost": function (v) { return fgFmt(v, 2) },
+      "satisfaction": function (v) { return fgAnswer(v, ", ") },
+      "city": function (v) { return fgAnswer(v, ", ") },
+      "zip": function (v) { return fgAnswer(v, ", ") },
+      "account.username": function (v) { return fgAnswer(v, ", ") },
+      "account.password": function (v) { return fgAnswer(v, ", ") },
+      "account.bio": function (v) { return fgAnswer(v, ", ") },
+      "account.birthday": function (v) { return fgAnswer(v, ", ") },
+      "account.avatar": function (v) { return fgAnswer(v, ", ") },
+      "plan": function (v) { return fgPick(v, {"free":"Free","pro":"Pro"}, ", ") },
+      "interests": function (v) { return fgPick(v, {"news":"News","product":"Product updates"}, ", ") },
+      "channels": function (v) { return fgPick(v, {"email":"Email","sms":"SMS","push":"Push"}, ", ") },
+      "topics": function (v) { return fgAnswer(v, ", ") },
+      "billing": function (v) { return fgPick(v, {"monthly":"Monthly","yearly":"Yearly"}, ", ") },
+      "extras": function (v) { return fgPick(v, {"support":"Priority support","backup":"Daily backups"}, ", ") },
+      "notify": function (v) { return fgYesNo(v, "Yes", "No") },
+      "appointment": function (v) { return fgAnswer(v, ", ") },
+      "brand_color": function (v) { return fgAnswer(v, ", ") },
+      "volume": function (v) { return fgAnswer(v, ", ") },
+      "budget": function (v) { return fgAnswer(v, ", ") },
+      "stay": function (v) { return fgAnswer(v, ", ") },
+      "days": function (v) { return fgAnswer(v, ", ") },
+      "rating": function (v) { return '' },
+      "usage": function (v) { return '' },
+      "source": function (v) { return fgAnswer(v, ", ") },
+      "references.name": function (v) { return fgAnswer(v, ", ") },
+      "references.may_contact": function (v) { return fgYesNo(v, "Yes", "No") },
+      "references.email": function (v) { return fgAnswer(v, ", ") },
+      "references.phone": function (v) { return fgAnswer(v, ", ") },
+      "attachments": function (v) { return fgAnswer(v, ", ") },
+      "attachments_note": function (v) { return fgAnswer(v, ", ") },
+      "contact_method": function (v) { return fgPick(v, {"email":"Email","phone":"Phone","other":"Other"}, ", ") },
+      "contact_phone": function (v) { return fgAnswer(v, ", ") },
+      "contact_other": function (v) { return fgAnswer(v, ", ") },
+      "twitter": function (v) { return fgAnswer(v, ", ") },
+      "github": function (v) { return fgAnswer(v, ", ") },
+      "shipping_city": function (v) { return fgAnswer(v, ", ") },
+      "order_notes": function (v) { return fgAnswer(v, ", ") },
+      "newsletter": function (v) { return fgYesNo(v, "Yes", "No") },
+      "terms": function (v) { return fgYesNo(v, "Yes", "No") },
+    }
+    function fgPaintAnswers() {
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fg-answer]'), function (el) {
+        var path = el.getAttribute('data-fg-answer')
+        var template = path.split('.').filter(function (s) { return !/^\\d+$/.test(s) }).join('.')
+        var format = FG_ANSWER_FORMAT[template]
+        var text = format ? fgOr(format(fgGet(path)), el.getAttribute('data-fg-fallback')) : ''
+        if (el.textContent !== text) el.textContent = text
+      })
+    }
     function updateConditions() {
       fgCalcAll()
+      fgPaintAnswers()
       FG_CONDITIONS.forEach(function (c) {
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
         if (el) el.hidden = !c.test()
@@ -9248,7 +9399,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
       </div>
       <div class="col-span-12 md:col-span-12">
         <div class="text-sm text-gray-600 dark:text-gray-300 space-y-2">
-          <p>Fields marked * are <strong>required</strong>. See the <a class="font-medium text-indigo-600 underline underline-offset-2 dark:text-indigo-400" href="https://example.com/docs">docs</a>:</p>
+          <p>Hi <span data-fg-answer="full_name" data-fg-fallback="there">there</span>! Fields marked * are <strong>required</strong>. See the <a class="font-medium text-indigo-600 underline underline-offset-2 dark:text-indigo-400" href="https://example.com/docs">docs</a>:</p>
           <ul class="list-disc ps-5">
             <li><em>one</em> answer per row in Rating</li>
             <li>several in Usage</li>
@@ -10592,8 +10743,87 @@ exports[`html target > snapshot (tailwind) 1`] = `
     function fgCalcAll() {
       fgSetCalc('seat_cost', 2, ((fgNum(fgGet('seats')) * 25) * ((fgNum(fgGet('seats')) >= 10 ? 1 : 0) !== 0 ? 0.8 : 1)))
     }
+    // Answers inside text: a value as text ('' when empty).
+    function fgAnswer(v, sep) {
+      if (v === null || v === undefined || v === '') return ''
+      if (Array.isArray(v)) return v.map((x) => (x && typeof x === 'object' && 'name' in x ? String(x.name) : String(x))).join(sep)
+      if (typeof v === 'object') {
+        const r = v
+        const from = r.from === null || r.from === undefined ? '' : String(r.from)
+        const to = r.to === null || r.to === undefined ? '' : String(r.to)
+        return from !== '' && to !== '' ? from + ' – ' + to : ''
+      }
+      return String(v)
+    }
+    function fgPick(v, labels, sep) {
+      if (v === null || v === undefined || v === '') return ''
+      return (Array.isArray(v) ? v : [v]).map((x) => labels[String(x)] ?? String(x)).join(sep)
+    }
+    function fgYesNo(v, yes, no) {
+      return v === true ? yes : v === false ? no : ''
+    }
+    function fgOr(text, fallback) {
+      return text === '' ? fallback : text
+    }
+    // Answer formatting by template path ("people.pname").
+    var FG_ANSWER_FORMAT = {
+      "full_name": function (v) { return fgAnswer(v, ", ") },
+      "email": function (v) { return fgAnswer(v, ", ") },
+      "website": function (v) { return fgAnswer(v, ", ") },
+      "seats": function (v) { return fgAnswer(v, ", ") },
+      "seat_cost": function (v) { return fgFmt(v, 2) },
+      "satisfaction": function (v) { return fgAnswer(v, ", ") },
+      "city": function (v) { return fgAnswer(v, ", ") },
+      "zip": function (v) { return fgAnswer(v, ", ") },
+      "account.username": function (v) { return fgAnswer(v, ", ") },
+      "account.password": function (v) { return fgAnswer(v, ", ") },
+      "account.bio": function (v) { return fgAnswer(v, ", ") },
+      "account.birthday": function (v) { return fgAnswer(v, ", ") },
+      "account.avatar": function (v) { return fgAnswer(v, ", ") },
+      "plan": function (v) { return fgPick(v, {"free":"Free","pro":"Pro"}, ", ") },
+      "interests": function (v) { return fgPick(v, {"news":"News","product":"Product updates"}, ", ") },
+      "channels": function (v) { return fgPick(v, {"email":"Email","sms":"SMS","push":"Push"}, ", ") },
+      "topics": function (v) { return fgAnswer(v, ", ") },
+      "billing": function (v) { return fgPick(v, {"monthly":"Monthly","yearly":"Yearly"}, ", ") },
+      "extras": function (v) { return fgPick(v, {"support":"Priority support","backup":"Daily backups"}, ", ") },
+      "notify": function (v) { return fgYesNo(v, "Yes", "No") },
+      "appointment": function (v) { return fgAnswer(v, ", ") },
+      "brand_color": function (v) { return fgAnswer(v, ", ") },
+      "volume": function (v) { return fgAnswer(v, ", ") },
+      "budget": function (v) { return fgAnswer(v, ", ") },
+      "stay": function (v) { return fgAnswer(v, ", ") },
+      "days": function (v) { return fgAnswer(v, ", ") },
+      "rating": function (v) { return '' },
+      "usage": function (v) { return '' },
+      "source": function (v) { return fgAnswer(v, ", ") },
+      "references.name": function (v) { return fgAnswer(v, ", ") },
+      "references.may_contact": function (v) { return fgYesNo(v, "Yes", "No") },
+      "references.email": function (v) { return fgAnswer(v, ", ") },
+      "references.phone": function (v) { return fgAnswer(v, ", ") },
+      "attachments": function (v) { return fgAnswer(v, ", ") },
+      "attachments_note": function (v) { return fgAnswer(v, ", ") },
+      "contact_method": function (v) { return fgPick(v, {"email":"Email","phone":"Phone","other":"Other"}, ", ") },
+      "contact_phone": function (v) { return fgAnswer(v, ", ") },
+      "contact_other": function (v) { return fgAnswer(v, ", ") },
+      "twitter": function (v) { return fgAnswer(v, ", ") },
+      "github": function (v) { return fgAnswer(v, ", ") },
+      "shipping_city": function (v) { return fgAnswer(v, ", ") },
+      "order_notes": function (v) { return fgAnswer(v, ", ") },
+      "newsletter": function (v) { return fgYesNo(v, "Yes", "No") },
+      "terms": function (v) { return fgYesNo(v, "Yes", "No") },
+    }
+    function fgPaintAnswers() {
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fg-answer]'), function (el) {
+        var path = el.getAttribute('data-fg-answer')
+        var template = path.split('.').filter(function (s) { return !/^\\d+$/.test(s) }).join('.')
+        var format = FG_ANSWER_FORMAT[template]
+        var text = format ? fgOr(format(fgGet(path)), el.getAttribute('data-fg-fallback')) : ''
+        if (el.textContent !== text) el.textContent = text
+      })
+    }
     function updateConditions() {
       fgCalcAll()
+      fgPaintAnswers()
       FG_CONDITIONS.forEach(function (c) {
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
         if (el) el.hidden = !c.test()
@@ -11538,7 +11768,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
       </div>
       <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-paragraph fg-rich-text">
-          <p>Fields marked * are <strong>required</strong>. See the <a class="fg-link" href="https://example.com/docs">docs</a>:</p>
+          <p>Hi <span data-fg-answer="full_name" data-fg-fallback="there">there</span>! Fields marked * are <strong>required</strong>. See the <a class="fg-link" href="https://example.com/docs">docs</a>:</p>
           <ul>
             <li><em>one</em> answer per row in Rating</li>
             <li>several in Usage</li>
@@ -12882,8 +13112,87 @@ exports[`html target > snapshot (vanilla) 1`] = `
     function fgCalcAll() {
       fgSetCalc('seat_cost', 2, ((fgNum(fgGet('seats')) * 25) * ((fgNum(fgGet('seats')) >= 10 ? 1 : 0) !== 0 ? 0.8 : 1)))
     }
+    // Answers inside text: a value as text ('' when empty).
+    function fgAnswer(v, sep) {
+      if (v === null || v === undefined || v === '') return ''
+      if (Array.isArray(v)) return v.map((x) => (x && typeof x === 'object' && 'name' in x ? String(x.name) : String(x))).join(sep)
+      if (typeof v === 'object') {
+        const r = v
+        const from = r.from === null || r.from === undefined ? '' : String(r.from)
+        const to = r.to === null || r.to === undefined ? '' : String(r.to)
+        return from !== '' && to !== '' ? from + ' – ' + to : ''
+      }
+      return String(v)
+    }
+    function fgPick(v, labels, sep) {
+      if (v === null || v === undefined || v === '') return ''
+      return (Array.isArray(v) ? v : [v]).map((x) => labels[String(x)] ?? String(x)).join(sep)
+    }
+    function fgYesNo(v, yes, no) {
+      return v === true ? yes : v === false ? no : ''
+    }
+    function fgOr(text, fallback) {
+      return text === '' ? fallback : text
+    }
+    // Answer formatting by template path ("people.pname").
+    var FG_ANSWER_FORMAT = {
+      "full_name": function (v) { return fgAnswer(v, ", ") },
+      "email": function (v) { return fgAnswer(v, ", ") },
+      "website": function (v) { return fgAnswer(v, ", ") },
+      "seats": function (v) { return fgAnswer(v, ", ") },
+      "seat_cost": function (v) { return fgFmt(v, 2) },
+      "satisfaction": function (v) { return fgAnswer(v, ", ") },
+      "city": function (v) { return fgAnswer(v, ", ") },
+      "zip": function (v) { return fgAnswer(v, ", ") },
+      "account.username": function (v) { return fgAnswer(v, ", ") },
+      "account.password": function (v) { return fgAnswer(v, ", ") },
+      "account.bio": function (v) { return fgAnswer(v, ", ") },
+      "account.birthday": function (v) { return fgAnswer(v, ", ") },
+      "account.avatar": function (v) { return fgAnswer(v, ", ") },
+      "plan": function (v) { return fgPick(v, {"free":"Free","pro":"Pro"}, ", ") },
+      "interests": function (v) { return fgPick(v, {"news":"News","product":"Product updates"}, ", ") },
+      "channels": function (v) { return fgPick(v, {"email":"Email","sms":"SMS","push":"Push"}, ", ") },
+      "topics": function (v) { return fgAnswer(v, ", ") },
+      "billing": function (v) { return fgPick(v, {"monthly":"Monthly","yearly":"Yearly"}, ", ") },
+      "extras": function (v) { return fgPick(v, {"support":"Priority support","backup":"Daily backups"}, ", ") },
+      "notify": function (v) { return fgYesNo(v, "Yes", "No") },
+      "appointment": function (v) { return fgAnswer(v, ", ") },
+      "brand_color": function (v) { return fgAnswer(v, ", ") },
+      "volume": function (v) { return fgAnswer(v, ", ") },
+      "budget": function (v) { return fgAnswer(v, ", ") },
+      "stay": function (v) { return fgAnswer(v, ", ") },
+      "days": function (v) { return fgAnswer(v, ", ") },
+      "rating": function (v) { return '' },
+      "usage": function (v) { return '' },
+      "source": function (v) { return fgAnswer(v, ", ") },
+      "references.name": function (v) { return fgAnswer(v, ", ") },
+      "references.may_contact": function (v) { return fgYesNo(v, "Yes", "No") },
+      "references.email": function (v) { return fgAnswer(v, ", ") },
+      "references.phone": function (v) { return fgAnswer(v, ", ") },
+      "attachments": function (v) { return fgAnswer(v, ", ") },
+      "attachments_note": function (v) { return fgAnswer(v, ", ") },
+      "contact_method": function (v) { return fgPick(v, {"email":"Email","phone":"Phone","other":"Other"}, ", ") },
+      "contact_phone": function (v) { return fgAnswer(v, ", ") },
+      "contact_other": function (v) { return fgAnswer(v, ", ") },
+      "twitter": function (v) { return fgAnswer(v, ", ") },
+      "github": function (v) { return fgAnswer(v, ", ") },
+      "shipping_city": function (v) { return fgAnswer(v, ", ") },
+      "order_notes": function (v) { return fgAnswer(v, ", ") },
+      "newsletter": function (v) { return fgYesNo(v, "Yes", "No") },
+      "terms": function (v) { return fgYesNo(v, "Yes", "No") },
+    }
+    function fgPaintAnswers() {
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fg-answer]'), function (el) {
+        var path = el.getAttribute('data-fg-answer')
+        var template = path.split('.').filter(function (s) { return !/^\\d+$/.test(s) }).join('.')
+        var format = FG_ANSWER_FORMAT[template]
+        var text = format ? fgOr(format(fgGet(path)), el.getAttribute('data-fg-fallback')) : ''
+        if (el.textContent !== text) el.textContent = text
+      })
+    }
     function updateConditions() {
       fgCalcAll()
+      fgPaintAnswers()
       FG_CONDITIONS.forEach(function (c) {
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
         if (el) el.hidden = !c.test()
@@ -13670,6 +13979,21 @@ function fgCalc(f: FormData): FormData {
 function fgCalcPaths(_f: FormData): string[] {
   return ['seat_cost']
 }
+// Answers inside text: a value as text ('' when empty).
+function fgAnswer(v: unknown, sep: string): string {
+  if (v === null || v === undefined || v === '') return ''
+  if (Array.isArray(v)) return v.map((x) => (x && typeof x === 'object' && 'name' in x ? String(x.name) : String(x))).join(sep)
+  if (typeof v === 'object') {
+    const r = v as { from?: unknown; to?: unknown }
+    const from = r.from === null || r.from === undefined ? '' : String(r.from)
+    const to = r.to === null || r.to === undefined ? '' : String(r.to)
+    return from !== '' && to !== '' ? from + ' – ' + to : ''
+  }
+  return String(v)
+}
+function fgOr(text: string, fallback: string): string {
+  return text === '' ? fallback : text
+}
 function fgAccepts(file: File, accept: string): boolean {
   if (accept.trim() === '') return true
   const name = file.name.toLowerCase()
@@ -14438,7 +14762,7 @@ export default function KitchenSinkForm({
         </div>
         <div className="col-12 col-md-12">
           <div className="text-secondary">
-            <p className="mb-2">Fields marked * are <strong>required</strong>. See the <a className="link-primary" href="https://example.com/docs">docs</a>:</p>
+            <p className="mb-2">Hi {fgOr(fgAnswer(form.full_name, ", "), "there")}! Fields marked * are <strong>required</strong>. See the <a className="link-primary" href="https://example.com/docs">docs</a>:</p>
             <ul className="mb-2">
               <li><em>one</em> answer per row in Rating</li>
               <li>several in Usage</li>
@@ -15559,6 +15883,21 @@ function fgCalc(f: FormData): FormData {
 function fgCalcPaths(_f: FormData): string[] {
   return ['seat_cost']
 }
+// Answers inside text: a value as text ('' when empty).
+function fgAnswer(v: unknown, sep: string): string {
+  if (v === null || v === undefined || v === '') return ''
+  if (Array.isArray(v)) return v.map((x) => (x && typeof x === 'object' && 'name' in x ? String(x.name) : String(x))).join(sep)
+  if (typeof v === 'object') {
+    const r = v as { from?: unknown; to?: unknown }
+    const from = r.from === null || r.from === undefined ? '' : String(r.from)
+    const to = r.to === null || r.to === undefined ? '' : String(r.to)
+    return from !== '' && to !== '' ? from + ' – ' + to : ''
+  }
+  return String(v)
+}
+function fgOr(text: string, fallback: string): string {
+  return text === '' ? fallback : text
+}
 function fgAccepts(file: File, accept: string): boolean {
   if (accept.trim() === '') return true
   const name = file.name.toLowerCase()
@@ -16327,7 +16666,7 @@ export default function KitchenSinkForm({
         </div>
         <div className="col-span-12 md:col-span-12">
           <div className="text-sm text-gray-600 dark:text-gray-300 space-y-2">
-            <p>Fields marked * are <strong>required</strong>. See the <a className="font-medium text-indigo-600 underline underline-offset-2 dark:text-indigo-400" href="https://example.com/docs">docs</a>:</p>
+            <p>Hi {fgOr(fgAnswer(form.full_name, ", "), "there")}! Fields marked * are <strong>required</strong>. See the <a className="font-medium text-indigo-600 underline underline-offset-2 dark:text-indigo-400" href="https://example.com/docs">docs</a>:</p>
             <ul className="list-disc ps-5">
               <li><em>one</em> answer per row in Rating</li>
               <li>several in Usage</li>
@@ -17456,6 +17795,21 @@ function fgCalc(f: FormData): FormData {
 function fgCalcPaths(_f: FormData): string[] {
   return ['seat_cost']
 }
+// Answers inside text: a value as text ('' when empty).
+function fgAnswer(v: unknown, sep: string): string {
+  if (v === null || v === undefined || v === '') return ''
+  if (Array.isArray(v)) return v.map((x) => (x && typeof x === 'object' && 'name' in x ? String(x.name) : String(x))).join(sep)
+  if (typeof v === 'object') {
+    const r = v as { from?: unknown; to?: unknown }
+    const from = r.from === null || r.from === undefined ? '' : String(r.from)
+    const to = r.to === null || r.to === undefined ? '' : String(r.to)
+    return from !== '' && to !== '' ? from + ' – ' + to : ''
+  }
+  return String(v)
+}
+function fgOr(text: string, fallback: string): string {
+  return text === '' ? fallback : text
+}
 function fgAccepts(file: File, accept: string): boolean {
   if (accept.trim() === '') return true
   const name = file.name.toLowerCase()
@@ -18224,7 +18578,7 @@ export default function KitchenSinkForm({
         </div>
         <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-paragraph fg-rich-text">
-            <p>Fields marked * are <strong>required</strong>. See the <a className="fg-link" href="https://example.com/docs">docs</a>:</p>
+            <p>Hi {fgOr(fgAnswer(form.full_name, ", "), "there")}! Fields marked * are <strong>required</strong>. See the <a className="fg-link" href="https://example.com/docs">docs</a>:</p>
             <ul>
               <li><em>one</em> answer per row in Rating</li>
               <li>several in Usage</li>
@@ -19482,6 +19836,21 @@ function fgCalc(): void {
 }
 fgCalc()
 watch(form, fgCalc, { deep: true, flush: 'sync' })
+// Answers inside text: a value as text ('' when empty).
+function fgAnswer(v: unknown, sep: string): string {
+  if (v === null || v === undefined || v === '') return ''
+  if (Array.isArray(v)) return v.map((x) => (x && typeof x === 'object' && 'name' in x ? String(x.name) : String(x))).join(sep)
+  if (typeof v === 'object') {
+    const r = v as { from?: unknown; to?: unknown }
+    const from = r.from === null || r.from === undefined ? '' : String(r.from)
+    const to = r.to === null || r.to === undefined ? '' : String(r.to)
+    return from !== '' && to !== '' ? from + ' – ' + to : ''
+  }
+  return String(v)
+}
+function fgOr(text: string, fallback: string): string {
+  return text === '' ? fallback : text
+}
 function fgTpl(path: string): string {
   return path.replace(/\\.\\d+(?=\\.|$)/g, '')
 }
@@ -20127,8 +20496,8 @@ async function onSubmit(): Promise<void> {
         <p class="text-secondary">Every implemented element appears in this form.</p>
       </div>
       <div class="col-12 col-md-12">
-        <div class="text-secondary" v-pre>
-          <p class="mb-2">Fields marked * are <strong>required</strong>. See the <a class="link-primary" href="https://example.com/docs">docs</a>:</p>
+        <div class="text-secondary">
+          <p class="mb-2">Hi {{ fgOr(fgAnswer(form.full_name, ", "), 'there') }}! Fields marked * are <strong>required</strong>. See the <a class="link-primary" href="https://example.com/docs">docs</a>:</p>
           <ul class="mb-2">
             <li><em>one</em> answer per row in Rating</li>
             <li>several in Usage</li>
@@ -21376,6 +21745,21 @@ function fgCalc(): void {
 }
 fgCalc()
 watch(form, fgCalc, { deep: true, flush: 'sync' })
+// Answers inside text: a value as text ('' when empty).
+function fgAnswer(v: unknown, sep: string): string {
+  if (v === null || v === undefined || v === '') return ''
+  if (Array.isArray(v)) return v.map((x) => (x && typeof x === 'object' && 'name' in x ? String(x.name) : String(x))).join(sep)
+  if (typeof v === 'object') {
+    const r = v as { from?: unknown; to?: unknown }
+    const from = r.from === null || r.from === undefined ? '' : String(r.from)
+    const to = r.to === null || r.to === undefined ? '' : String(r.to)
+    return from !== '' && to !== '' ? from + ' – ' + to : ''
+  }
+  return String(v)
+}
+function fgOr(text: string, fallback: string): string {
+  return text === '' ? fallback : text
+}
 function fgTpl(path: string): string {
   return path.replace(/\\.\\d+(?=\\.|$)/g, '')
 }
@@ -22021,8 +22405,8 @@ async function onSubmit(): Promise<void> {
         <p class="text-sm text-gray-600 dark:text-gray-300">Every implemented element appears in this form.</p>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <div class="text-sm text-gray-600 dark:text-gray-300 space-y-2" v-pre>
-          <p>Fields marked * are <strong>required</strong>. See the <a class="font-medium text-indigo-600 underline underline-offset-2 dark:text-indigo-400" href="https://example.com/docs">docs</a>:</p>
+        <div class="text-sm text-gray-600 dark:text-gray-300 space-y-2">
+          <p>Hi {{ fgOr(fgAnswer(form.full_name, ", "), 'there') }}! Fields marked * are <strong>required</strong>. See the <a class="font-medium text-indigo-600 underline underline-offset-2 dark:text-indigo-400" href="https://example.com/docs">docs</a>:</p>
           <ul class="list-disc ps-5">
             <li><em>one</em> answer per row in Rating</li>
             <li>several in Usage</li>
@@ -23272,6 +23656,21 @@ function fgCalc(): void {
 }
 fgCalc()
 watch(form, fgCalc, { deep: true, flush: 'sync' })
+// Answers inside text: a value as text ('' when empty).
+function fgAnswer(v: unknown, sep: string): string {
+  if (v === null || v === undefined || v === '') return ''
+  if (Array.isArray(v)) return v.map((x) => (x && typeof x === 'object' && 'name' in x ? String(x.name) : String(x))).join(sep)
+  if (typeof v === 'object') {
+    const r = v as { from?: unknown; to?: unknown }
+    const from = r.from === null || r.from === undefined ? '' : String(r.from)
+    const to = r.to === null || r.to === undefined ? '' : String(r.to)
+    return from !== '' && to !== '' ? from + ' – ' + to : ''
+  }
+  return String(v)
+}
+function fgOr(text: string, fallback: string): string {
+  return text === '' ? fallback : text
+}
 function fgTpl(path: string): string {
   return path.replace(/\\.\\d+(?=\\.|$)/g, '')
 }
@@ -23917,8 +24316,8 @@ async function onSubmit(): Promise<void> {
         <p class="fg-paragraph">Every implemented element appears in this form.</p>
       </div>
       <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
-        <div class="fg-paragraph fg-rich-text" v-pre>
-          <p>Fields marked * are <strong>required</strong>. See the <a class="fg-link" href="https://example.com/docs">docs</a>:</p>
+        <div class="fg-paragraph fg-rich-text">
+          <p>Hi {{ fgOr(fgAnswer(form.full_name, ", "), 'there') }}! Fields marked * are <strong>required</strong>. See the <a class="fg-link" href="https://example.com/docs">docs</a>:</p>
           <ul>
             <li><em>one</em> answer per row in Rating</li>
             <li>several in Usage</li>

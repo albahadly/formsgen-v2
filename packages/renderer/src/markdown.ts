@@ -21,6 +21,7 @@ export type MdBlock = { t: 'p'; c: MdInline[] } | { t: 'ul' | 'ol'; items: MdInl
 export const isMarkdownParagraph = (node: ElementNode): boolean =>
   node.type === 'paragraph' && node.props['format'] === 'markdown'
 
+const ANSWER_REF = /\{\s*[a-zA-Z]\w*(?:\.[a-zA-Z]\w*)*\s*(?:\|[^{}]*)?\}/y
 const BULLET = /^\s*[-*]\s+/
 const NUMBERED = /^\s*\d+[.)]\s+/
 
@@ -76,6 +77,16 @@ export function parseInline(text: string): MdInline[] {
       if (end > i + 2) {
         push({ t: 'strong', c: parseInline(text.slice(i + 2, end)) })
         i = end + 2
+        continue
+      }
+    }
+    // An answer reference ({first_name}) is plain text, whatever it holds.
+    if (text[i] === '{') {
+      ANSWER_REF.lastIndex = i
+      const ref = ANSWER_REF.exec(text)
+      if (ref) {
+        plain += ref[0]
+        i += ref[0].length
         continue
       }
     }

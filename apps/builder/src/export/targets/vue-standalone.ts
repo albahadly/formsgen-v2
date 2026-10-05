@@ -9,6 +9,7 @@ import { postsUploads, uploadFields, uploadStatusMarkup, uploadTextHelper, vueUp
 import { ADD_DATE_TS, DUAL_RANGE_HELPERS_TS, MATRIX_TOGGLE_TS, exportStylesheet, hasMultiMatrix, hasRangeSlider, phoneCountryFields, phoneDefaults, phoneHelpers } from '../composite'
 import { compileConditions } from '../compile'
 import { calcSteps, vueCalcBlock } from '../calc'
+import { answerHelpers, usesAnswers } from '../answers'
 import {
   collectExportFields,
   collectExportRepeaters,
@@ -530,7 +531,7 @@ function fgAnnounce(message: string): void {
 }
 ${errorsTextFunction(messages, true)}
 
-${RUNTIME_HELPERS_TS}${hasMultiMatrix(schema) ? `\n${MATRIX_TOGGLE_TS}` : ''}${steps.length ? `\n${vueCalcBlock(steps)}` : ''}
+${RUNTIME_HELPERS_TS}${hasMultiMatrix(schema) ? `\n${MATRIX_TOGGLE_TS}` : ''}${steps.length ? `\n${vueCalcBlock(steps)}` : ''}${usesAnswers(schema.tree) ? `\n${answerHelpers(true)}` : ''}
 ${pathHelpers}${hasUploads ? `${FILE_HELPERS_TS}\n${vueUploadRuntime(typedFields, messages)}\n` : ''}
 ${visibilityFunctions(fields, accessor)}
 

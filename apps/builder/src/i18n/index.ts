@@ -568,6 +568,7 @@ const arText: Record<string, string> = {
   'Let people reorder items': 'السماح بإعادة ترتيب العناصر',
   'Several answers per row': 'عدة إجابات لكل صف',
   'Decimal places': 'المنازل العشرية',
+  'Use {field} to show an answer, e.g. Hello, {name|there}!': 'استخدم {field} لعرض إجابة، مثل: مرحبًا، {name|صديقي}!',
   'Scripts, styles, frames, form controls and event attributes are removed; links and images need safe URLs.':
     'تُزال السكربتات والأنماط والإطارات وعناصر النماذج وسمات الأحداث؛ وتحتاج الروابط والصور إلى عناوين آمنة.',
   'Simple formatting: **bold**, *italics*, [link](https://…), - lists': 'تنسيق بسيط: **غامق**، *مائل*، [رابط](https://…)، - قوائم',

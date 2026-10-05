@@ -24,6 +24,8 @@ export interface EmitCtx {
   locale: string
   /** The label floats inside the control (meta.floatingLabels + floatsLabel). */
   floating?: boolean
+  /** Text as markup for the language, answers ({field}) included. */
+  pipe?: (text: string) => string
 }
 
 /** Emits the element's field markup for one target language. */
@@ -85,6 +87,9 @@ export interface ElementDefinition {
 }
 
 /** Text add-ons around a control (text-likes, number). */
+/** Help under text that may show answers ({field}). */
+export const ANSWER_HINT = 'Use {field} to show an answer, e.g. Hello, {name|there}!'
+
 export const AFFIX_CONTROLS: PanelControl[] = [
   { kind: 'text', prop: 'prefix', label: 'Text before the field (e.g. $)' },
   { kind: 'text', prop: 'suffix', label: 'Text after the field (e.g. kg)' },
@@ -109,7 +114,7 @@ export function commonFieldSections(
     {
       title: 'Properties',
       controls: [
-        { kind: 'text', prop: 'label', label: 'Label' },
+        { kind: 'text', prop: 'label', label: 'Label', hint: ANSWER_HINT },
         { kind: 'text', prop: 'placeholder', label: 'Placeholder' },
         { kind: 'text', prop: 'description', label: 'Description' },
         { kind: 'text', prop: 'tooltip', label: 'Help tooltip' },

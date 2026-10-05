@@ -2,12 +2,19 @@
 // A field's <label>: text, required mark, extra content (slot), and the
 // help tooltip beside it (outside the label, so it stays out of the
 // field's accessible name).
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
+import { FORM_CONTEXT, ITEM_SCOPE } from '../../context'
 import type { ElementNode } from '../../schema'
 import FgTip from './FgTip.vue'
 
 const props = defineProps<{ node: ElementNode; forId: string }>()
-const label = computed(() => String(props.node.props['label'] ?? ''))
+const ctx = inject(FORM_CONTEXT, null)
+const scope = inject(ITEM_SCOPE, null)
+// Answers inside text ({field}) are inserted by the form.
+const label = computed(() => {
+  const text = String(props.node.props['label'] ?? '')
+  return ctx?.pipe ? ctx.pipe(text, scope) : text
+})
 const required = computed(() => props.node.validation?.some((r) => r.rule === 'required') ?? false)
 const labelClass = computed(() => (props.node.style?.hideLabel ? 'fg-sr-only' : 'fg-label'))
 const tooltip = computed(() => {

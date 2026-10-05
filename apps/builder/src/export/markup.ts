@@ -3,6 +3,8 @@
 // via the CSS adapter and delegates leaf fields to the registry emitters.
 
 import {
+  fieldsByPath,
+  listSeparator,
   SECTION_CONTAINERS,
   fill,
   isRepeater,
@@ -20,6 +22,7 @@ import {
 } from '@formsgen/renderer'
 import { getElement } from '@/registry'
 import type { EmitterLang } from '@/registry/types'
+import { pipeMarkup } from './answers'
 import { compileConditions } from './compile'
 import type { CssFrameworkAdapter } from './css'
 import { esc } from '@/registry/emitters/shared'
@@ -30,6 +33,8 @@ export interface MarkupOptions {
   css: CssFrameworkAdapter
   /** Expression reading a field value (for condition expressions). */
   accessor: (path: string) => string
+  /** C# value expression for a template path (Blazor: answers inside text). */
+  csAccessor?: ((path: string) => string) | undefined
   /**
    * Wraps a conditional block. vue: returns a v-if attribute string; html:
    * registers the expression and returns a wrapper id (see targets).
@@ -192,6 +197,9 @@ function indentBlock(text: string, depth: number): string {
 export function renderTree(schema: FormSchema, rootOptions: MarkupOptions): string {
   const { css } = rootOptions
   const messages = resolveMessages(schema.meta.locale)
+  // Answers inside text ({field}): the fields by template path.
+  const answerFields = fieldsByPath(schema.tree)
+  const separator = listSeparator(schema.meta.locale)
   const classAttr = rootOptions.classAttr ?? 'class'
   const comment = rootOptions.comment ?? ((text: string) => `<!-- ${text} -->`)
 
@@ -347,6 +355,16 @@ export function renderTree(schema: FormSchema, rootOptions: MarkupOptions): stri
           key,
           id: `fg_${key}`,
           required: isRequired(node),
+          pipe: (text) =>
+            pipeMarkup(text, {
+              lang: options.lang,
+              fields: answerFields,
+              parent: parentPath,
+              accessor: options.accessor,
+              csAccessor: options.csAccessor,
+              messages,
+              separator,
+            }),
           messages,
           locale: schema.meta.locale,
         })

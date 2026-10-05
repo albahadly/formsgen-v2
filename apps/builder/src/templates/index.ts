@@ -186,6 +186,18 @@ function registration(lang: TemplateLocale): FormSchema {
           props: { label: L(tx('Confirm', 'التأكيد')) },
           children: [
             {
+              id: 'tpl-reg-hello',
+              type: 'paragraph',
+              props: {
+                text: L(
+                  tx(
+                    'Almost done, {full_name|friend}! We will send a confirmation to {email|your email}.',
+                    'أوشكت على الانتهاء يا {full_name|صديقي}! سنرسل تأكيدًا إلى {email|بريدك الإلكتروني}.',
+                  ),
+                ),
+              },
+            },
+            {
               id: 'tpl-reg-newsletter',
               type: 'toggle',
               name: 'newsletter',

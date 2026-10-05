@@ -43,7 +43,8 @@ describe('formatted paragraphs in every code target', () => {
       expect(code, target).not.toContain('href="javascript')
       expect(code, target).toContain('[bad](javascript:alert(1))')
     }
-    expect(out('vue-standalone', evil)).toContain('<div class="fg-paragraph fg-rich-text" v-pre>')
+    // Vue: "{" as an entity, so {{ }} stays text
+    expect(out('vue-standalone', evil)).toContain('&#123;&#123; secret }}')
     expect(out('react', evil)).toContain("{'{'}x{'}'}")
     expect(out('blazor', evil)).toContain('&#64;DateTime.Now')
   })

@@ -219,9 +219,13 @@ export function compileConditions(
 export function pruneUnusedHelpers(code: string): string {
   let out = code
   for (;;) {
-    const unused = [...out.matchAll(/^function (fg\w+)\(/gm)].find(
-      (m) => out.split(new RegExp(`\\b${m[1]}\\b`)).length - 1 === 1,
-    )
+    // Unused: no reference outside its own body (self-recursion doesn't count).
+    const unused = [...out.matchAll(/^function (fg\w+)\(/gm)].find((m) => {
+      const end = out.indexOf('\n}\n', m.index)
+      if (end === -1) return false
+      const outside = out.slice(0, m.index) + out.slice(end + 3)
+      return !new RegExp(`\\b${m[1]}\\b`).test(outside)
+    })
     if (!unused || unused.index === undefined) return out
     const end = out.indexOf('\n}\n', unused.index)
     if (end === -1) return out

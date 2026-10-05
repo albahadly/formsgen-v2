@@ -45,9 +45,15 @@ function withTip(label: string, node: ElementNode, ctx: EmitCtx, jsx: boolean): 
  * with aria-labelledby, so a tooltip stays out of the group's name), the
  * required mark and the tooltip.
  */
+/** A text prop as markup: answers ({field}) included when the target supports them. */
+export function textMarkup(node: ElementNode, ctx: EmitCtx, prop: string): string {
+  const text = String(node.props[prop] ?? '')
+  return ctx.pipe ? ctx.pipe(text) : esc(text)
+}
+
 export function legendFor(node: ElementNode, ctx: EmitCtx, jsx = false): string {
   const c = jsx ? 'className' : 'class'
-  const text = esc(String(node.props['label'] ?? ''))
+  const text = textMarkup(node, ctx, 'label')
   const req = ctx.required ? `<span ${c}="${ctx.css.classes('required')}" aria-hidden="true">*</span>` : ''
   const tip = tipFor(node, ctx, jsx)
   return `<legend ${c}="${ctx.css.classes('label')}">${tip ? `<span id="${ctx.id}_legend">${text}</span>` : text}${req}${tip}</legend>`
@@ -92,13 +98,13 @@ export function floatWrap(node: ElementNode, ctx: EmitCtx, control: string, jsx 
     : control
   const req = ctx.required ? `<span ${c}="${ctx.css.classes('required')}" aria-hidden="true">*</span>` : ''
   const labelClass = ctx.css.classes('floatingLabel')
-  const label = `<label${labelClass ? ` ${c}="${labelClass}"` : ''} ${jsx ? 'htmlFor' : 'for'}="${ctx.id}">${esc(String(node.props['label'] ?? ''))}${req}</label>`
+  const label = `<label${labelClass ? ` ${c}="${labelClass}"` : ''} ${jsx ? 'htmlFor' : 'for'}="${ctx.id}">${textMarkup(node, ctx, 'label')}${req}</label>`
   return `<div ${c}="${ctx.css.classes('floating')}">\n    ${withPlaceholder}\n    ${label}\n  </div>`
 }
 
 export function labelFor(node: ElementNode, ctx: EmitCtx): string {
   if (ctx.floating) return ''
-  const text = esc(String(node.props['label'] ?? ''))
+  const text = textMarkup(node, ctx, 'label')
   const req = ctx.required
     ? `<span class="${ctx.css.classes('required')}" aria-hidden="true">*</span>`
     : ''
@@ -108,7 +114,7 @@ export function labelFor(node: ElementNode, ctx: EmitCtx): string {
 export function descriptionFor(node: ElementNode, ctx: EmitCtx): string {
   const d = node.props['description']
   if (typeof d !== 'string' || d === '') return ''
-  return `<p class="${ctx.css.classes('description')}">${esc(d)}</p>`
+  return `<p class="${ctx.css.classes('description')}">${textMarkup(node, ctx, 'description')}</p>`
 }
 
 export function vueError(ctx: EmitCtx): string {
@@ -153,7 +159,7 @@ export function reactFieldWrap(parts: (string | '')[], ctx: EmitCtx): string {
 
 export function reactLabelFor(node: ElementNode, ctx: EmitCtx): string {
   if (ctx.floating) return ''
-  const text = esc(String(node.props['label'] ?? ''))
+  const text = textMarkup(node, ctx, 'label')
   const req = ctx.required
     ? `<span className="${ctx.css.classes('required')}" aria-hidden="true">*</span>`
     : ''
@@ -163,7 +169,7 @@ export function reactLabelFor(node: ElementNode, ctx: EmitCtx): string {
 export function reactDescription(node: ElementNode, ctx: EmitCtx): string {
   const d = node.props['description']
   if (typeof d !== 'string' || d === '') return ''
-  return `<p className="${ctx.css.classes('description')}">${esc(d)}</p>`
+  return `<p className="${ctx.css.classes('description')}">${textMarkup(node, ctx, 'description')}</p>`
 }
 
 export function reactError(ctx: EmitCtx): string {
