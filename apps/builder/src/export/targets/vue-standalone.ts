@@ -27,11 +27,13 @@ import {
 import { repeaterLegend, vueItemMarkup } from '../repeaterMarkup'
 import {
   collectSectionHosts,
+  collectTemplateFields,
   defaultsObject,
   formDataType,
   hasResetButton,
   resolveSubmitButton,
   toJsLiteral,
+  tplHelper,
 } from '../structure'
 import { formRootClass, pinnedSchemeAttr } from '../css/themeBridge'
 import { componentName, type ExportTarget } from './types'
@@ -53,6 +55,8 @@ export const vueStandaloneTarget: ExportTarget = {
     const name = componentName(schema)
     const accessor = (path: string): string => `form.${path}`
     const fields = collectExportFields(schema)
+    // Item fields too (by template path), for the per-type helpers.
+    const typedFields = collectTemplateFields(schema)
     const hosts = collectSectionHosts(schema)
     const messages = resolveMessages(schema.meta.locale)
     const repeaters = collectExportRepeaters(schema)
@@ -104,15 +108,24 @@ export const vueStandaloneTarget: ExportTarget = {
     // fields bind to `item`, their paths/ids carry the index `i`.
     const renderRepeater = (r: RenderedRepeater): string => {
       const list = `form.${r.path}`
-      const remove = r.limits.min > 0 ? ` v-if="${list}.length > ${r.limits.min}"` : ''
+      // The actions row shows while any of its buttons can: remove above the
+      // minimum, move whenever there are two items (sortable repeaters).
+      const shownAbove = r.sortable ? Math.min(r.limits.min, 1) : r.limits.min
+      const actions = shownAbove > 0 ? ` v-if="${list}.length > ${shownAbove}"` : ''
+      const remove = r.sortable && r.limits.min > 0 ? ` v-if="${list}.length > ${r.limits.min}"` : ''
+      const moves = r.sortable
+        ? `
+        <button v-if="i > 0" type="button" class="${css.classes('repeaterMove')}" data-fg-move="up" :aria-label="fgMoveLabel('${r.path}', i, 'up')" @click="fgMoveItem('${r.path}', i, -1)">↑</button>
+        <button v-if="i < ${list}.length - 1" type="button" class="${css.classes('repeaterMove')}" data-fg-move="down" :aria-label="fgMoveLabel('${r.path}', i, 'down')" @click="fgMoveItem('${r.path}', i, 1)">↓</button>`
+        : ''
       const add = Number.isFinite(r.limits.max) ? ` v-if="${list}.length < ${r.limits.max}"` : ''
       return `<fieldset class="${css.classes('group')}" data-fg-repeater="${r.path}">${repeaterLegend(css, r, 'class')}
   <div class="${css.classes('repeaterItems')}">
     <fieldset v-for="(item, i) in ${list}" :key="fgKeyOf(item)" class="${css.classes('repeaterItem')}" data-fg-item tabindex="-1">
       <legend class="${css.classes('repeaterItemLabel')}">{{ fgItemLabel('${r.path}', i) }}</legend>
 ${indentBlock(vueItemMarkup(r.itemHtml, r.path), 3)}
-      <div${remove} class="${css.classes('repeaterItemActions')}">
-        <button type="button" class="${css.classes('repeaterRemove')}" :aria-label="fgRemoveLabel('${r.path}', i)" @click="fgRemoveItem('${r.path}', i)">${r.messages.removeItem}</button>
+      <div${actions} class="${css.classes('repeaterItemActions')}">${moves}
+        <button${remove} type="button" class="${css.classes('repeaterRemove')}" :aria-label="fgRemoveLabel('${r.path}', i)" @click="fgRemoveItem('${r.path}', i)">${r.messages.removeItem}</button>
       </div>
     </fieldset>
   </div>
@@ -184,38 +197,27 @@ ${hosts
 }`
         : ''
 
-    // Tags fields: per-field draft store + shared add/remove handlers.
-    const tagsFields = fields.filter((f) => f.node.type === 'tags')
+    // Tags fields: a draft per field path + shared add/remove handlers.
+    const tagsFields = typedFields.filter((f) => f.node.type === 'tags')
     const tagsLogic =
       tagsFields.length > 0
-        ? `const tagDrafts = reactive<Record<string, string>>({ ${tagsFields
-            .map((f) => `'${f.path}': ''`)
-            .join(', ')} })
-const tagFields: Record<string, { get: () => string[]; set: (v: string[]) => void }> = {
-${tagsFields
-  .map(
-    (f) =>
-      `  '${f.path}': { get: () => form.${f.path}, set: (v) => { form.${f.path} = v } },`,
-  )
-  .join('\n')}
-}
+        ? `const tagDrafts = reactive<Record<string, string>>({})
 function fgAddTag(path: string): void {
   const draft = (tagDrafts[path] ?? '').trim()
-  const field = tagFields[path]!
-  if (draft !== '' && !field.get().includes(draft)) field.set([...field.get(), draft])
+  const tags = fgGet(path) as string[]
+  if (draft !== '' && !tags.includes(draft)) fgSet(path, [...tags, draft])
   tagDrafts[path] = ''
   revalidate(path)
 }
 function fgRemoveTag(path: string, index: number): void {
-  const field = tagFields[path]!
-  field.set(field.get().filter((_, i) => i !== index))
+  fgSet(path, (fgGet(path) as string[]).filter((_, i) => i !== index))
   revalidate(path)
 }`
         : ''
 
     // Composite fields: slider handles, and the multiple-dates draft store.
-    const datesFields = fields.filter((f) => f.node.type === 'dates')
-    const phoneFields = phoneCountryFields(fields)
+    const datesFields = typedFields.filter((f) => f.node.type === 'dates')
+    const phoneFields = phoneCountryFields(typedFields)
     const compositeLogic = [
       hasRangeSlider(schema)
         ? `${DUAL_RANGE_HELPERS_TS}
@@ -229,38 +231,33 @@ function fgDualSet(v: FgRangeValue, side: 'from' | 'to', event: Event): void {
         : '',
       datesFields.length > 0
         ? `${ADD_DATE_TS}
-const fgDateDrafts = reactive<Record<string, string>>({ ${datesFields.map((f) => `'${f.path}': ''`).join(', ')} })
-const fgDateFields: Record<string, { get: () => string[]; set: (v: string[]) => void }> = {
-${datesFields.map((f) => `  '${f.path}': { get: () => form.${f.path}, set: (v) => { form.${f.path} = v } },`).join('\n')}
-}
+const fgDateDrafts = reactive<Record<string, string>>({})
 function fgAddDate(path: string): void {
-  const field = fgDateFields[path]!
-  field.set(fgWithDate(field.get(), fgDateDrafts[path] ?? ''))
+  fgSet(path, fgWithDate(fgGet(path) as string[], fgDateDrafts[path] ?? ''))
   fgDateDrafts[path] = ''
   touch(path)
 }
 function fgRemoveDate(path: string, index: number): void {
-  const field = fgDateFields[path]!
-  field.set(field.get().filter((_, i) => i !== index))
+  fgSet(path, (fgGet(path) as string[]).filter((_, i) => i !== index))
   touch(path)
 }`
         : '',
       phoneFields.length > 0
-        ? `${phoneHelpers(fields, schema.meta.locale, true)}
-const FG_PHONE_DEFAULTS: Record<string, string> = ${JSON.stringify(phoneDefaults(fields, schema.meta.locale, (f) => f.path))}
-const fgPhoneCountry = reactive<Record<string, string>>({ ...FG_PHONE_DEFAULTS })
-const fgPhoneFields: Record<string, { get: () => string; set: (v: string) => void }> = {
-${phoneFields.map((f) => `  '${f.path}': { get: () => form.${f.path}, set: (v) => { form.${f.path} = v } },`).join('\n')}
+        ? `${phoneHelpers(typedFields, schema.meta.locale, true)}
+// Starting country per field (template path); the chosen one per field path.
+const FG_PHONE_DEFAULTS: Record<string, string> = ${JSON.stringify(phoneDefaults(typedFields, schema.meta.locale, (f) => f.path))}
+const fgPhoneCountry = reactive<Record<string, string>>({})
+function fgPhoneCountryOf(path: string): string {
+  return fgPhoneCountry[path] ?? FG_PHONE_DEFAULTS[fgTpl(path)]!
 }
 function fgPhoneSetCountry(path: string, event: Event): void {
-  const field = fgPhoneFields[path]!
-  const typed = fgPhoneNumber(field.get(), fgPhoneCountry[path]!)
+  const typed = fgPhoneNumber(fgGet(path) as string, fgPhoneCountryOf(path))
   fgPhoneCountry[path] = (event.target as HTMLSelectElement).value
-  field.set(fgComposePhone(fgPhoneCountry[path]!, typed))
+  fgSet(path, fgComposePhone(fgPhoneCountry[path]!, typed))
   revalidate(path)
 }
 function fgPhoneInput(path: string, event: Event): void {
-  fgPhoneFields[path]!.set(fgComposePhone(fgPhoneCountry[path]!, (event.target as HTMLInputElement).value))
+  fgSet(path, fgComposePhone(fgPhoneCountryOf(path), (event.target as HTMLInputElement).value))
   revalidate(path)
 }`
         : '',
@@ -270,6 +267,12 @@ function fgPhoneInput(path: string, event: Event): void {
 
     // Repeating sections: item factories, limits, per-item validators, and
     // add/remove (focus the new item / the item that moved up; announce).
+    // Per-item UI state keyed by field path, re-keyed when items move.
+    const itemStores = [
+      tagsFields.length > 0 ? 'tagDrafts' : '',
+      datesFields.length > 0 ? 'fgDateDrafts' : '',
+      phoneFields.length > 0 ? 'fgPhoneCountry' : '',
+    ].filter(Boolean)
     const fmtMax = (max: number): string => (Number.isFinite(max) ? String(max) : 'Number.POSITIVE_INFINITY')
     const repeaterLogic =
       repeaters.length > 0
@@ -296,6 +299,7 @@ const fgItemValidators: Record<string, Record<string, (item: Record<string, unkn
             accessor,
             { ...items, read: (template, path) => `item[${JSON.stringify(template.slice(path.length + 1))}]` },
             () => 'item: Record<string, unknown>',
+            messages,
           )}
 
 function fgList(path: string): Record<string, unknown>[] {
@@ -336,26 +340,34 @@ function fgItemElements(path: string): HTMLElement[] {
   const repeater = fgRoot.value?.querySelector(\`[data-fg-repeater="\${path}"]\`)
   return Array.from(repeater?.querySelectorAll<HTMLElement>(':scope > div > [data-fg-item]') ?? [])
 }
-/** A removed item's errors/touched state go; later items' move up one. */
-function fgShiftItems(path: string, removed: number): void {
+/**
+ * Re-keys per-item state (touched, errors, drafts, chosen countries) when
+ * items move or go: \`to\` maps an old index to its new one (null = gone).
+ */
+function fgRemapItems(path: string, to: (index: number) => number | null): void {
   const pattern = new RegExp('^' + path.replace(/\\./g, '\\\\.') + '\\\\.(\\\\d+)(\\\\..*)$')
   const move = (key: string): string | null => {
     const match = pattern.exec(key)
     if (!match) return key
-    const index = Number(match[1])
-    if (index === removed) return null
-    return index > removed ? \`\${path}.\${index - 1}\${match[2]}\` : key
+    const next = to(Number(match[1]))
+    return next === null ? null : \`\${path}.\${next}\${match[2]}\`
   }
   const nextTouched = [...touched].map(move).filter((k): k is string => k !== null)
   touched.clear()
   nextTouched.forEach((k) => touched.add(k))
-  const nextErrors: Record<string, string> = {}
-  for (const [key, message] of Object.entries(errors)) {
-    const target = move(key)
-    if (target !== null) nextErrors[target] = message
+  for (const store of [errors${itemStores.map((name) => `, ${name}`).join('')}]) {
+    const next: Record<string, string> = {}
+    for (const [key, value] of Object.entries(store)) {
+      const target = move(key)
+      if (target !== null) next[target] = value
+    }
+    for (const key of Object.keys(store)) delete store[key]
+    Object.assign(store, next)
   }
-  for (const key of Object.keys(errors)) delete errors[key]
-  Object.assign(errors, nextErrors)
+}
+/** A removed item's state goes; later items' state moves up one. */
+function fgShiftItems(path: string, removed: number): void {
+  fgRemapItems(path, (i) => (i === removed ? null : i > removed ? i - 1 : i))
 }
 async function fgAddItem(path: string): Promise<void> {
   const list = fgList(path)
@@ -367,7 +379,28 @@ async function fgAddItem(path: string): Promise<void> {
   ;(control ?? item)?.focus()
   fgAnnounce(${JSON.stringify(messages.itemAdded)}.split('{label}').join(fgItemLabel(path, list.length - 1)))
 }
-async function fgRemoveItem(path: string, index: number): Promise<void> {
+${
+  repeaters.some((r) => r.node.props['sortable'] === true)
+    ? `function fgMoveLabel(path: string, index: number, direction: 'up' | 'down'): string {
+  return (direction === 'up' ? ${JSON.stringify(messages.moveItemUp)} : ${JSON.stringify(messages.moveItemDown)}).split('{label}').join(fgItemLabel(path, index))
+}
+/** Swaps an item with its neighbour; focus stays on the moved item. */
+async function fgMoveItem(path: string, index: number, delta: -1 | 1): Promise<void> {
+  const list = fgList(path)
+  const target = index + delta
+  if (target < 0 || target >= list.length) return
+  const label = fgItemLabel(path, index)
+  fgRemapItems(path, (i) => (i === index ? target : i === target ? index : i))
+  list.splice(target, 0, list.splice(index, 1)[0]!)
+  await nextTick()
+  const item = fgItemElements(path)[target]
+  const buttons = Array.from(item?.querySelectorAll<HTMLElement>('[data-fg-move]') ?? [])
+  ;(buttons.find((b) => b.dataset['fgMove'] === (delta < 0 ? 'up' : 'down')) ?? buttons[0] ?? item)?.focus()
+  fgAnnounce(${JSON.stringify(messages.itemMoved)}.split('{label}').join(label).split('{n}').join(String(target + 1)))
+}
+`
+    : ''
+}async function fgRemoveItem(path: string, index: number): Promise<void> {
   const list = fgList(path)
   if (list.length <= (fgItemLimits[path]?.min ?? 0)) return
   const label = fgItemLabel(path, index)
@@ -387,12 +420,27 @@ async function fgRemoveItem(path: string, index: number): Promise<void> {
   Object.assign(form, ${indentBlock(toJsLiteral(defaultsObject(schema)), 1).trimStart()})
   for (const key of Object.keys(errors)) delete errors[key]
   touched.clear()
-  result.value = null${tagsFields.length > 0 ? `\n  for (const key of Object.keys(tagDrafts)) tagDrafts[key] = ''` : ''}${datesFields.length > 0 ? `\n  for (const key of Object.keys(fgDateDrafts)) fgDateDrafts[key] = ''` : ''}${phoneFields.length > 0 ? '\n  Object.assign(fgPhoneCountry, FG_PHONE_DEFAULTS)' : ''}
+  result.value = null${tagsFields.length > 0 ? `\n  for (const key of Object.keys(tagDrafts)) tagDrafts[key] = ''` : ''}${datesFields.length > 0 ? `\n  for (const key of Object.keys(fgDateDrafts)) fgDateDrafts[key] = ''` : ''}${phoneFields.length > 0 ? '\n  for (const key of Object.keys(fgPhoneCountry)) delete fgPhoneCountry[key]' : ''}
   fgAnnounce(${JSON.stringify(messages.formReset)})
 }`
       : ''
 
-    const hasUploads = uploadFields(fields).length > 0
+    const hasUploads = uploadFields(typedFields).length > 0
+    // Path helpers for the per-type handlers (unused ones are pruned).
+    const pathHelpers =
+      hasUploads || tagsFields.length > 0 || datesFields.length > 0 || phoneFields.length > 0
+        ? `${tplHelper(true)}
+function fgGet(path: string): unknown {
+  return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form)
+}
+function fgSet(path: string, value: unknown): void {
+  const keys = path.split('.')
+  const last = keys.pop()!
+  const parent = keys.reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form) as Record<string, unknown>
+  parent[last] = value
+}
+`
+        : ''
     const submitUrl = schema.meta.submit?.url
     const submitBlock = submitUrl
       ? `    try {
@@ -430,7 +478,7 @@ function fgAnnounce(message: string): void {
 ${errorsTextFunction(messages, true)}
 
 ${RUNTIME_HELPERS_TS}
-${hasUploads ? `${FILE_HELPERS_TS}\n${vueUploadRuntime(fields, messages)}\n` : ''}
+${pathHelpers}${hasUploads ? `${FILE_HELPERS_TS}\n${vueUploadRuntime(typedFields, messages)}\n` : ''}
 ${visibilityFunctions(fields, accessor)}
 
 const validators: Record<string, () => string | null> = ${validatorsLiteral(fields, accessor, '', undefined, messages)}

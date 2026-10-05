@@ -49,7 +49,7 @@ describe('composite values in the shared runtime', () => {
 
   it('the date range order check runs after required', () => {
     const expr = builtinCheckExpr(stay, MESSAGES.en)!
-    const check = new Function('v', `return ${expr}`) as (v: unknown) => string | null
+    const check = new Function('v', `${RUNTIME_HELPERS}\nreturn ${expr}`) as (v: unknown) => string | null
     expect(check({ from: '2026-11-05', to: '2026-11-01' })).toBe(MESSAGES.en.dateOrder)
     expect(check({ from: '2026-11-05', to: '' })).toBeNull()
     expect(check({ from: '2026-11-05', to: '2026-11-05' })).toBeNull()
@@ -169,7 +169,7 @@ describe('matrix and phone country in every code target', () => {
     expect(razor).toContain('["AE"] = "971",')
   })
 
-  it('the selector needs countrySelect, and repeater items keep the plain input', () => {
+  it('the selector needs countrySelect, and works per repeater item', () => {
     const plain = schema([{ ...phone, props: { label: 'Phone' } }])
     for (const target of ['html', 'react', 'vue-standalone', 'blazor']) {
       expect(out(target, plain), target).not.toContain('Country code')
@@ -178,7 +178,13 @@ describe('matrix and phone country in every code target', () => {
       { id: 'rep', type: 'repeater', name: 'people', props: { label: 'People' }, children: [{ ...phone, id: 'p2' }] },
     ])
     for (const target of ['html', 'react', 'vue-standalone', 'blazor']) {
-      expect(out(target, inRepeater), target).not.toContain('Country code')
+      expect(out(target, inRepeater), target).toContain('Country code')
     }
+    // the chosen country is kept per item; the default is found by template path
+    expect(out('vue-standalone', inRepeater)).toContain(`:value="fgPhoneCountryOf(('people.' + i + '.phone'))"`)
+    expect(out('vue-standalone', inRepeater)).toContain('const FG_PHONE_DEFAULTS: Record<string, string> = {"people.phone":"AE"}')
+    expect(out('react', inRepeater)).toContain(`value={fgPhoneCountryOf(('people.' + i + '.phone'))}`)
+    expect(out('blazor', inRepeater)).toContain(`value='@fgPhoneCountry[FgItemKey(item, "PeopleIPhone", "Phone")]'`)
+    expect(out('blazor', inRepeater)).toContain('FgPhoneDefaults = new() { ["PeopleIPhone"] = "AE" }')
   })
 })

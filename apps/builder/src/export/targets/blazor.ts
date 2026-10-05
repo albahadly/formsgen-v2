@@ -20,12 +20,14 @@ import {
   csAttributes,
   csConditions,
   csFieldKind,
+  csItemBuiltinChecks,
   csRuleChecks,
   csValidateStatements,
   type CsFieldKind,
 } from '../csharp'
 import { collectExportFields, collectExportRepeaters } from '../logic'
 import {
+  ITEM_TOKEN,
   renderTree,
   stepButtonLabels,
   type RenderedRepeater,
@@ -66,8 +68,24 @@ export const blazorTarget: ExportTarget = {
     const messages = resolveMessages(schema.meta.locale)
     const accessor = (path: string): string => `Model.${pascalMember(pathKey(path))}`
     const repeaters = collectExportRepeaters(schema)
+    // Item fields too, keyed like their item markup (member "CrewIPhone"
+    // for crew[i].phone), so per-type helpers cover fields inside items.
+    const typedFields = [
+      ...fields,
+      ...repeaters.flatMap((r) =>
+        r.fields.map((f) => ({
+          node: f.node,
+          path: `${r.path}.${ITEM_TOKEN}.${f.name}`,
+          key: `${r.key}_${ITEM_TOKEN}_${f.name}`,
+          conditionChain: [],
+        })),
+      ),
+    ]
     // Repeaters with item rules (FgItemError has a case only for these).
-    const validatedRepeaters = repeaters.filter((r) => r.fields.some((f) => (f.node.validation?.length ?? 0) > 0))
+    // Item fields with checks: rules, or an upload's limits / a date range's order.
+    const itemChecked = (f: { node: ElementNode }): boolean =>
+      (f.node.validation?.length ?? 0) > 0 || FILE_TYPES.has(f.node.type) || f.node.type === 'daterange'
+    const validatedRepeaters = repeaters.filter((r) => r.fields.some(itemChecked))
     const hasRepeaters = repeaters.length > 0
     const itemClass = (r: (typeof repeaters)[number]): string => `Fg${pascalMember(r.key)}Item`
     const repeaterMember = (r: (typeof repeaters)[number]): string => pascalMember(r.key)
@@ -134,8 +152,27 @@ export const blazorTarget: ExportTarget = {
       const repeater = repeaters.find((x) => x.path === r.path)!
       const list = `Model.${repeaterMember(repeater)}`
       const fieldsArg = `fgItemFields_${repeater.key}`
-      const removeBtn = `<div class="${css.classes('repeaterItemActions')}">
-                <button type="button" class="${css.classes('repeaterRemove')}" aria-label='@FgRemoveLabel("${r.path}", i)' @onclick='() => FgRemoveItem(${list}, "${r.path}", i, ${r.limits.min}, ${fieldsArg})'>${r.messages.removeItem}</button>
+      const removeButton = `<button type="button" class="${css.classes('repeaterRemove')}" aria-label='@FgRemoveLabel("${r.path}", i)' @onclick='() => FgRemoveItem(${list}, "${r.path}", i, ${r.limits.min}, ${fieldsArg})'>${r.messages.removeItem}</button>`
+      // Sortable: move buttons (up from the 2nd item, down until the last);
+      // the row shows while any button can, remove only above the minimum.
+      const shownAbove = r.sortable ? Math.min(r.limits.min, 1) : r.limits.min
+      const removeBtn = r.sortable
+        ? `<div class="${css.classes('repeaterItemActions')}">
+                @if (i > 0)
+                {
+                    <button type="button" class="${css.classes('repeaterMove')}" data-fg-move="up" aria-label='@FgMoveLabel("${r.path}", i, true)' @ref="fgMoveUpRefs[item]" @onclick='() => FgMoveItem(${list}, "${r.path}", i, -1)'>↑</button>
+                }
+                @if (i < ${list}.Count - 1)
+                {
+                    <button type="button" class="${css.classes('repeaterMove')}" data-fg-move="down" aria-label='@FgMoveLabel("${r.path}", i, false)' @ref="fgMoveDownRefs[item]" @onclick='() => FgMoveItem(${list}, "${r.path}", i, 1)'>↓</button>
+                }
+                ${r.limits.min > 0 ? `@if (${list}.Count > ${r.limits.min})
+                {
+                    ${removeButton}
+                }` : removeButton}
+            </div>`
+        : `<div class="${css.classes('repeaterItemActions')}">
+                ${removeButton}
             </div>`
       const addBtn = `<button type="button" class="${css.classes('repeaterAdd')}" data-fg-add="${r.path}" @ref="fgAddRef_${repeater.key}" @onclick='() => FgAddItem(${list}, "${r.path}", ${Number.isFinite(r.limits.max) ? r.limits.max : 'int.MaxValue'})'>${r.addText}</button>`
       const item = blazorItemMarkup(
@@ -150,7 +187,7 @@ export const blazorTarget: ExportTarget = {
         <fieldset @key="item" class="${css.classes('repeaterItem')}" data-fg-item tabindex="-1" @ref="fgItemRefs[item]">
             <legend class="${css.classes('repeaterItemLabel')}">@FgItemLabel("${r.path}", i)</legend>
 ${indentBlock(item, 3)}
-            ${r.limits.min > 0 ? `@if (${list}.Count > ${r.limits.min})
+            ${shownAbove > 0 ? `@if (${list}.Count > ${shownAbove})
             {
                 ${removeBtn}
             }` : removeBtn}
@@ -270,6 +307,15 @@ ${r.fields
       .join('\n')
 
     // Payload builder reconstructing the nested shape, hidden excluded.
+    // One value per field type (files become multipart parts at pathExpr).
+    const payloadValue = (type: string, member: string, pathExpr: string): string =>
+      type === 'select' || type === 'radiogroup'
+        ? `string.IsNullOrEmpty(${member}) ? null : ${member}`
+        : FILE_TYPES.has(type)
+          ? `FgFilesPart(parts, ${pathExpr}, ${member})`
+          : type === 'rangeslider' || type === 'daterange'
+            ? `new Dictionary<string, object?> { ["from"] = ${member}.From, ["to"] = ${member}.To }`
+            : member
     const payloadStatements: string[] = []
     let dictCounter = 0
     const buildPayload = (nodes: ElementNode[], parentPath: string, dict: string): void => {
@@ -283,14 +329,16 @@ ${r.fields
           const repeater = repeaters.find((r) => r.path === (node.name ? joinPath(parentPath, node.name) : ''))
           if (!repeater) continue
           const list = `list${dictCounter}`
+          const index = `n${dictCounter}`
           const entry = `item${dictCounter++}`
+          const items = `Model.${repeaterMember(repeater)}`
           payloadStatements.push(`        var ${list} = new List<Dictionary<string, object?>>();`)
-          payloadStatements.push(`        foreach (var item in Model.${repeaterMember(repeater)})\n        {`)
+          payloadStatements.push(`        for (var ${index} = 0; ${index} < ${items}.Count; ${index}++)\n        {`)
+          payloadStatements.push(`            var item = ${items}[${index}];`)
           payloadStatements.push(`            var ${entry} = new Dictionary<string, object?>();`)
           for (const f of repeater.fields) {
             const member = `item.${pascalMember(f.name)}`
-            const value =
-              f.node.type === 'select' || f.node.type === 'radiogroup' ? `string.IsNullOrEmpty(${member}) ? null : ${member}` : member
+            const value = payloadValue(f.node.type, member, `$"${repeater.path}.{${index}}.${f.name}"`)
             const assign = `${entry}[${csStr(f.name)}] = ${value};`
             payloadStatements.push(
               f.node.conditions?.length
@@ -326,14 +374,7 @@ ${r.fields
           const path = joinPath(parentPath, node.name)
           const field = fields.find((f) => f.path === path)
           const member = `Model.${pascalMember(pathKey(path))}`
-          const value =
-            node.type === 'select' || node.type === 'radiogroup'
-              ? `string.IsNullOrEmpty(${member}) ? null : ${member}`
-              : FILE_TYPES.has(node.type)
-                ? `FgFilesPart(parts, ${csStr(path)}, ${member})`
-                : node.type === 'rangeslider' || node.type === 'daterange'
-                  ? `new Dictionary<string, object?> { ["from"] = ${member}.From, ["to"] = ${member}.To }`
-                  : member
+          const value = payloadValue(node.type, member, csStr(path))
           const assign = `${dict}[${csStr(node.name)}] = ${value};`
           if (field && field.conditionChain.length > 0) {
             const visible = field.conditionChain
@@ -353,7 +394,7 @@ ${r.fields
     // gating or the invalid-submit jump; FgToggle/FgAddTag only when the
     // matching field types are present.
     const hasHosts = hosts.length > 0
-    const tagsKeys = fields.filter((f) => f.node.type === 'tags').map((f) => f.key)
+    const tagsKeys = typedFields.filter((f) => f.node.type === 'tags').map((f) => pascalMember(f.key))
     const hasToggle = fields.some((f) => f.node.type === 'checkboxgroup')
 
     // The component validates fields itself (instead of DataAnnotationsValidator)
@@ -585,15 +626,23 @@ ${hosts
 
     const tagsBlock = tagsKeys.length
       ? `
-    private readonly Dictionary<string, string> fgTagDrafts = new() { ${tagsKeys
-        .map((k) => `[${csStr(k)}] = ""`)
-        .join(', ')} };
+    private readonly FgStore<string> fgTagDrafts = new(_ => "");
 
     private void FgAddTag(List<string> list, string key)
     {
-        var draft = (fgTagDrafts.TryGetValue(key, out var value) ? value : "").Trim();
-        if (draft.Length > 0 && !list.Contains(draft)) list.Add(draft);
+        var draft = fgTagDrafts[key].Trim();
+        if (draft.Length > 0 && !list.Contains(draft))
+        {
+            list.Add(draft);
+            FgChanged(key);
+        }
         fgTagDrafts[key] = "";
+    }
+
+    private void FgRemoveTag(List<string> list, int index, string key)
+    {
+        list.RemoveAt(index);
+        FgChanged(key);
     }
 `
       : ''
@@ -634,7 +683,7 @@ ${fields.map((f) => `        ${csStr(pascalMember(f.key))},`).join('\n')}
         Model = new();
         FgInitEdit();${hasRepeaters ? '\n        fgItemRefs.Clear();' : ''}
         fgDeferredFields.Clear();
-        ResultJson = null;${tagsKeys.length ? '\n        foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";' : ''}${fields.some((f) => f.node.type === 'dates') ? '\n        foreach (var key in fgDateDrafts.Keys.ToList()) fgDateDrafts[key] = "";' : ''}${phoneCountryFields(fields).length ? '\n        fgPhoneCountry = FgPhoneDefaults();' : ''}
+        ResultJson = null;${tagsKeys.length ? '\n        foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";' : ''}${typedFields.some((f) => f.node.type === 'dates') ? '\n        foreach (var key in fgDateDrafts.Keys.ToList()) fgDateDrafts[key] = "";' : ''}${phoneCountryFields(typedFields).length ? '\n        fgPhoneCountry.Clear();' : ''}
         await FgAnnounce(${csStr(messages.formReset)});
     }
 `
@@ -645,7 +694,7 @@ ${fields.map((f) => `        ${csStr(pascalMember(f.key))},`).join('\n')}
 ${repeaters
   .map(
     (r) => `    private static readonly string[] fgItemFields_${r.key} = { ${r.fields
-      .filter((f) => (f.node.validation?.length ?? 0) > 0)
+      .filter(itemChecked)
       .map((f) => csStr(pascalMember(f.name)))
       .join(', ')} };
     private ElementReference fgAddRef_${r.key};
@@ -669,6 +718,34 @@ ${repeaterVisible(r) === 'true' ? '' : `        if (!(${repeaterVisible(r)})) re
     private readonly HashSet<FieldIdentifier> fgDeferredItemFields = new();
     private readonly Dictionary<object, ElementReference> fgItemRefs = new();
     private object? fgFocusItem;
+
+    // A stable id per item object (radio group names, field keys).
+    private readonly System.Runtime.CompilerServices.ConditionalWeakTable<object, string> fgItemIds = new();
+    private int fgNextItemId;
+
+    private string FgItemId(object item) => fgItemIds.GetValue(item, _ => (++fgNextItemId).ToString());${
+      repeaters.some((r) => r.node.props['sortable'] === true)
+        ? `
+    private readonly Dictionary<object, ElementReference> fgMoveUpRefs = new();
+    private readonly Dictionary<object, ElementReference> fgMoveDownRefs = new();
+    private (object Item, bool Up)? fgFocusMove;
+
+    private static string FgMoveLabel(string path, int index, bool up) =>
+        (up ? ${csStr(messages.moveItemUp)} : ${csStr(messages.moveItemDown)}).Replace("{label}", FgItemLabel(path, index));
+
+    /** Swaps an item with its neighbour; focus stays on the moved item. */
+    private async Task FgMoveItem<T>(List<T> list, string path, int index, int delta) where T : class
+    {
+        var target = index + delta;
+        if (target < 0 || target >= list.Count) return;
+        var label = FgItemLabel(path, index);
+        (list[index], list[target]) = (list[target], list[index]);
+        // The same button when the moved item still has it, else the other one.
+        fgFocusMove = (list[target], delta < 0 ? target > 0 : target == list.Count - 1);
+        await FgAnnounce(${csStr(messages.itemMoved)}.Replace("{label}", label).Replace("{n}", (target + 1).ToString()));
+    }`
+        : ''
+    }
     private string? fgFocusAdd;
 
     private void FgFieldChanged(FieldIdentifier field)
@@ -700,15 +777,23 @@ ${validatedRepeaters
                 switch (name)
                 {
 ${r.fields
-  .filter((f) => (f.node.validation?.length ?? 0) > 0)
+  .filter(itemChecked)
   .map((f) => {
     const kind = csFieldKind(f.node.type)
     const member = `item.${pascalMember(f.name)}`
     const guard = f.node.conditions?.length
       ? `                        if (!(${csConditions(f.node.conditions, itemCsAccessor(r))})) return null;\n`
       : ''
-    const checks = csRuleChecks(f.node.validation ?? [], kind, member, itemCsAccessor(r))
-      .map(({ test, message }) => `                        if (${test}) return ${csStr(message)};`)
+    // "required" first, then the built-in checks, then the other rules.
+    const rules = f.node.validation ?? []
+    const ruleLines = (subset: typeof rules): string[] =>
+      csRuleChecks(subset, kind, member, itemCsAccessor(r)).map(({ test, message }) => `if (${test}) return ${csStr(message)};`)
+    const checks = [
+      ...ruleLines(rules.filter((rule) => rule.rule === 'required')),
+      ...csItemBuiltinChecks(f.node, member, messages),
+      ...ruleLines(rules.filter((rule) => rule.rule !== 'required')),
+    ]
+      .map((line) => `                        ${line}`)
       .join('\n')
     return `                    case ${csStr(pascalMember(f.name))}:\n                    {\n${guard}${checks}\n                        return null;\n                    }`
   })
@@ -776,7 +861,17 @@ ${repeaters.map((r) => `        ${csStr(r.path)} => ${csStr(r.itemLabel)},`).joi
     }
 
     private async Task FgFocusRepeaters()
-    {
+    {${
+      repeaters.some((r) => r.node.props['sortable'] === true)
+        ? `
+        if (fgFocusMove is { } move)
+        {
+            fgFocusMove = null;
+            if ((move.Up ? fgMoveUpRefs : fgMoveDownRefs).TryGetValue(move.Item, out var buttonRef)) await buttonRef.FocusAsync();
+            return;
+        }`
+        : ''
+    }
         if (fgFocusItem != null && fgItemRefs.TryGetValue(fgFocusItem, out var itemRef))
         {
             fgFocusItem = null;
@@ -800,13 +895,13 @@ ${repeaters.map((r) => `                ${csStr(r.path)} => fgAddRef_${r.key},`)
     // Uploads: files are read into memory when picked (Blazor can't read a
     // file input's earlier selection once another is made), so the input is
     // re-created empty after each pick, like the JS targets clear theirs.
-    const uploads = fields.filter((f) => FILE_TYPES.has(f.node.type))
+    const uploads = typedFields.filter((f) => FILE_TYPES.has(f.node.type))
     const hasUploads = uploads.length > 0
     const uploadBlock = hasUploads
       ? `
     public sealed record FgUpload(string Name, long Size, string ContentType, byte[]? Data, string? Thumb);
 
-    private readonly Dictionary<string, int> fgFileKeys = new() { ${uploads.map((f) => `[${csStr(pascalMember(f.key))}] = 0`).join(', ')} };
+    private readonly FgStore<int> fgFileKeys = new(_ => 0);
     private readonly Dictionary<string, InputFile> fgFileInputs = new();
     private string? fgFocusFile;
 
@@ -841,13 +936,13 @@ ${repeaters.map((r) => `                ${csStr(r.path)} => fgAddRef_${r.key},`)
         list.AddRange(picked);
         fgFileKeys[member]++;
         fgFocusFile = member;
-        fgEdit.NotifyFieldChanged(new FieldIdentifier(Model, member));
+        fgEdit.NotifyFieldChanged(FgField(member));
     }
 
     private void FgRemoveFile(List<FgUpload> list, FgUpload file, string member)
     {
         list.RemoveAll(f => ReferenceEquals(f, file));
-        fgEdit.NotifyFieldChanged(new FieldIdentifier(Model, member));
+        fgEdit.NotifyFieldChanged(FgField(member));
     }
 
     private static string FgFileSize(long bytes) =>
@@ -897,9 +992,9 @@ ${schema.meta.submit?.url ? `
     // date range class, and the multiple-dates draft store.
     const hasSlider = hasRangeSlider(schema)
     const hasRange = hasDateRange(schema)
-    const dateMembers = fields.filter((f) => f.node.type === 'dates').map((f) => pascalMember(f.key))
+    const dateMembers = typedFields.filter((f) => f.node.type === 'dates').map((f) => pascalMember(f.key))
     const hasGrid = hasMatrix(schema)
-    const phoneFields = phoneCountryFields(fields)
+    const phoneFields = phoneCountryFields(typedFields)
     const compositeBlock = [
       hasSlider
         ? `
@@ -987,9 +1082,50 @@ ${schema.meta.submit?.url ? `
     }
 `
         : '',
-      hasRange || dateMembers.length || hasGrid || phoneFields.length
+      hasRange || dateMembers.length || hasGrid || phoneFields.length || hasUploads || tagsKeys.length
         ? `
-    private void FgChanged(string member) => fgEdit.NotifyFieldChanged(new FieldIdentifier(Model, member));
+    // Field keys: a member name ("Stay"), or for a field inside a repeater
+    // item its template member plus the item ("CrewIStay#2"). Drafts and
+    // chosen countries are stored per key; change notices go to the field.
+    private readonly Dictionary<string, (object Item, string Name)> fgItemKeyOwners = new();
+${
+  hasRepeaters
+    ? `
+    private string FgItemKey(object item, string template, string name)
+    {
+        var key = template + "#" + FgItemId(item);
+        fgItemKeyOwners[key] = (item, name);
+        return key;
+    }
+`
+    : ''
+}
+    private FieldIdentifier FgField(string key) =>
+        fgItemKeyOwners.TryGetValue(key, out var owner) ? new FieldIdentifier(owner.Item, owner.Name) : new FieldIdentifier(Model, key);
+
+    private static string FgTemplateKey(string key) => key.Contains('#') ? key[..key.IndexOf('#')] : key;
+`
+        : '',
+      tagsKeys.length || dateMembers.length || phoneFields.length || hasUploads
+        ? `
+    /** A dictionary whose missing keys read as a fallback (UI state per field key). */
+    public sealed class FgStore<T> : Dictionary<string, T>
+    {
+        private readonly Func<string, T> fallback;
+
+        public FgStore(Func<string, T> fallback) => this.fallback = fallback;
+
+        public new T this[string key]
+        {
+            get => TryGetValue(key, out var value) ? value : fallback(key);
+            set => base[key] = value;
+        }
+    }
+`
+        : '',
+      hasRange || dateMembers.length || hasGrid || phoneFields.length || hasUploads || tagsKeys.length
+        ? `
+    private void FgChanged(string member) => fgEdit.NotifyFieldChanged(FgField(member));
 `
         : '',
       hasGrid
@@ -1005,12 +1141,13 @@ ${schema.meta.submit?.url ? `
         ? `
     private static readonly Dictionary<string, string> FgDial = new()
     {
-${Object.entries(dialCodes(fields, schema.meta.locale)).map(([code, dial]) => `        [${csStr(code)}] = ${csStr(dial)},`).join('\n')}
+${Object.entries(dialCodes(typedFields, schema.meta.locale)).map(([code, dial]) => `        [${csStr(code)}] = ${csStr(dial)},`).join('\n')}
     };
 
-    private static Dictionary<string, string> FgPhoneDefaults() => new() { ${Object.entries(phoneDefaults(fields, schema.meta.locale, (f) => pascalMember(f.key))).map(([m, c]) => `[${csStr(m)}] = ${csStr(c)}`).join(', ')} };
+    // Starting country per field (template member); the chosen one per field key.
+    private static readonly Dictionary<string, string> FgPhoneDefaults = new() { ${Object.entries(phoneDefaults(typedFields, schema.meta.locale, (f) => pascalMember(f.key))).map(([m, c]) => `[${csStr(m)}] = ${csStr(c)}`).join(', ')} };
 
-    private Dictionary<string, string> fgPhoneCountry = FgPhoneDefaults();
+    private readonly FgStore<string> fgPhoneCountry = new(key => FgPhoneDefaults[FgTemplateKey(key)]);
 
     // The number part of "+<code> <number>" for the selected country.
     private static string FgPhoneNumber(string value, string country)
@@ -1035,7 +1172,7 @@ ${Object.entries(dialCodes(fields, schema.meta.locale)).map(([code, dial]) => ` 
         : '',
       dateMembers.length
         ? `
-    private readonly Dictionary<string, string> fgDateDrafts = new() { ${dateMembers.map((m) => `[${csStr(m)}] = ""`).join(', ')} };
+    private readonly FgStore<string> fgDateDrafts = new(_ => "");
 
     private void FgAddDate(List<string> list, string member)
     {

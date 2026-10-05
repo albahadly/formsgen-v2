@@ -55,7 +55,7 @@ describe('repeater helpers', () => {
     })
   })
 
-  it('the parser requires a name and rejects containers and tags inside', () => {
+  it('the parser requires a name and rejects containers inside (any field is fine)', () => {
     const result = parseFormSchema(
       schema([
         { id: 'a', type: 'repeater', props: {}, children: [] },
@@ -77,7 +77,6 @@ describe('repeater helpers', () => {
     expect(result.errors).toEqual([
       'tree[0].name: a repeater needs a name (its items are stored under it)',
       'tree[1].children[0].type: "group" cannot be placed inside a repeater',
-      'tree[1].children[1].type: "tags" cannot be placed inside a repeater',
     ])
   })
 })
@@ -159,4 +158,59 @@ describe('<FormsGenForm> with a repeater', () => {
     expect(wrapper.get('[role=status]').text()).toBe('Person 2 removed')
     wrapper.unmount()
   })
+
+  it('sortable items move up and down; values, errors and focus follow', async () => {
+    const wrapper = mountForm([{ ...people, props: { ...people.props, sortable: true, minItems: 0, initialItems: 3 } }])
+    const names = () => wrapper.findAll('[data-fg-item]').map((item) => item.find('input[type=text]'))
+    const moves = (k: number) => wrapper.findAll('[data-fg-item]')[k]!.findAll('[data-fg-move]').map((b) => b.attributes('aria-label'))
+    // the first item can't move up, the last can't move down
+    expect(moves(0)).toEqual(['Move Person 1 down'])
+    expect(moves(1)).toEqual(['Move Person 2 up', 'Move Person 2 down'])
+    expect(moves(2)).toEqual(['Move Person 3 up'])
+    await names()[0]!.setValue('Ann')
+    await names()[1]!.setValue('Bob')
+    await names()[2]!.trigger('blur') // third person: touched, empty → error
+    await wrapper.findAll('[data-fg-item]')[1]!.get('[data-fg-move="down"]').trigger('click')
+    await flushPromises()
+    const values = () => names().map((input) => (input.element as HTMLInputElement).value)
+    expect(values()).toEqual(['Ann', '', 'Bob'])
+    const items = wrapper.findAll('[data-fg-item]')
+    expect(items[1]!.text()).toContain('This field is required') // the error moved up with its item
+    expect(items[2]!.text()).not.toContain('This field is required')
+    // Bob is now last: focus moves to his remaining (up) button
+    expect(document.activeElement).toBe(items[2]!.get('[data-fg-move="up"]').element)
+    expect(wrapper.get('[role=status]').text()).toBe('Person 2 moved to position 3')
+    await items[2]!.get('[data-fg-move="up"]').trigger('click')
+    await flushPromises()
+    expect(values()).toEqual(['Ann', 'Bob', ''])
+    expect(document.activeElement).toBe(wrapper.findAll('[data-fg-item]')[1]!.get('[data-fg-move="up"]').element)
+    wrapper.unmount()
+  })
+
+  it('items have no move buttons unless the repeater is sortable', () => {
+    const wrapper = mountForm([{ ...people, props: { ...people.props, initialItems: 2 } }])
+    expect(wrapper.find('[data-fg-move]').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('moving items keeps every item’s radio answers (group names follow the item)', async () => {
+    const rate: ElementNode = {
+      id: 'r',
+      type: 'radiogroup',
+      name: 'rate',
+      props: { label: 'Rate', items: [{ value: 'a', label: 'A' }, { value: 'b', label: 'B' }] },
+    }
+    const wrapper = mountForm([{ ...people, props: { ...people.props, sortable: true, initialItems: 2 }, children: [rate] }])
+    const radios = () => wrapper.findAll('input[type=radio]').map((r) => (r.element as HTMLInputElement).checked)
+    const inputs = wrapper.findAll('input[type=radio]')
+    await inputs[0]!.setValue(true) // item 1: A
+    await inputs[3]!.setValue(true) // item 2: B
+    expect(radios()).toEqual([true, false, false, true])
+    await wrapper.findAll('[data-fg-item]')[0]!.get('[data-fg-move="down"]').trigger('click')
+    await flushPromises()
+    expect(radios()).toEqual([false, true, true, false])
+    expect(wrapper.findAll('[data-fg-item]').map((item) => item.get('input[type=radio]').attributes('name'))).not.toContain(undefined)
+    wrapper.unmount()
+  })
 })
+

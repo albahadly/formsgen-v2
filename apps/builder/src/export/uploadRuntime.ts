@@ -1,5 +1,6 @@
 // Generated upload helpers per target: picking files (appending when the
 // field allows several), removing one, image thumbnails, readable sizes.
+// Tables are keyed by template path; item paths map back with fgTpl.
 
 import { FILE_TYPES, fileLimits, type MessageCatalog } from '@formsgen/renderer'
 import type { ExportField } from './structure'
@@ -56,7 +57,7 @@ function fgPickFiles(path: string, event: Event): void {
   const picked = Array.from(input.files ?? [])
   input.value = ''
   if (picked.length === 0) return
-  fgSetFiles(path, fgFileMultiple[path] ? [...fgFileList(path), ...picked] : picked.slice(0, 1))
+  fgSetFiles(path, fgFileMultiple[fgTpl(path)] ? [...fgFileList(path), ...picked] : picked.slice(0, 1))
   touch(path)
 }
 function fgRemoveFile(path: string, index: number): void {
@@ -88,7 +89,7 @@ export function reactUploadHandlers(fields: ExportField[]): string {
     input.value = ''
     if (picked.length === 0) return
     touched.current.add(path)
-    setField(path, FG_FILE_MULTIPLE[path] ? [...fgFileList(form, path), ...picked] : picked.slice(0, 1))
+    setField(path, FG_FILE_MULTIPLE[fgTpl(path)] ? [...fgFileList(form, path), ...picked] : picked.slice(0, 1))
   }
 
   function fgRemoveFile(path: string, index: number): void {

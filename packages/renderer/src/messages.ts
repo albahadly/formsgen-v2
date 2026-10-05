@@ -64,6 +64,12 @@ export interface MessageCatalog {
   itemAdded: string
   /** {label} — announced after an item is removed */
   itemRemoved: string
+  /** {label} — accessible name of an item's move-up button */
+  moveItemUp: string
+  /** {label} — accessible name of an item's move-down button */
+  moveItemDown: string
+  /** {label} {n} — announced after an item moved (n = its new position) */
+  itemMoved: string
   /** {name} {size} — a chosen file over the size limit (MB) */
   fileTooLarge: string
   /** {name} — a chosen file of a type the field doesn't accept */
@@ -122,6 +128,9 @@ const en: MessageCatalog = {
   removeItemLabel: 'Remove {label}',
   itemAdded: '{label} added',
   itemRemoved: '{label} removed',
+  moveItemUp: 'Move {label} up',
+  moveItemDown: 'Move {label} down',
+  itemMoved: '{label} moved to position {n}',
   fileTooLarge: '{name} is larger than {size} MB',
   fileType: '{name} is not an accepted file type',
   tooManyFiles: 'Choose at most {n} files',
@@ -172,6 +181,9 @@ const ar: MessageCatalog = {
   removeItemLabel: 'إزالة {label}',
   itemAdded: 'تمت إضافة {label}',
   itemRemoved: 'تمت إزالة {label}',
+  moveItemUp: 'نقل {label} إلى الأعلى',
+  moveItemDown: 'نقل {label} إلى الأسفل',
+  itemMoved: 'نُقل {label} إلى الموضع {n}',
   fileTooLarge: 'حجم {name} أكبر من {size} ميغابايت',
   fileType: '{name} ليس من أنواع الملفات المقبولة',
   tooManyFiles: 'اختر {n} ملفات على الأكثر',

@@ -54,16 +54,22 @@ export function itemValidatorsLiteral(
   items: ItemAccess,
   /** Parameter list; gets the compiled body (to mark unused parameters). */
   args: (repeater: ExportRepeater, body: string) => string,
+  messages: MessageCatalog = MESSAGES.en,
 ): string {
   const blocks = repeaters.map((repeater) => {
     const scoped = scopedAccessor(accessor, items, repeater.path)
     const entries = repeater.fields
-      .filter((f) => (f.node.validation?.length ?? 0) > 0)
+      .filter((f) => needsValidator(f.node))
       .map((f) => {
         const guard = f.node.conditions?.length
           ? `if (!(${compileConditions(f.node.conditions, scoped)})) return null\n      `
           : ''
-        const body = compileValidator(f.node.validation ?? [], items.read(f.templatePath, repeater.path), scoped)
+        const body = compileValidator(
+          f.node.validation ?? [],
+          items.read(f.templatePath, repeater.path),
+          scoped,
+          builtinCheckExpr(f.node, messages),
+        )
         return `    '${f.name}': function (${args(repeater, guard + body)}) {\n      ${guard}${body.split('\n  ').join('\n      ')}\n    },`
       })
     return `  '${repeater.path}': {\n${entries.join('\n')}\n  },`
@@ -107,7 +113,7 @@ export function fileCheckExpr(node: ElementNode, messages: MessageCatalog): stri
 /** Built-in check after "required": upload limits, date range order. */
 export function builtinCheckExpr(node: ElementNode, messages: MessageCatalog): string | undefined {
   if (node.type === DATE_RANGE_TYPE) {
-    return `(v.from !== '' && v.to !== '' && v.to < v.from ? ${JSON.stringify(messages.dateOrder)} : null)`
+    return `(fgDateOrder(v) ? ${JSON.stringify(messages.dateOrder)} : null)`
   }
   return fileCheckExpr(node, messages)
 }

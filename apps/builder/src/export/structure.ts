@@ -154,6 +154,28 @@ export function collectExportRepeaters(schema: FormSchema): ExportRepeater[] {
   return repeaters
 }
 
+/**
+ * Top-level fields plus every repeater item field, the latter with its
+ * template path (`crew.cv`) as `path`. Targets key per-field helper tables
+ * by template path; at run time an item path (`crew.2.cv`) maps back to it
+ * by dropping the index (fgTpl).
+ */
+export function collectTemplateFields(schema: FormSchema): ExportField[] {
+  return [
+    ...collectExportFields(schema),
+    ...collectExportRepeaters(schema).flatMap((r) =>
+      r.fields.map((f) => ({ node: f.node, path: f.templatePath, key: f.key, conditionChain: r.conditionChain })),
+    ),
+  ]
+}
+
+/** JS: an item path without its indexes (`crew.2.cv` → `crew.cv`). */
+export function tplHelper(ts: boolean): string {
+  return `function fgTpl(path${ts ? ': string' : ''})${ts ? ': string' : ''} {
+  return path.replace(/\\.\\d+(?=\\.|$)/g, '')
+}`
+}
+
 /** Default value for one field node (mirrors renderer semantics). */
 export function fieldDefault(node: ElementNode): unknown {
   if (node.props['default'] !== undefined) return node.props['default']

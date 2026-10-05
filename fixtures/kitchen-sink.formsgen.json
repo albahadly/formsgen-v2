@@ -267,7 +267,7 @@
       "id": "ks-references",
       "type": "repeater",
       "name": "references",
-      "props": { "label": "References", "itemLabel": "Reference {n}", "addText": "Add reference", "minItems": 0, "maxItems": 3, "initialItems": 1 },
+      "props": { "label": "References", "itemLabel": "Reference {n}", "addText": "Add reference", "minItems": 0, "maxItems": 3, "initialItems": 1, "sortable": true },
       "children": [
         { "id": "ks-ref-name", "type": "text", "name": "name", "props": { "label": "Name" }, "validation": [{ "rule": "required" }] },
         { "id": "ks-ref-contact", "type": "checkbox", "name": "may_contact", "props": { "label": "May we contact them?" } },
@@ -277,6 +277,13 @@
           "name": "email",
           "props": { "label": "Their email" },
           "validation": [{ "rule": "email" }],
+          "conditions": [[{ "field": "references.may_contact", "operator": "equals", "value": true }]]
+        },
+        {
+          "id": "ks-ref-phone",
+          "type": "phone",
+          "name": "phone",
+          "props": { "label": "Their phone", "countrySelect": true, "defaultCountry": "GB" },
           "conditions": [[{ "field": "references.may_contact", "operator": "equals", "value": true }]]
         }
       ]

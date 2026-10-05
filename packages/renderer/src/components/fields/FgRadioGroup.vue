@@ -21,6 +21,7 @@ const {
   description,
   required,
   fieldId,
+  groupName,
   tooltip,
   errorId,
   describedBy,
@@ -76,7 +77,7 @@ const selected = computed({
           type="radio"
           :class="display === 'buttons' ? 'fg-sr-only' : 'fg-checkbox'"
           :aria-describedby="describedBy"
-          :name="path"
+          :name="groupName"
           :value="item.value"
           @blur="onBlur"
         >

@@ -85,6 +85,7 @@ export {
   repeaterItemDefaults,
   repeaterItemLabel,
   repeaterLimits,
+  repeaterSortable,
   resolveScoped,
   type ItemScope,
 } from './repeater'

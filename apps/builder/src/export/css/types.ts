@@ -64,6 +64,8 @@ export type Slot =
   | 'repeaterItemLabel'
   | 'repeaterItemActions'
   | 'repeaterRemove'
+  /** An item's move up / move down buttons (sortable repeaters). */
+  | 'repeaterMove'
   | 'repeaterAdd'
   | 'fileInput'
   | 'fileList'

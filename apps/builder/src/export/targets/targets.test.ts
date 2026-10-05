@@ -435,7 +435,7 @@ describe('Arabic forms (meta.locale "ar") across code targets', () => {
     const c = gen('blazor')
     expect(c).toContain('["two"] = "خطآن. يرجى تصحيح الحقول المحددة."')
     expect(c).toContain('count % 100 >= 3 && count % 100 <= 10 ? "few"')
-    expect(c).toContain('aria-label="إزالة @(Model.Topics[fgIdx_topics])"')
+    expect(c).toContain('aria-label="إزالة @(Model.Topics[fgIdx_Topics])"')
   })
 
   it('english forms are unaffected', () => {
@@ -491,7 +491,7 @@ describe('blur validation waits for a pointer press to end (no lost clicks)', ()
     const c = generate('html')[0]!.content
     expect(c).toContain("form.addEventListener('pointerdown', function () {")
     expect(c).toContain('if (path) fgBlurValidate(path)')
-    expect(c).toContain('fgBlurValidate(path)\n      })')
+    expect(c).toContain('fgBlurValidate(fieldPath())\n      })')
   })
 
   it('blazor holds field validation while pressed, without DataAnnotationsValidator', () => {
@@ -555,9 +555,9 @@ describe('blazor parity: multi-value controls, step gating, error jump', () => {
 
   it('tags renders chips bound to fgTagDrafts with @bind:after', () => {
     const c = code()
-    expect(c).toContain(`@bind='fgTagDrafts["topics"]' @bind:after='() => FgAddTag(Model.Topics, "topics")'`)
-    expect(c).toContain('@onclick="() => Model.Topics.RemoveAt(fgIdx_topics)"')
-    expect(c).toContain('private readonly Dictionary<string, string> fgTagDrafts = new() { ["topics"] = "" };')
+    expect(c).toContain(`@bind='fgTagDrafts["Topics"]' @bind:after='() => FgAddTag(Model.Topics, "Topics")'`)
+    expect(c).toContain(`@onclick='() => FgRemoveTag(Model.Topics, fgIdx_Topics, "Topics")'`)
+    expect(c).toContain('private readonly FgStore<string> fgTagDrafts = new(_ => "");')
   })
 
   it('no element renders an unsupported-emitter comment anymore', () => {
@@ -601,7 +601,9 @@ describe('html target', () => {
   it('references CDN assets for tailwind instead of embedding CSS', () => {
     const [file] = generateNoSlider('html', 'tailwind')
     expect(file!.content).toContain('cdn.tailwindcss.com')
-    expect(file!.content).not.toContain('<style>')
+    // only the runtime's hidden rule, no framework CSS
+    const style = /<style>([\s\S]*?)<\/style>/.exec(file!.content)?.[1] ?? ''
+    expect(style.trim()).toBe('[hidden] { display: none !important; }')
   })
 
   it('generated validator and payload code executes correctly', () => {

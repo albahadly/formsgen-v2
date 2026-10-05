@@ -37,12 +37,12 @@ const out = (target: string, fw: CssFrameworkId = 'vanilla') =>
     .join('\n')
 
 describe('repeater in the builder', () => {
-  it('accepts leaf elements only', () => {
-    expect(acceptsChildType('repeater', 'text')).toBe(true)
-    expect(acceptsChildType('repeater', 'heading')).toBe(true)
+  it('accepts every field and static element, but no containers', () => {
+    for (const type of ['text', 'heading', 'tags', 'file', 'imageupload', 'rangeslider', 'daterange', 'dates', 'matrix', 'phone']) {
+      expect(acceptsChildType('repeater', type), type).toBe(true)
+    }
     expect(acceptsChildType('repeater', 'group')).toBe(false)
     expect(acceptsChildType('repeater', 'repeater')).toBe(false)
-    expect(acceptsChildType('repeater', 'tags')).toBe(false)
   })
 
   it('condition sources: siblings inside the same repeater, never items from outside', () => {
@@ -105,5 +105,47 @@ describe('repeater in every target', () => {
     expect(razor).toContain('case FgPeopleItem item:')
     expect(razor).toContain('if (!((Equals(item.HasPet, true)))) return null;')
     expect(razor).toContain('if ((Equals(item.HasPet, true))) item0["pet"] = item.Pet;')
+  })
+})
+
+describe('sortable repeaters (move up / move down)', () => {
+  const sortable = { ...people, props: { ...people.props, sortable: true } }
+  const gen = (target: string, node: ElementNode, fw: CssFrameworkId = 'vanilla', locale = 'en') => {
+    const result = parseFormSchema({ $schema: 'formsgen/v2', meta: { name: 'demo', locale, dir: 'ltr' }, tree: [node] })
+    if (!result.ok) throw new Error(result.errors.join('\n'))
+    return getTarget(target)!
+      .generate({ schema: result.schema, css: getCssAdapter(fw) })
+      .map((f) => f.content)
+      .join('\n')
+  }
+
+  it('every target renders the buttons, a move handler and the labels only when sortable', () => {
+    const handler = { 'vue-standalone': 'async function fgMoveItem(', react: 'function fgMoveItem(', html: 'function fgMoveItem(', blazor: 'private async Task FgMoveItem<T>(' }
+    for (const [target, fn] of Object.entries(handler)) {
+      const code = gen(target, sortable)
+      expect(code, target).toContain('data-fg-move="up"')
+      expect(code, target).toContain('data-fg-move="down"')
+      expect(code, target).toContain(fn)
+      expect(code, target).toContain('Move {label} up')
+      expect(code, target).toContain('{label} moved to position {n}')
+      const plain = gen(target, people)
+      expect(plain, target).not.toContain('data-fg-move')
+      expect(plain, target).not.toContain(fn)
+    }
+  })
+
+  it('the first item has no up button and the last no down button; the remove button keeps its minimum', () => {
+    expect(gen('vue-standalone', sortable)).toContain(`<button v-if="i > 0" type="button" class="fg-repeater-move" data-fg-move="up"`)
+    expect(gen('vue-standalone', sortable)).toContain(`<button v-if="i < form.people.length - 1" type="button" class="fg-repeater-move" data-fg-move="down"`)
+    expect(gen('vue-standalone', sortable)).toContain(`<button v-if="form.people.length > 1" type="button" class="fg-repeater-remove"`)
+    expect(gen('react', sortable)).toContain(`{i > 0 && <button type="button" className="fg-repeater-move" data-fg-move="up"`)
+    expect(gen('blazor', sortable)).toContain('@if (i < Model.People.Count - 1)')
+    expect(gen('html', sortable)).toContain('up.hidden = index === 0')
+  })
+
+  it('framework classes and Arabic labels', () => {
+    expect(gen('react', sortable, 'bootstrap5')).toContain('className="btn btn-outline-secondary btn-sm" data-fg-move="up"')
+    expect(gen('vue-standalone', sortable, 'tailwind')).toMatch(/class="inline-flex h-8 w-8[^"]*" data-fg-move="up"/)
+    expect(gen('blazor', sortable, 'vanilla', 'ar')).toContain('نقل {label} إلى الأعلى')
   })
 })

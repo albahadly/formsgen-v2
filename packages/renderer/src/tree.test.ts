@@ -91,7 +91,7 @@ describe('buildDefaultData', () => {
       days: [],
       rating: { speed: null, quality: null },
       source: 'kitchen-sink',
-      references: [{ name: '', may_contact: false, email: '' }],
+      references: [{ name: '', may_contact: false, email: '', phone: '' }],
       attachments: [],
       attachments_note: '',
       contact_method: null,

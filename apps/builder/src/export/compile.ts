@@ -34,6 +34,11 @@ function fgSize(${v})${ret('number | null')} {
   if (Array.isArray(v)) return v.length
   return null
 }
+// A date range whose end comes before its start.
+function fgDateOrder(${v})${ret('boolean')} {
+  ${ts ? 'const r = (v ?? {}) as { from?: unknown; to?: unknown }' : 'var r = v || {}'}
+  return typeof r.from === 'string' && typeof r.to === 'string' && r.from !== '' && r.to !== '' && r.to < r.from
+}
 // The "contains" condition: a substring of text, or an item of a list.
 function fgContains(${v}, ${ts ? 'x: unknown' : 'x'})${ret('boolean')} {
   if (typeof v === 'string') return v.includes(String(x))

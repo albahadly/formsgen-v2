@@ -31,6 +31,12 @@ export function useField(props: FieldProps) {
   )
   const fieldId = computed(() => (scope ? `fg-${props.node.id}-${scope.index}` : `fg-${props.node.id}`))
   const errorId = computed(() => `${fieldId.value}-error`)
+  /**
+   * Radio group name: inside an item it follows the item, not its index, so
+   * moving items never puts two of them in one group (the browser would
+   * uncheck an answer).
+   */
+  const groupName = computed(() => (scope ? `fg-${props.node.id}-item${scope.key ?? scope.index}` : props.path))
   /** Links the control to its error message for screen readers. */
   const describedBy = computed(() => (error.value ? errorId.value : undefined))
   const onBlur = (): void => ctx.touch(props.path)
@@ -63,6 +69,7 @@ export function useField(props: FieldProps) {
     required,
     fieldId,
     errorId,
+    groupName,
     describedBy,
     onBlur,
     labelClass,

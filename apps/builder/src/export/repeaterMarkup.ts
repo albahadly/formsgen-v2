@@ -8,7 +8,9 @@ import { ITEM_TOKEN, type RenderedRepeater } from './markup'
 
 const TOKEN = ITEM_TOKEN
 const quotedWithToken = new RegExp(`'([^'\\n]*?)${TOKEN}([^'\\n]*?)'`, 'g')
+const quotedKeyWithToken = new RegExp(`'([^'\\n]*?)${TOKEN}([^'\\n]*?)':`, 'g')
 const attrWithToken = new RegExp(` ([\\w-]+)="([^"]*${TOKEN}[^"]*)"`, 'g')
+const csStringWithToken = new RegExp(`"([^"\\s]*${TOKEN}[^"\\s]*)"`, 'g')
 
 /** `'a' + i + 'b'` for a static string around the token. */
 function concat(value: string, indexVar: string): string {
@@ -22,20 +24,33 @@ function concat(value: string, indexVar: string): string {
  * JS-template targets (Vue, JSX). `valueRoot` is how fields are bound
  * (`form`), so `form.people.__i__.name` becomes `item.name`.
  */
-function jsItemMarkup(html: string, path: string, valueRoot: string, attr: (name: string, expr: string) => string): string {
-  return html
-    .split(`${valueRoot}.${path}.${TOKEN}.`)
-    .join('item.')
-    .replace(quotedWithToken, (_, a: string, b: string) => `('${a}' + i + '${b}')`)
-    .replace(attrWithToken, (_, name: string, value: string) => attr(name, concat(value, 'i')))
+function jsItemMarkup(
+  html: string,
+  path: string,
+  valueRoot: string,
+  attr: (name: string, expr: string) => string,
+  /** A per-item key that survives moves (radio group names use it). */
+  stableKey: string,
+): string {
+  return (
+    html
+      .split(`${valueRoot}.${path}.${TOKEN}.`)
+      .join('item.')
+      // An object key ({ ...d, 'people.__i__.x': v }) becomes a computed key.
+      .replace(quotedKeyWithToken, (_, a: string, b: string) => `['${a}' + i + '${b}']:`)
+      .replace(quotedWithToken, (_, a: string, b: string) => `('${a}' + i + '${b}')`)
+      // Radio group names follow the item, not its index: during a move two
+      // items would otherwise share a group and the browser unchecks one.
+      .replace(attrWithToken, (_, name: string, value: string) => attr(name, concat(value, name === 'name' ? stableKey : 'i')))
+  )
 }
 
 export function vueItemMarkup(html: string, path: string): string {
-  return jsItemMarkup(html, path, 'form', (name, expr) => ` :${name}="${expr}"`)
+  return jsItemMarkup(html, path, 'form', (name, expr) => ` :${name}="${expr}"`, 'fgKeyOf(item)')
 }
 
 export function reactItemMarkup(html: string, path: string): string {
-  return jsItemMarkup(html, path, 'form', (name, expr) => ` ${name}={${expr}}`)
+  return jsItemMarkup(html, path, 'form', (name, expr) => ` ${name}={${expr}}`, `fgKeyAt('${path}', i)`)
 }
 
 /**
@@ -49,13 +64,25 @@ export function blazorItemMarkup(html: string, repeaterKey: string, childNames: 
   for (const name of byLength) {
     const member = pascalMember(`${repeaterKey}_${TOKEN}_${name}`)
     out = out.split(`Model.${member}`).join(`item.${pascalMember(name)}`)
+    // Field keys (drafts, chosen country, change notices) become per item.
+    out = out.split(`"${member}"`).join(`FgItemKey(item, "${member}", "${pascalMember(name)}")`)
   }
   // Component parameters (InputText id=…) reject mixed text/C#, so every
   // attribute carrying the index becomes one interpolated string.
-  return out.replace(attrWithToken, (_, name: string, value: string) => {
-    const parts = value.split(TOKEN).map((part) => part.replace(/[{}]/g, (c) => c + c).replace(/"/g, '\\"'))
-    return ` ${name}="@($"${parts.join('{i}')}")"`
-  })
+  // Radio group names use the item's stable id (see jsItemMarkup).
+  out = out.replace(attrWithToken, (_, name: string, value: string) =>
+    ` ${name}="@($"${interpolate(value, name === 'name' ? '{FgItemId(item)}' : '{i}')}")"`,
+  )
+  // C# strings in code (element ref keys) carry the index the same way.
+  return out.replace(csStringWithToken, (_, value: string) => `$"${interpolate(value)}"`)
+}
+
+/** C# interpolated-string body with `{i}` for the index token. */
+function interpolate(value: string, index = '{i}'): string {
+  return value
+    .split(TOKEN)
+    .map((part) => part.replace(/[{}]/g, (c) => c + c).replace(/"/g, '\\"'))
+    .join(index)
 }
 
 /** The repeater's own legend (group label), or nothing. */

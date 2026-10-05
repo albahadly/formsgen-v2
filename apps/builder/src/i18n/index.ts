@@ -542,6 +542,7 @@ const arText: Record<string, string> = {
   'OM, AE, SA': 'OM، AE، SA',
   'Maximum items (empty = no limit)': 'الحد الأقصى للعناصر (فارغ = بلا حد)',
   'Items shown at start': 'عدد العناصر في البداية',
+  'Let people reorder items': 'السماح بإعادة ترتيب العناصر',
   // export dialog
   'JSON schema': 'مخطط JSON',
   'Vue (renderer package)': 'Vue (حزمة العارض)',

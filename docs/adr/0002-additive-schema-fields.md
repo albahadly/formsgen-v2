@@ -28,6 +28,7 @@ Bumping `$schema` to `formsgen/v3` would make every existing document fail `pars
 | Element type `matrix` (props `rows`, `columns`: `{ value, label }` lists; value: row → chosen column or null) and phone props `countrySelect`, `defaultCountry` (ISO code), `countries` (ISO list); a country phone's value stays one string, `"+<code> <number>"` | 26b | n/a for the matrix (older builds report the type as unsupported; not allowed in repeaters). A phone without `countrySelect` (or inside a repeater) is the plain tel input |
 | Props `tooltip` (every field), `prefix` / `suffix` (text-likes, number); `meta.fieldSize` (`sm`\|`md`\|`lg`) and `style.size: 'md'` (explicit medium) | 27a | no tooltip / add-ons; medium fields. `meta.fieldSize` is validated by the parser |
 | `layout.colSpanSm` (phones) and `layout.colSpanLg` (desktops) beside `colSpan` (tablets up); `meta.floatingLabels` (boolean) | 27b | phones full width, desktops = `colSpan`; labels above controls. All spans are validated (1, 2, 3, 4, 6, 12) |
+| Repeater prop `sortable` (boolean, move up / move down). Repeater children may now be any field type (tags, uploads, range slider, date range, multiple dates, matrix, phone with country); containers are still not allowed | 28a | no move buttons. Older builds' parsers reject the newly allowed child types inside a repeater |
 
 ## Alternatives considered
 

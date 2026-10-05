@@ -4,6 +4,7 @@
 // expressions as C# bools. Semantics mirror @formsgen/renderer.
 
 import {
+  FILE_TYPES,
   MESSAGES,
   defaultRuleMessage,
   fileLimits,
@@ -337,6 +338,35 @@ export function csDateOrderCheck(member: string, messages: MessageCatalog): stri
   return [
     `    if (!string.IsNullOrWhiteSpace(${member}.From) && !string.IsNullOrWhiteSpace(${member}.To) && string.CompareOrdinal(${member}.To, ${member}.From) < 0) yield return new ValidationResult(${csStr(messages.dateOrder)}, new[] { nameof(${member}) });`,
   ]
+}
+
+/**
+ * Item-field checks with no rule behind them (FgItemError, `return` form):
+ * an upload's count, type and size, and a date range's order.
+ */
+export function csItemBuiltinChecks(node: ElementNode, member: string, messages: MessageCatalog): string[] {
+  if (node.type === 'daterange') {
+    return [
+      `if (!string.IsNullOrWhiteSpace(${member}.From) && !string.IsNullOrWhiteSpace(${member}.To) && string.CompareOrdinal(${member}.To, ${member}.From) < 0) return ${csStr(messages.dateOrder)};`,
+    ]
+  }
+  if (!FILE_TYPES.has(node.type)) return []
+  const limits = fileLimits(node)
+  const lines: string[] = []
+  if (limits.maxFiles > 0) {
+    lines.push(`if (${member}.Count > ${limits.maxFiles}) return ${csStr(fill(messages.tooManyFiles, { n: limits.maxFiles }))};`)
+  }
+  const perFile: string[] = []
+  if (limits.accept) {
+    perFile.push(`if (!FgAccepts(file, ${csStr(limits.accept)})) return ${csStr(messages.fileType)}.Replace("{name}", file.Name);`)
+  }
+  if (limits.maxSizeMb > 0) {
+    perFile.push(
+      `if (file.Size > ${Math.round(limits.maxSizeMb * 1024 * 1024)}L) return ${csStr(fill(messages.fileTooLarge, { size: limits.maxSizeMb }))}.Replace("{name}", file.Name);`,
+    )
+  }
+  if (perFile.length > 0) lines.push(`foreach (var file in ${member})`, '{', ...perFile.map((l) => `    ${l}`), '}')
+  return lines
 }
 
 /** Validate() lines checking an upload's count, then each file's type and size. */

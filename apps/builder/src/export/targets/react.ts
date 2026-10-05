@@ -36,11 +36,13 @@ import { reactItemMarkup, repeaterLegend } from '../repeaterMarkup'
 import { compileConditions } from '../compile'
 import {
   collectSectionHosts,
+  collectTemplateFields,
   defaultsObject,
   formDataType,
   hasResetButton,
   resolveSubmitButton,
   toJsLiteral,
+  tplHelper,
 } from '../structure'
 import { formRootClass, pinnedSchemeAttr } from '../css/themeBridge'
 import { componentName, type ExportTarget } from './types'
@@ -65,6 +67,8 @@ export const reactTarget: ExportTarget = {
     // …while JSX reads the component's state variable directly.
     const formAccessor = (path: string): string => `form.${path}`
     const fields = collectExportFields(schema)
+    // Item fields too (by template path), for the per-type helpers.
+    const typedFields = collectTemplateFields(schema)
     const defaults = defaultsObject(schema)
     const hosts = collectSectionHosts(schema)
     const messages = resolveMessages(schema.meta.locale)
@@ -122,8 +126,18 @@ export const reactTarget: ExportTarget = {
 
     const renderRepeater = (r: RenderedRepeater): string => {
       const list = `form.${r.path}`
-      const removeBtn = `<div className="${css.classes('repeaterItemActions')}">
-          <button type="button" className="${css.classes('repeaterRemove')}" aria-label={fgRemoveLabel('${r.path}', i)} onClick={() => fgRemoveItem('${r.path}', i)}>${r.messages.removeItem}</button>
+      const removeButton = `<button type="button" className="${css.classes('repeaterRemove')}" aria-label={fgRemoveLabel('${r.path}', i)} onClick={() => fgRemoveItem('${r.path}', i)}>${r.messages.removeItem}</button>`
+      // Sortable: move buttons (up from the 2nd item, down until the last);
+      // the row shows while any button can, remove only above the minimum.
+      const shownAbove = r.sortable ? Math.min(r.limits.min, 1) : r.limits.min
+      const removeBtn = `<div className="${css.classes('repeaterItemActions')}">${
+        r.sortable
+          ? `
+          {i > 0 && <button type="button" className="${css.classes('repeaterMove')}" data-fg-move="up" aria-label={fgMoveLabel('${r.path}', i, 'up')} onClick={() => fgMoveItem('${r.path}', i, -1)}>↑</button>}
+          {i < ${list}.length - 1 && <button type="button" className="${css.classes('repeaterMove')}" data-fg-move="down" aria-label={fgMoveLabel('${r.path}', i, 'down')} onClick={() => fgMoveItem('${r.path}', i, 1)}>↓</button>}`
+          : ''
+      }
+          ${r.sortable && r.limits.min > 0 ? `{${list}.length > ${r.limits.min} && ${removeButton}}` : removeButton}
         </div>`
       const addBtn = `<button type="button" className="${css.classes('repeaterAdd')}" data-fg-add="${r.path}" onClick={() => fgAddItem('${r.path}')}>${r.addText}</button>`
       return `<fieldset className="${css.classes('group')}" data-fg-repeater="${r.path}">${repeaterLegend(css, r, 'className')}
@@ -132,7 +146,7 @@ export const reactTarget: ExportTarget = {
       <fieldset key={fgKeyAt('${r.path}', i)} className="${css.classes('repeaterItem')}" data-fg-item tabIndex={-1}>
         <legend className="${css.classes('repeaterItemLabel')}">{fgItemLabel('${r.path}', i)}</legend>
 ${indentBlock(reactItemMarkup(r.itemHtml, r.path), 4)}
-        ${r.limits.min > 0 ? `{${list}.length > ${r.limits.min} && (
+        ${shownAbove > 0 ? `{${list}.length > ${shownAbove} && (
         ${removeBtn}
         )}` : removeBtn}
       </fieldset>
@@ -219,7 +233,7 @@ ${indentBlock(reactItemMarkup(r.itemHtml, r.path), 4)}
         : ''
 
     // Tags fields: per-field draft state + shared add/remove handlers.
-    const hasTags = fields.some((f) => f.node.type === 'tags')
+    const hasTags = typedFields.some((f) => f.node.type === 'tags')
     const tagsState = hasTags
       ? `  const [tagDrafts, setTagDrafts] = useState<Record<string, string>>({})`
       : ''
@@ -239,19 +253,19 @@ ${indentBlock(reactItemMarkup(r.itemHtml, r.path), 4)}
     // validates the NEW value (touch() would read the previous render's).
     const hasSlider = hasRangeSlider(schema)
     const hasDateList = hasDates(schema)
-    const hasPhone = phoneCountryFields(fields).length > 0
+    const hasPhone = phoneCountryFields(typedFields).length > 0
     const compositeModule = [
       hasSlider ? DUAL_RANGE_HELPERS_TS : '',
       hasDateList ? ADD_DATE_TS : '',
       hasPhone
-        ? `${phoneHelpers(fields, schema.meta.locale, true)}\nconst FG_PHONE_DEFAULTS: Record<string, string> = ${JSON.stringify(phoneDefaults(fields, schema.meta.locale, (f) => f.path))}`
+        ? `${phoneHelpers(typedFields, schema.meta.locale, true)}\n// Starting country per field (template path).\nconst FG_PHONE_DEFAULTS: Record<string, string> = ${JSON.stringify(phoneDefaults(typedFields, schema.meta.locale, (f) => f.path))}`
         : '',
     ]
       .filter(Boolean)
       .join('\n')
     const compositeState = [
       hasDateList ? `  const [dateDrafts, setDateDrafts] = useState<Record<string, string>>({})` : '',
-      hasPhone ? `  const [phoneCountry, setPhoneCountry] = useState<Record<string, string>>(FG_PHONE_DEFAULTS)` : '',
+      hasPhone ? `  // The chosen country per field path (else the field's default).\n  const [phoneCountry, setPhoneCountry] = useState<Record<string, string>>({})` : '',
     ]
       .filter(Boolean)
       .join('\n')
@@ -275,20 +289,26 @@ ${indentBlock(reactItemMarkup(r.itemHtml, r.path), 4)}
   }`
         : '',
       hasPhone
-        ? `  function fgPhoneSetCountry(path: string, current: string, next: string): void {
-    const typed = fgPhoneNumber(current, phoneCountry[path]!)
+        ? `  function fgPhoneCountryOf(path: string): string {
+    return phoneCountry[path] ?? FG_PHONE_DEFAULTS[fgTpl(path)]!
+  }
+
+  function fgPhoneSetCountry(path: string, current: string, next: string): void {
+    const typed = fgPhoneNumber(current, fgPhoneCountryOf(path))
     setPhoneCountry((c) => ({ ...c, [path]: next }))
     setField(path, fgComposePhone(next, typed))
   }
 
   function fgPhoneInput(path: string, number: string): void {
-    setField(path, fgComposePhone(phoneCountry[path]!, number))
+    setField(path, fgComposePhone(fgPhoneCountryOf(path), number))
   }`
         : '',
     ]
       .filter(Boolean)
       .join('\n\n')
 
+    // Per-item UI state keyed by field path, re-keyed when items move.
+    const itemStoreSetters = [hasTags ? 'setTagDrafts' : '', hasDateList ? 'setDateDrafts' : '', hasPhone ? 'setPhoneCountry' : ''].filter(Boolean)
     const fmtMax = (max: number): string => (Number.isFinite(max) ? String(max) : 'Number.POSITIVE_INFINITY')
     const repeaterModule = hasRepeaters
       ? `const FG_ITEM_DEFAULTS: Record<string, () => Record<string, unknown>> = {
@@ -317,6 +337,7 @@ const itemValidators: Record<string, Record<string, (item: Record<string, unknow
           dataAccessor,
           { ...dataItems, read: (template, path) => `item[${JSON.stringify(template.slice(path.length + 1))}]` },
           (_r, body) => `item: Record<string, unknown>, ${/\bdata\./.test(body) ? 'data' : '_data'}: FormData`,
+          messages,
         )}
 
 function fgList(data: FormData, path: string): Record<string, unknown>[] {
@@ -357,15 +378,28 @@ function fgAllPaths(data: FormData): string[] {
   return [...Object.keys(validators), ...Object.keys(itemValidators).flatMap((path) => fgItemPaths(data, path))]
 }
 
-/** Moves item keys/paths after a removal: "people.3.x" → "people.2.x". */
-function fgShiftKey(key: string, path: string, removed: number): string | null {
+/**
+ * Re-keys an item path when items move or go: \`to\` maps an old index to
+ * its new one (null = gone), e.g. "people.3.x" → "people.2.x".
+ */
+function fgRemapKey(key: string, path: string, to: (index: number) => number | null): string | null {
   if (!key.startsWith(path + '.')) return key
   const rest = key.slice(path.length + 1)
   const dot = rest.indexOf('.')
   const index = Number(dot === -1 ? rest : rest.slice(0, dot))
   if (!Number.isInteger(index)) return key
-  if (index === removed) return null
-  return index > removed ? \`\${path}.\${index - 1}\${dot === -1 ? '' : rest.slice(dot)}\` : key
+  const next = to(index)
+  return next === null ? null : \`\${path}.\${next}\${dot === -1 ? '' : rest.slice(dot)}\`
+}
+
+/** A per-path store (errors, drafts…) with its item keys re-keyed. */
+function fgRemapStore<T>(store: Record<string, T>, path: string, to: (index: number) => number | null): Record<string, T> {
+  const next: Record<string, T> = {}
+  for (const [key, value] of Object.entries(store)) {
+    const target = fgRemapKey(key, path, to)
+    if (target !== null) next[target] = value
+  }
+  return next
 }`
       : ''
     const repeaterHooks = hasRepeaters
@@ -373,13 +407,19 @@ function fgShiftKey(key: string, path: string, removed: number): string | null {
   // Stable React keys per item (the form object is cloned on every edit).
   const fgKeys = useRef<Record<string, number[]>>({})
   const fgNextKey = useRef(0)
-  const fgPendingFocus = useRef<{ path: string; index: number } | null>(null)`
+  const fgPendingFocus = useRef<{ path: string; index: number; move?: 'up' | 'down' } | null>(null)`
       : ''
     const repeaterHandlers = hasRepeaters
       ? `  function fgKeyAt(path: string, index: number): number {
     const keys = (fgKeys.current[path] ??= [])
     while (keys.length <= index) keys.push(fgNextKey.current++)
     return keys[index]!
+  }
+
+  /** Re-keys per-item state (touched, errors, drafts, countries). */
+  function fgRemapItems(path: string, to: (index: number) => number | null): void {
+    touched.current = new Set([...touched.current].map((k) => fgRemapKey(k, path, to)).filter((k): k is string => k !== null))
+    setErrors((prev) => fgRemapStore(prev, path, to))${itemStoreSetters.map((setter) => `\n    ${setter}((prev) => fgRemapStore(prev, path, to))`).join('')}
   }
 
   function fgAddItem(path: string): void {
@@ -390,22 +430,38 @@ function fgShiftKey(key: string, path: string, removed: number): string | null {
     fgAnnounce(${JSON.stringify(messages.itemAdded)}.split('{label}').join(fgItemLabel(path, list.length)))
   }
 
-  function fgRemoveItem(path: string, index: number): void {
+${
+  repeaters.some((r) => r.node.props['sortable'] === true)
+    ? `  function fgMoveLabel(path: string, index: number, direction: 'up' | 'down'): string {
+    return (direction === 'up' ? ${JSON.stringify(messages.moveItemUp)} : ${JSON.stringify(messages.moveItemDown)}).split('{label}').join(fgItemLabel(path, index))
+  }
+
+  /** Swaps an item with its neighbour; focus stays on the moved item. */
+  function fgMoveItem(path: string, index: number, delta: -1 | 1): void {
+    const list = fgList(form, path)
+    const target = index + delta
+    if (target < 0 || target >= list.length) return
+    const label = fgItemLabel(path, index)
+    fgKeyAt(path, list.length - 1)
+    const keys = fgKeys.current[path]!
+    ;[keys[index], keys[target]] = [keys[target]!, keys[index]!]
+    fgRemapItems(path, (i) => (i === index ? target : i === target ? index : i))
+    const next = [...list]
+    ;[next[index], next[target]] = [next[target]!, next[index]!]
+    setField(path, next)
+    fgPendingFocus.current = { path, index: target, move: delta < 0 ? 'up' : 'down' }
+    fgAnnounce(${JSON.stringify(messages.itemMoved)}.split('{label}').join(label).split('{n}').join(String(target + 1)))
+  }
+
+`
+    : ''
+}  function fgRemoveItem(path: string, index: number): void {
     const list = fgList(form, path)
     if (list.length <= (FG_ITEM_LIMITS[path]?.min ?? 0)) return
     const label = fgItemLabel(path, index)
     fgKeyAt(path, list.length - 1)
     fgKeys.current[path]!.splice(index, 1)
-    const nextTouched = [...touched.current].map((k) => fgShiftKey(k, path, index)).filter((k): k is string => k !== null)
-    touched.current = new Set(nextTouched)
-    setErrors((prev) => {
-      const next: Record<string, string> = {}
-      for (const [key, message] of Object.entries(prev)) {
-        const target = fgShiftKey(key, path, index)
-        if (target !== null) next[target] = message
-      }
-      return next
-    })
+    fgRemapItems(path, (i) => (i === index ? null : i > index ? i - 1 : i))
     setField(path, list.filter((_, i) => i !== index))
     fgPendingFocus.current = { path, index: -1 - index }
     fgAnnounce(${JSON.stringify(messages.itemRemoved)}.split('{label}').join(label))
@@ -419,7 +475,15 @@ function fgShiftKey(key: string, path: string, removed: number): string | null {
     fgPendingFocus.current = null
     const repeater = fgRoot.current?.querySelector(\`[data-fg-repeater="\${pending.path}"]\`)
     const items = Array.from(repeater?.querySelectorAll<HTMLElement>(':scope > div > [data-fg-item]') ?? [])
-    if (pending.index >= 0) {
+    ${
+      repeaters.some((r) => r.node.props['sortable'] === true)
+        ? `if (pending.move) {
+      // After a move: the same button on the moved item, else its other one.
+      const buttons = Array.from(items[pending.index]?.querySelectorAll<HTMLElement>('[data-fg-move]') ?? [])
+      ;(buttons.find((b) => b.dataset['fgMove'] === pending.move) ?? buttons[0] ?? items[pending.index])?.focus()
+    } else `
+        : ''
+    }if (pending.index >= 0) {
       const item = items[pending.index]
       const control = item?.querySelector<HTMLElement>('input:not([type=hidden]), select, textarea')
       ;(control ?? item)?.focus()
@@ -437,12 +501,12 @@ function fgShiftKey(key: string, path: string, removed: number): string | null {
     setForm(INITIAL)
     setErrors({})
     touched.current.clear()${hasRepeaters ? '\n    fgKeys.current = {}' : ''}
-    setResult(null)${hasTags ? '\n    setTagDrafts({})' : ''}${hasDateList ? '\n    setDateDrafts({})' : ''}${hasPhone ? '\n    setPhoneCountry(FG_PHONE_DEFAULTS)' : ''}
+    setResult(null)${hasTags ? '\n    setTagDrafts({})' : ''}${hasDateList ? '\n    setDateDrafts({})' : ''}${hasPhone ? '\n    setPhoneCountry({})' : ''}
     fgAnnounce(${JSON.stringify(messages.formReset)})
   }`
       : ''
 
-    const hasUploads = uploadFields(fields).length > 0
+    const hasUploads = uploadFields(typedFields).length > 0
     const submitUrl = schema.meta.submit?.url
     const submitBlock = submitUrl
       ? `    fetch(${JSON.stringify(submitUrl)}, {
@@ -488,7 +552,7 @@ const validators: Record<string, (data: FormData) => string | null> = ${validato
 function buildPayload(data: FormData): Record<string, unknown> {
   return ${indentBlock(payloadExpr(schema, dataAccessor, (key) => `fgVisible_${key}(data)`, dataItems), 1).trimStart()}
 }
-${repeaterModule ? `\n${repeaterModule}\n` : ''}${compositeModule ? `\n${compositeModule}\n` : ''}${hasUploads ? `\n${reactUploadModule(fields, messages)}\n` : ''}${sectionPathsConsts ? `\n${sectionPathsConsts}\n` : ''}${stepAnnounceConsts ? `${stepAnnounceConsts}\n` : ''}
+${repeaterModule ? `\n${repeaterModule}\n` : ''}${compositeModule ? `\n${compositeModule}\n` : ''}${hasUploads || hasPhone ? `\n${tplHelper(true)}\n` : ''}${hasUploads ? `\n${reactUploadModule(typedFields, messages)}\n` : ''}${sectionPathsConsts ? `\n${sectionPathsConsts}\n` : ''}${stepAnnounceConsts ? `${stepAnnounceConsts}\n` : ''}
 ${errorsTextFunction(messages, true)}
 
 export default function ${name}({
@@ -574,7 +638,7 @@ ${stepHandlers ? `\n${stepHandlers}\n` : ''}
     touched.current.add(path)
     validateField(path, form)
   }
-${tagsHandlers ? `\n${tagsHandlers}\n` : ''}${compositeHandlers ? `\n${compositeHandlers}\n` : ''}${hasUploads ? `\n${reactUploadHandlers(fields)}\n` : ''}${repeaterHandlers ? `\n${repeaterHandlers}\n` : ''}${resetHandler ? `\n${resetHandler}\n` : ''}
+${tagsHandlers ? `\n${tagsHandlers}\n` : ''}${compositeHandlers ? `\n${compositeHandlers}\n` : ''}${hasUploads ? `\n${reactUploadHandlers(typedFields)}\n` : ''}${repeaterHandlers ? `\n${repeaterHandlers}\n` : ''}${resetHandler ? `\n${resetHandler}\n` : ''}
   function handleSubmit(event: React.FormEvent): void {
     event.preventDefault()
     const nextErrors: Record<string, string> = {}

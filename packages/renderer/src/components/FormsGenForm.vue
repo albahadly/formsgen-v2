@@ -212,14 +212,14 @@ context.announce = announce
  * A repeater item was removed: later items move up one index, so their
  * touched state and errors follow them (the removed item's are dropped).
  */
-context.shiftItems = (repeaterPath, removedIndex) => {
+/** Re-keys item state when items move or go (old index → new, null = gone). */
+function remapItems(repeaterPath: string, to: (index: number) => number | null): void {
   const pattern = new RegExp(`^${repeaterPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.(\\d+)(\\..*)$`)
   const moved = (key: string): string | null => {
     const match = pattern.exec(key)
     if (!match) return key
-    const index = Number(match[1])
-    if (index === removedIndex) return null
-    return index > removedIndex ? `${repeaterPath}.${index - 1}${match[2]}` : key
+    const next = to(Number(match[1]))
+    return next === null ? null : `${repeaterPath}.${next}${match[2]}`
   }
   const nextTouched = [...touched].map(moved).filter((k): k is string => k !== null)
   touched.clear()
@@ -232,6 +232,9 @@ context.shiftItems = (repeaterPath, removedIndex) => {
   for (const key of Object.keys(errors)) delete errors[key]
   Object.assign(errors, nextErrors)
 }
+context.shiftItems = (repeaterPath, removed) =>
+  remapItems(repeaterPath, (i) => (i === removed ? null : i > removed ? i - 1 : i))
+context.swapItems = (repeaterPath, a, b) => remapItems(repeaterPath, (i) => (i === a ? b : i === b ? a : i))
 
 /** Reset buttons: back to the initial values, no errors shown. */
 context.reset = () => {

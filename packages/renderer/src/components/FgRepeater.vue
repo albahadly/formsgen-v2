@@ -1,11 +1,12 @@
 <script setup lang="ts">
-// Repeatable section: an array of item objects with add/remove buttons.
-// Adding focuses the new item's first control; removing focuses the item
-// that took its place (or the add button); both are announced.
+// Repeatable section: an array of item objects with add/remove buttons
+// (and move up/down when props.sortable). Adding focuses the new item's
+// first control; removing focuses the item that took its place (or the add
+// button); moving keeps focus on the moved item. All are announced.
 import { computed, inject, nextTick, ref, toRaw } from 'vue'
 import { FORM_CONTEXT } from '../context'
 import { MESSAGES, fill } from '../messages'
-import { repeaterItemDefaults, repeaterItemLabel, repeaterLimits } from '../repeater'
+import { repeaterItemDefaults, repeaterItemLabel, repeaterLimits, repeaterSortable } from '../repeater'
 import type { ElementNode } from '../schema'
 import FgRepeaterItem from './FgRepeaterItem.vue'
 
@@ -21,6 +22,7 @@ const items = computed<Record<string, unknown>[]>(() => {
   return Array.isArray(value) ? (value as Record<string, unknown>[]) : []
 })
 const limits = computed(() => repeaterLimits(props.node))
+const sortable = computed(() => repeaterSortable(props.node))
 const legend = computed(() => {
   const l = props.node.props['label']
   return typeof l === 'string' && l !== '' ? l : null
@@ -74,6 +76,24 @@ async function remove(index: number): Promise<void> {
   ;(target ?? addButton.value)?.focus()
   formCtx.announce?.(fill(messages.value.itemRemoved, { label }))
 }
+
+/** Swaps item `index` with its neighbour; focus stays on the moved item. */
+async function move(index: number, delta: -1 | 1): Promise<void> {
+  const target = index + delta
+  if (target < 0 || target >= items.value.length) return
+  const label = itemLabel(index)
+  const next = [...items.value]
+  ;[next[index], next[target]] = [next[target]!, next[index]!]
+  formCtx.swapItems?.(props.path, index, target)
+  formCtx.setValue(props.path, next)
+  await nextTick()
+  const item = itemElements()[target]
+  // The same button when it is still there, else the other direction's.
+  const buttons = [...(item?.querySelectorAll<HTMLButtonElement>('[data-fg-move]') ?? [])]
+  const same = buttons.find((b) => b.dataset['fgMove'] === (delta < 0 ? 'up' : 'down'))
+  ;(same ?? buttons[0] ?? item)?.focus()
+  formCtx.announce?.(fill(messages.value.itemMoved, { label, n: target + 1 }))
+}
 </script>
 
 <template>
@@ -94,9 +114,13 @@ async function remove(index: number): Promise<void> {
         :node="node"
         :path="path"
         :index="index"
+        :item-key="keyOf(item)"
         :label="itemLabel(index)"
         :can-remove="items.length > limits.min"
+        :can-move-up="sortable && index > 0"
+        :can-move-down="sortable && index < items.length - 1"
         @remove="remove(index)"
+        @move="(delta) => move(index, delta)"
       />
     </div>
     <button

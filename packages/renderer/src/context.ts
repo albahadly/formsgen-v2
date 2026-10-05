@@ -34,6 +34,8 @@ export interface FormContext {
   announce?(message: string): void
   /** A repeater removed an item: shift later items' touched state/errors. */
   shiftItems?(repeaterPath: string, removedIndex: number): void
+  /** Two items of a repeater swapped places: so do their touched state/errors. */
+  swapItems?(repeaterPath: string, a: number, b: number): void
   /** Restore the initial values and clear errors (reset buttons). */
   reset?(): void
   /** Built-in texts for the form's locale (English when absent). */

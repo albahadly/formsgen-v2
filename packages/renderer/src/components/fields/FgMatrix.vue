@@ -8,7 +8,7 @@ import { useField } from '../useField'
 import FgTip from './FgTip.vue'
 
 const props = defineProps<{ node: ElementNode; path: string }>()
-const { value, error, label, description, required, fieldId, tooltip, errorId, describedBy, onBlur, labelClass } =
+const { value, error, label, description, required, fieldId, groupName, tooltip, errorId, describedBy, onBlur, labelClass } =
   useField(props)
 
 const rows = computed(() => matrixRows(props.node))
@@ -69,7 +69,7 @@ const radioId = (ri: number, ci: number): string => (ri === 0 && ci === 0 ? fiel
               <input
                 :id="radioId(ri, ci)"
                 type="radio"
-                :name="`${fieldId}-${row.value}`"
+                :name="`${groupName}-${row.value}`"
                 :value="column.value"
                 :checked="answers[row.value] === column.value"
                 :aria-label="`${row.label}: ${column.label}`"

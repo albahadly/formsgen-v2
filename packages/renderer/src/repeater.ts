@@ -2,8 +2,8 @@
 // array of item objects built from its children. Inside an item, data
 // paths carry the index (`people.0.name`), while conditions and same-as
 // rules name sibling fields by the template path (`people.name`) — they
-// resolve to the SAME item. v1 children: value fields and static elements
-// (no nested containers, tags, uploads or composite-value fields).
+// resolve to the SAME item. Children: any value field or static element
+// (containers are not allowed inside items).
 
 import { getCoreElement } from './elements'
 import type { ElementNode } from './schema'
@@ -11,15 +11,7 @@ import type { ElementNode } from './schema'
 export const REPEATER_TYPE = 'repeater'
 
 /** Element types a repeater may not contain (besides containers). */
-export const REPEATER_EXCLUDED_TYPES: ReadonlySet<string> = new Set([
-  'tags',
-  'file',
-  'imageupload',
-  'rangeslider',
-  'daterange',
-  'dates',
-  'matrix',
-])
+export const REPEATER_EXCLUDED_TYPES: ReadonlySet<string> = new Set<string>()
 
 export function isRepeater(node: ElementNode | undefined | null): boolean {
   return node?.type === REPEATER_TYPE
@@ -56,6 +48,11 @@ export function repeaterItemDefaults(node: ElementNode): Record<string, unknown>
   return item
 }
 
+/** props.sortable: visitors may reorder items (move up / move down). */
+export function repeaterSortable(node: ElementNode): boolean {
+  return node.props['sortable'] === true
+}
+
 /** Label of item `index` (0-based): props.itemLabel with {n}, else fallback. */
 export function repeaterItemLabel(node: ElementNode, index: number, fallback: string): string {
   const template = typeof node.props['itemLabel'] === 'string' && node.props['itemLabel'] !== ''
@@ -71,6 +68,8 @@ export interface ItemScope {
   /** That item's path, e.g. "people.2". */
   actual: string
   index: number
+  /** Stable per item (survives moves); radio group names use it. */
+  key?: number | undefined
 }
 
 /** Maps a template path (`people.name`) to the item's path (`people.2.name`). */

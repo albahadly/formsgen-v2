@@ -60,6 +60,7 @@ const CLASSES: Record<Slot, string> = {
   repeaterItemLabel: 'fg-repeater-item-label',
   repeaterItemActions: 'fg-repeater-item-actions',
   repeaterRemove: 'fg-repeater-remove',
+  repeaterMove: 'fg-repeater-move',
   repeaterAdd: 'fg-button fg-button--secondary fg-repeater-add',
   fileInput: 'fg-file-input',
   fileList: 'fg-file-list',
@@ -206,8 +207,9 @@ fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
 .fg-repeater-items { display: flex; flex-direction: column; gap: var(--fg-space); }
 .fg-repeater-item { margin: 0; padding: var(--fg-space); min-inline-size: 0; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-bg); }
 .fg-repeater-item-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; }
-.fg-repeater-item-actions { display: flex; justify-content: flex-end; margin-block-start: 0.75rem; }
-.fg-repeater-remove { padding: 0; font: inherit; font-size: 0.875rem; color: var(--fg-color-error); background: none; border: none; text-decoration: underline; cursor: pointer; }
+.fg-repeater-item-actions { display: flex; align-items: center; gap: 0.5rem; margin-block-start: 0.75rem; }
+.fg-repeater-move { display: inline-flex; align-items: center; justify-content: center; inline-size: 2rem; block-size: 2rem; padding: 0; font: inherit; color: var(--fg-color-text); background: none; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); cursor: pointer; }
+.fg-repeater-remove { margin-inline-start: auto; padding: 0; font: inherit; font-size: 0.875rem; color: var(--fg-color-error); background: none; border: none; text-decoration: underline; cursor: pointer; }
 .fg-repeater-add { margin-block-start: var(--fg-space); }
 /* File uploads */
 .fg-file-input { font: inherit; font-size: 0.875rem; }

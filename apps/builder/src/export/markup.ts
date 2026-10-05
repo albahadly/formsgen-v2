@@ -7,6 +7,7 @@ import {
   fill,
   isRepeater,
   repeaterLimits,
+  repeaterSortable,
   floatsLabel,
   getCoreElement,
   joinPath,
@@ -86,6 +87,8 @@ export interface RenderedRepeater {
   itemLabel: string
   /** Escaped add-button text. */
   addText: string
+  /** Visitors may reorder items (move up / move down buttons). */
+  sortable: boolean
 }
 
 export interface RenderedSection {
@@ -266,6 +269,7 @@ export function renderTree(schema: FormSchema, rootOptions: MarkupOptions): stri
           itemHtml,
           messages,
           limits: repeaterLimits(node),
+          sortable: repeaterSortable(node),
           legend: typeof label === 'string' && label !== '' ? esc(label) : null,
           itemLabel: esc(typeof itemLabel === 'string' && itemLabel !== '' ? itemLabel : messages.item),
           addText: esc(typeof addText === 'string' && addText !== '' ? addText : messages.addItem),

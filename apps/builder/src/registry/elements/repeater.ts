@@ -23,6 +23,7 @@ export const repeaterElement: ElementDefinition = {
         { kind: 'number', prop: 'minItems', label: 'Minimum items', min: 0 },
         { kind: 'number', prop: 'maxItems', label: 'Maximum items (empty = no limit)', min: 1 },
         { kind: 'number', prop: 'initialItems', label: 'Items shown at start', min: 0 },
+        { kind: 'toggle', prop: 'sortable', label: 'Let people reorder items' },
       ],
     },
     { title: 'Data', controls: [{ kind: 'name' }] },

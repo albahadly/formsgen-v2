@@ -69,8 +69,10 @@ const CLASSES: Record<Slot, string> = {
   repeaterItems: 'flex flex-col gap-4',
   repeaterItem: 'min-w-0 rounded-lg border border-gray-300 p-4 dark:border-gray-600',
   repeaterItemLabel: 'px-1 text-sm font-semibold',
-  repeaterItemActions: 'mt-3 flex justify-end',
-  repeaterRemove: 'text-sm text-red-600 underline hover:text-red-700 dark:text-red-400',
+  repeaterItemActions: 'mt-3 flex items-center gap-2',
+  repeaterRemove: 'ms-auto text-sm text-red-600 underline hover:text-red-700 dark:text-red-400',
+  repeaterMove:
+    'inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600',
   repeaterAdd:
     'mt-4 rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50',
   fileInput:

@@ -3,7 +3,7 @@
 // national number. The value stays one string, "+<code> <number>" ("" while
 // no number is typed); the selected country lives in a per-field store
 // (fgPhoneCountry) so it survives an empty number. Inside repeater items
-// the plain tel input is used (as in the renderer).
+// the store is keyed by each item's own path.
 
 import { hasCountrySelect, initialPhoneCountry, phoneCountries, type ElementNode } from '@formsgen/renderer'
 import {
@@ -24,10 +24,7 @@ import {
   vueInvalid,
 } from '../emitters/shared'
 import type { ElementDefinition, EmitCtx, EmitterLang, PanelSection } from '../types'
-import { ITEM_TOKEN } from '@/export/markup'
 
-const usesCountry = (node: ElementNode, ctx: EmitCtx): boolean =>
-  hasCountrySelect(node) && !ctx.path.includes(ITEM_TOKEN)
 
 function options(node: ElementNode, ctx: EmitCtx, html: boolean): string {
   const initial = initialPhoneCountry(node, ctx.locale)
@@ -47,7 +44,7 @@ function countryEmitters(): Record<EmitterLang, (node: ElementNode, ctx: EmitCtx
       fieldWrap(
         [
           labelFor(node, ctx),
-          `<div class="${ctx.css.classes('pair')}">\n    <select class="${ctx.css.classes('phoneCountry')}" aria-label="${esc(ctx.messages.countryCode)}" :value="fgPhoneCountry['${ctx.path}']" @change="fgPhoneSetCountry('${ctx.path}', $event)" @blur="touch('${ctx.path}')">\n      ${options(node, ctx, false)}\n    </select>\n    <input id="${ctx.id}" type="tel" class="${ctx.css.classes('input')}"${vueInvalid(ctx)}${telAttrs(node)} :value="fgPhoneNumber(form.${ctx.path}, fgPhoneCountry['${ctx.path}']!)" @input="fgPhoneInput('${ctx.path}', $event)" @blur="touch('${ctx.path}')">\n  </div>`,
+          `<div class="${ctx.css.classes('pair')}">\n    <select class="${ctx.css.classes('phoneCountry')}" aria-label="${esc(ctx.messages.countryCode)}" :value="fgPhoneCountryOf('${ctx.path}')" @change="fgPhoneSetCountry('${ctx.path}', $event)" @blur="touch('${ctx.path}')">\n      ${options(node, ctx, false)}\n    </select>\n    <input id="${ctx.id}" type="tel" class="${ctx.css.classes('input')}"${vueInvalid(ctx)}${telAttrs(node)} :value="fgPhoneNumber(form.${ctx.path}, fgPhoneCountryOf('${ctx.path}'))" @input="fgPhoneInput('${ctx.path}', $event)" @blur="touch('${ctx.path}')">\n  </div>`,
           descriptionFor(node, ctx),
           vueError(ctx),
         ],
@@ -67,7 +64,7 @@ function countryEmitters(): Record<EmitterLang, (node: ElementNode, ctx: EmitCtx
       reactFieldWrap(
         [
           reactLabelFor(node, ctx),
-          `<div className="${ctx.css.classes('pair')}">\n    <select className="${ctx.css.classes('phoneCountry')}" aria-label="${esc(ctx.messages.countryCode)}" value={phoneCountry['${ctx.path}']} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => fgPhoneSetCountry('${ctx.path}', form.${ctx.path}, e.target.value)} onBlur={() => touch('${ctx.path}')}>\n      ${options(node, ctx, false)}\n    </select>\n    <input id="${ctx.id}" type="tel" ${reactControlClass(ctx, 'input')}${telAttrs(node).replace('autocomplete=', 'autoComplete=')} value={fgPhoneNumber(form.${ctx.path}, phoneCountry['${ctx.path}']!)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPhoneInput('${ctx.path}', e.target.value)} onBlur={() => touch('${ctx.path}')} />\n  </div>`,
+          `<div className="${ctx.css.classes('pair')}">\n    <select className="${ctx.css.classes('phoneCountry')}" aria-label="${esc(ctx.messages.countryCode)}" value={fgPhoneCountryOf('${ctx.path}')} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => fgPhoneSetCountry('${ctx.path}', form.${ctx.path}, e.target.value)} onBlur={() => touch('${ctx.path}')}>\n      ${options(node, ctx, false)}\n    </select>\n    <input id="${ctx.id}" type="tel" ${reactControlClass(ctx, 'input')}${telAttrs(node).replace('autocomplete=', 'autoComplete=')} value={fgPhoneNumber(form.${ctx.path}, fgPhoneCountryOf('${ctx.path}'))} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPhoneInput('${ctx.path}', e.target.value)} onBlur={() => touch('${ctx.path}')} />\n  </div>`,
           reactDescription(node, ctx),
           reactError(ctx),
         ],
@@ -96,7 +93,7 @@ export function withCountrySelect(base: ElementDefinition): ElementDefinition {
   const export_: ElementDefinition['export'] = {}
   for (const lang of ['vue', 'html', 'react', 'blazor'] as const) {
     const plain = base.export?.[lang]
-    export_[lang] = (node, ctx) => (usesCountry(node, ctx) ? country[lang](node, ctx) : (plain?.(node, ctx) ?? ''))
+    export_[lang] = (node, ctx) => (hasCountrySelect(node) ? country[lang](node, ctx) : (plain?.(node, ctx) ?? ''))
   }
   const propertyPanel: PanelSection[] = base.propertyPanel.map((section) =>
     section.title === 'Properties'

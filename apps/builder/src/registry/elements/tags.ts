@@ -75,11 +75,12 @@ export const tagsElement: ElementDefinition = {
       ),
     blazor: (node, ctx) => {
       const member = `Model.${pascalMember(ctx.key)}`
-      const idx = `fgIdx_${ctx.key}`
+      // Named from the member, so no item index token reaches identifiers.
+      const idx = `fgIdx_${pascalMember(ctx.key)}`
       return fieldWrap(
         [
           labelFor(node, ctx),
-          `<div class="${ctx.css.classes('tagsWrap')}">\n    @for (var i = 0; i < ${member}.Count; i++)\n    {\n        var ${idx} = i;\n        <span class="${ctx.css.classes('tag')}">@${member}[${idx}] <button type="button" class="${ctx.css.classes('tagRemove')}" aria-label="${razorTemplate(ctx.messages.removeTag, { tag: `@(${member}[${idx}])` })}" @onclick="() => ${member}.RemoveAt(${idx})">&times;</button></span>\n    }\n    <input id="${ctx.id}" type="text" class="${ctx.css.classes('tagsInput')}"${placeholderAttr(node)} @bind='fgTagDrafts[${JSON.stringify(ctx.key)}]' @bind:after='() => FgAddTag(${member}, ${JSON.stringify(ctx.key)})'>\n  </div>`,
+          `<div class="${ctx.css.classes('tagsWrap')}">\n    @for (var fgTag = 0; fgTag < ${member}.Count; fgTag++)\n    {\n        var ${idx} = fgTag;\n        <span class="${ctx.css.classes('tag')}">@${member}[${idx}] <button type="button" class="${ctx.css.classes('tagRemove')}" aria-label="${razorTemplate(ctx.messages.removeTag, { tag: `@(${member}[${idx}])` })}" @onclick='() => FgRemoveTag(${member}, ${idx}, ${JSON.stringify(pascalMember(ctx.key))})'>&times;</button></span>\n    }\n    <input id="${ctx.id}" type="text" class="${ctx.css.classes('tagsInput')}"${placeholderAttr(node)} @bind='fgTagDrafts[${JSON.stringify(pascalMember(ctx.key))}]' @bind:after='() => FgAddTag(${member}, ${JSON.stringify(pascalMember(ctx.key))})'>\n  </div>`,
           descriptionFor(node, ctx),
           blazorValidationMessage(ctx),
         ],

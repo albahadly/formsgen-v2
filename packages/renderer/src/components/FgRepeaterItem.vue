@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // One repeater item: provides the item scope (sibling references, unique
-// ids) to its fields and renders the remove button.
+// ids) to its fields and renders the move up/down and remove buttons.
 import { computed, inject, provide, reactive, watch } from 'vue'
 import { FORM_CONTEXT, ITEM_SCOPE } from '../context'
 import { MESSAGES, fill } from '../messages'
@@ -12,15 +12,19 @@ const props = defineProps<{
   /** Repeater path, e.g. "people". */
   path: string
   index: number
+  /** Stable item key (see FgRepeater keyOf). */
+  itemKey?: number
   label: string
   canRemove: boolean
+  canMoveUp?: boolean
+  canMoveDown?: boolean
 }>()
-const emit = defineEmits<{ remove: [] }>()
+const emit = defineEmits<{ remove: []; move: [delta: -1 | 1] }>()
 
 const ctx = inject(FORM_CONTEXT)
 const messages = computed(() => ctx?.messages?.() ?? MESSAGES.en)
 
-const scope = reactive({ template: props.path, actual: `${props.path}.${props.index}`, index: props.index })
+const scope = reactive({ template: props.path, actual: `${props.path}.${props.index}`, index: props.index, key: props.itemKey })
 watch(
   () => [props.path, props.index] as const,
   ([path, index]) => {
@@ -51,10 +55,31 @@ provide(ITEM_SCOPE, scope)
       />
     </div>
     <div
-      v-if="canRemove"
+      v-if="canRemove || canMoveUp || canMoveDown"
       class="fg-repeater-item-actions"
     >
       <button
+        v-if="canMoveUp"
+        type="button"
+        class="fg-repeater-move"
+        data-fg-move="up"
+        :aria-label="fill(messages.moveItemUp, { label })"
+        @click="emit('move', -1)"
+      >
+        ↑
+      </button>
+      <button
+        v-if="canMoveDown"
+        type="button"
+        class="fg-repeater-move"
+        data-fg-move="down"
+        :aria-label="fill(messages.moveItemDown, { label })"
+        @click="emit('move', 1)"
+      >
+        ↓
+      </button>
+      <button
+        v-if="canRemove"
         type="button"
         class="fg-repeater-remove"
         :aria-label="fill(messages.removeItemLabel, { label })"

@@ -26,7 +26,7 @@ import {
   type RenderedSectionHost,
 } from '../markup'
 import { repeaterLegend } from '../repeaterMarkup'
-import { collectSectionHosts, hasResetButton, resolveSubmitButton } from '../structure'
+import { collectSectionHosts, collectTemplateFields, hasResetButton, resolveSubmitButton, tplHelper } from '../structure'
 import { esc } from '@/registry/emitters/shared'
 import { formRootClass, pinnedSchemeAttr } from '../css/themeBridge'
 import type { ExportTarget } from './types'
@@ -110,7 +110,13 @@ export const htmlTarget: ExportTarget = {
     <fieldset class="${css.classes('repeaterItem')}" data-fg-item tabindex="-1">
       <legend class="${css.classes('repeaterItemLabel')}" data-fg-item-label></legend>
 ${indentBlock(r.itemHtml, 3)}
-      <div class="${css.classes('repeaterItemActions')}">
+      <div class="${css.classes('repeaterItemActions')}">${
+        r.sortable
+          ? `
+        <button type="button" class="${css.classes('repeaterMove')}" data-fg-move="up">↑</button>
+        <button type="button" class="${css.classes('repeaterMove')}" data-fg-move="down">↓</button>`
+          : ''
+      }
         <button type="button" class="${css.classes('repeaterRemove')}" data-fg-remove>${r.messages.removeItem}</button>
       </div>
     </fieldset>
@@ -156,7 +162,9 @@ ${indentBlock(r.itemHtml, 3)}
       ...assets.scripts.map((src) => `  <script src="${src}"></script>`),
     ].join('\n')
 
-    const stylesheet = exportStylesheet(css, schema)
+    // The runtime shows and hides parts with the hidden attribute; a class
+    // setting display (flex rows, buttons) must not override it.
+    const stylesheet = [exportStylesheet(css, schema), '[hidden] { display: none !important; }\n'].filter(Boolean).join('\n')
     const styleTag = stylesheet ? `  <style>\n${indentBlock(stylesheet, 1)}  </style>` : ''
 
     // Bottom actions row: omitted when the wizard embeds the submit.
@@ -166,7 +174,9 @@ ${indentBlock(r.itemHtml, 3)}
       <button class="${submitClass}"${sb.buttonStyle ? ` style="${sb.buttonStyle}"` : ''} data-fg-submit type="submit"${sb.gatingHosts.length ? ' hidden' : ''}>${sb.text}</button>
     </div>`
 
-    const hasUploads = uploadFields(fields).length > 0
+    // Item fields too (by template path), for the per-type runtime.
+    const typedFields = collectTemplateFields(schema)
+    const hasUploads = uploadFields(typedFields).length > 0
     const submitUrl = schema.meta.submit?.url
     const submitBlock = submitUrl
       ? `      fetch(${JSON.stringify(submitUrl)}, {
@@ -184,7 +194,9 @@ ${indentBlock(r.itemHtml, 3)}
     const hasRange = hasDateRange(schema)
     const hasDateList = hasDates(schema)
     const hasGrid = hasMatrix(schema)
-    const hasPhone = phoneCountryFields(fields).length > 0
+    const hasPhone = phoneCountryFields(typedFields).length > 0
+    // Wiring per root: the page at start, then each new repeater item.
+    const wires: string[] = ['fgWireTags']
     const hasComposite = hasSlider || hasRange || hasDateList || hasPhone
     function htmlCompositeRuntime(): string {
       const parts: string[] = []
@@ -204,29 +216,35 @@ ${indentBlock(r.itemHtml, 3)}
   var text = document.querySelector('[data-fg-dual-text="' + wrap.getAttribute('data-fg-dual') + '"]')
   if (text) text.textContent = from.value + ' \\u2013 ' + to.value
 }
-Array.prototype.forEach.call(document.querySelectorAll('[data-fg-dual]'), function (wrap) {
-  var from = wrap.querySelector('[data-fg-part="from"]')
-  var to = wrap.querySelector('[data-fg-part="to"]')
-  from.addEventListener('input', function () {
-    if (Number(from.value) > Number(to.value)) from.value = to.value
+function fgWireDual(root) {
+  fgEach(root, '[data-fg-dual]', function (wrap) {
+    var from = wrap.querySelector('[data-fg-part="from"]')
+    var to = wrap.querySelector('[data-fg-part="to"]')
+    from.addEventListener('input', function () {
+      if (Number(from.value) > Number(to.value)) from.value = to.value
+      fgDualPaint(wrap)
+    })
+    to.addEventListener('input', function () {
+      if (Number(to.value) < Number(from.value)) to.value = from.value
+      fgDualPaint(wrap)
+    })
     fgDualPaint(wrap)
   })
-  to.addEventListener('input', function () {
-    if (Number(to.value) < Number(from.value)) to.value = from.value
-    fgDualPaint(wrap)
-  })
-  fgDualPaint(wrap)
-})`)
+}`)
+        wires.push('fgWireDual')
       }
       if (hasRange) {
         parts.push(`function fgRangeMin(from) {
   var to = document.querySelector('[data-fg-path="' + from.getAttribute('data-fg-path') + '"][data-fg-part="to"]')
   if (to) to.min = from.value
 }
-Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="daterange"][data-fg-part="from"]'), function (from) {
-  from.addEventListener('input', function () { fgRangeMin(from) })
-  from.addEventListener('change', function () { fgRangeMin(from) })
-})`)
+function fgWireRange(root) {
+  fgEach(root, '[data-fg-kind="daterange"][data-fg-part="from"]', function (from) {
+    from.addEventListener('input', function () { fgRangeMin(from) })
+    from.addEventListener('change', function () { fgRangeMin(from) })
+  })
+}`)
+        wires.push('fgWireRange')
       }
       if (hasDateList) {
         parts.push(`var fgDates = {}
@@ -244,8 +262,10 @@ function fgPaintDates(path) {
     remove.setAttribute('aria-label', ${jsTemplate(messages.removeDate, { date: 'date' })})
     remove.textContent = '\\u00d7'
     remove.addEventListener('click', function () {
-      fgDates[path].splice(index, 1)
-      fgDatesChanged(path)
+      // The current path (an item's index may have changed since painting).
+      var current = chips.getAttribute('data-fg-dates-chips')
+      fgDates[current].splice(index, 1)
+      fgDatesChanged(current)
     })
     chip.appendChild(remove)
     chips.appendChild(chip)
@@ -257,33 +277,39 @@ function fgDatesChanged(path) {
   validateField(path)
   updateConditions()
 }
-Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="dates"]'), function (wrap) {
-  var path = wrap.getAttribute('data-fg-path')
-  var input = wrap.querySelector('[data-fg-dates-input]')
-  fgDates[path] = []
-  function addDraft() {
-    var date = input.value
-    if (/^\\d{4}-\\d{2}-\\d{2}$/.test(date) && fgDates[path].indexOf(date) === -1) {
-      fgDates[path].push(date)
-      fgDates[path].sort()
+function fgWireDates(root) {
+  fgEach(root, '[data-fg-kind="dates"]', function (wrap) {
+    var input = wrap.querySelector('[data-fg-dates-input]')
+    fgDates[wrap.getAttribute('data-fg-path')] = []
+    function addDraft() {
+      var path = wrap.getAttribute('data-fg-path')
+      var date = input.value
+      if (/^\\d{4}-\\d{2}-\\d{2}$/.test(date) && fgDates[path].indexOf(date) === -1) {
+        fgDates[path].push(date)
+        fgDates[path].sort()
+      }
+      input.value = ''
+      fgDatesChanged(path)
     }
-    input.value = ''
-    fgDatesChanged(path)
-  }
-  wrap.querySelector('[data-fg-dates-add]').addEventListener('click', addDraft)
-  input.addEventListener('keydown', function (event) {
-    if (event.key === 'Enter') { event.preventDefault(); addDraft() }
+    wrap.querySelector('[data-fg-dates-add]').addEventListener('click', addDraft)
+    input.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') { event.preventDefault(); addDraft() }
+    })
   })
-})`)
+}`)
+        wires.push('fgWireDates')
       }
       if (hasPhone) {
         parts.push(`// A new country re-validates the number (its value changes too).
-Array.prototype.forEach.call(document.querySelectorAll('[data-fg-phone-country]'), function (select) {
-  select.addEventListener('change', function () {
-    var path = select.getAttribute('data-fg-phone-country')
-    if (touched[path]) validateField(path)
+function fgWirePhone(root) {
+  fgEach(root, '[data-fg-phone-country]', function (select) {
+    select.addEventListener('change', function () {
+      var path = select.getAttribute('data-fg-phone-country')
+      if (touched[path]) validateField(path)
+    })
   })
-})`)
+}`)
+        wires.push('fgWirePhone')
       }
       return parts.join('\n')
     }
@@ -298,10 +324,8 @@ Array.prototype.forEach.call(document.querySelectorAll('[data-fg-phone-country]'
       ? `    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-reset]'), function (button) {
       button.addEventListener('click', function () {
         form.reset()
-        Object.keys(fgTags).forEach(function (path) {
-          fgTags[path] = []
-          if (fgTagsPaint[path]) fgTagsPaint[path]()
-        })${hasUploads ? `
+        Object.keys(fgTags).forEach(function (path) { fgTags[path] = [] })
+        fgEach(document, '[data-fg-kind="tags"]', function (wrap) { if (wrap.fgPaint) wrap.fgPaint() })${hasUploads ? `
         Object.keys(fgFiles).forEach(function (path) {
           fgFiles[path] = []
           fgPaintFiles(path)
@@ -325,7 +349,9 @@ Array.prototype.forEach.call(document.querySelectorAll('[data-fg-phone-country]'
     // after each pick so the same file can be chosen again).
     function htmlUploadRuntime(): string {
       return `var fgFiles = {}
-var FG_FILE_MULTIPLE = ${JSON.stringify(Object.fromEntries(uploadFields(fields).map((f) => [f.path, fileLimits(f.node).multiple])))}
+// Keyed by template path (items: "crew.cv"); see fgTpl.
+var FG_FILE_MULTIPLE = ${JSON.stringify(Object.fromEntries(uploadFields(typedFields).map((f) => [f.path, fileLimits(f.node).multiple])))}
+${tplHelper(false)}
 function fgFileSize(bytes) {
   return bytes >= 1024 * 1024 ? (bytes / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB'
 }
@@ -360,10 +386,12 @@ function fgPaintFiles(path) {
     remove.textContent = '\\u00d7'
     remove.setAttribute('aria-label', ${JSON.stringify(messages.removeFile)}.split('{name}').join(file.name))
     remove.addEventListener('click', function () {
-      fgFiles[path].splice(index, 1)
-      fgPaintFiles(path)
-      touched[path] = true
-      validateField(path)
+      // The current path (an item's index may have changed since painting).
+      var current = list.getAttribute('data-fg-file-list')
+      fgFiles[current].splice(index, 1)
+      fgPaintFiles(current)
+      touched[current] = true
+      validateField(current)
       updateConditions()
     })
     item.appendChild(name)
@@ -372,21 +400,25 @@ function fgPaintFiles(path) {
     list.appendChild(item)
   })
 }
-Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="files"]'), function (input) {
-  var path = input.getAttribute('data-fg-path')
-  fgFiles[path] = []
-  input.addEventListener('change', function () {
-    var picked = Array.prototype.slice.call(input.files || [])
-    input.value = ''
-    if (picked.length === 0) return
-    fgFiles[path] = FG_FILE_MULTIPLE[path] ? fgFiles[path].concat(picked) : picked.slice(0, 1)
-    fgPaintFiles(path)
-    touched[path] = true
-    validateField(path)
+function fgWireFiles(root) {
+  fgEach(root, '[data-fg-kind="files"]', function (input) {
+    fgFiles[input.getAttribute('data-fg-path')] = []
+    input.addEventListener('change', function () {
+      var path = input.getAttribute('data-fg-path')
+      var picked = Array.prototype.slice.call(input.files || [])
+      input.value = ''
+      if (picked.length === 0) return
+      fgFiles[path] = FG_FILE_MULTIPLE[fgTpl(path)] ? fgFiles[path].concat(picked) : picked.slice(0, 1)
+      fgPaintFiles(path)
+      touched[path] = true
+      validateField(path)
+    })
   })
-})`
+}`
     }
 
+    // Per-path stores re-keyed when items move (see fgRemapItems).
+    const itemStores = ['touched', 'fgTags', ...(hasDateList ? ['fgDates'] : []), ...(hasUploads ? ['fgFiles'] : [])]
     function repeaterRuntime(): string {
       const repeaterMeta = Object.fromEntries(
         repeaters.map((r) => [
@@ -412,7 +444,7 @@ ${repeaters
   )
   .join('\n')}
 }
-var FG_ITEM_VALIDATORS = ${itemValidatorsLiteral(repeaters, accessor, items, () => 'i')}
+var FG_ITEM_VALIDATORS = ${itemValidatorsLiteral(repeaters, accessor, items, () => 'i', messages)}
 var FG_ITEM_CONDITIONS = [
 ${itemConditionTests.map((expr) => `  function (i) { return ${expr} },`).join('\n')}
 ]
@@ -468,19 +500,58 @@ function fgStampIndex(root, path, from, to) {
 function fgRefreshItems(path) {
   var list = fgItemElements(path)
   var meta = FG_REPEATERS[path]
+  // Re-index in two passes (via a unique temporary index), so two items
+  // never share radio group names on the way: that would uncheck an answer.
+  ;['t', ''].forEach(function (pass) {
+    list.forEach(function (item, index) {
+      var current = item.getAttribute('data-fg-index')
+      if (current === String(index)) return
+      fgStampIndex(item, path, current, pass + index)
+      item.setAttribute('data-fg-index', pass + index)
+    })
+  })
   list.forEach(function (item, index) {
-    var current = Number(item.getAttribute('data-fg-index'))
-    if (current !== index) {
-      fgStampIndex(item, path, current, index)
-      item.setAttribute('data-fg-index', String(index))
-    }
     item.querySelector('[data-fg-item-label]').textContent = fgItemLabel(path, index)
     var remove = item.querySelector('[data-fg-remove]')
     remove.setAttribute('aria-label', ${JSON.stringify(messages.removeItemLabel)}.split('{label}').join(fgItemLabel(path, index)))
-    remove.parentNode.hidden = list.length <= meta.min
+    remove.hidden = list.length <= meta.min${
+      repeaters.some((r) => r.node.props['sortable'] === true)
+        ? `
+    var up = item.querySelector('[data-fg-move="up"]')
+    var down = item.querySelector('[data-fg-move="down"]')
+    if (up) {
+      up.hidden = index === 0
+      up.setAttribute('aria-label', ${JSON.stringify(messages.moveItemUp)}.split('{label}').join(fgItemLabel(path, index)))
+    }
+    if (down) {
+      down.hidden = index === list.length - 1
+      down.setAttribute('aria-label', ${JSON.stringify(messages.moveItemDown)}.split('{label}').join(fgItemLabel(path, index)))
+    }`
+        : ''
+    }
+    // The actions row shows while any of its buttons does.
+    remove.parentNode.hidden = !Array.prototype.some.call(remove.parentNode.children, function (b) { return !b.hidden })
   })
   var add = document.querySelector('[data-fg-add="' + path + '"]')
   if (add) add.hidden = meta.max !== null && list.length >= meta.max
+}
+/** Re-keys item paths in a per-path store: to(old index) → new index, or null (gone). */
+function fgRemapKeys(store, path, to) {
+  var prefix = path + '.'
+  var next = {}
+  Object.keys(store).forEach(function (key) {
+    if (key.indexOf(prefix) !== 0) { next[key] = store[key]; return }
+    var rest = key.slice(prefix.length)
+    var n = Number(rest.split('.')[0])
+    var target = to(n)
+    if (target !== null) next[prefix + target + rest.slice(String(n).length)] = store[key]
+  })
+  Object.keys(store).forEach(function (key) { delete store[key] })
+  Object.keys(next).forEach(function (key) { store[key] = next[key] })
+}
+/** Touched state and field values kept outside the DOM follow their item. */
+function fgRemapItems(path, to) {
+  [${itemStores.join(', ')}].forEach(function (store) { fgRemapKeys(store, path, to) })
 }
 function fgAddItem(path, focus) {
   var meta = FG_REPEATERS[path]
@@ -494,7 +565,17 @@ function fgAddItem(path, focus) {
   item.querySelector('[data-fg-remove]').addEventListener('click', function () {
     fgRemoveItem(path, Number(item.getAttribute('data-fg-index')))
   })
+${
+  repeaters.some((r) => r.node.props['sortable'] === true)
+    ? `  Array.prototype.forEach.call(item.querySelectorAll('[data-fg-move]'), function (button) {
+    button.addEventListener('click', function () {
+      fgMoveItem(path, Number(item.getAttribute('data-fg-index')), button.getAttribute('data-fg-move') === 'up' ? -1 : 1)
+    })
+  })`
+    : ''
+}
   list.appendChild(item)
+  fgWire(item)
   fgRefreshItems(path)
   updateConditions()
   if (focus) {
@@ -503,21 +584,33 @@ function fgAddItem(path, focus) {
     fgAnnounce(${JSON.stringify(messages.itemAdded)}.split('{label}').join(fgItemLabel(path, index)))
   }
 }
-function fgRemoveItem(path, index) {
+${
+  repeaters.some((r) => r.node.props['sortable'] === true)
+    ? `/** Swaps an item with its neighbour; focus stays on the moved item. */
+function fgMoveItem(path, index, delta) {
+  var items = fgItemElements(path)
+  var target = index + delta
+  if (target < 0 || target >= items.length) return
+  var label = fgItemLabel(path, index)
+  fgRemapItems(path, function (n) { return n === index ? target : n === target ? index : n })
+  var list = items[index].parentNode
+  if (delta < 0) list.insertBefore(items[index], items[target])
+  else list.insertBefore(items[target], items[index])
+  fgRefreshItems(path)
+  updateConditions()
+  var moved = fgItemElements(path)[target]
+  var same = moved.querySelector('[data-fg-move="' + (delta < 0 ? 'up' : 'down') + '"]')
+  var other = moved.querySelector('[data-fg-move="' + (delta < 0 ? 'down' : 'up') + '"]')
+  ;(same && !same.hidden ? same : other && !other.hidden ? other : moved).focus()
+  fgAnnounce(${JSON.stringify(messages.itemMoved)}.split('{label}').join(label).split('{n}').join(String(target + 1)))
+}
+`
+    : ''
+}function fgRemoveItem(path, index) {
   var items = fgItemElements(path)
   if (items.length <= FG_REPEATERS[path].min) return
   var label = fgItemLabel(path, index)
-  var prefix = path + '.'
-  var moved = {}
-  Object.keys(touched).forEach(function (key) {
-    if (key.indexOf(prefix) !== 0) { moved[key] = true; return }
-    var rest = key.slice(prefix.length)
-    var n = Number(rest.split('.')[0])
-    if (n === index) return
-    moved[n > index ? prefix + (n - 1) + rest.slice(String(n).length) : key] = true
-  })
-  Object.keys(touched).forEach(function (key) { delete touched[key] })
-  Object.keys(moved).forEach(function (key) { touched[key] = true })
+  fgRemapItems(path, function (n) { return n === index ? null : n > index ? n - 1 : n })
   items[index].remove()
   fgRefreshItems(path)
   updateConditions()
@@ -526,20 +619,31 @@ function fgRemoveItem(path, index) {
   var target = remaining[Math.min(index, remaining.length - 1)] || document.querySelector('[data-fg-add="' + path + '"]')
   if (target) target.focus()
   fgAnnounce(${JSON.stringify(messages.itemRemoved)}.split('{label}').join(label))
-}
-Object.keys(FG_REPEATERS).forEach(function (path) {
-  for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
-  document.querySelector('[data-fg-add="' + path + '"]').addEventListener('click', function () { fgAddItem(path, true) })
-})`
+}`
     }
+    // Initial items, created once everything they wire into is defined.
+    const repeaterInit = hasRepeaters
+      ? `    Object.keys(FG_REPEATERS).forEach(function (path) {
+      for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
+      document.querySelector('[data-fg-add="' + path + '"]').addEventListener('click', function () { fgAddItem(path, true) })
+    })
+`
+      : ''
 
+    const uploadRuntime = hasUploads ? htmlUploadRuntime() : ''
+    if (hasUploads) wires.push('fgWireFiles')
+    const compositeRuntime = hasComposite ? htmlCompositeRuntime() : ''
     const script = `  <script>
   (function () {
     'use strict'
     ${RUNTIME_HELPERS.split('\n').join('\n    ')}${hasUploads ? `\n    ${FILE_HELPERS.split('\n').join('\n    ')}` : ''}
 
     var fgTags = {}
-    var fgTagsPaint = {}
+    /** Each element under root (root included) matching selector. */
+    function fgEach(root, selector, fn) {
+      if (root.matches && root.matches(selector)) fn(root)
+      Array.prototype.forEach.call(root.querySelectorAll(selector), fn)
+    }
     function fgControl(path) {
       return document.querySelector('[data-fg-path="' + path + '"]')
     }
@@ -646,14 +750,19 @@ ${indentBlock(repeaterRuntime(), 2)}
 ` : ''}
 
     // Tags (chips) fields: value lives in fgTags, chips are painted into
-    // the [data-fg-tags-chips] span, Enter/comma/blur adds the draft.
-    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="tags"]'), function (wrap) {
-      var path = wrap.getAttribute('data-fg-path')
-      fgTags[path] = []
-      var chips = wrap.querySelector('[data-fg-tags-chips="' + path + '"]')
-      var input = wrap.querySelector('[data-fg-tags-input="' + path + '"]')
+    // the [data-fg-tags-chips] span, Enter/comma/blur adds the draft. The
+    // path is read when used: an item's index changes when items move.
+    function fgWireTags(root) {
+      fgEach(root, '[data-fg-kind="tags"]', fgWireTagsField)
+    }
+    function fgWireTagsField(wrap) {
+      function fieldPath() { return wrap.getAttribute('data-fg-path') }
+      fgTags[fieldPath()] = []
+      var chips = wrap.querySelector('[data-fg-tags-chips]')
+      var input = wrap.querySelector('[data-fg-tags-input]')
       if (!chips || !input) return
       function paint() {
+        var path = fieldPath()
         chips.textContent = ''
         fgTags[path].forEach(function (tag, index) {
           var chip = document.createElement('span')
@@ -665,9 +774,10 @@ ${indentBlock(repeaterRuntime(), 2)}
           remove.setAttribute('aria-label', ${jsTemplate(messages.removeTag, { tag: 'tag' })})
           remove.textContent = '\\u00d7'
           remove.addEventListener('click', function () {
-            fgTags[path].splice(index, 1)
+            var current = fieldPath()
+            fgTags[current].splice(index, 1)
             paint()
-            if (touched[path]) validateField(path)
+            if (touched[current]) validateField(current)
             updateConditions()
           })
           chip.appendChild(remove)
@@ -675,6 +785,7 @@ ${indentBlock(repeaterRuntime(), 2)}
         })
       }
       function addDraft() {
+        var path = fieldPath()
         var draft = input.value.trim()
         if (draft !== '' && fgTags[path].indexOf(draft) === -1) {
           fgTags[path].push(draft)
@@ -684,17 +795,22 @@ ${indentBlock(repeaterRuntime(), 2)}
         if (touched[path]) validateField(path)
         updateConditions()
       }
-      fgTagsPaint[path] = paint
+      wrap.fgPaint = paint
       input.addEventListener('keydown', function (event) {
         if (event.key === 'Enter' || event.key === ',') { event.preventDefault(); addDraft() }
       })
       input.addEventListener('blur', function () {
         addDraft()
-        fgBlurValidate(path)
+        fgBlurValidate(fieldPath())
       })
-    })
+    }
 
-${hasUploads ? indentBlock(htmlUploadRuntime(), 2) + '\n\n' : ''}${hasComposite ? indentBlock(htmlCompositeRuntime(), 2) + '\n\n' : ''}    // Polite aria-live region; cleared first so repeated text re-announces.
+${uploadRuntime ? indentBlock(uploadRuntime, 2) + '\n\n' : ''}${compositeRuntime ? indentBlock(compositeRuntime, 2) + '\n\n' : ''}    function fgWire(root) {
+${wires.map((w) => `      ${w}(root)`).join('\n')}
+    }
+    fgWire(document)
+
+    // Polite aria-live region; cleared first so repeated text re-announces.
     function fgAnnounce(message) {
       var live = document.getElementById('fg-live')
       if (!live) return
@@ -845,7 +961,7 @@ ${resetScript}    form.addEventListener('submit', function (event) {
       console.log('Form submitted', data)
 ${submitBlock}    })
 
-    updateConditions()
+${repeaterInit}    updateConditions()
   })()
   </script>`
 
