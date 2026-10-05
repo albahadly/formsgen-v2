@@ -9,6 +9,7 @@ const icon = (path: string): string =>
 export const emailElement = makeTextLikeElement({
   type: 'email',
   inputType: 'email',
+  affixes: true,
   label: 'Email',
   description: 'Text input expecting an email address',
   icon: icon(
@@ -20,6 +21,7 @@ export const emailElement = makeTextLikeElement({
 export const passwordElement = makeTextLikeElement({
   type: 'password',
   inputType: 'password',
+  affixes: true,
   label: 'Password',
   description: 'Masked text input',
   icon: icon(
@@ -30,6 +32,7 @@ export const passwordElement = makeTextLikeElement({
 export const urlElement = makeTextLikeElement({
   type: 'url',
   inputType: 'url',
+  affixes: true,
   label: 'URL',
   description: 'Text input expecting a web address',
   icon: icon(
@@ -42,6 +45,7 @@ export const phoneElement = withCountrySelect(
   makeTextLikeElement({
     type: 'phone',
     inputType: 'tel',
+    affixes: true,
     label: 'Phone',
     description: 'Text input expecting a phone number',
     icon: icon(
@@ -111,6 +115,7 @@ export const colorElement = makeTextLikeElement({
 export const searchElement = makeTextLikeElement({
   type: 'search',
   inputType: 'search',
+  affixes: true,
   label: 'Search',
   description: 'Search box (clearable text input)',
   icon: icon(

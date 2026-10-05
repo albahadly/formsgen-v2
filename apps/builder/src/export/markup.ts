@@ -11,6 +11,7 @@ import {
   joinPath,
   resolveMessages,
   type ElementNode,
+  type ControlSize,
   type ElementStyle,
   type FormSchema,
   type MessageCatalog,
@@ -121,14 +122,18 @@ export function stepButtonLabels(host: RenderedSectionHost): { back: string; nex
 function withNodeStyle(
   css: CssFrameworkAdapter,
   style: ElementStyle | undefined,
+  fieldSize?: ControlSize,
 ): CssFrameworkAdapter {
-  if (!style || (!style.size && !style.tone && !style.hideLabel)) return css
+  // The field's own size, else the form's; 'md' is plain (no modifier).
+  const chosen = style?.size ?? fieldSize
+  const size = chosen === 'md' ? undefined : chosen
+  if (!size && !style?.tone && !style?.hideLabel) return css
   return {
     ...css,
     classes: (slot, mods) =>
-      slot === 'label' && style.hideLabel
+      slot === 'label' && style?.hideLabel
         ? css.classes('srOnly')
-        : css.classes(slot, { size: style.size, tone: style.tone, ...mods }),
+        : css.classes(slot, { size, tone: style?.tone, ...mods }),
   }
 }
 
@@ -284,7 +289,7 @@ export function renderTree(schema: FormSchema, rootOptions: MarkupOptions): stri
         const path = node.name ? joinPath(parentPath, node.name) : ''
         const key = pathKey(path)
         inner = emitter(node, {
-          css: withNodeStyle(css, node.style),
+          css: withNodeStyle(css, node.style, schema.meta.fieldSize),
           path,
           key,
           id: `fg_${key}`,

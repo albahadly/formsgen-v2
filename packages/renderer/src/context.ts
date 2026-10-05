@@ -1,5 +1,6 @@
 import type { InjectionKey } from 'vue'
 import type { MessageCatalog } from './messages'
+import type { ControlSize } from './schema'
 import type { ItemScope } from './repeater'
 
 /** Injected by <FormsGenForm> into every field/container component. */
@@ -39,6 +40,8 @@ export interface FormContext {
   messages?(): MessageCatalog
   /** The form's locale (meta.locale), e.g. for country names. */
   locale?(): string
+  /** Default control size for every field (meta.fieldSize). */
+  fieldSize?(): ControlSize | undefined
 }
 
 export const FORM_CONTEXT: InjectionKey<FormContext> = Symbol('formsgen-form')

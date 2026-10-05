@@ -7,9 +7,10 @@ import { fileLimits, isFile } from '../../files'
 import { MESSAGES, fill } from '../../messages'
 import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
+import FgFieldLabel from './FgFieldLabel.vue'
 
 const props = defineProps<{ node: ElementNode; path: string }>()
-const { ctx, value, error, label, description, required, fieldId, errorId, describedBy, onBlur, labelClass } =
+const { ctx, value, error, description, fieldId, errorId, describedBy, onBlur } =
   useField(props)
 const messages = computed(() => ctx.messages?.() ?? MESSAGES.en)
 
@@ -60,16 +61,10 @@ function formatSize(bytes: number): string {
     class="fg-field"
     :class="{ 'fg-field--error': error }"
   >
-    <label
-      :class="labelClass"
-      :for="fieldId"
-    >
-      {{ label }}<span
-        v-if="required"
-        class="fg-required"
-        aria-hidden="true"
-      >*</span>
-    </label>
+    <FgFieldLabel
+      :node="node"
+      :for-id="fieldId"
+    />
     <input
       :id="fieldId"
       class="fg-file-input"

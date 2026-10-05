@@ -2,9 +2,10 @@
 import { computed } from 'vue'
 import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
+import FgTip from './FgTip.vue'
 
 const props = defineProps<{ node: ElementNode; path: string }>()
-const { value, error, label, description, fieldId, errorId, describedBy, required, onBlur } =
+const { value, error, label, description, fieldId, tooltip, errorId, describedBy, required, onBlur } =
   useField(props)
 
 /** A toggle is a checkbox drawn as a switch (and announced as one). */
@@ -46,6 +47,11 @@ const checked = computed({
         >*</span>
       </span>
     </label>
+    <FgTip
+      v-if="tooltip"
+      :id="`${fieldId}-tip`"
+      :text="tooltip"
+    />
     <p
       v-if="description"
       class="fg-description"

@@ -3,21 +3,22 @@ import { computed } from 'vue'
 import { TEXT_INPUT_TYPES } from '../../elements'
 import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
+import FgAffix from './FgAffix.vue'
+import FgFieldLabel from './FgFieldLabel.vue'
 
 const props = defineProps<{ node: ElementNode; path: string }>()
 const {
   value,
   error,
-  label,
   description,
   placeholder,
-  required,
   fieldId,
   errorId,
   describedBy,
   onBlur,
-  labelClass,
   sizeClass,
+  prefix,
+  suffix,
 } = useField(props)
 
 const inputType = computed(() => TEXT_INPUT_TYPES[props.node.type] ?? 'text')
@@ -28,6 +29,13 @@ const text = computed({
     value.value = v
   },
 })
+
+const affixDescribedBy = computed(
+  () =>
+    [prefix.value && `${fieldId.value}-prefix`, suffix.value && `${fieldId.value}-suffix`, describedBy.value]
+      .filter(Boolean)
+      .join(' ') || undefined,
+)
 </script>
 
 <template>
@@ -35,28 +43,28 @@ const text = computed({
     class="fg-field"
     :class="{ 'fg-field--error': error }"
   >
-    <label
-      :class="labelClass"
-      :for="fieldId"
-    >
-      {{ label }}<span
-        v-if="required"
-        class="fg-required"
-        aria-hidden="true"
-      >*</span>
-    </label>
-    <input
+    <FgFieldLabel
+      :node="node"
+      :for-id="fieldId"
+    />
+    <FgAffix
       :id="fieldId"
-      v-model="text"
-      class="fg-input"
-      :class="[sizeClass, { 'fg-input--color': inputType === 'color' }]"
-      :type="inputType"
-      :name="node.name"
-      :placeholder="placeholder"
-      :aria-invalid="error ? 'true' : undefined"
-      :aria-describedby="describedBy"
-      @blur="onBlur"
+      :prefix="prefix"
+      :suffix="suffix"
     >
+      <input
+        :id="fieldId"
+        v-model="text"
+        class="fg-input"
+        :class="[sizeClass, { 'fg-input--color': inputType === 'color' }]"
+        :type="inputType"
+        :name="node.name"
+        :placeholder="placeholder"
+        :aria-invalid="error ? 'true' : undefined"
+        :aria-describedby="affixDescribedBy"
+        @blur="onBlur"
+      >
+    </FgAffix>
     <p
       v-if="description"
       class="fg-description"

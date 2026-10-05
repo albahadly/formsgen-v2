@@ -5,9 +5,10 @@ import { computed } from 'vue'
 import { matrixColumns, matrixRows } from '../../matrix'
 import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
+import FgTip from './FgTip.vue'
 
 const props = defineProps<{ node: ElementNode; path: string }>()
-const { value, error, label, description, required, fieldId, errorId, describedBy, onBlur, labelClass } =
+const { value, error, label, description, required, fieldId, tooltip, errorId, describedBy, onBlur, labelClass } =
   useField(props)
 
 const rows = computed(() => matrixRows(props.node))
@@ -25,13 +26,19 @@ const radioId = (ri: number, ci: number): string => (ri === 0 && ci === 0 ? fiel
   <fieldset
     class="fg-field"
     :class="{ 'fg-field--error': error }"
+    :aria-labelledby="tooltip ? `${fieldId}-legend` : undefined"
   >
     <legend :class="labelClass">
-      {{ label }}<span
+      <span :id="`${fieldId}-legend`">{{ label }}</span><span
         v-if="required"
         class="fg-required"
         aria-hidden="true"
       >*</span>
+      <FgTip
+        v-if="tooltip"
+        :id="`${fieldId}-tip`"
+        :text="tooltip"
+      />
     </legend>
     <div class="fg-matrix-scroll">
       <table class="fg-matrix">

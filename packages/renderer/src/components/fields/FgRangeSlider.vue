@@ -7,9 +7,10 @@ import { rangeBounds, rangePercent, rangeSliderDefault } from '../../composite'
 import { MESSAGES } from '../../messages'
 import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
+import FgFieldLabel from './FgFieldLabel.vue'
 
 const props = defineProps<{ node: ElementNode; path: string }>()
-const { ctx, value, error, label, description, required, fieldId, errorId, describedBy, onBlur, labelClass } =
+const { ctx, value, error, label, description, fieldId, errorId, describedBy, onBlur } =
   useField(props)
 
 const messages = computed(() => ctx.messages?.() ?? MESSAGES.en)
@@ -46,17 +47,12 @@ function set(side: 'from' | 'to', event: Event): void {
     class="fg-field"
     :class="{ 'fg-field--error': error }"
   >
-    <label
-      :class="labelClass"
-      :for="fieldId"
+    <FgFieldLabel
+      :node="node"
+      :for-id="fieldId"
     >
-      {{ label }}<span
-        v-if="required"
-        class="fg-required"
-        aria-hidden="true"
-      >*</span>
       <span class="fg-range-value">{{ current.from }} – {{ current.to }}</span>
-    </label>
+    </FgFieldLabel>
     <div class="fg-dual">
       <div class="fg-dual-track">
         <div

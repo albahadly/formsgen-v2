@@ -3,19 +3,17 @@ import { computed } from 'vue'
 import { isVerticalRange } from '../../elements'
 import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
+import FgFieldLabel from './FgFieldLabel.vue'
 
 const props = defineProps<{ node: ElementNode; path: string }>()
 const {
   value,
   error,
-  label,
   description,
-  required,
   fieldId,
   errorId,
   describedBy,
   onBlur,
-  labelClass,
 } = useField(props)
 
 const min = computed(() => Number(props.node.props['min'] ?? 0))
@@ -36,17 +34,12 @@ const current = computed({
     class="fg-field"
     :class="{ 'fg-field--error': error }"
   >
-    <label
-      :class="labelClass"
-      :for="fieldId"
+    <FgFieldLabel
+      :node="node"
+      :for-id="fieldId"
     >
-      {{ label }}<span
-        v-if="required"
-        class="fg-required"
-        aria-hidden="true"
-      >*</span>
       <span class="fg-range-value">{{ current }}</span>
-    </label>
+    </FgFieldLabel>
     <input
       :id="fieldId"
       v-model="current"

@@ -86,6 +86,8 @@ export interface MessageCatalog {
   removeDate: string
   /** Accessible name of a phone field's country-code select. */
   countryCode: string
+  /** Accessible name of a field's help-tooltip button. */
+  moreInfo: string
 }
 
 const en: MessageCatalog = {
@@ -132,6 +134,7 @@ const en: MessageCatalog = {
   addDate: 'Add date',
   removeDate: 'Remove {date}',
   countryCode: 'Country code',
+  moreInfo: 'More information',
 }
 
 const ar: MessageCatalog = {
@@ -181,6 +184,7 @@ const ar: MessageCatalog = {
   addDate: 'إضافة تاريخ',
   removeDate: 'إزالة {date}',
   countryCode: 'رمز الدولة',
+  moreInfo: 'مزيد من المعلومات',
 }
 
 export const MESSAGES: Readonly<Record<'en' | 'ar', MessageCatalog>> = { en, ar }

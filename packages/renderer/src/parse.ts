@@ -73,6 +73,10 @@ export function parseFormSchema(input: unknown): ParseResult {
     if (meta['dir'] !== 'ltr' && meta['dir'] !== 'rtl') {
       errors.push('meta.dir: expected "ltr" or "rtl"')
     }
+    const fieldSize = meta['fieldSize']
+    if (fieldSize !== undefined && !['sm', 'md', 'lg'].includes(fieldSize as string)) {
+      errors.push('meta.fieldSize: expected one of sm, md, lg')
+    }
     const theme = meta['theme']
     if (theme !== undefined) {
       if (!isRecord(theme)) {
@@ -104,7 +108,7 @@ export function parseFormSchema(input: unknown): ParseResult {
 }
 
 const STYLE_ENUMS: Record<string, readonly string[]> = {
-  size: ['sm', 'lg'],
+  size: ['sm', 'md', 'lg'],
   align: ['center', 'end'],
   tone: ['muted', 'primary', 'danger'],
 }

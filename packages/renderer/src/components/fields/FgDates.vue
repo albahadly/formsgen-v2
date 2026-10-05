@@ -6,9 +6,10 @@ import { addDate, removeDateLabel } from '../../composite'
 import { MESSAGES } from '../../messages'
 import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
+import FgFieldLabel from './FgFieldLabel.vue'
 
 const props = defineProps<{ node: ElementNode; path: string }>()
-const { ctx, value, error, label, description, required, fieldId, errorId, describedBy, onBlur, labelClass, sizeClass } =
+const { ctx, value, error, description, fieldId, errorId, describedBy, onBlur, sizeClass } =
   useField(props)
 
 const messages = computed(() => ctx.messages?.() ?? MESSAGES.en)
@@ -32,16 +33,10 @@ function remove(index: number): void {
     class="fg-field"
     :class="{ 'fg-field--error': error }"
   >
-    <label
-      :class="labelClass"
-      :for="fieldId"
-    >
-      {{ label }}<span
-        v-if="required"
-        class="fg-required"
-        aria-hidden="true"
-      >*</span>
-    </label>
+    <FgFieldLabel
+      :node="node"
+      :for-id="fieldId"
+    />
     <div class="fg-pair">
       <input
         :id="fieldId"

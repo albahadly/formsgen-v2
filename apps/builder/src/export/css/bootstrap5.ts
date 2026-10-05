@@ -79,6 +79,8 @@ const CLASSES: Record<Slot, string> = {
   matrixCell: 'text-center',
   matrixRadio: 'form-check-input',
   phoneCountry: 'form-select w-auto flex-shrink-0',
+  affixGroup: 'input-group',
+  affix: 'input-group-text',
 }
 
 // Bootstrap's own size modifiers are designed to be appended.

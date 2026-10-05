@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { choiceDisplay } from '../../elements'
 import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
+import FgTip from './FgTip.vue'
 
 interface Item {
   value: string
@@ -20,6 +21,7 @@ const {
   description,
   required,
   fieldId,
+  tooltip,
   errorId,
   describedBy,
   onBlur,
@@ -43,13 +45,19 @@ const selected = computed({
   <fieldset
     class="fg-field"
     :class="{ 'fg-field--error': error }"
+    :aria-labelledby="tooltip ? `${fieldId}-legend` : undefined"
   >
     <legend :class="labelClass">
-      {{ label }}<span
+      <span :id="`${fieldId}-legend`">{{ label }}</span><span
         v-if="required"
         class="fg-required"
         aria-hidden="true"
       >*</span>
+      <FgTip
+        v-if="tooltip"
+        :id="`${fieldId}-tip`"
+        :text="tooltip"
+      />
     </legend>
     <div
       class="fg-options"

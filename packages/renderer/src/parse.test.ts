@@ -23,7 +23,7 @@ describe('parseFormSchema', () => {
     expect(result.ok).toBe(false)
     if (result.ok) return
     expect(result.errors).toEqual([
-      'tree[0].style.size: expected one of sm, lg',
+      'tree[0].style.size: expected one of sm, md, lg',
       'tree[0].style.align: expected one of center, end',
       'tree[0].style.tone: expected one of muted, primary, danger',
       'tree[0].style.hideLabel: expected a boolean',

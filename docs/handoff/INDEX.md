@@ -31,5 +31,6 @@ Read the latest handoff before starting any phase (Phase Standard, REBUILD_PROMP
 | 24 | Repeatable sections (repeater) in renderer, builder and every export | ✅ Complete | [phase-24-repeatable-sections.md](./phase-24-repeatable-sections.md) |
 | 25 | File & image uploads with multipart submission (all targets) | ✅ Complete | [phase-25-file-uploads.md](./phase-25-file-uploads.md) |
 | 26 | Range slider (two handles), date range, multiple dates, matrix, phone country selector | ✅ Complete | [phase-26-composite-fields.md](./phase-26-composite-fields.md) |
+| 27 | Form polish: tooltips, text add-ons, form-wide field size (27a ✅); per-screen widths, floating labels, starter templates (27b) | 🟡 In progress | [phase-27-form-polish.md](./phase-27-form-polish.md) |
 
 **All 11 planned phases are complete**, plus 10b and 12–26 from the backlog. Remaining backlog: npm publish of `@formsgen/renderer` (parked by user); see the "Not done" list in [phase-16-arabic-messages.md](./phase-16-arabic-messages.md).

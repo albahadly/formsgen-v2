@@ -18,8 +18,10 @@ import {
   vueError,
   vueEvents,
   vueInvalid,
+  affixDescribedBy,
+  affixWrap,
 } from '../emitters/shared'
-import { commonFieldSections, type ElementDefinition } from '../types'
+import { AFFIX_CONTROLS, commonFieldSections, type ElementDefinition } from '../types'
 
 export interface TextLikeConfig {
   type: string
@@ -32,6 +34,8 @@ export interface TextLikeConfig {
   placeholder?: boolean
   /** CSS slot for the control (default 'input'). */
   inputSlot?: 'input' | 'colorInput'
+  /** Offer prefix/suffix add-ons in the panel. */
+  affixes?: boolean
 }
 
 export function makeTextLikeElement(config: TextLikeConfig): ElementDefinition {
@@ -51,13 +55,17 @@ export function makeTextLikeElement(config: TextLikeConfig): ElementDefinition {
             ...section,
             controls: section.controls.filter((c) => !('prop' in c && c.prop === 'placeholder')),
           }))
-        : commonFieldSections(),
+        : commonFieldSections(config.affixes ? AFFIX_CONTROLS : []),
     export: {
       vue: (node, ctx) =>
         fieldWrap(
           [
             labelFor(node, ctx),
-            `<input id="${ctx.id}" v-model="form.${ctx.path}" type="${inputType}" class="${ctx.css.classes(slot)}"${vueInvalid(ctx)}${placeholderAttr(node)}${vueEvents(ctx)}>`,
+            affixWrap(
+              node,
+              ctx,
+              `<input id="${ctx.id}" v-model="form.${ctx.path}" type="${inputType}" class="${ctx.css.classes(slot)}"${vueInvalid(ctx)}${placeholderAttr(node)}${affixDescribedBy(node, ctx)}${vueEvents(ctx)}>`,
+            ),
             descriptionFor(node, ctx),
             vueError(ctx),
           ],
@@ -67,7 +75,11 @@ export function makeTextLikeElement(config: TextLikeConfig): ElementDefinition {
         fieldWrap(
           [
             labelFor(node, ctx),
-            `<input id="${ctx.id}" type="${inputType}" class="${ctx.css.classes(slot)}"${htmlDataAttrs(ctx, 'text')}${placeholderAttr(node)}>`,
+            affixWrap(
+              node,
+              ctx,
+              `<input id="${ctx.id}" type="${inputType}" class="${ctx.css.classes(slot)}"${htmlDataAttrs(ctx, 'text')}${placeholderAttr(node)}${affixDescribedBy(node, ctx)}>`,
+            ),
             descriptionFor(node, ctx),
             htmlError(ctx),
           ],
@@ -77,7 +89,12 @@ export function makeTextLikeElement(config: TextLikeConfig): ElementDefinition {
         reactFieldWrap(
           [
             reactLabelFor(node, ctx),
-            `<input id="${ctx.id}" type="${inputType}" value={form.${ctx.path}} ${reactControlClass(ctx, slot)}${placeholderAttr(node)}${reactEvents(ctx)} />`,
+            affixWrap(
+              node,
+              ctx,
+              `<input id="${ctx.id}" type="${inputType}" value={form.${ctx.path}} ${reactControlClass(ctx, slot)}${placeholderAttr(node)}${affixDescribedBy(node, ctx)}${reactEvents(ctx)} />`,
+              true,
+            ),
             reactDescription(node, ctx),
             reactError(ctx),
           ],
@@ -87,7 +104,11 @@ export function makeTextLikeElement(config: TextLikeConfig): ElementDefinition {
         fieldWrap(
           [
             labelFor(node, ctx),
-            `<InputText id="${ctx.id}" type="${inputType}" @bind-Value="Model.${pascalMember(ctx.key)}" class="${ctx.css.classes(slot)}"${placeholderAttr(node)} />`,
+            affixWrap(
+              node,
+              ctx,
+              `<InputText id="${ctx.id}" type="${inputType}" @bind-Value="Model.${pascalMember(ctx.key)}" class="${ctx.css.classes(slot)}"${placeholderAttr(node)}${affixDescribedBy(node, ctx)} />`,
+            ),
             descriptionFor(node, ctx),
             `<ValidationMessage For="@(() => Model.${pascalMember(ctx.key)})" class="${ctx.css.classes('error')}" />`,
           ],

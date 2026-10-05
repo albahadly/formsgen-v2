@@ -44,6 +44,8 @@ export interface FormMeta {
   submit?: SubmitConfig | undefined
   submitButton?: SubmitButtonConfig | undefined
   theme?: ThemeTokens | undefined
+  /** Default control size for every field ('md' or absent = medium). */
+  fieldSize?: ControlSize | undefined
 }
 
 export type RuleName =
@@ -113,7 +115,8 @@ export interface ElementNode {
   children?: ElementNode[] | undefined
 }
 
-export type ControlSize = 'sm' | 'lg'
+/** 'md' is explicit medium (overrides a form-wide meta.fieldSize). */
+export type ControlSize = 'sm' | 'md' | 'lg'
 export type TextAlign = 'center' | 'end'
 export type TextTone = 'muted' | 'primary' | 'danger'
 

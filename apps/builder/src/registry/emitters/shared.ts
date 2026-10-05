@@ -17,12 +17,72 @@ export const esc = (s: string): string =>
     .replace(/"/g, '&quot;')
     .replace(/@/g, '&#64;')
 
+/** A non-empty string prop, else null (tooltip, prefix, suffix). */
+export function textProp(node: ElementNode, key: string): string | null {
+  const v = node.props[key]
+  return typeof v === 'string' && v.trim() !== '' ? v : null
+}
+
+/**
+ * Help tooltip markup: a "?" button described by the tip text, shown on
+ * hover/focus by framework-neutral CSS (fg-tip*). Empty without a tooltip.
+ */
+export function tipFor(node: ElementNode, ctx: EmitCtx, jsx = false): string {
+  const text = textProp(node, 'tooltip')
+  if (!text) return ''
+  const c = jsx ? 'className' : 'class'
+  return `<span ${c}="fg-tip"><button type="button" ${c}="fg-tip-button" aria-label="${esc(ctx.messages.moreInfo)}" aria-describedby="${ctx.id}_tip">?</button><span role="tooltip" id="${ctx.id}_tip" ${c}="fg-tip-text">${esc(text)}</span></span>`
+}
+
+/** A label, wrapped in a row with the tooltip beside it when there is one. */
+function withTip(label: string, node: ElementNode, ctx: EmitCtx, jsx: boolean): string {
+  const tip = tipFor(node, ctx, jsx)
+  return tip ? `<div ${jsx ? 'className' : 'class'}="fg-label-row">${label}${tip}</div>` : label
+}
+
+/**
+ * A fieldset legend: label text (in an id'd span the fieldset can point to
+ * with aria-labelledby, so a tooltip stays out of the group's name), the
+ * required mark and the tooltip.
+ */
+export function legendFor(node: ElementNode, ctx: EmitCtx, jsx = false): string {
+  const c = jsx ? 'className' : 'class'
+  const text = esc(String(node.props['label'] ?? ''))
+  const req = ctx.required ? `<span ${c}="${ctx.css.classes('required')}" aria-hidden="true">*</span>` : ''
+  const tip = tipFor(node, ctx, jsx)
+  return `<legend ${c}="${ctx.css.classes('label')}">${tip ? `<span id="${ctx.id}_legend">${text}</span>` : text}${req}${tip}</legend>`
+}
+
+/** ` aria-labelledby` for a fieldset whose legend carries a tooltip. */
+export function legendLabelledBy(node: ElementNode, ctx: EmitCtx): string {
+  return textProp(node, 'tooltip') ? ` aria-labelledby="${ctx.id}_legend"` : ''
+}
+
+/** ` aria-describedby` naming the add-ons around a control, or nothing. */
+export function affixDescribedBy(node: ElementNode, ctx: EmitCtx): string {
+  const ids = [textProp(node, 'prefix') && `${ctx.id}_prefix`, textProp(node, 'suffix') && `${ctx.id}_suffix`].filter(Boolean)
+  return ids.length ? ` aria-describedby="${ids.join(' ')}"` : ''
+}
+
+/** The control between its text add-ons ("$", "kg"), or alone without any. */
+export function affixWrap(node: ElementNode, ctx: EmitCtx, control: string, jsx = false): string {
+  const prefix = textProp(node, 'prefix')
+  const suffix = textProp(node, 'suffix')
+  if (!prefix && !suffix) return control
+  const c = jsx ? 'className' : 'class'
+  const affix = (text: string, part: string): string =>
+    `<span id="${ctx.id}_${part}" ${c}="${ctx.css.classes('affix')}">${esc(text)}</span>`
+  return `<div ${c}="${ctx.css.classes('affixGroup')}">\n    ${[prefix && affix(prefix, 'prefix'), control, suffix && affix(suffix, 'suffix')]
+    .filter(Boolean)
+    .join('\n    ')}\n  </div>`
+}
+
 export function labelFor(node: ElementNode, ctx: EmitCtx): string {
   const text = esc(String(node.props['label'] ?? ''))
   const req = ctx.required
     ? `<span class="${ctx.css.classes('required')}" aria-hidden="true">*</span>`
     : ''
-  return `<label class="${ctx.css.classes('label')}" for="${ctx.id}">${text}${req}</label>`
+  return withTip(`<label class="${ctx.css.classes('label')}" for="${ctx.id}">${text}${req}</label>`, node, ctx, false)
 }
 
 export function descriptionFor(node: ElementNode, ctx: EmitCtx): string {
@@ -76,7 +136,7 @@ export function reactLabelFor(node: ElementNode, ctx: EmitCtx): string {
   const req = ctx.required
     ? `<span className="${ctx.css.classes('required')}" aria-hidden="true">*</span>`
     : ''
-  return `<label className="${ctx.css.classes('label')}" htmlFor="${ctx.id}">${text}${req}</label>`
+  return withTip(`<label className="${ctx.css.classes('label')}" htmlFor="${ctx.id}">${text}${req}</label>`, node, ctx, true)
 }
 
 export function reactDescription(node: ElementNode, ctx: EmitCtx): string {

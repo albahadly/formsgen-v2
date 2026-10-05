@@ -35,10 +35,20 @@ export function useField(props: FieldProps) {
   const onBlur = (): void => ctx.touch(props.path)
   /** style.hideLabel keeps the label for screen readers, hides it visually. */
   const labelClass = computed(() => (props.node.style?.hideLabel ? 'fg-sr-only' : 'fg-label'))
-  /** style.size modifier for the field's control (undefined = medium). */
-  const sizeClass = computed(() =>
-    props.node.style?.size ? `fg-control--${props.node.style.size}` : undefined,
-  )
+  /** style.size, else the form's meta.fieldSize ('md' = explicitly medium). */
+  const sizeClass = computed(() => {
+    const size = props.node.style?.size ?? ctx.fieldSize?.()
+    return size && size !== 'md' ? `fg-control--${size}` : undefined
+  })
+  const text = (key: string): string | null => {
+    const v = props.node.props[key]
+    return typeof v === 'string' && v.trim() !== '' ? v : null
+  }
+  /** Help text shown in a tooltip beside the label. */
+  const tooltip = computed(() => text('tooltip'))
+  /** Text add-ons before/after the control (e.g. "$", "kg"). */
+  const prefix = computed(() => text('prefix'))
+  const suffix = computed(() => text('suffix'))
 
   return {
     ctx: ctx as FormContext,
@@ -54,5 +64,8 @@ export function useField(props: FieldProps) {
     onBlur,
     labelClass,
     sizeClass,
+    tooltip,
+    prefix,
+    suffix,
   }
 }

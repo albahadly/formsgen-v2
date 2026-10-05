@@ -3,6 +3,7 @@ import {
   errorsAnnouncement,
   parseFormSchema,
   stepAnnouncement,
+  type ElementNode,
   type FormSchema,
 } from '@formsgen/renderer'
 import { describe, expect, it } from 'vitest'
@@ -23,10 +24,17 @@ const frameworks: CssFrameworkId[] = ['vanilla', 'tailwind', 'bootstrap5']
 const generate = (targetId: string, framework: CssFrameworkId = 'vanilla') =>
   getTarget(targetId)!.generate({ schema: fixture(), css: getCssAdapter(framework) })
 
-/** The fixture without its two-handle slider, whose rules ship as a stylesheet in every framework. */
+/**
+ * The fixture without what ships framework-neutral CSS in every framework
+ * (the two-handle slider, help tooltips).
+ */
 const generateNoSlider = (targetId: string, framework: CssFrameworkId) => {
   const schema = fixture()
-  schema.tree = schema.tree.filter((n) => n.type !== 'rangeslider')
+  const strip = (nodes: ElementNode[]): ElementNode[] =>
+    nodes
+      .filter((n) => n.type !== 'rangeslider')
+      .map((n) => ({ ...n, props: { ...n.props, tooltip: undefined }, children: n.children && strip(n.children) }))
+  schema.tree = strip(schema.tree)
   return getTarget(targetId)!.generate({ schema, css: getCssAdapter(framework) })
 }
 

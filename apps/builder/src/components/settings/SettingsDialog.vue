@@ -47,6 +47,11 @@ const dir = computed({
   set: (v: 'ltr' | 'rtl') => builder.updateMeta({ dir: v }),
 })
 
+const fieldSize = computed({
+  get: () => builder.schema.meta.fieldSize ?? '',
+  set: (v: string) => builder.updateMeta({ fieldSize: v === '' ? undefined : (v as 'sm' | 'lg') }),
+})
+
 const submitUrl = computed({
   get: () => builder.schema.meta.submit?.url ?? '',
   set: (v: string) =>
@@ -189,6 +194,19 @@ function onKeydown(event: KeyboardEvent): void {
             </select>
           </label>
         </div>
+
+        <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
+          {{ t('settings.fieldSize') }}
+          <select
+            v-model="fieldSize"
+            class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal"
+            data-testid="settings-field-size"
+          >
+            <option value="sm">{{ t('properties.appearance.size.sm') }}</option>
+            <option value="">{{ t('properties.appearance.size.md') }}</option>
+            <option value="lg">{{ t('properties.appearance.size.lg') }}</option>
+          </select>
+        </label>
 
         <div class="grid grid-cols-[1fr_auto] gap-3">
           <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">

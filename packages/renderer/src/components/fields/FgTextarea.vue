@@ -2,20 +2,18 @@
 import { computed } from 'vue'
 import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
+import FgFieldLabel from './FgFieldLabel.vue'
 
 const props = defineProps<{ node: ElementNode; path: string }>()
 const {
   value,
   error,
-  label,
   description,
   placeholder,
-  required,
   fieldId,
   errorId,
   describedBy,
   onBlur,
-  labelClass,
   sizeClass,
 } = useField(props)
 
@@ -33,16 +31,10 @@ const rows = computed(() => Number(props.node.props['rows'] ?? 3))
     class="fg-field"
     :class="{ 'fg-field--error': error }"
   >
-    <label
-      :class="labelClass"
-      :for="fieldId"
-    >
-      {{ label }}<span
-        v-if="required"
-        class="fg-required"
-        aria-hidden="true"
-      >*</span>
-    </label>
+    <FgFieldLabel
+      :node="node"
+      :for-id="fieldId"
+    />
     <textarea
       :id="fieldId"
       v-model="text"

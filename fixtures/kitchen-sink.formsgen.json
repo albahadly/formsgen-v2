@@ -46,7 +46,7 @@
       "id": "ks-seats",
       "type": "number",
       "name": "seats",
-      "props": { "label": "Seats", "min": 1, "max": 50 },
+      "props": { "label": "Seats", "min": 1, "max": 50, "suffix": "people", "tooltip": "Including yourself" },
       "validation": [{ "rule": "min", "value": 1 }, { "rule": "max", "value": 50 }]
     },
     {
@@ -95,7 +95,7 @@
           "id": "ks-username",
           "type": "text",
           "name": "username",
-          "props": { "label": "Username" },
+          "props": { "label": "Username", "prefix": "@" },
           "validation": [{ "rule": "required" }, { "rule": "between", "value": [3, 20] }]
         },
         {
@@ -132,6 +132,7 @@
       "name": "plan",
       "props": {
         "label": "Plan",
+        "tooltip": "You can switch plans at any time",
         "items": [
           { "value": "free", "label": "Free" },
           { "value": "pro", "label": "Pro" }
@@ -420,7 +421,7 @@
       "id": "ks-terms",
       "type": "checkbox",
       "name": "terms",
-      "props": { "label": "I accept the terms" },
+      "props": { "label": "I accept the terms", "tooltip": "We never sell your data" },
       "validation": [{ "rule": "required" }]
     },
     {

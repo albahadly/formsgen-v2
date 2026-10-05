@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
+import FgFieldLabel from './FgFieldLabel.vue'
 
 interface Item {
   value: string
@@ -12,14 +13,11 @@ const props = defineProps<{ node: ElementNode; path: string }>()
 const {
   value,
   error,
-  label,
   description,
-  required,
   fieldId,
   errorId,
   describedBy,
   onBlur,
-  labelClass,
   sizeClass,
 } = useField(props)
 
@@ -43,16 +41,10 @@ const size = computed(() => Math.min(Math.max(items.value.length, 2), 6))
     class="fg-field"
     :class="{ 'fg-field--error': error }"
   >
-    <label
-      :class="labelClass"
-      :for="fieldId"
-    >
-      {{ label }}<span
-        v-if="required"
-        class="fg-required"
-        aria-hidden="true"
-      >*</span>
-    </label>
+    <FgFieldLabel
+      :node="node"
+      :for-id="fieldId"
+    />
     <select
       :id="fieldId"
       v-model="picked"

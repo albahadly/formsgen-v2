@@ -63,8 +63,9 @@ function onClassInput(): void {
         data-testid="appearance-size"
         @change="setSize(($event.target as HTMLSelectElement).value)"
       >
+        <option value="">{{ t('properties.appearance.size.default') }}</option>
         <option value="sm">{{ t('properties.appearance.size.sm') }}</option>
-        <option value="">{{ t('properties.appearance.size.md') }}</option>
+        <option value="md">{{ t('properties.appearance.size.md') }}</option>
         <option value="lg">{{ t('properties.appearance.size.lg') }}</option>
       </select>
     </label>

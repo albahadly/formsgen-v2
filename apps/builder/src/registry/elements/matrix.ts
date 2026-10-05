@@ -13,6 +13,8 @@ import {
   reactDescription,
   reactError,
   vueError,
+  legendFor,
+  legendLabelledBy,
 } from '../emitters/shared'
 import { commonFieldSections, type ElementDefinition, type EmitCtx } from '../types'
 import type { Slot } from '@/export/css/types'
@@ -28,10 +30,7 @@ function cls(ctx: EmitCtx, slot: Slot, lang: Lang): string {
 }
 
 function legend(node: ElementNode, ctx: EmitCtx, lang: Lang): string {
-  const req = ctx.required
-    ? `<span ${attr(lang)}="${ctx.css.classes('required')}" aria-hidden="true">*</span>`
-    : ''
-  return `<legend ${attr(lang)}="${ctx.css.classes('label')}">${esc(String(node.props['label'] ?? ''))}${req}</legend>`
+  return legendFor(node, ctx, lang === 'react')
 }
 
 /** The radio for one cell, per target (first cell carries the field id). */
@@ -62,8 +61,8 @@ ${body}
   </div>`
 }
 
-function wrap(parts: string[], ctx: EmitCtx, lang: Lang): string {
-  return `<fieldset ${attr(lang)}="${ctx.css.classes('field')}">\n  ${parts.filter(Boolean).join('\n  ')}\n</fieldset>`
+function wrap(parts: string[], ctx: EmitCtx, lang: Lang, node: ElementNode): string {
+  return `<fieldset ${attr(lang)}="${ctx.css.classes('field')}"${legendLabelledBy(node, ctx)}>\n  ${parts.filter(Boolean).join('\n  ')}\n</fieldset>`
 }
 
 /** A single-quoted JS string literal (for expressions inside double-quoted attributes). */
@@ -117,6 +116,7 @@ export const matrixElement: ElementDefinition = {
         ],
         ctx,
         'vue',
+        node,
       ),
     html: (node, ctx) =>
       wrap(
@@ -134,6 +134,7 @@ export const matrixElement: ElementDefinition = {
         ],
         ctx,
         'html',
+        node,
       ),
     react: (node, ctx) =>
       wrap(
@@ -151,6 +152,7 @@ export const matrixElement: ElementDefinition = {
         ],
         ctx,
         'react',
+        node,
       ),
     blazor: (node, ctx) => {
       const member = pascalMember(ctx.key)
@@ -171,6 +173,7 @@ export const matrixElement: ElementDefinition = {
         ],
         ctx,
         'blazor',
+        node,
       )
     },
   },

@@ -7,9 +7,10 @@ import { composePhone, defaultPhoneCountry, phoneCountries, splitPhone } from '.
 import { MESSAGES } from '../../messages'
 import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
+import FgFieldLabel from './FgFieldLabel.vue'
 
 const props = defineProps<{ node: ElementNode; path: string }>()
-const { ctx, value, error, label, description, placeholder, required, fieldId, errorId, describedBy, onBlur, labelClass, sizeClass } =
+const { ctx, value, error, description, placeholder, fieldId, errorId, describedBy, onBlur, sizeClass } =
   useField(props)
 
 const messages = computed(() => ctx.messages?.() ?? MESSAGES.en)
@@ -47,16 +48,10 @@ function setNumber(event: Event): void {
     class="fg-field"
     :class="{ 'fg-field--error': error }"
   >
-    <label
-      :class="labelClass"
-      :for="fieldId"
-    >
-      {{ label }}<span
-        v-if="required"
-        class="fg-required"
-        aria-hidden="true"
-      >*</span>
-    </label>
+    <FgFieldLabel
+      :node="node"
+      :for-id="fieldId"
+    />
     <div class="fg-pair">
       <select
         class="fg-select fg-phone-country"

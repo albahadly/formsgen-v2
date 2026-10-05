@@ -39,8 +39,11 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         </div>
         <div class="col-12 col-md-12">
           <div class="d-flex flex-column gap-1">
-            <label class="form-label fw-semibold fs-6 mb-0" for="fg_seats">Seats</label>
-            <InputNumber id="fg_seats" @bind-Value="Model.Seats" class="form-control" />
+            <div class="fg-label-row"><label class="form-label fw-semibold fs-6 mb-0" for="fg_seats">Seats</label><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_seats_tip">?</button><span role="tooltip" id="fg_seats_tip" class="fg-tip-text">Including yourself</span></span></div>
+            <div class="input-group">
+              <InputNumber id="fg_seats" @bind-Value="Model.Seats" class="form-control" aria-describedby="fg_seats_suffix" />
+              <span id="fg_seats_suffix" class="input-group-text">people</span>
+            </div>
             <ValidationMessage For="@(() => Model.Seats)" class="invalid-feedback d-block mt-0" />
           </div>
         </div>
@@ -79,7 +82,10 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
               <div class="col-12 col-md-12">
                 <div class="d-flex flex-column gap-1">
                   <label class="form-label fw-semibold fs-6 mb-0" for="fg_account_username">Username<span class="text-danger ms-1" aria-hidden="true">*</span></label>
-                  <InputText id="fg_account_username" @bind-Value="Model.AccountUsername" class="form-control" />
+                  <div class="input-group">
+                    <span id="fg_account_username_prefix" class="input-group-text">&#64;</span>
+                    <InputText id="fg_account_username" @bind-Value="Model.AccountUsername" class="form-control" aria-describedby="fg_account_username_prefix" />
+                  </div>
                   <ValidationMessage For="@(() => Model.AccountUsername)" class="invalid-feedback d-block mt-0" />
                 </div>
               </div>
@@ -132,8 +138,8 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
           </fieldset>
         </div>
         <div class="col-12 col-md-12">
-          <fieldset class="d-flex flex-column gap-1">
-            <legend class="form-label fw-semibold fs-6 mb-0">Plan<span class="text-danger ms-1" aria-hidden="true">*</span></legend>
+          <fieldset class="d-flex flex-column gap-1" aria-labelledby="fg_plan_legend">
+            <legend class="form-label fw-semibold fs-6 mb-0"><span id="fg_plan_legend">Plan</span><span class="text-danger ms-1" aria-hidden="true">*</span><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_plan_tip">?</button><span role="tooltip" id="fg_plan_tip" class="fg-tip-text">You can switch plans at any time</span></span></legend>
             <InputRadioGroup @bind-Value="Model.Plan">
               <div class="d-flex flex-column gap-1">
                 <label class="form-check" for="fg_plan_free">
@@ -764,7 +770,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
           <div class="d-flex flex-column gap-1">
             <div class="form-check">
               <InputCheckbox id="fg_terms" @bind-Value="Model.Terms" class="form-check-input" />
-              <label class="form-check-label" for="fg_terms">I accept the terms<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+              <label class="form-check-label" for="fg_terms">I accept the terms<span class="text-danger ms-1" aria-hidden="true">*</span></label><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_terms_tip">?</button><span role="tooltip" id="fg_terms_tip" class="fg-tip-text">We never sell your data</span></span>
             </div>
             <ValidationMessage For="@(() => Model.Terms)" class="invalid-feedback d-block mt-0" />
           </div>
@@ -1919,8 +1925,11 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         </div>
         <div class="col-span-12 md:col-span-12">
           <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-semibold" for="fg_seats">Seats</label>
-            <InputNumber id="fg_seats" @bind-Value="Model.Seats" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
+            <div class="fg-label-row"><label class="text-sm font-semibold" for="fg_seats">Seats</label><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_seats_tip">?</button><span role="tooltip" id="fg_seats_tip" class="fg-tip-text">Including yourself</span></span></div>
+            <div class="flex [&>:not(:first-child)]:-ms-px [&>:not(:first-child)]:rounded-s-none [&>:not(:last-child)]:rounded-e-none">
+              <InputNumber id="fg_seats" @bind-Value="Model.Seats" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" aria-describedby="fg_seats_suffix" />
+              <span id="fg_seats_suffix" class="inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">people</span>
+            </div>
             <ValidationMessage For="@(() => Model.Seats)" class="text-xs text-red-600" />
           </div>
         </div>
@@ -1959,7 +1968,10 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
               <div class="col-span-12 md:col-span-12">
                 <div class="flex flex-col gap-1.5">
                   <label class="text-sm font-semibold" for="fg_account_username">Username<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-                  <InputText id="fg_account_username" @bind-Value="Model.AccountUsername" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
+                  <div class="flex [&>:not(:first-child)]:-ms-px [&>:not(:first-child)]:rounded-s-none [&>:not(:last-child)]:rounded-e-none">
+                    <span id="fg_account_username_prefix" class="inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">&#64;</span>
+                    <InputText id="fg_account_username" @bind-Value="Model.AccountUsername" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" aria-describedby="fg_account_username_prefix" />
+                  </div>
                   <ValidationMessage For="@(() => Model.AccountUsername)" class="text-xs text-red-600" />
                 </div>
               </div>
@@ -2012,8 +2024,8 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
           </fieldset>
         </div>
         <div class="col-span-12 md:col-span-12">
-          <fieldset class="flex flex-col gap-1.5">
-            <legend class="text-sm font-semibold">Plan<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></legend>
+          <fieldset class="flex flex-col gap-1.5" aria-labelledby="fg_plan_legend">
+            <legend class="text-sm font-semibold"><span id="fg_plan_legend">Plan</span><span class="ms-0.5 text-red-600" aria-hidden="true">*</span><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_plan_tip">?</button><span role="tooltip" id="fg_plan_tip" class="fg-tip-text">You can switch plans at any time</span></span></legend>
             <InputRadioGroup @bind-Value="Model.Plan">
               <div class="flex flex-col gap-1.5">
                 <label class="inline-flex items-center gap-2 text-sm" for="fg_plan_free">
@@ -2652,7 +2664,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
           <div class="flex flex-col gap-1.5">
             <div class="flex items-center gap-2">
               <InputCheckbox id="fg_terms" @bind-Value="Model.Terms" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" />
-              <label class="inline-flex items-center gap-2 text-sm" for="fg_terms">I accept the terms<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+              <label class="inline-flex items-center gap-2 text-sm" for="fg_terms">I accept the terms<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_terms_tip">?</button><span role="tooltip" id="fg_terms_tip" class="fg-tip-text">We never sell your data</span></span>
             </div>
             <ValidationMessage For="@(() => Model.Terms)" class="text-xs text-red-600" />
           </div>
@@ -3807,8 +3819,11 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         </div>
         <div class="fg-cell" style="grid-column: span 12 / span 12">
           <div class="fg-field">
-            <label class="fg-label" for="fg_seats">Seats</label>
-            <InputNumber id="fg_seats" @bind-Value="Model.Seats" class="fg-input" />
+            <div class="fg-label-row"><label class="fg-label" for="fg_seats">Seats</label><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_seats_tip">?</button><span role="tooltip" id="fg_seats_tip" class="fg-tip-text">Including yourself</span></span></div>
+            <div class="fg-affix-group">
+              <InputNumber id="fg_seats" @bind-Value="Model.Seats" class="fg-input" aria-describedby="fg_seats_suffix" />
+              <span id="fg_seats_suffix" class="fg-affix">people</span>
+            </div>
             <ValidationMessage For="@(() => Model.Seats)" class="fg-error" />
           </div>
         </div>
@@ -3847,7 +3862,10 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
               <div class="fg-cell" style="grid-column: span 12 / span 12">
                 <div class="fg-field">
                   <label class="fg-label" for="fg_account_username">Username<span class="fg-required" aria-hidden="true">*</span></label>
-                  <InputText id="fg_account_username" @bind-Value="Model.AccountUsername" class="fg-input" />
+                  <div class="fg-affix-group">
+                    <span id="fg_account_username_prefix" class="fg-affix">&#64;</span>
+                    <InputText id="fg_account_username" @bind-Value="Model.AccountUsername" class="fg-input" aria-describedby="fg_account_username_prefix" />
+                  </div>
                   <ValidationMessage For="@(() => Model.AccountUsername)" class="fg-error" />
                 </div>
               </div>
@@ -3900,8 +3918,8 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
           </fieldset>
         </div>
         <div class="fg-cell" style="grid-column: span 12 / span 12">
-          <fieldset class="fg-field">
-            <legend class="fg-label">Plan<span class="fg-required" aria-hidden="true">*</span></legend>
+          <fieldset class="fg-field" aria-labelledby="fg_plan_legend">
+            <legend class="fg-label"><span id="fg_plan_legend">Plan</span><span class="fg-required" aria-hidden="true">*</span><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_plan_tip">?</button><span role="tooltip" id="fg_plan_tip" class="fg-tip-text">You can switch plans at any time</span></span></legend>
             <InputRadioGroup @bind-Value="Model.Plan">
               <div class="fg-options">
                 <label class="fg-option" for="fg_plan_free">
@@ -4540,7 +4558,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
           <div class="fg-field">
             <div class="fg-checkbox-row">
               <InputCheckbox id="fg_terms" @bind-Value="Model.Terms" class="fg-checkbox" />
-              <label class="fg-checkbox-label" for="fg_terms">I accept the terms<span class="fg-required" aria-hidden="true">*</span></label>
+              <label class="fg-checkbox-label" for="fg_terms">I accept the terms<span class="fg-required" aria-hidden="true">*</span></label><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_terms_tip">?</button><span role="tooltip" id="fg_terms_tip" class="fg-tip-text">We never sell your data</span></span>
             </div>
             <ValidationMessage For="@(() => Model.Terms)" class="fg-error" />
           </div>
@@ -5677,6 +5695,15 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
   .fg-dual input[type='range']:focus-visible { outline: none; }
   .fg-dual input[type='range']:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
   .fg-dual input[type='range']:focus-visible::-moz-range-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+
+  /* Help tooltips */
+  .fg-label-row { display: flex; align-items: center; gap: 0.375rem; }
+  .fg-tip { position: relative; display: inline-flex; vertical-align: middle; margin-inline-start: 0.25rem; }
+  .fg-label-row > .fg-tip { margin-inline-start: 0; }
+  .fg-tip-button { display: inline-flex; align-items: center; justify-content: center; inline-size: 1.125rem; block-size: 1.125rem; padding: 0; font: 600 0.6875rem/1 system-ui, sans-serif; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); background: transparent; border: 1px solid currentColor; border-radius: 50%; cursor: help; }
+  .fg-tip-button:focus-visible { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+  .fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); left: 50%; z-index: 20; inline-size: max-content; max-inline-size: 16rem; padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; transform: translateX(-50%); visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
+  .fg-tip:hover .fg-tip-text, .fg-tip-button:focus + .fg-tip-text { visibility: visible; opacity: 1; }
   </style>
 </head>
 <body>
@@ -5711,8 +5738,11 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       </div>
       <div class="col-12 col-md-12">
         <div class="d-flex flex-column gap-1">
-          <label class="form-label fw-semibold fs-6 mb-0" for="fg_seats">Seats</label>
-          <input id="fg_seats" type="number" class="form-control" data-fg-path="seats" data-fg-kind="number" min="1" max="50">
+          <div class="fg-label-row"><label class="form-label fw-semibold fs-6 mb-0" for="fg_seats">Seats</label><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_seats_tip">?</button><span role="tooltip" id="fg_seats_tip" class="fg-tip-text">Including yourself</span></span></div>
+          <div class="input-group">
+            <input id="fg_seats" type="number" class="form-control" data-fg-path="seats" data-fg-kind="number" min="1" max="50" aria-describedby="fg_seats_suffix">
+            <span id="fg_seats_suffix" class="input-group-text">people</span>
+          </div>
           <p id="fg_err_seats" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
         </div>
       </div>
@@ -5751,7 +5781,10 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
             <div class="col-12 col-md-12">
               <div class="d-flex flex-column gap-1">
                 <label class="form-label fw-semibold fs-6 mb-0" for="fg_account_username">Username<span class="text-danger ms-1" aria-hidden="true">*</span></label>
-                <input id="fg_account_username" type="text" class="form-control" data-fg-path="account.username" data-fg-kind="text">
+                <div class="input-group">
+                  <span id="fg_account_username_prefix" class="input-group-text">&#64;</span>
+                  <input id="fg_account_username" type="text" class="form-control" data-fg-path="account.username" data-fg-kind="text" aria-describedby="fg_account_username_prefix">
+                </div>
                 <p id="fg_err_account_username" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
               </div>
             </div>
@@ -5788,8 +5821,8 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         </fieldset>
       </div>
       <div class="col-12 col-md-12">
-        <fieldset class="d-flex flex-column gap-1">
-          <legend class="form-label fw-semibold fs-6 mb-0">Plan<span class="text-danger ms-1" aria-hidden="true">*</span></legend>
+        <fieldset class="d-flex flex-column gap-1" aria-labelledby="fg_plan_legend">
+          <legend class="form-label fw-semibold fs-6 mb-0"><span id="fg_plan_legend">Plan</span><span class="text-danger ms-1" aria-hidden="true">*</span><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_plan_tip">?</button><span role="tooltip" id="fg_plan_tip" class="fg-tip-text">You can switch plans at any time</span></span></legend>
           <div class="d-flex flex-column gap-1">
             <label class="form-check" for="fg_plan_free">
               <input id="fg_plan_free" type="radio" name="plan" class="form-check-input" value="free" data-fg-path="plan" data-fg-kind="radio">
@@ -6363,7 +6396,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         <div class="d-flex flex-column gap-1">
           <div class="form-check">
             <input id="fg_terms" type="checkbox" class="form-check-input" data-fg-path="terms" data-fg-kind="checkbox">
-            <label class="form-check-label" for="fg_terms">I accept the terms<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+            <label class="form-check-label" for="fg_terms">I accept the terms<span class="text-danger ms-1" aria-hidden="true">*</span></label><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_terms_tip">?</button><span role="tooltip" id="fg_terms_tip" class="fg-tip-text">We never sell your data</span></span>
           </div>
           <p id="fg_err_terms" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
         </div>
@@ -7245,6 +7278,15 @@ exports[`html target > snapshot (tailwind) 1`] = `
   .fg-dual input[type='range']:focus-visible { outline: none; }
   .fg-dual input[type='range']:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
   .fg-dual input[type='range']:focus-visible::-moz-range-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+
+  /* Help tooltips */
+  .fg-label-row { display: flex; align-items: center; gap: 0.375rem; }
+  .fg-tip { position: relative; display: inline-flex; vertical-align: middle; margin-inline-start: 0.25rem; }
+  .fg-label-row > .fg-tip { margin-inline-start: 0; }
+  .fg-tip-button { display: inline-flex; align-items: center; justify-content: center; inline-size: 1.125rem; block-size: 1.125rem; padding: 0; font: 600 0.6875rem/1 system-ui, sans-serif; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); background: transparent; border: 1px solid currentColor; border-radius: 50%; cursor: help; }
+  .fg-tip-button:focus-visible { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+  .fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); left: 50%; z-index: 20; inline-size: max-content; max-inline-size: 16rem; padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; transform: translateX(-50%); visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
+  .fg-tip:hover .fg-tip-text, .fg-tip-button:focus + .fg-tip-text { visibility: visible; opacity: 1; }
   </style>
 </head>
 <body>
@@ -7279,8 +7321,11 @@ exports[`html target > snapshot (tailwind) 1`] = `
       </div>
       <div class="col-span-12 md:col-span-12">
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-semibold" for="fg_seats">Seats</label>
-          <input id="fg_seats" type="number" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="seats" data-fg-kind="number" min="1" max="50">
+          <div class="fg-label-row"><label class="text-sm font-semibold" for="fg_seats">Seats</label><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_seats_tip">?</button><span role="tooltip" id="fg_seats_tip" class="fg-tip-text">Including yourself</span></span></div>
+          <div class="flex [&>:not(:first-child)]:-ms-px [&>:not(:first-child)]:rounded-s-none [&>:not(:last-child)]:rounded-e-none">
+            <input id="fg_seats" type="number" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="seats" data-fg-kind="number" min="1" max="50" aria-describedby="fg_seats_suffix">
+            <span id="fg_seats_suffix" class="inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">people</span>
+          </div>
           <p id="fg_err_seats" class="text-xs text-red-600" role="alert" hidden></p>
         </div>
       </div>
@@ -7319,7 +7364,10 @@ exports[`html target > snapshot (tailwind) 1`] = `
             <div class="col-span-12 md:col-span-12">
               <div class="flex flex-col gap-1.5">
                 <label class="text-sm font-semibold" for="fg_account_username">Username<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-                <input id="fg_account_username" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="account.username" data-fg-kind="text">
+                <div class="flex [&>:not(:first-child)]:-ms-px [&>:not(:first-child)]:rounded-s-none [&>:not(:last-child)]:rounded-e-none">
+                  <span id="fg_account_username_prefix" class="inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">&#64;</span>
+                  <input id="fg_account_username" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="account.username" data-fg-kind="text" aria-describedby="fg_account_username_prefix">
+                </div>
                 <p id="fg_err_account_username" class="text-xs text-red-600" role="alert" hidden></p>
               </div>
             </div>
@@ -7356,8 +7404,8 @@ exports[`html target > snapshot (tailwind) 1`] = `
         </fieldset>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <fieldset class="flex flex-col gap-1.5">
-          <legend class="text-sm font-semibold">Plan<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></legend>
+        <fieldset class="flex flex-col gap-1.5" aria-labelledby="fg_plan_legend">
+          <legend class="text-sm font-semibold"><span id="fg_plan_legend">Plan</span><span class="ms-0.5 text-red-600" aria-hidden="true">*</span><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_plan_tip">?</button><span role="tooltip" id="fg_plan_tip" class="fg-tip-text">You can switch plans at any time</span></span></legend>
           <div class="flex flex-col gap-1.5">
             <label class="inline-flex items-center gap-2 text-sm" for="fg_plan_free">
               <input id="fg_plan_free" type="radio" name="plan" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="free" data-fg-path="plan" data-fg-kind="radio">
@@ -7939,7 +7987,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
         <div class="flex flex-col gap-1.5">
           <div class="flex items-center gap-2">
             <input id="fg_terms" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" data-fg-path="terms" data-fg-kind="checkbox">
-            <label class="inline-flex items-center gap-2 text-sm" for="fg_terms">I accept the terms<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+            <label class="inline-flex items-center gap-2 text-sm" for="fg_terms">I accept the terms<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_terms_tip">?</button><span role="tooltip" id="fg_terms_tip" class="fg-tip-text">We never sell your data</span></span>
           </div>
           <p id="fg_err_terms" class="text-xs text-red-600" role="alert" hidden></p>
         </div>
@@ -8953,6 +9001,20 @@ exports[`html target > snapshot (vanilla) 1`] = `
   .fg-matrix thead th { font-weight: 600; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); }
   .fg-matrix tbody th { text-align: start; font-weight: 500; }
   .fg-matrix tbody tr:nth-child(odd) { background: var(--fg-color-surface, var(--bs-tertiary-bg, #f9fafb)); }
+
+  /* Field add-ons and help tooltips (framework-neutral: exports embed them). */
+  .fg-affix-group { display: flex; align-items: stretch; }
+  .fg-affix-group > input { flex: 1 1 auto; min-inline-size: 0; inline-size: auto; }
+  .fg-affix-group > :not(:first-child) { margin-inline-start: -1px; border-start-start-radius: 0; border-end-start-radius: 0; }
+  .fg-affix-group > :not(:last-child) { border-start-end-radius: 0; border-end-end-radius: 0; }
+  .fg-affix { display: flex; align-items: center; padding-inline: 0.75rem; font-size: 0.875rem; white-space: nowrap; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); background: var(--fg-color-surface, var(--bs-tertiary-bg, #f9fafb)); border: 1px solid var(--fg-color-border, var(--bs-border-color, #d1d5db)); border-radius: var(--fg-radius, 0.375rem); }
+  .fg-label-row { display: flex; align-items: center; gap: 0.375rem; }
+  .fg-tip { position: relative; display: inline-flex; vertical-align: middle; margin-inline-start: 0.25rem; }
+  .fg-label-row > .fg-tip { margin-inline-start: 0; }
+  .fg-tip-button { display: inline-flex; align-items: center; justify-content: center; inline-size: 1.125rem; block-size: 1.125rem; padding: 0; font: 600 0.6875rem/1 system-ui, sans-serif; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); background: transparent; border: 1px solid currentColor; border-radius: 50%; cursor: help; }
+  .fg-tip-button:focus-visible { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+  .fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); left: 50%; z-index: 20; inline-size: max-content; max-inline-size: 16rem; padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; transform: translateX(-50%); visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
+  .fg-tip:hover .fg-tip-text, .fg-tip-button:focus + .fg-tip-text { visibility: visible; opacity: 1; }
   @media (prefers-color-scheme: dark) {
     .fg-form:not([data-fg-theme='light']) {
       --fg-color-bg: #0f172a; --fg-color-surface: #1e293b; --fg-color-text: #e2e8f0;
@@ -8995,8 +9057,11 @@ exports[`html target > snapshot (vanilla) 1`] = `
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
         <div class="fg-field">
-          <label class="fg-label" for="fg_seats">Seats</label>
-          <input id="fg_seats" type="number" class="fg-input" data-fg-path="seats" data-fg-kind="number" min="1" max="50">
+          <div class="fg-label-row"><label class="fg-label" for="fg_seats">Seats</label><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_seats_tip">?</button><span role="tooltip" id="fg_seats_tip" class="fg-tip-text">Including yourself</span></span></div>
+          <div class="fg-affix-group">
+            <input id="fg_seats" type="number" class="fg-input" data-fg-path="seats" data-fg-kind="number" min="1" max="50" aria-describedby="fg_seats_suffix">
+            <span id="fg_seats_suffix" class="fg-affix">people</span>
+          </div>
           <p id="fg_err_seats" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
@@ -9035,7 +9100,10 @@ exports[`html target > snapshot (vanilla) 1`] = `
             <div class="fg-cell" style="grid-column: span 12 / span 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_account_username">Username<span class="fg-required" aria-hidden="true">*</span></label>
-                <input id="fg_account_username" type="text" class="fg-input" data-fg-path="account.username" data-fg-kind="text">
+                <div class="fg-affix-group">
+                  <span id="fg_account_username_prefix" class="fg-affix">&#64;</span>
+                  <input id="fg_account_username" type="text" class="fg-input" data-fg-path="account.username" data-fg-kind="text" aria-describedby="fg_account_username_prefix">
+                </div>
                 <p id="fg_err_account_username" class="fg-error" role="alert" hidden></p>
               </div>
             </div>
@@ -9072,8 +9140,8 @@ exports[`html target > snapshot (vanilla) 1`] = `
         </fieldset>
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
-        <fieldset class="fg-field">
-          <legend class="fg-label">Plan<span class="fg-required" aria-hidden="true">*</span></legend>
+        <fieldset class="fg-field" aria-labelledby="fg_plan_legend">
+          <legend class="fg-label"><span id="fg_plan_legend">Plan</span><span class="fg-required" aria-hidden="true">*</span><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_plan_tip">?</button><span role="tooltip" id="fg_plan_tip" class="fg-tip-text">You can switch plans at any time</span></span></legend>
           <div class="fg-options">
             <label class="fg-option" for="fg_plan_free">
               <input id="fg_plan_free" type="radio" name="plan" class="fg-checkbox" value="free" data-fg-path="plan" data-fg-kind="radio">
@@ -9655,7 +9723,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
         <div class="fg-field">
           <div class="fg-checkbox-row">
             <input id="fg_terms" type="checkbox" class="fg-checkbox" data-fg-path="terms" data-fg-kind="checkbox">
-            <label class="fg-checkbox-label" for="fg_terms">I accept the terms<span class="fg-required" aria-hidden="true">*</span></label>
+            <label class="fg-checkbox-label" for="fg_terms">I accept the terms<span class="fg-required" aria-hidden="true">*</span></label><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_terms_tip">?</button><span role="tooltip" id="fg_terms_tip" class="fg-tip-text">We never sell your data</span></span>
           </div>
           <p id="fg_err_terms" class="fg-error" role="alert" hidden></p>
         </div>
@@ -11279,8 +11347,11 @@ export default function KitchenSinkForm({
         </div>
         <div className="col-12 col-md-12">
           <div className="d-flex flex-column gap-1">
-            <label className="form-label fw-semibold fs-6 mb-0" htmlFor="fg_seats">Seats</label>
-            <input id="fg_seats" type="number" value={form.seats ?? ''} className={errors['seats'] ? "form-control is-invalid" : "form-control"} min="1" max="50" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('seats', e.target.value === '' ? null : Number(e.target.value))} onBlur={() => touch('seats')} />
+            <div className="fg-label-row"><label className="form-label fw-semibold fs-6 mb-0" htmlFor="fg_seats">Seats</label><span className="fg-tip"><button type="button" className="fg-tip-button" aria-label="More information" aria-describedby="fg_seats_tip">?</button><span role="tooltip" id="fg_seats_tip" className="fg-tip-text">Including yourself</span></span></div>
+            <div className="input-group">
+              <input id="fg_seats" type="number" value={form.seats ?? ''} className={errors['seats'] ? "form-control is-invalid" : "form-control"} min="1" max="50" aria-describedby="fg_seats_suffix" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('seats', e.target.value === '' ? null : Number(e.target.value))} onBlur={() => touch('seats')} />
+              <span id="fg_seats_suffix" className="input-group-text">people</span>
+            </div>
             {errors['seats'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['seats']}</p>}
           </div>
         </div>
@@ -11320,7 +11391,10 @@ export default function KitchenSinkForm({
               <div className="col-12 col-md-12">
                 <div className="d-flex flex-column gap-1">
                   <label className="form-label fw-semibold fs-6 mb-0" htmlFor="fg_account_username">Username<span className="text-danger ms-1" aria-hidden="true">*</span></label>
-                  <input id="fg_account_username" type="text" value={form.account.username} className={errors['account.username'] ? "form-control is-invalid" : "form-control"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('account.username', e.target.value)} onBlur={() => touch('account.username')} />
+                  <div className="input-group">
+                    <span id="fg_account_username_prefix" className="input-group-text">&#64;</span>
+                    <input id="fg_account_username" type="text" value={form.account.username} className={errors['account.username'] ? "form-control is-invalid" : "form-control"} aria-describedby="fg_account_username_prefix" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('account.username', e.target.value)} onBlur={() => touch('account.username')} />
+                  </div>
                   {errors['account.username'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['account.username']}</p>}
                 </div>
               </div>
@@ -11369,8 +11443,8 @@ export default function KitchenSinkForm({
         </div>
         <div className="col-12 col-md-12">
           <div className="d-flex flex-column gap-1">
-            <fieldset className="d-flex flex-column gap-1">
-            <legend className="form-label fw-semibold fs-6 mb-0">Plan<span className="text-danger ms-1" aria-hidden="true">*</span></legend>
+            <fieldset className="d-flex flex-column gap-1" aria-labelledby="fg_plan_legend">
+            <legend className="form-label fw-semibold fs-6 mb-0"><span id="fg_plan_legend">Plan</span><span className="text-danger ms-1" aria-hidden="true">*</span><span className="fg-tip"><button type="button" className="fg-tip-button" aria-label="More information" aria-describedby="fg_plan_tip">?</button><span role="tooltip" id="fg_plan_tip" className="fg-tip-text">You can switch plans at any time</span></span></legend>
             <div className="d-flex flex-column gap-1">
               <label className="form-check" htmlFor="fg_plan_free">
                 <input id="fg_plan_free" type="radio" className="form-check-input" checked={form.plan === 'free'} onChange={() => { setField('plan', 'free'); touch('plan') }} />
@@ -11978,7 +12052,7 @@ export default function KitchenSinkForm({
           <div className="d-flex flex-column gap-1">
             <div className="form-check">
               <input id="fg_terms" type="checkbox" checked={form.terms} className="form-check-input" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('terms', e.target.checked); touch('terms') }} />
-              <label className="form-check-label" htmlFor="fg_terms">I accept the terms<span className="text-danger ms-1" aria-hidden="true">*</span></label>
+              <label className="form-check-label" htmlFor="fg_terms">I accept the terms<span className="text-danger ms-1" aria-hidden="true">*</span></label><span className="fg-tip"><button type="button" className="fg-tip-button" aria-label="More information" aria-describedby="fg_terms_tip">?</button><span role="tooltip" id="fg_terms_tip" className="fg-tip-text">We never sell your data</span></span>
             </div>
             {errors['terms'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['terms']}</p>}
           </div>
@@ -12758,8 +12832,11 @@ export default function KitchenSinkForm({
         </div>
         <div className="col-span-12 md:col-span-12">
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold" htmlFor="fg_seats">Seats</label>
-            <input id="fg_seats" type="number" value={form.seats ?? ''} className={errors['seats'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} min="1" max="50" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('seats', e.target.value === '' ? null : Number(e.target.value))} onBlur={() => touch('seats')} />
+            <div className="fg-label-row"><label className="text-sm font-semibold" htmlFor="fg_seats">Seats</label><span className="fg-tip"><button type="button" className="fg-tip-button" aria-label="More information" aria-describedby="fg_seats_tip">?</button><span role="tooltip" id="fg_seats_tip" className="fg-tip-text">Including yourself</span></span></div>
+            <div className="flex [&>:not(:first-child)]:-ms-px [&>:not(:first-child)]:rounded-s-none [&>:not(:last-child)]:rounded-e-none">
+              <input id="fg_seats" type="number" value={form.seats ?? ''} className={errors['seats'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} min="1" max="50" aria-describedby="fg_seats_suffix" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('seats', e.target.value === '' ? null : Number(e.target.value))} onBlur={() => touch('seats')} />
+              <span id="fg_seats_suffix" className="inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">people</span>
+            </div>
             {errors['seats'] && <p className="text-xs text-red-600" role="alert">{errors['seats']}</p>}
           </div>
         </div>
@@ -12799,7 +12876,10 @@ export default function KitchenSinkForm({
               <div className="col-span-12 md:col-span-12">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-sm font-semibold" htmlFor="fg_account_username">Username<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-                  <input id="fg_account_username" type="text" value={form.account.username} className={errors['account.username'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('account.username', e.target.value)} onBlur={() => touch('account.username')} />
+                  <div className="flex [&>:not(:first-child)]:-ms-px [&>:not(:first-child)]:rounded-s-none [&>:not(:last-child)]:rounded-e-none">
+                    <span id="fg_account_username_prefix" className="inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">&#64;</span>
+                    <input id="fg_account_username" type="text" value={form.account.username} className={errors['account.username'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} aria-describedby="fg_account_username_prefix" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('account.username', e.target.value)} onBlur={() => touch('account.username')} />
+                  </div>
                   {errors['account.username'] && <p className="text-xs text-red-600" role="alert">{errors['account.username']}</p>}
                 </div>
               </div>
@@ -12848,8 +12928,8 @@ export default function KitchenSinkForm({
         </div>
         <div className="col-span-12 md:col-span-12">
           <div className="flex flex-col gap-1.5">
-            <fieldset className="flex flex-col gap-1.5">
-            <legend className="text-sm font-semibold">Plan<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></legend>
+            <fieldset className="flex flex-col gap-1.5" aria-labelledby="fg_plan_legend">
+            <legend className="text-sm font-semibold"><span id="fg_plan_legend">Plan</span><span className="ms-0.5 text-red-600" aria-hidden="true">*</span><span className="fg-tip"><button type="button" className="fg-tip-button" aria-label="More information" aria-describedby="fg_plan_tip">?</button><span role="tooltip" id="fg_plan_tip" className="fg-tip-text">You can switch plans at any time</span></span></legend>
             <div className="flex flex-col gap-1.5">
               <label className="inline-flex items-center gap-2 text-sm" htmlFor="fg_plan_free">
                 <input id="fg_plan_free" type="radio" className="h-4 w-4 rounded border-gray-300 accent-indigo-600" checked={form.plan === 'free'} onChange={() => { setField('plan', 'free'); touch('plan') }} />
@@ -13465,7 +13545,7 @@ export default function KitchenSinkForm({
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2">
               <input id="fg_terms" type="checkbox" checked={form.terms} className="h-4 w-4 rounded border-gray-300 accent-indigo-600" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('terms', e.target.checked); touch('terms') }} />
-              <label className="inline-flex items-center gap-2 text-sm" htmlFor="fg_terms">I accept the terms<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+              <label className="inline-flex items-center gap-2 text-sm" htmlFor="fg_terms">I accept the terms<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></label><span className="fg-tip"><button type="button" className="fg-tip-button" aria-label="More information" aria-describedby="fg_terms_tip">?</button><span role="tooltip" id="fg_terms_tip" className="fg-tip-text">We never sell your data</span></span>
             </div>
             {errors['terms'] && <p className="text-xs text-red-600" role="alert">{errors['terms']}</p>}
           </div>
@@ -14245,8 +14325,11 @@ export default function KitchenSinkForm({
         </div>
         <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
           <div className="fg-field">
-            <label className="fg-label" htmlFor="fg_seats">Seats</label>
-            <input id="fg_seats" type="number" value={form.seats ?? ''} className={errors['seats'] ? "fg-input fg-invalid" : "fg-input"} min="1" max="50" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('seats', e.target.value === '' ? null : Number(e.target.value))} onBlur={() => touch('seats')} />
+            <div className="fg-label-row"><label className="fg-label" htmlFor="fg_seats">Seats</label><span className="fg-tip"><button type="button" className="fg-tip-button" aria-label="More information" aria-describedby="fg_seats_tip">?</button><span role="tooltip" id="fg_seats_tip" className="fg-tip-text">Including yourself</span></span></div>
+            <div className="fg-affix-group">
+              <input id="fg_seats" type="number" value={form.seats ?? ''} className={errors['seats'] ? "fg-input fg-invalid" : "fg-input"} min="1" max="50" aria-describedby="fg_seats_suffix" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('seats', e.target.value === '' ? null : Number(e.target.value))} onBlur={() => touch('seats')} />
+              <span id="fg_seats_suffix" className="fg-affix">people</span>
+            </div>
             {errors['seats'] && <p className="fg-error" role="alert">{errors['seats']}</p>}
           </div>
         </div>
@@ -14286,7 +14369,10 @@ export default function KitchenSinkForm({
               <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
                 <div className="fg-field">
                   <label className="fg-label" htmlFor="fg_account_username">Username<span className="fg-required" aria-hidden="true">*</span></label>
-                  <input id="fg_account_username" type="text" value={form.account.username} className={errors['account.username'] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('account.username', e.target.value)} onBlur={() => touch('account.username')} />
+                  <div className="fg-affix-group">
+                    <span id="fg_account_username_prefix" className="fg-affix">&#64;</span>
+                    <input id="fg_account_username" type="text" value={form.account.username} className={errors['account.username'] ? "fg-input fg-invalid" : "fg-input"} aria-describedby="fg_account_username_prefix" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('account.username', e.target.value)} onBlur={() => touch('account.username')} />
+                  </div>
                   {errors['account.username'] && <p className="fg-error" role="alert">{errors['account.username']}</p>}
                 </div>
               </div>
@@ -14335,8 +14421,8 @@ export default function KitchenSinkForm({
         </div>
         <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
           <div className="fg-field">
-            <fieldset className="fg-field">
-            <legend className="fg-label">Plan<span className="fg-required" aria-hidden="true">*</span></legend>
+            <fieldset className="fg-field" aria-labelledby="fg_plan_legend">
+            <legend className="fg-label"><span id="fg_plan_legend">Plan</span><span className="fg-required" aria-hidden="true">*</span><span className="fg-tip"><button type="button" className="fg-tip-button" aria-label="More information" aria-describedby="fg_plan_tip">?</button><span role="tooltip" id="fg_plan_tip" className="fg-tip-text">You can switch plans at any time</span></span></legend>
             <div className="fg-options">
               <label className="fg-option" htmlFor="fg_plan_free">
                 <input id="fg_plan_free" type="radio" className="fg-checkbox" checked={form.plan === 'free'} onChange={() => { setField('plan', 'free'); touch('plan') }} />
@@ -14952,7 +15038,7 @@ export default function KitchenSinkForm({
           <div className="fg-field">
             <div className="fg-checkbox-row">
               <input id="fg_terms" type="checkbox" checked={form.terms} className="fg-checkbox" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('terms', e.target.checked); touch('terms') }} />
-              <label className="fg-checkbox-label" htmlFor="fg_terms">I accept the terms<span className="fg-required" aria-hidden="true">*</span></label>
+              <label className="fg-checkbox-label" htmlFor="fg_terms">I accept the terms<span className="fg-required" aria-hidden="true">*</span></label><span className="fg-tip"><button type="button" className="fg-tip-button" aria-label="More information" aria-describedby="fg_terms_tip">?</button><span role="tooltip" id="fg_terms_tip" className="fg-tip-text">We never sell your data</span></span>
             </div>
             {errors['terms'] && <p className="fg-error" role="alert">{errors['terms']}</p>}
           </div>
@@ -15762,8 +15848,11 @@ async function onSubmit(): Promise<void> {
       </div>
       <div class="col-12 col-md-12">
         <div class="d-flex flex-column gap-1">
-          <label class="form-label fw-semibold fs-6 mb-0" for="fg_seats">Seats</label>
-          <input id="fg_seats" v-model.number="form.seats" type="number" class="form-control" :class="{ 'is-invalid': !!errors['seats'] }" min="1" max="50" @blur="touch('seats')" @input="revalidate('seats')">
+          <div class="fg-label-row"><label class="form-label fw-semibold fs-6 mb-0" for="fg_seats">Seats</label><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_seats_tip">?</button><span role="tooltip" id="fg_seats_tip" class="fg-tip-text">Including yourself</span></span></div>
+          <div class="input-group">
+            <input id="fg_seats" v-model.number="form.seats" type="number" class="form-control" :class="{ 'is-invalid': !!errors['seats'] }" min="1" max="50" aria-describedby="fg_seats_suffix" @blur="touch('seats')" @input="revalidate('seats')">
+            <span id="fg_seats_suffix" class="input-group-text">people</span>
+          </div>
           <p v-if="errors['seats']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['seats'] }}</p>
         </div>
       </div>
@@ -15803,7 +15892,10 @@ async function onSubmit(): Promise<void> {
             <div class="col-12 col-md-12">
               <div class="d-flex flex-column gap-1">
                 <label class="form-label fw-semibold fs-6 mb-0" for="fg_account_username">Username<span class="text-danger ms-1" aria-hidden="true">*</span></label>
-                <input id="fg_account_username" v-model="form.account.username" type="text" class="form-control" :class="{ 'is-invalid': !!errors['account.username'] }" @blur="touch('account.username')" @input="revalidate('account.username')">
+                <div class="input-group">
+                  <span id="fg_account_username_prefix" class="input-group-text">&#64;</span>
+                  <input id="fg_account_username" v-model="form.account.username" type="text" class="form-control" :class="{ 'is-invalid': !!errors['account.username'] }" aria-describedby="fg_account_username_prefix" @blur="touch('account.username')" @input="revalidate('account.username')">
+                </div>
                 <p v-if="errors['account.username']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['account.username'] }}</p>
               </div>
             </div>
@@ -15847,8 +15939,8 @@ async function onSubmit(): Promise<void> {
         </fieldset>
       </div>
       <div class="col-12 col-md-12">
-        <fieldset class="d-flex flex-column gap-1">
-          <legend class="form-label fw-semibold fs-6 mb-0">Plan<span class="text-danger ms-1" aria-hidden="true">*</span></legend>
+        <fieldset class="d-flex flex-column gap-1" aria-labelledby="fg_plan_legend">
+          <legend class="form-label fw-semibold fs-6 mb-0"><span id="fg_plan_legend">Plan</span><span class="text-danger ms-1" aria-hidden="true">*</span><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_plan_tip">?</button><span role="tooltip" id="fg_plan_tip" class="fg-tip-text">You can switch plans at any time</span></span></legend>
           <div class="d-flex flex-column gap-1">
             <label class="form-check" for="fg_plan_free">
               <input id="fg_plan_free" v-model="form.plan" type="radio" class="form-check-input" value="free" @change="touch('plan')">
@@ -16429,7 +16521,7 @@ async function onSubmit(): Promise<void> {
         <div class="d-flex flex-column gap-1">
           <div class="form-check">
             <input id="fg_terms" v-model="form.terms" type="checkbox" class="form-check-input" @change="touch('terms')">
-            <label class="form-check-label" for="fg_terms">I accept the terms<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+            <label class="form-check-label" for="fg_terms">I accept the terms<span class="text-danger ms-1" aria-hidden="true">*</span></label><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_terms_tip">?</button><span role="tooltip" id="fg_terms_tip" class="fg-tip-text">We never sell your data</span></span>
           </div>
           <p v-if="errors['terms']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['terms'] }}</p>
         </div>
@@ -16456,6 +16548,15 @@ async function onSubmit(): Promise<void> {
 .fg-dual input[type='range']:focus-visible { outline: none; }
 .fg-dual input[type='range']:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
 .fg-dual input[type='range']:focus-visible::-moz-range-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+
+/* Help tooltips */
+.fg-label-row { display: flex; align-items: center; gap: 0.375rem; }
+.fg-tip { position: relative; display: inline-flex; vertical-align: middle; margin-inline-start: 0.25rem; }
+.fg-label-row > .fg-tip { margin-inline-start: 0; }
+.fg-tip-button { display: inline-flex; align-items: center; justify-content: center; inline-size: 1.125rem; block-size: 1.125rem; padding: 0; font: 600 0.6875rem/1 system-ui, sans-serif; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); background: transparent; border: 1px solid currentColor; border-radius: 50%; cursor: help; }
+.fg-tip-button:focus-visible { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+.fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); left: 50%; z-index: 20; inline-size: max-content; max-inline-size: 16rem; padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; transform: translateX(-50%); visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
+.fg-tip:hover .fg-tip-text, .fg-tip-button:focus + .fg-tip-text { visibility: visible; opacity: 1; }
 </style>
 "
 `;
@@ -17253,8 +17354,11 @@ async function onSubmit(): Promise<void> {
       </div>
       <div class="col-span-12 md:col-span-12">
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-semibold" for="fg_seats">Seats</label>
-          <input id="fg_seats" v-model.number="form.seats" type="number" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['seats'] }" min="1" max="50" @blur="touch('seats')" @input="revalidate('seats')">
+          <div class="fg-label-row"><label class="text-sm font-semibold" for="fg_seats">Seats</label><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_seats_tip">?</button><span role="tooltip" id="fg_seats_tip" class="fg-tip-text">Including yourself</span></span></div>
+          <div class="flex [&>:not(:first-child)]:-ms-px [&>:not(:first-child)]:rounded-s-none [&>:not(:last-child)]:rounded-e-none">
+            <input id="fg_seats" v-model.number="form.seats" type="number" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['seats'] }" min="1" max="50" aria-describedby="fg_seats_suffix" @blur="touch('seats')" @input="revalidate('seats')">
+            <span id="fg_seats_suffix" class="inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">people</span>
+          </div>
           <p v-if="errors['seats']" class="text-xs text-red-600" role="alert">{{ errors['seats'] }}</p>
         </div>
       </div>
@@ -17294,7 +17398,10 @@ async function onSubmit(): Promise<void> {
             <div class="col-span-12 md:col-span-12">
               <div class="flex flex-col gap-1.5">
                 <label class="text-sm font-semibold" for="fg_account_username">Username<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-                <input id="fg_account_username" v-model="form.account.username" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['account.username'] }" @blur="touch('account.username')" @input="revalidate('account.username')">
+                <div class="flex [&>:not(:first-child)]:-ms-px [&>:not(:first-child)]:rounded-s-none [&>:not(:last-child)]:rounded-e-none">
+                  <span id="fg_account_username_prefix" class="inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">&#64;</span>
+                  <input id="fg_account_username" v-model="form.account.username" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['account.username'] }" aria-describedby="fg_account_username_prefix" @blur="touch('account.username')" @input="revalidate('account.username')">
+                </div>
                 <p v-if="errors['account.username']" class="text-xs text-red-600" role="alert">{{ errors['account.username'] }}</p>
               </div>
             </div>
@@ -17338,8 +17445,8 @@ async function onSubmit(): Promise<void> {
         </fieldset>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <fieldset class="flex flex-col gap-1.5">
-          <legend class="text-sm font-semibold">Plan<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></legend>
+        <fieldset class="flex flex-col gap-1.5" aria-labelledby="fg_plan_legend">
+          <legend class="text-sm font-semibold"><span id="fg_plan_legend">Plan</span><span class="ms-0.5 text-red-600" aria-hidden="true">*</span><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_plan_tip">?</button><span role="tooltip" id="fg_plan_tip" class="fg-tip-text">You can switch plans at any time</span></span></legend>
           <div class="flex flex-col gap-1.5">
             <label class="inline-flex items-center gap-2 text-sm" for="fg_plan_free">
               <input id="fg_plan_free" v-model="form.plan" type="radio" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="free" @change="touch('plan')">
@@ -17928,7 +18035,7 @@ async function onSubmit(): Promise<void> {
         <div class="flex flex-col gap-1.5">
           <div class="flex items-center gap-2">
             <input id="fg_terms" v-model="form.terms" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" @change="touch('terms')">
-            <label class="inline-flex items-center gap-2 text-sm" for="fg_terms">I accept the terms<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+            <label class="inline-flex items-center gap-2 text-sm" for="fg_terms">I accept the terms<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_terms_tip">?</button><span role="tooltip" id="fg_terms_tip" class="fg-tip-text">We never sell your data</span></span>
           </div>
           <p v-if="errors['terms']" class="text-xs text-red-600" role="alert">{{ errors['terms'] }}</p>
         </div>
@@ -17955,6 +18062,15 @@ async function onSubmit(): Promise<void> {
 .fg-dual input[type='range']:focus-visible { outline: none; }
 .fg-dual input[type='range']:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
 .fg-dual input[type='range']:focus-visible::-moz-range-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+
+/* Help tooltips */
+.fg-label-row { display: flex; align-items: center; gap: 0.375rem; }
+.fg-tip { position: relative; display: inline-flex; vertical-align: middle; margin-inline-start: 0.25rem; }
+.fg-label-row > .fg-tip { margin-inline-start: 0; }
+.fg-tip-button { display: inline-flex; align-items: center; justify-content: center; inline-size: 1.125rem; block-size: 1.125rem; padding: 0; font: 600 0.6875rem/1 system-ui, sans-serif; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); background: transparent; border: 1px solid currentColor; border-radius: 50%; cursor: help; }
+.fg-tip-button:focus-visible { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+.fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); left: 50%; z-index: 20; inline-size: max-content; max-inline-size: 16rem; padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; transform: translateX(-50%); visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
+.fg-tip:hover .fg-tip-text, .fg-tip-button:focus + .fg-tip-text { visibility: visible; opacity: 1; }
 </style>
 "
 `;
@@ -18752,8 +18868,11 @@ async function onSubmit(): Promise<void> {
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
         <div class="fg-field">
-          <label class="fg-label" for="fg_seats">Seats</label>
-          <input id="fg_seats" v-model.number="form.seats" type="number" class="fg-input" :class="{ 'fg-invalid': !!errors['seats'] }" min="1" max="50" @blur="touch('seats')" @input="revalidate('seats')">
+          <div class="fg-label-row"><label class="fg-label" for="fg_seats">Seats</label><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_seats_tip">?</button><span role="tooltip" id="fg_seats_tip" class="fg-tip-text">Including yourself</span></span></div>
+          <div class="fg-affix-group">
+            <input id="fg_seats" v-model.number="form.seats" type="number" class="fg-input" :class="{ 'fg-invalid': !!errors['seats'] }" min="1" max="50" aria-describedby="fg_seats_suffix" @blur="touch('seats')" @input="revalidate('seats')">
+            <span id="fg_seats_suffix" class="fg-affix">people</span>
+          </div>
           <p v-if="errors['seats']" class="fg-error" role="alert">{{ errors['seats'] }}</p>
         </div>
       </div>
@@ -18793,7 +18912,10 @@ async function onSubmit(): Promise<void> {
             <div class="fg-cell" style="grid-column: span 12 / span 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_account_username">Username<span class="fg-required" aria-hidden="true">*</span></label>
-                <input id="fg_account_username" v-model="form.account.username" type="text" class="fg-input" :class="{ 'fg-invalid': !!errors['account.username'] }" @blur="touch('account.username')" @input="revalidate('account.username')">
+                <div class="fg-affix-group">
+                  <span id="fg_account_username_prefix" class="fg-affix">&#64;</span>
+                  <input id="fg_account_username" v-model="form.account.username" type="text" class="fg-input" :class="{ 'fg-invalid': !!errors['account.username'] }" aria-describedby="fg_account_username_prefix" @blur="touch('account.username')" @input="revalidate('account.username')">
+                </div>
                 <p v-if="errors['account.username']" class="fg-error" role="alert">{{ errors['account.username'] }}</p>
               </div>
             </div>
@@ -18837,8 +18959,8 @@ async function onSubmit(): Promise<void> {
         </fieldset>
       </div>
       <div class="fg-cell" style="grid-column: span 12 / span 12">
-        <fieldset class="fg-field">
-          <legend class="fg-label">Plan<span class="fg-required" aria-hidden="true">*</span></legend>
+        <fieldset class="fg-field" aria-labelledby="fg_plan_legend">
+          <legend class="fg-label"><span id="fg_plan_legend">Plan</span><span class="fg-required" aria-hidden="true">*</span><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_plan_tip">?</button><span role="tooltip" id="fg_plan_tip" class="fg-tip-text">You can switch plans at any time</span></span></legend>
           <div class="fg-options">
             <label class="fg-option" for="fg_plan_free">
               <input id="fg_plan_free" v-model="form.plan" type="radio" class="fg-checkbox" value="free" @change="touch('plan')">
@@ -19427,7 +19549,7 @@ async function onSubmit(): Promise<void> {
         <div class="fg-field">
           <div class="fg-checkbox-row">
             <input id="fg_terms" v-model="form.terms" type="checkbox" class="fg-checkbox" @change="touch('terms')">
-            <label class="fg-checkbox-label" for="fg_terms">I accept the terms<span class="fg-required" aria-hidden="true">*</span></label>
+            <label class="fg-checkbox-label" for="fg_terms">I accept the terms<span class="fg-required" aria-hidden="true">*</span></label><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_terms_tip">?</button><span role="tooltip" id="fg_terms_tip" class="fg-tip-text">We never sell your data</span></span>
           </div>
           <p v-if="errors['terms']" class="fg-error" role="alert">{{ errors['terms'] }}</p>
         </div>
@@ -19587,6 +19709,20 @@ fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
 .fg-matrix thead th { font-weight: 600; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); }
 .fg-matrix tbody th { text-align: start; font-weight: 500; }
 .fg-matrix tbody tr:nth-child(odd) { background: var(--fg-color-surface, var(--bs-tertiary-bg, #f9fafb)); }
+
+/* Field add-ons and help tooltips (framework-neutral: exports embed them). */
+.fg-affix-group { display: flex; align-items: stretch; }
+.fg-affix-group > input { flex: 1 1 auto; min-inline-size: 0; inline-size: auto; }
+.fg-affix-group > :not(:first-child) { margin-inline-start: -1px; border-start-start-radius: 0; border-end-start-radius: 0; }
+.fg-affix-group > :not(:last-child) { border-start-end-radius: 0; border-end-end-radius: 0; }
+.fg-affix { display: flex; align-items: center; padding-inline: 0.75rem; font-size: 0.875rem; white-space: nowrap; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); background: var(--fg-color-surface, var(--bs-tertiary-bg, #f9fafb)); border: 1px solid var(--fg-color-border, var(--bs-border-color, #d1d5db)); border-radius: var(--fg-radius, 0.375rem); }
+.fg-label-row { display: flex; align-items: center; gap: 0.375rem; }
+.fg-tip { position: relative; display: inline-flex; vertical-align: middle; margin-inline-start: 0.25rem; }
+.fg-label-row > .fg-tip { margin-inline-start: 0; }
+.fg-tip-button { display: inline-flex; align-items: center; justify-content: center; inline-size: 1.125rem; block-size: 1.125rem; padding: 0; font: 600 0.6875rem/1 system-ui, sans-serif; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); background: transparent; border: 1px solid currentColor; border-radius: 50%; cursor: help; }
+.fg-tip-button:focus-visible { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+.fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); left: 50%; z-index: 20; inline-size: max-content; max-inline-size: 16rem; padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; transform: translateX(-50%); visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
+.fg-tip:hover .fg-tip-text, .fg-tip-button:focus + .fg-tip-text { visibility: visible; opacity: 1; }
 @media (prefers-color-scheme: dark) {
   .fg-form:not([data-fg-theme='light']) {
     --fg-color-bg: #0f172a; --fg-color-surface: #1e293b; --fg-color-text: #e2e8f0;

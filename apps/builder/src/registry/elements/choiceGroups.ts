@@ -14,6 +14,7 @@ import {
   reactError,
   reactFieldWrap,
   vueError,
+  legendFor,
 } from '../emitters/shared'
 import type { Slot } from '@/export/css/types'
 import {
@@ -34,12 +35,7 @@ function items(node: ElementNode): Item[] {
 }
 
 function legend(node: ElementNode, ctx: EmitCtx, jsx = false): string {
-  const classAttr = jsx ? 'className' : 'class'
-  const text = esc(String(node.props['label'] ?? ''))
-  const req = ctx.required
-    ? `<span ${classAttr}="${ctx.css.classes('required')}" aria-hidden="true">*</span>`
-    : ''
-  return `<legend ${classAttr}="${ctx.css.classes('label')}">${text}${req}</legend>`
+  return legendFor(node, ctx, jsx)
 }
 
 const defaultItems: Item[] = [
@@ -84,7 +80,9 @@ function optionsMarkup(node: ElementNode, ctx: EmitCtx, lang: EmitterLang, input
 }
 
 function fieldset(parts: string[], classAttr: 'class' | 'className', ctx: EmitCtx): string {
-  return `<fieldset ${classAttr}="${ctx.css.classes('field')}">\n  ${parts
+  // A legend with a tooltip names the group by its text span only.
+  const labelledBy = parts.some((p) => p.includes(`id="${ctx.id}_legend"`)) ? ` aria-labelledby="${ctx.id}_legend"` : ''
+  return `<fieldset ${classAttr}="${ctx.css.classes('field')}"${labelledBy}>\n  ${parts
     .filter(Boolean)
     .map((part) => part.split('\n').join('\n  '))
     .join('\n  ')}\n</fieldset>`

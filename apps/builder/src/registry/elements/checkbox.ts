@@ -9,6 +9,7 @@ import {
   reactError,
   reactFieldWrap,
   vueError,
+  tipFor,
 } from '../emitters/shared'
 import { commonFieldSections, type ElementDefinition, type EmitCtx } from '../types'
 import type { ElementNode } from '@formsgen/renderer'
@@ -20,7 +21,7 @@ function checkboxLabel(node: ElementNode, ctx: EmitCtx, jsx = false): string {
   const req = ctx.required
     ? `<span ${classAttr}="${ctx.css.classes('required')}" aria-hidden="true">*</span>`
     : ''
-  return `<label ${classAttr}="${ctx.css.classes('checkboxLabel')}" ${forAttr}="${ctx.id}">${text}${req}</label>`
+  return `<label ${classAttr}="${ctx.css.classes('checkboxLabel')}" ${forAttr}="${ctx.id}">${text}${req}</label>${tipFor(node, ctx, jsx)}`
 }
 
 interface CheckboxLikeConfig {

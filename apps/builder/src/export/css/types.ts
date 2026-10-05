@@ -88,6 +88,9 @@ export type Slot =
   | 'matrixRadio'
   /** Phone field's country-code select (beside the number input). */
   | 'phoneCountry'
+  /** Text add-ons around a control (prefix/suffix) and their row. */
+  | 'affixGroup'
+  | 'affix'
 
 export interface CellAttrs {
   class: string
@@ -101,7 +104,8 @@ export interface CellAttrs {
  * conflicting utilities are never stacked on one element.
  */
 export interface SlotMods {
-  size?: ControlSize | undefined
+  /** Medium ('md') is the absence of a size modifier. */
+  size?: Exclude<ControlSize, 'md'> | undefined
   tone?: TextTone | undefined
 }
 

@@ -79,6 +79,8 @@ const CLASSES: Record<Slot, string> = {
   matrixCell: '',
   matrixRadio: '',
   phoneCountry: 'fg-select fg-phone-country',
+  affixGroup: 'fg-affix-group',
+  affix: 'fg-affix',
 }
 
 /** Mirrors packages/renderer/src/styles.css for self-contained artifacts. */

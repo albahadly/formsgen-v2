@@ -14,8 +14,10 @@ import {
   vueError,
   vueEvents,
   vueInvalid,
+  affixDescribedBy,
+  affixWrap,
 } from '../emitters/shared'
-import { commonFieldSections, type ElementDefinition } from '../types'
+import { AFFIX_CONTROLS, commonFieldSections, type ElementDefinition } from '../types'
 import { isVerticalRange, type ElementNode } from '@formsgen/renderer'
 
 function rangeAttrs(node: ElementNode): string {
@@ -36,6 +38,7 @@ export const numberElement: ElementDefinition = {
   hasValue: true,
   defaultProps: { label: 'Number', placeholder: '' },
   propertyPanel: commonFieldSections([
+    ...AFFIX_CONTROLS,
     { kind: 'number', prop: 'min', label: 'Min (input attribute)' },
     { kind: 'number', prop: 'max', label: 'Max (input attribute)' },
     { kind: 'number', prop: 'step', label: 'Step' },
@@ -45,7 +48,11 @@ export const numberElement: ElementDefinition = {
       fieldWrap(
         [
           labelFor(node, ctx),
-          `<input id="${ctx.id}" v-model.number="form.${ctx.path}" type="number" class="${ctx.css.classes('input')}"${vueInvalid(ctx)}${rangeAttrs(node)}${placeholderAttr(node)}${vueEvents(ctx)}>`,
+          affixWrap(
+            node,
+            ctx,
+            `<input id="${ctx.id}" v-model.number="form.${ctx.path}" type="number" class="${ctx.css.classes('input')}"${vueInvalid(ctx)}${rangeAttrs(node)}${placeholderAttr(node)}${affixDescribedBy(node, ctx)}${vueEvents(ctx)}>`,
+          ),
           descriptionFor(node, ctx),
           vueError(ctx),
         ],
@@ -55,7 +62,11 @@ export const numberElement: ElementDefinition = {
       fieldWrap(
         [
           labelFor(node, ctx),
-          `<input id="${ctx.id}" type="number" class="${ctx.css.classes('input')}"${htmlDataAttrs(ctx, 'number')}${rangeAttrs(node)}${placeholderAttr(node)}>`,
+          affixWrap(
+            node,
+            ctx,
+            `<input id="${ctx.id}" type="number" class="${ctx.css.classes('input')}"${htmlDataAttrs(ctx, 'number')}${rangeAttrs(node)}${placeholderAttr(node)}${affixDescribedBy(node, ctx)}>`,
+          ),
           descriptionFor(node, ctx),
           htmlError(ctx),
         ],
@@ -65,7 +76,12 @@ export const numberElement: ElementDefinition = {
       reactFieldWrap(
         [
           reactLabelFor(node, ctx),
-          `<input id="${ctx.id}" type="number" value={form.${ctx.path} ?? ''} ${reactControlClass(ctx, 'input')}${rangeAttrs(node)}${placeholderAttr(node)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('${ctx.path}', e.target.value === '' ? null : Number(e.target.value))} onBlur={() => touch('${ctx.path}')} />`,
+          affixWrap(
+            node,
+            ctx,
+            `<input id="${ctx.id}" type="number" value={form.${ctx.path} ?? ''} ${reactControlClass(ctx, 'input')}${rangeAttrs(node)}${placeholderAttr(node)}${affixDescribedBy(node, ctx)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('${ctx.path}', e.target.value === '' ? null : Number(e.target.value))} onBlur={() => touch('${ctx.path}')} />`,
+            true,
+          ),
           reactDescription(node, ctx),
           reactError(ctx),
         ],
@@ -75,7 +91,11 @@ export const numberElement: ElementDefinition = {
       fieldWrap(
         [
           labelFor(node, ctx),
-          `<InputNumber id="${ctx.id}" @bind-Value="Model.${pascalMember(ctx.key)}" class="${ctx.css.classes('input')}"${placeholderAttr(node)} />`,
+          affixWrap(
+            node,
+            ctx,
+            `<InputNumber id="${ctx.id}" @bind-Value="Model.${pascalMember(ctx.key)}" class="${ctx.css.classes('input')}"${placeholderAttr(node)}${affixDescribedBy(node, ctx)} />`,
+          ),
           descriptionFor(node, ctx),
           `<ValidationMessage For="@(() => Model.${pascalMember(ctx.key)})" class="${ctx.css.classes('error')}" />`,
         ],

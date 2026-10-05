@@ -79,6 +79,12 @@ export interface ElementDefinition {
   export?: Partial<Record<EmitterLang, ElementEmitter>>
 }
 
+/** Text add-ons around a control (text-likes, number). */
+export const AFFIX_CONTROLS: PanelControl[] = [
+  { kind: 'text', prop: 'prefix', label: 'Text before the field (e.g. $)' },
+  { kind: 'text', prop: 'suffix', label: 'Text after the field (e.g. kg)' },
+]
+
 /** Shared panel sections for value-bearing field elements. */
 /** One appearance option in the panel (maps to an ElementStyle key). */
 export type AppearanceFeature = 'size' | 'hideLabel' | 'align' | 'tone' | 'className'
@@ -101,6 +107,7 @@ export function commonFieldSections(
         { kind: 'text', prop: 'label', label: 'Label' },
         { kind: 'text', prop: 'placeholder', label: 'Placeholder' },
         { kind: 'text', prop: 'description', label: 'Description' },
+        { kind: 'text', prop: 'tooltip', label: 'Help tooltip' },
         ...extra,
       ],
     },
