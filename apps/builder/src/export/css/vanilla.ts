@@ -71,6 +71,7 @@ const CLASSES: Record<Slot, string> = {
   pair: 'fg-pair',
   chipList: 'fg-chips',
   pairButton: 'fg-button fg-button--secondary fg-pair-button',
+  pairSeparator: '',
   matrixWrap: 'fg-matrix-scroll',
   matrix: 'fg-matrix',
   matrixColHead: '',

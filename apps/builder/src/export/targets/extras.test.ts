@@ -149,3 +149,45 @@ describe('column widths per screen size', () => {
     expect(out('react', s)).toContain("style={{ '--fg-span': '6', '--fg-span-sm': '6', '--fg-span-lg': '4' } as React.CSSProperties}")
   })
 })
+
+describe('found by the examples (strict compiles)', () => {
+  it('"contains" on a list goes through fgContains, so typed targets never narrow it to never', () => {
+    const extras: ElementNode = {
+      id: 'e',
+      type: 'checkboxgroup',
+      name: 'extras',
+      props: { label: 'Extras', items: [{ value: 'airport', label: 'Airport' }] },
+    }
+    const flight: ElementNode = {
+      id: 'f',
+      type: 'text',
+      name: 'flight',
+      props: { label: 'Flight' },
+      conditions: [[{ field: 'extras', operator: 'contains', value: 'airport' }]],
+    }
+    const s = schema([extras, flight])
+    for (const target of ['react', 'vue-standalone']) {
+      const code = out(target, s)
+      expect(code, target).toMatch(/fgContains\((data|form)\.extras, "airport"\)/)
+      expect(code, target).toContain('function fgContains(v: unknown, x: unknown): boolean {')
+      expect(code, target).not.toMatch(/typeof (data|form)\.extras === /)
+    }
+    // unused, it is pruned from typed exports
+    expect(out('react', schema([extras]))).not.toContain('fgContains')
+  })
+
+  it('blazor emits no empty switch when repeater items have no rules', () => {
+    const repeater: ElementNode = {
+      id: 'r',
+      type: 'repeater',
+      name: 'jobs',
+      props: { label: 'Jobs' },
+      children: [{ id: 'c', type: 'text', name: 'company', props: { label: 'Company' } }],
+    }
+    const razor = out('blazor', schema([repeater]))
+    expect(razor).toContain('private string? FgItemError(object model, string name)')
+    expect(razor).not.toMatch(/switch \((model|name)\)\s*\{\s*\}/)
+    const withRule = out('blazor', schema([{ ...repeater, children: [{ ...repeater.children![0]!, validation: [{ rule: 'required' }] }] }]))
+    expect(withRule).toContain('case FgJobsItem item:')
+  })
+})

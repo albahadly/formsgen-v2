@@ -133,7 +133,11 @@ export const rangeSliderElement: ElementDefinition = {
 
 // -------------------------------------------------------------- date range
 
-const SEPARATOR = '<span aria-hidden="true">–</span>'
+/** The dash between the two dates (an input-group text in Bootstrap). */
+function separator(ctx: EmitCtx, attr: 'class' | 'className' = 'class'): string {
+  const cls = ctx.css.classes('pairSeparator')
+  return `<span${cls ? ` ${attr}="${cls}"` : ''} aria-hidden="true">–</span>`
+}
 
 export const dateRangeElement: ElementDefinition = {
   type: 'daterange',
@@ -152,7 +156,7 @@ export const dateRangeElement: ElementDefinition = {
       return fieldWrap(
         [
           labelFor(node, ctx),
-          `<div class="${ctx.css.classes('pair')}">\n    ${input('from', ctx.id, partLabel(node, ctx.messages.dateFrom))}\n    ${SEPARATOR}\n    ${input('to', `${ctx.id}_to`, partLabel(node, ctx.messages.dateTo), ` :min="${v}.from || undefined"`)}\n  </div>`,
+          `<div class="${ctx.css.classes('pair')}">\n    ${input('from', ctx.id, partLabel(node, ctx.messages.dateFrom))}\n    ${separator(ctx)}\n    ${input('to', `${ctx.id}_to`, partLabel(node, ctx.messages.dateTo), ` :min="${v}.from || undefined"`)}\n  </div>`,
           descriptionFor(node, ctx),
           vueError(ctx),
         ],
@@ -165,7 +169,7 @@ export const dateRangeElement: ElementDefinition = {
       return fieldWrap(
         [
           labelFor(node, ctx),
-          `<div class="${ctx.css.classes('pair')}">\n    ${input('from', ctx.id, partLabel(node, ctx.messages.dateFrom))}\n    ${SEPARATOR}\n    ${input('to', `${ctx.id}_to`, partLabel(node, ctx.messages.dateTo))}\n  </div>`,
+          `<div class="${ctx.css.classes('pair')}">\n    ${input('from', ctx.id, partLabel(node, ctx.messages.dateFrom))}\n    ${separator(ctx)}\n    ${input('to', `${ctx.id}_to`, partLabel(node, ctx.messages.dateTo))}\n  </div>`,
           descriptionFor(node, ctx),
           htmlError(ctx),
         ],
@@ -179,7 +183,7 @@ export const dateRangeElement: ElementDefinition = {
       return reactFieldWrap(
         [
           reactLabelFor(node, ctx),
-          `<div className="${ctx.css.classes('pair')}">\n    ${input('from', ctx.id, partLabel(node, ctx.messages.dateFrom))}\n    ${SEPARATOR}\n    ${input('to', `${ctx.id}_to`, partLabel(node, ctx.messages.dateTo), ` min={${v}.from || undefined}`)}\n  </div>`,
+          `<div className="${ctx.css.classes('pair')}">\n    ${input('from', ctx.id, partLabel(node, ctx.messages.dateFrom))}\n    ${separator(ctx, 'className')}\n    ${input('to', `${ctx.id}_to`, partLabel(node, ctx.messages.dateTo), ` min={${v}.from || undefined}`)}\n  </div>`,
           reactDescription(node, ctx),
           reactError(ctx),
         ],
@@ -195,7 +199,7 @@ export const dateRangeElement: ElementDefinition = {
       return fieldWrap(
         [
           labelFor(node, ctx),
-          `<div class="${ctx.css.classes('pair')}">\n    ${input('From', ctx.id, partLabel(node, ctx.messages.dateFrom))}\n    ${SEPARATOR}\n    ${input('To', `${ctx.id}_to`, partLabel(node, ctx.messages.dateTo), ` min="@${m}.From"`)}\n  </div>`,
+          `<div class="${ctx.css.classes('pair')}">\n    ${input('From', ctx.id, partLabel(node, ctx.messages.dateFrom))}\n    ${separator(ctx)}\n    ${input('To', `${ctx.id}_to`, partLabel(node, ctx.messages.dateTo), ` min="@${m}.From"`)}\n  </div>`,
           descriptionFor(node, ctx),
           blazorValidationMessage(ctx),
         ],

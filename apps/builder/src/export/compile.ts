@@ -33,6 +33,11 @@ function fgSize(${v})${ret('number | null')} {
   if (typeof v === 'string') return v.length
   if (Array.isArray(v)) return v.length
   return null
+}
+// The "contains" condition: a substring of text, or an item of a list.
+function fgContains(${v}, ${ts ? 'x: unknown' : 'x'})${ret('boolean')} {
+  if (typeof v === 'string') return v.includes(String(x))
+  return Array.isArray(v) && v.includes(x)
 }`
 }
 
@@ -164,7 +169,7 @@ function conditionExpr(condition: Condition, accessor: ValueAccessor): string {
     case 'not-equals':
       return `${value} !== ${js(condition.value ?? null)}`
     case 'contains':
-      return `(typeof ${value} === 'string' ? ${value}.includes(${js(String(condition.value))}) : Array.isArray(${value}) ? ${value}.includes(${js(condition.value ?? null)}) : false)`
+      return `fgContains(${value}, ${js(condition.value ?? null)})`
     case 'empty':
       return `fgIsBlank(${value})`
     case 'not-empty':

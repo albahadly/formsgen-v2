@@ -6,6 +6,7 @@ Complete — 2026-10-05.
 
 - **27a:** help tooltips, text add-ons (prefix/suffix), a form-wide field size. Commit: feat(phase-27a).
 - **27b:** column widths per screen size, floating labels, starter templates. Commit: feat(phase-27b).
+- **27c:** an examples gallery (dropdown + live preview) whose six examples use every element type; fixes the examples turned up. Commit: feat(phase-27c).
 
 Still parked: npm publish.
 
@@ -148,4 +149,61 @@ It ended with a submit.
 - A key handler so Escape dismisses a tooltip.
 - Floating labels for textarea and date-like inputs.
 - Per-screen widths in the editor canvas: today only Preview shows the layout.
-- More templates.
+- ~~More templates.~~ Done in 27c.
+
+## 27c — Examples gallery
+
+The user asked for a dropdown to pick an example and see how it looks, with the examples covering all elements.
+
+### The dialog (toolbar → Examples)
+
+The Templates button is now **Examples** (أمثلة). The dialog has:
+- an **Example** dropdown;
+- the chosen example's description;
+- a **live preview** (the real renderer, so it can be filled in and tried);
+- **Use this example**, which loads it as before: it asks first when the form has elements, and resets undo history.
+
+Previewing never changes the current form.
+
+### Six examples, every element type
+
+| Example | Adds (besides common fields) |
+|---|---|
+| Contact form | heading, paragraph, phone with country, select, textarea, checkbox with a tooltip |
+| Registration | steps/step wizard, password + same-as, date, radio blocks, toggle |
+| Feedback survey | matrix, range slider (0–10), button-style checkboxes, a conditional email |
+| **Job application** (new) | columns, url, number with a suffix, tags, repeater (company, role, month), file upload, multiple dates, hidden, divider, link |
+| **Hotel booking** (new) | image, date range, time, number, radio blocks, two-handle range, button checkboxes with a "contains" condition, group, quote |
+| **Account settings** (new) | tabs/tab, image upload, color, toggle, multiselect, week, search, datetime, reset button |
+
+A test checks that, in both English and Arabic, every element in the registry appears in at least one example. A new element type without an example fails `pnpm verify`.
+
+The hotel photo is `https://picsum.photos/id/887/720/240`, a fixed photo of a building. It needs network access in the browser.
+
+### Fixes the examples turned up
+
+Strict compiles, and a 375px smoke test of every example in every framework, found these:
+
+| Problem | Fix |
+|---|---|
+| A **"contains" condition on a list** (checkbox group) failed React `tsc` / `vue-tsc`: `typeof x === 'string'` narrowed `string[]` to `never`. | A typed `fgContains(v: unknown, x: unknown)` runtime helper, pruned when unused. |
+| **Blazor:** a repeater whose item fields have no rules emitted an empty `switch` (warning CS1522). | `FgItemError` only has cases for repeaters with item rules. |
+| **Phone country select** overflowed a half-width column: a long name ("United States Minor Outlying Islands") sets the select's minimum width. | Vanilla: select `flex: 0 1 45%` and the paired input may shrink (`min-inline-size: 0`). Tailwind: `min-w-0 max-w-[45%]`. Bootstrap: an input group with a half-width select. |
+| **Bootstrap date range** pushed the end date off a 375px screen. | Bootstrap pairs (date range, phone, multiple dates) are now `input-group`s, with the dash as `input-group-text`. This adds a new slot, `pairSeparator`. Tailwind pairs get `[&>*]:min-w-0`. |
+| A **hidden tooltip bubble** near the right edge widened the page on phones (sideways scroll). | The bubble anchors to the start of the row holding the tip (`:has(> .fg-tip)`) and is at most `min(16rem, 100vw − 2rem)` wide. |
+
+### Verification (27c)
+
+- **`pnpm verify`** passes: 381 tests (129 renderer / 252 builder).
+- **Strict compiles** of every example (en and ar) plus the kitchen sink, 13 forms × 3 frameworks:
+
+  | Check | Result |
+  |---|---|
+  | React `tsc` | 0 errors |
+  | `vue-tsc` | 0 errors |
+  | .NET 8 | 0 warnings / 0 errors |
+- **Smoke test** of the HTML exports (6 examples × 3 frameworks × en/ar) at 375px: no sideways scroll, no script errors, and an empty submit shows errors.
+- **Phone row** at 375, 820 and 1280px in all frameworks: the select and number share one row and stay inside the cell.
+- **12-runtime checks** for the date range, multiple dates, matrix, phone and tooltips were re-run with the new markup: all 12 runtimes identical.
+- **Builder:** dropdown, preview and loading checked in English and Arabic; no console errors.
+

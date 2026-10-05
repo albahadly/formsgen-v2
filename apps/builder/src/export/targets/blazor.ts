@@ -66,6 +66,8 @@ export const blazorTarget: ExportTarget = {
     const messages = resolveMessages(schema.meta.locale)
     const accessor = (path: string): string => `Model.${pascalMember(pathKey(path))}`
     const repeaters = collectExportRepeaters(schema)
+    // Repeaters with item rules (FgItemError has a case only for these).
+    const validatedRepeaters = repeaters.filter((r) => r.fields.some((f) => (f.node.validation?.length ?? 0) > 0))
     const hasRepeaters = repeaters.length > 0
     const itemClass = (r: (typeof repeaters)[number]): string => `Fg${pascalMember(r.key)}Item`
     const repeaterMember = (r: (typeof repeaters)[number]): string => pascalMember(r.key)
@@ -687,9 +689,12 @@ ${repeaterVisible(r) === 'true' ? '' : `        if (!(${repeaterVisible(r)})) re
     /** First rule violation of an item field (null when valid or hidden). */
     private string? FgItemError(object model, string name)
     {
-        switch (model)
+${
+  validatedRepeaters.length === 0
+    ? ''
+    : `        switch (model)
         {
-${repeaters
+${validatedRepeaters
   .map(
     (r) => `            case ${itemClass(r)} item:
                 switch (name)
@@ -713,7 +718,8 @@ ${r.fields
   )
   .join('\n')}
         }
-        return null;
+`
+}        return null;
     }
 
     private bool FgValidateItemField(FieldIdentifier field, bool notify = true)

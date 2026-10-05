@@ -2,6 +2,7 @@ import { parseFormSchema, type ElementNode } from '@formsgen/renderer'
 import { describe, expect, it } from 'vitest'
 import { getCssAdapter } from '@/export/css'
 import { getTarget, listTargets } from '@/export/targets'
+import { listElements } from '@/registry'
 import { listTemplates } from './index'
 
 const ids = (nodes: ElementNode[]): string[] => nodes.flatMap((n) => [n.id, ...ids(n.children ?? [])])
@@ -10,7 +11,7 @@ describe('starter templates', () => {
   for (const lang of ['en', 'ar'] as const) {
     it(`parse, use unique ids and every target exports them (${lang})`, () => {
       const templates = listTemplates(lang)
-      expect(templates.map((t) => t.id)).toEqual(['contact', 'registration', 'feedback'])
+      expect(templates.map((t) => t.id)).toEqual(['contact', 'registration', 'feedback', 'job', 'booking', 'settings'])
       for (const template of templates) {
         const result = parseFormSchema(structuredClone(template.schema))
         expect(result.ok ? [] : result.errors, template.id).toEqual([])
@@ -28,10 +29,23 @@ describe('starter templates', () => {
     })
   }
 
+  it('together use every element type, so each one has an example', () => {
+    const types = (nodes: ElementNode[]): string[] => nodes.flatMap((n) => [n.type, ...types(n.children ?? [])])
+    for (const lang of ['en', 'ar'] as const) {
+      const used = new Set(listTemplates(lang).flatMap((t) => types(t.schema.tree)))
+      const missing = listElements()
+        .map((d) => d.type)
+        .filter((type) => !used.has(type))
+      expect(missing, lang).toEqual([])
+    }
+  })
+
   it('are written in the chosen language', () => {
     const ar = listTemplates('ar')[0]!
     expect(ar.title).toBe('نموذج تواصل')
     expect(JSON.stringify(ar.schema)).toContain('الاسم الكامل')
-    expect(JSON.stringify(listTemplates('en')[0]!.schema)).not.toMatch(/[؀-ۿ]/)
+    for (const template of listTemplates('en')) {
+      expect(JSON.stringify(template.schema), template.id).not.toMatch(/[؀-ۿ]/)
+    }
   })
 })

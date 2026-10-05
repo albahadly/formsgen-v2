@@ -82,7 +82,7 @@ const CLASSES: Record<Slot, string> = {
   fileName: 'min-w-0 flex-1 truncate',
   fileSize: 'text-xs text-gray-500 dark:text-gray-400',
   fileRemove: 'px-1.5 text-lg leading-none text-gray-500 hover:text-red-600',
-  pair: 'flex items-center gap-2',
+  pair: 'flex items-center gap-2 [&>*]:min-w-0',
   chipList: 'mt-2 flex flex-wrap gap-1.5',
   matrixWrap: 'overflow-x-auto',
   matrix: 'w-full border-collapse text-sm',
@@ -92,7 +92,7 @@ const CLASSES: Record<Slot, string> = {
   matrixCell: 'px-2 py-2 text-center',
   matrixRadio: 'h-4 w-4 accent-indigo-600',
   phoneCountry:
-    'w-auto max-w-[16rem] shrink-0 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800',
+    'w-auto min-w-0 max-w-[45%] shrink rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800',
   affixGroup:
     'flex [&>:not(:first-child)]:-ms-px [&>:not(:first-child)]:rounded-s-none [&>:not(:last-child)]:rounded-e-none',
   affix:
@@ -101,6 +101,7 @@ const CLASSES: Record<Slot, string> = {
   floatingLabel:
     'pointer-events-none absolute start-3 top-3.5 origin-[0] text-sm text-gray-500 transition-transform duration-150 peer-focus:-translate-y-2.5 peer-focus:scale-75 peer-[:not(:placeholder-shown)]:-translate-y-2.5 peer-[:not(:placeholder-shown)]:scale-75 rtl:origin-[100%_0] dark:text-gray-400',
   floatingControl: 'peer pt-5 pb-1.5 placeholder-transparent focus:placeholder-gray-400',
+  pairSeparator: '',
   pairButton:
     'shrink-0 whitespace-nowrap rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50',
   colorInput:

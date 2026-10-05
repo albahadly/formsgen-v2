@@ -268,9 +268,9 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         <div class="col-12 col-md-12">
           <div class="d-flex flex-column gap-1">
             <label class="form-label fw-semibold fs-6 mb-0" for="fg_stay">Stay<span class="text-danger ms-1" aria-hidden="true">*</span></label>
-            <div class="d-flex align-items-center gap-2">
+            <div class="input-group">
               <input id="fg_stay" type="date" class="form-control" aria-label="Stay: Start date" value="@Model.Stay.From" @onchange='e => FgSetDate(Model.Stay, true, e, "Stay")' />
-              <span aria-hidden="true">–</span>
+              <span class="input-group-text" aria-hidden="true">–</span>
               <input id="fg_stay_to" type="date" class="form-control" min="@Model.Stay.From" aria-label="Stay: End date" value="@Model.Stay.To" @onchange='e => FgSetDate(Model.Stay, false, e, "Stay")' />
             </div>
             <ValidationMessage For="@(() => Model.Stay)" class="invalid-feedback d-block mt-0" />
@@ -279,7 +279,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         <div class="col-12 col-md-12">
           <div class="d-flex flex-column gap-1">
             <label class="form-label fw-semibold fs-6 mb-0" for="fg_days">Available days</label>
-            <div class="d-flex align-items-center gap-2">
+            <div class="input-group">
               <input id="fg_days" type="date" class="form-control" value='@fgDateDrafts["Days"]' @onchange='e => fgDateDrafts["Days"] = Convert.ToString(e.Value) ?? ""' />
               <button type="button" class="btn btn-outline-secondary flex-shrink-0 text-nowrap" @onclick='() => FgAddDate(Model.Days, "Days")'>Add date</button>
             </div>
@@ -417,8 +417,8 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
             <div class="col-12 col-md-12">
               <div class="d-flex flex-column gap-1">
                 <label class="form-label fw-semibold fs-6 mb-0" for="fg_contact_phone">Phone number</label>
-                <div class="d-flex align-items-center gap-2">
-                  <select class="form-select w-auto flex-shrink-0" aria-label="Country code" value='@fgPhoneCountry["ContactPhone"]' @onchange='e => { Model.ContactPhone = FgPhoneSetCountry("ContactPhone", Model.ContactPhone, e); FgChanged("ContactPhone"); }'>
+                <div class="input-group">
+                  <select class="form-select flex-grow-0 w-50" aria-label="Country code" value='@fgPhoneCountry["ContactPhone"]' @onchange='e => { Model.ContactPhone = FgPhoneSetCountry("ContactPhone", Model.ContactPhone, e); FgChanged("ContactPhone"); }'>
                     <option value="AF">Afghanistan (+93)</option>
                     <option value="AX">Åland Islands (+358)</option>
                     <option value="AL">Albania (+355)</option>
@@ -2162,7 +2162,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         <div class="col-span-12 md:col-span-12">
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-semibold" for="fg_stay">Stay<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 [&>*]:min-w-0">
               <input id="fg_stay" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" aria-label="Stay: Start date" value="@Model.Stay.From" @onchange='e => FgSetDate(Model.Stay, true, e, "Stay")' />
               <span aria-hidden="true">–</span>
               <input id="fg_stay_to" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" min="@Model.Stay.From" aria-label="Stay: End date" value="@Model.Stay.To" @onchange='e => FgSetDate(Model.Stay, false, e, "Stay")' />
@@ -2173,7 +2173,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         <div class="col-span-12 md:col-span-12">
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-semibold" for="fg_days">Available days</label>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 [&>*]:min-w-0">
               <input id="fg_days" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" value='@fgDateDrafts["Days"]' @onchange='e => fgDateDrafts["Days"] = Convert.ToString(e.Value) ?? ""' />
               <button type="button" class="shrink-0 whitespace-nowrap rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" @onclick='() => FgAddDate(Model.Days, "Days")'>Add date</button>
             </div>
@@ -2311,8 +2311,8 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
             <div class="col-span-12 md:col-span-12">
               <div class="flex flex-col gap-1.5">
                 <label class="text-sm font-semibold" for="fg_contact_phone">Phone number</label>
-                <div class="flex items-center gap-2">
-                  <select class="w-auto max-w-[16rem] shrink-0 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" aria-label="Country code" value='@fgPhoneCountry["ContactPhone"]' @onchange='e => { Model.ContactPhone = FgPhoneSetCountry("ContactPhone", Model.ContactPhone, e); FgChanged("ContactPhone"); }'>
+                <div class="flex items-center gap-2 [&>*]:min-w-0">
+                  <select class="w-auto min-w-0 max-w-[45%] shrink rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" aria-label="Country code" value='@fgPhoneCountry["ContactPhone"]' @onchange='e => { Model.ContactPhone = FgPhoneSetCountry("ContactPhone", Model.ContactPhone, e); FgChanged("ContactPhone"); }'>
                     <option value="AF">Afghanistan (+93)</option>
                     <option value="AX">Åland Islands (+358)</option>
                     <option value="AL">Albania (+355)</option>
@@ -5698,11 +5698,14 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
 
   /* Help tooltips */
   .fg-label-row { display: flex; align-items: center; gap: 0.375rem; }
-  .fg-tip { position: relative; display: inline-flex; vertical-align: middle; margin-inline-start: 0.25rem; }
+  /* The bubble anchors to the row holding the tip (label row, checkbox row or
+     legend), from its start edge, so it never runs off a narrow screen. */
+  .fg-tip { display: inline-flex; vertical-align: middle; margin-inline-start: 0.25rem; }
+  :has(> .fg-tip) { position: relative; }
   .fg-label-row > .fg-tip { margin-inline-start: 0; }
   .fg-tip-button { display: inline-flex; align-items: center; justify-content: center; inline-size: 1.125rem; block-size: 1.125rem; padding: 0; font: 600 0.6875rem/1 system-ui, sans-serif; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); background: transparent; border: 1px solid currentColor; border-radius: 50%; cursor: help; }
   .fg-tip-button:focus-visible { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
-  .fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); left: 50%; z-index: 20; inline-size: max-content; max-inline-size: 16rem; padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; transform: translateX(-50%); visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
+  .fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); inset-inline-start: 0; z-index: 20; inline-size: max-content; max-inline-size: min(16rem, calc(100vw - 2rem)); padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
   .fg-tip:hover .fg-tip-text, .fg-tip-button:focus + .fg-tip-text { visibility: visible; opacity: 1; }
   </style>
 </head>
@@ -5943,9 +5946,9 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       <div class="col-12 col-md-12">
         <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold fs-6 mb-0" for="fg_stay">Stay<span class="text-danger ms-1" aria-hidden="true">*</span></label>
-          <div class="d-flex align-items-center gap-2">
+          <div class="input-group">
             <input id="fg_stay" type="date" class="form-control" data-fg-path="stay" data-fg-kind="daterange" data-fg-part="from" aria-label="Stay: Start date">
-            <span aria-hidden="true">–</span>
+            <span class="input-group-text" aria-hidden="true">–</span>
             <input id="fg_stay_to" type="date" class="form-control" data-fg-path="stay" data-fg-kind="daterange" data-fg-part="to" aria-label="Stay: End date">
           </div>
           <p id="fg_err_stay" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
@@ -5954,7 +5957,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       <div class="col-12 col-md-12">
         <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold fs-6 mb-0" for="fg_days">Available days</label>
-          <div class="d-flex align-items-center gap-2" data-fg-path="days" data-fg-kind="dates">
+          <div class="input-group" data-fg-path="days" data-fg-kind="dates">
             <input id="fg_days" type="date" class="form-control" data-fg-dates-input="days">
             <button type="button" class="btn btn-outline-secondary flex-shrink-0 text-nowrap" data-fg-dates-add="days">Add date</button>
           </div>
@@ -6060,8 +6063,8 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       <div class="col-12 col-md-12" data-fg-cond="1">
         <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold fs-6 mb-0" for="fg_contact_phone">Phone number</label>
-          <div class="d-flex align-items-center gap-2">
-            <select class="form-select w-auto flex-shrink-0" aria-label="Country code" data-fg-phone-country="contact_phone">
+          <div class="input-group">
+            <select class="form-select flex-grow-0 w-50" aria-label="Country code" data-fg-phone-country="contact_phone">
               <option value="AF" data-dial="93">Afghanistan (+93)</option>
               <option value="AX" data-dial="358">Åland Islands (+358)</option>
               <option value="AL" data-dial="355">Albania (+355)</option>
@@ -6431,6 +6434,11 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       if (typeof v === 'string') return v.length
       if (Array.isArray(v)) return v.length
       return null
+    }
+    // The "contains" condition: a substring of text, or an item of a list.
+    function fgContains(v, x) {
+      if (typeof v === 'string') return v.includes(String(x))
+      return Array.isArray(v) && v.includes(x)
     }
     function fgAccepts(file, accept) {
       if (accept.trim() === '') return true
@@ -7281,11 +7289,14 @@ exports[`html target > snapshot (tailwind) 1`] = `
 
   /* Help tooltips */
   .fg-label-row { display: flex; align-items: center; gap: 0.375rem; }
-  .fg-tip { position: relative; display: inline-flex; vertical-align: middle; margin-inline-start: 0.25rem; }
+  /* The bubble anchors to the row holding the tip (label row, checkbox row or
+     legend), from its start edge, so it never runs off a narrow screen. */
+  .fg-tip { display: inline-flex; vertical-align: middle; margin-inline-start: 0.25rem; }
+  :has(> .fg-tip) { position: relative; }
   .fg-label-row > .fg-tip { margin-inline-start: 0; }
   .fg-tip-button { display: inline-flex; align-items: center; justify-content: center; inline-size: 1.125rem; block-size: 1.125rem; padding: 0; font: 600 0.6875rem/1 system-ui, sans-serif; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); background: transparent; border: 1px solid currentColor; border-radius: 50%; cursor: help; }
   .fg-tip-button:focus-visible { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
-  .fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); left: 50%; z-index: 20; inline-size: max-content; max-inline-size: 16rem; padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; transform: translateX(-50%); visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
+  .fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); inset-inline-start: 0; z-index: 20; inline-size: max-content; max-inline-size: min(16rem, calc(100vw - 2rem)); padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
   .fg-tip:hover .fg-tip-text, .fg-tip-button:focus + .fg-tip-text { visibility: visible; opacity: 1; }
   </style>
 </head>
@@ -7534,7 +7545,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
       <div class="col-span-12 md:col-span-12">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_stay">Stay<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 [&>*]:min-w-0">
             <input id="fg_stay" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="stay" data-fg-kind="daterange" data-fg-part="from" aria-label="Stay: Start date">
             <span aria-hidden="true">–</span>
             <input id="fg_stay_to" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="stay" data-fg-kind="daterange" data-fg-part="to" aria-label="Stay: End date">
@@ -7545,7 +7556,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
       <div class="col-span-12 md:col-span-12">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_days">Available days</label>
-          <div class="flex items-center gap-2" data-fg-path="days" data-fg-kind="dates">
+          <div class="flex items-center gap-2 [&>*]:min-w-0" data-fg-path="days" data-fg-kind="dates">
             <input id="fg_days" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-dates-input="days">
             <button type="button" class="shrink-0 whitespace-nowrap rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-dates-add="days">Add date</button>
           </div>
@@ -7651,8 +7662,8 @@ exports[`html target > snapshot (tailwind) 1`] = `
       <div class="col-span-12 md:col-span-12" data-fg-cond="1">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_contact_phone">Phone number</label>
-          <div class="flex items-center gap-2">
-            <select class="w-auto max-w-[16rem] shrink-0 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" aria-label="Country code" data-fg-phone-country="contact_phone">
+          <div class="flex items-center gap-2 [&>*]:min-w-0">
+            <select class="w-auto min-w-0 max-w-[45%] shrink rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" aria-label="Country code" data-fg-phone-country="contact_phone">
               <option value="AF" data-dial="93">Afghanistan (+93)</option>
               <option value="AX" data-dial="358">Åland Islands (+358)</option>
               <option value="AL" data-dial="355">Albania (+355)</option>
@@ -8022,6 +8033,11 @@ exports[`html target > snapshot (tailwind) 1`] = `
       if (typeof v === 'string') return v.length
       if (Array.isArray(v)) return v.length
       return null
+    }
+    // The "contains" condition: a substring of text, or an item of a list.
+    function fgContains(v, x) {
+      if (typeof v === 'string') return v.includes(String(x))
+      return Array.isArray(v) && v.includes(x)
     }
     function fgAccepts(file, accept) {
       if (accept.trim() === '') return true
@@ -8993,10 +9009,11 @@ exports[`html target > snapshot (vanilla) 1`] = `
   .fg-dual input[type='range']:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
   .fg-dual input[type='range']:focus-visible::-moz-range-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
   .fg-pair { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
-  .fg-pair > .fg-input { flex: 1 1 10rem; inline-size: auto; }
+  .fg-pair > .fg-input { flex: 1 1 10rem; inline-size: auto; min-inline-size: 0; }
   .fg-pair-button { flex: none; white-space: nowrap; }
   .fg-chips { display: flex; flex-wrap: wrap; gap: 0.375rem; margin-block-start: 0.5rem; }
-  .fg-phone-country { flex: 0 1 16rem; inline-size: auto; }
+  /* Capped so a long country name never pushes past the field. */
+  .fg-phone-country { flex: 0 1 45%; inline-size: auto; min-inline-size: 0; max-inline-size: 45%; }
   .fg-matrix-scroll { overflow-x: auto; }
   .fg-matrix { inline-size: 100%; border-collapse: collapse; font-size: 0.875rem; }
   .fg-matrix th, .fg-matrix td { padding: 0.5rem; text-align: center; }
@@ -9011,11 +9028,14 @@ exports[`html target > snapshot (vanilla) 1`] = `
   .fg-affix-group > :not(:last-child) { border-start-end-radius: 0; border-end-end-radius: 0; }
   .fg-affix { display: flex; align-items: center; padding-inline: 0.75rem; font-size: 0.875rem; white-space: nowrap; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); background: var(--fg-color-surface, var(--bs-tertiary-bg, #f9fafb)); border: 1px solid var(--fg-color-border, var(--bs-border-color, #d1d5db)); border-radius: var(--fg-radius, 0.375rem); }
   .fg-label-row { display: flex; align-items: center; gap: 0.375rem; }
-  .fg-tip { position: relative; display: inline-flex; vertical-align: middle; margin-inline-start: 0.25rem; }
+  /* The bubble anchors to the row holding the tip (label row, checkbox row or
+     legend), from its start edge, so it never runs off a narrow screen. */
+  .fg-tip { display: inline-flex; vertical-align: middle; margin-inline-start: 0.25rem; }
+  :has(> .fg-tip) { position: relative; }
   .fg-label-row > .fg-tip { margin-inline-start: 0; }
   .fg-tip-button { display: inline-flex; align-items: center; justify-content: center; inline-size: 1.125rem; block-size: 1.125rem; padding: 0; font: 600 0.6875rem/1 system-ui, sans-serif; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); background: transparent; border: 1px solid currentColor; border-radius: 50%; cursor: help; }
   .fg-tip-button:focus-visible { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
-  .fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); left: 50%; z-index: 20; inline-size: max-content; max-inline-size: 16rem; padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; transform: translateX(-50%); visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
+  .fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); inset-inline-start: 0; z-index: 20; inline-size: max-content; max-inline-size: min(16rem, calc(100vw - 2rem)); padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
   .fg-tip:hover .fg-tip-text, .fg-tip-button:focus + .fg-tip-text { visibility: visible; opacity: 1; }
 
   /* Floating labels (meta.floatingLabels): the label floats when the control is focused or filled. */
@@ -9769,6 +9789,11 @@ exports[`html target > snapshot (vanilla) 1`] = `
       if (typeof v === 'string') return v.length
       if (Array.isArray(v)) return v.length
       return null
+    }
+    // The "contains" condition: a substring of text, or an item of a list.
+    function fgContains(v, x) {
+      if (typeof v === 'string') return v.includes(String(x))
+      return Array.isArray(v) && v.includes(x)
     }
     function fgAccepts(file, accept) {
       if (accept.trim() === '') return true
@@ -11562,9 +11587,9 @@ export default function KitchenSinkForm({
         <div className="col-12 col-md-12">
           <div className="d-flex flex-column gap-1">
             <label className="form-label fw-semibold fs-6 mb-0" htmlFor="fg_stay">Stay<span className="text-danger ms-1" aria-hidden="true">*</span></label>
-            <div className="d-flex align-items-center gap-2">
+            <div className="input-group">
               <input id="fg_stay" type="date" value={form.stay.from} className={errors['stay'] ? "form-control is-invalid" : "form-control"} aria-label="Stay: Start date" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('stay', { ...form.stay, from: e.target.value })} onBlur={() => touch('stay')} />
-              <span aria-hidden="true">–</span>
+              <span className="input-group-text" aria-hidden="true">–</span>
               <input id="fg_stay_to" type="date" value={form.stay.to} className={errors['stay'] ? "form-control is-invalid" : "form-control"} min={form.stay.from || undefined} aria-label="Stay: End date" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('stay', { ...form.stay, to: e.target.value })} onBlur={() => touch('stay')} />
             </div>
             {errors['stay'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['stay']}</p>}
@@ -11573,7 +11598,7 @@ export default function KitchenSinkForm({
         <div className="col-12 col-md-12">
           <div className="d-flex flex-column gap-1">
             <label className="form-label fw-semibold fs-6 mb-0" htmlFor="fg_days">Available days</label>
-            <div className="d-flex align-items-center gap-2">
+            <div className="input-group">
               <input id="fg_days" type="date" value={dateDrafts['days'] ?? ''} className={errors['days'] ? "form-control is-invalid" : "form-control"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDateDrafts((d) => ({ ...d, 'days': e.target.value }))} onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); fgAddDate('days', form.days) } }} />
               <button type="button" className="btn btn-outline-secondary flex-shrink-0 text-nowrap" onClick={() => fgAddDate('days', form.days)}>Add date</button>
             </div>
@@ -11700,8 +11725,8 @@ export default function KitchenSinkForm({
           <div className="col-12 col-md-12">
             <div className="d-flex flex-column gap-1">
               <label className="form-label fw-semibold fs-6 mb-0" htmlFor="fg_contact_phone">Phone number</label>
-              <div className="d-flex align-items-center gap-2">
-                <select className="form-select w-auto flex-shrink-0" aria-label="Country code" value={phoneCountry['contact_phone']} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => fgPhoneSetCountry('contact_phone', form.contact_phone, e.target.value)} onBlur={() => touch('contact_phone')}>
+              <div className="input-group">
+                <select className="form-select flex-grow-0 w-50" aria-label="Country code" value={phoneCountry['contact_phone']} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => fgPhoneSetCountry('contact_phone', form.contact_phone, e.target.value)} onBlur={() => touch('contact_phone')}>
                   <option value="AF">Afghanistan (+93)</option>
                   <option value="AX">Åland Islands (+358)</option>
                   <option value="AL">Albania (+355)</option>
@@ -13031,7 +13056,7 @@ export default function KitchenSinkForm({
         <div className="col-span-12 md:col-span-12">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold" htmlFor="fg_stay">Stay<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 [&>*]:min-w-0">
               <input id="fg_stay" type="date" value={form.stay.from} className={errors['stay'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} aria-label="Stay: Start date" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('stay', { ...form.stay, from: e.target.value })} onBlur={() => touch('stay')} />
               <span aria-hidden="true">–</span>
               <input id="fg_stay_to" type="date" value={form.stay.to} className={errors['stay'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} min={form.stay.from || undefined} aria-label="Stay: End date" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('stay', { ...form.stay, to: e.target.value })} onBlur={() => touch('stay')} />
@@ -13042,7 +13067,7 @@ export default function KitchenSinkForm({
         <div className="col-span-12 md:col-span-12">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold" htmlFor="fg_days">Available days</label>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 [&>*]:min-w-0">
               <input id="fg_days" type="date" value={dateDrafts['days'] ?? ''} className={errors['days'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDateDrafts((d) => ({ ...d, 'days': e.target.value }))} onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); fgAddDate('days', form.days) } }} />
               <button type="button" className="shrink-0 whitespace-nowrap rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" onClick={() => fgAddDate('days', form.days)}>Add date</button>
             </div>
@@ -13169,8 +13194,8 @@ export default function KitchenSinkForm({
           <div className="col-span-12 md:col-span-12">
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-semibold" htmlFor="fg_contact_phone">Phone number</label>
-              <div className="flex items-center gap-2">
-                <select className="w-auto max-w-[16rem] shrink-0 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" aria-label="Country code" value={phoneCountry['contact_phone']} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => fgPhoneSetCountry('contact_phone', form.contact_phone, e.target.value)} onBlur={() => touch('contact_phone')}>
+              <div className="flex items-center gap-2 [&>*]:min-w-0">
+                <select className="w-auto min-w-0 max-w-[45%] shrink rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" aria-label="Country code" value={phoneCountry['contact_phone']} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => fgPhoneSetCountry('contact_phone', form.contact_phone, e.target.value)} onBlur={() => touch('contact_phone')}>
                   <option value="AF">Afghanistan (+93)</option>
                   <option value="AX">Åland Islands (+358)</option>
                   <option value="AL">Albania (+355)</option>
@@ -15977,9 +16002,9 @@ async function onSubmit(): Promise<void> {
       <div class="col-12 col-md-12">
         <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold fs-6 mb-0" for="fg_stay">Stay<span class="text-danger ms-1" aria-hidden="true">*</span></label>
-          <div class="d-flex align-items-center gap-2">
+          <div class="input-group">
             <input id="fg_stay" v-model="form.stay.from" type="date" class="form-control" :class="{ 'is-invalid': !!errors['stay'] }" aria-label="Stay: Start date" @blur="touch('stay')" @change="revalidate('stay')">
-            <span aria-hidden="true">–</span>
+            <span class="input-group-text" aria-hidden="true">–</span>
             <input id="fg_stay_to" v-model="form.stay.to" type="date" class="form-control" :class="{ 'is-invalid': !!errors['stay'] }" :min="form.stay.from || undefined" aria-label="Stay: End date" @blur="touch('stay')" @change="revalidate('stay')">
           </div>
           <p v-if="errors['stay']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['stay'] }}</p>
@@ -15988,7 +16013,7 @@ async function onSubmit(): Promise<void> {
       <div class="col-12 col-md-12">
         <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold fs-6 mb-0" for="fg_days">Available days</label>
-          <div class="d-flex align-items-center gap-2">
+          <div class="input-group">
             <input id="fg_days" v-model="fgDateDrafts['days']" type="date" class="form-control" :class="{ 'is-invalid': !!errors['days'] }" @keydown.enter.prevent="fgAddDate('days')">
             <button type="button" class="btn btn-outline-secondary flex-shrink-0 text-nowrap" @click="fgAddDate('days')">Add date</button>
           </div>
@@ -16100,8 +16125,8 @@ async function onSubmit(): Promise<void> {
       <div class="col-12 col-md-12" v-if='(form.contact_method === "phone")'>
         <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold fs-6 mb-0" for="fg_contact_phone">Phone number</label>
-          <div class="d-flex align-items-center gap-2">
-            <select class="form-select w-auto flex-shrink-0" aria-label="Country code" :value="fgPhoneCountry['contact_phone']" @change="fgPhoneSetCountry('contact_phone', $event)" @blur="touch('contact_phone')">
+          <div class="input-group">
+            <select class="form-select flex-grow-0 w-50" aria-label="Country code" :value="fgPhoneCountry['contact_phone']" @change="fgPhoneSetCountry('contact_phone', $event)" @blur="touch('contact_phone')">
               <option value="AF">Afghanistan (+93)</option>
               <option value="AX">Åland Islands (+358)</option>
               <option value="AL">Albania (+355)</option>
@@ -16466,11 +16491,14 @@ async function onSubmit(): Promise<void> {
 
 /* Help tooltips */
 .fg-label-row { display: flex; align-items: center; gap: 0.375rem; }
-.fg-tip { position: relative; display: inline-flex; vertical-align: middle; margin-inline-start: 0.25rem; }
+/* The bubble anchors to the row holding the tip (label row, checkbox row or
+   legend), from its start edge, so it never runs off a narrow screen. */
+.fg-tip { display: inline-flex; vertical-align: middle; margin-inline-start: 0.25rem; }
+:has(> .fg-tip) { position: relative; }
 .fg-label-row > .fg-tip { margin-inline-start: 0; }
 .fg-tip-button { display: inline-flex; align-items: center; justify-content: center; inline-size: 1.125rem; block-size: 1.125rem; padding: 0; font: 600 0.6875rem/1 system-ui, sans-serif; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); background: transparent; border: 1px solid currentColor; border-radius: 50%; cursor: help; }
 .fg-tip-button:focus-visible { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
-.fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); left: 50%; z-index: 20; inline-size: max-content; max-inline-size: 16rem; padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; transform: translateX(-50%); visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
+.fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); inset-inline-start: 0; z-index: 20; inline-size: max-content; max-inline-size: min(16rem, calc(100vw - 2rem)); padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
 .fg-tip:hover .fg-tip-text, .fg-tip-button:focus + .fg-tip-text { visibility: visible; opacity: 1; }
 </style>
 "
@@ -17467,7 +17495,7 @@ async function onSubmit(): Promise<void> {
       <div class="col-span-12 md:col-span-12">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_stay">Stay<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 [&>*]:min-w-0">
             <input id="fg_stay" v-model="form.stay.from" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['stay'] }" aria-label="Stay: Start date" @blur="touch('stay')" @change="revalidate('stay')">
             <span aria-hidden="true">–</span>
             <input id="fg_stay_to" v-model="form.stay.to" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['stay'] }" :min="form.stay.from || undefined" aria-label="Stay: End date" @blur="touch('stay')" @change="revalidate('stay')">
@@ -17478,7 +17506,7 @@ async function onSubmit(): Promise<void> {
       <div class="col-span-12 md:col-span-12">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_days">Available days</label>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 [&>*]:min-w-0">
             <input id="fg_days" v-model="fgDateDrafts['days']" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['days'] }" @keydown.enter.prevent="fgAddDate('days')">
             <button type="button" class="shrink-0 whitespace-nowrap rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" @click="fgAddDate('days')">Add date</button>
           </div>
@@ -17590,8 +17618,8 @@ async function onSubmit(): Promise<void> {
       <div class="col-span-12 md:col-span-12" v-if='(form.contact_method === "phone")'>
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_contact_phone">Phone number</label>
-          <div class="flex items-center gap-2">
-            <select class="w-auto max-w-[16rem] shrink-0 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" aria-label="Country code" :value="fgPhoneCountry['contact_phone']" @change="fgPhoneSetCountry('contact_phone', $event)" @blur="touch('contact_phone')">
+          <div class="flex items-center gap-2 [&>*]:min-w-0">
+            <select class="w-auto min-w-0 max-w-[45%] shrink rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" aria-label="Country code" :value="fgPhoneCountry['contact_phone']" @change="fgPhoneSetCountry('contact_phone', $event)" @blur="touch('contact_phone')">
               <option value="AF">Afghanistan (+93)</option>
               <option value="AX">Åland Islands (+358)</option>
               <option value="AL">Albania (+355)</option>
@@ -17956,11 +17984,14 @@ async function onSubmit(): Promise<void> {
 
 /* Help tooltips */
 .fg-label-row { display: flex; align-items: center; gap: 0.375rem; }
-.fg-tip { position: relative; display: inline-flex; vertical-align: middle; margin-inline-start: 0.25rem; }
+/* The bubble anchors to the row holding the tip (label row, checkbox row or
+   legend), from its start edge, so it never runs off a narrow screen. */
+.fg-tip { display: inline-flex; vertical-align: middle; margin-inline-start: 0.25rem; }
+:has(> .fg-tip) { position: relative; }
 .fg-label-row > .fg-tip { margin-inline-start: 0; }
 .fg-tip-button { display: inline-flex; align-items: center; justify-content: center; inline-size: 1.125rem; block-size: 1.125rem; padding: 0; font: 600 0.6875rem/1 system-ui, sans-serif; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); background: transparent; border: 1px solid currentColor; border-radius: 50%; cursor: help; }
 .fg-tip-button:focus-visible { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
-.fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); left: 50%; z-index: 20; inline-size: max-content; max-inline-size: 16rem; padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; transform: translateX(-50%); visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
+.fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); inset-inline-start: 0; z-index: 20; inline-size: max-content; max-inline-size: min(16rem, calc(100vw - 2rem)); padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
 .fg-tip:hover .fg-tip-text, .fg-tip-button:focus + .fg-tip-text { visibility: visible; opacity: 1; }
 </style>
 "
@@ -19568,10 +19599,11 @@ fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
 .fg-dual input[type='range']:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
 .fg-dual input[type='range']:focus-visible::-moz-range-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
 .fg-pair { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
-.fg-pair > .fg-input { flex: 1 1 10rem; inline-size: auto; }
+.fg-pair > .fg-input { flex: 1 1 10rem; inline-size: auto; min-inline-size: 0; }
 .fg-pair-button { flex: none; white-space: nowrap; }
 .fg-chips { display: flex; flex-wrap: wrap; gap: 0.375rem; margin-block-start: 0.5rem; }
-.fg-phone-country { flex: 0 1 16rem; inline-size: auto; }
+/* Capped so a long country name never pushes past the field. */
+.fg-phone-country { flex: 0 1 45%; inline-size: auto; min-inline-size: 0; max-inline-size: 45%; }
 .fg-matrix-scroll { overflow-x: auto; }
 .fg-matrix { inline-size: 100%; border-collapse: collapse; font-size: 0.875rem; }
 .fg-matrix th, .fg-matrix td { padding: 0.5rem; text-align: center; }
@@ -19586,11 +19618,14 @@ fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
 .fg-affix-group > :not(:last-child) { border-start-end-radius: 0; border-end-end-radius: 0; }
 .fg-affix { display: flex; align-items: center; padding-inline: 0.75rem; font-size: 0.875rem; white-space: nowrap; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); background: var(--fg-color-surface, var(--bs-tertiary-bg, #f9fafb)); border: 1px solid var(--fg-color-border, var(--bs-border-color, #d1d5db)); border-radius: var(--fg-radius, 0.375rem); }
 .fg-label-row { display: flex; align-items: center; gap: 0.375rem; }
-.fg-tip { position: relative; display: inline-flex; vertical-align: middle; margin-inline-start: 0.25rem; }
+/* The bubble anchors to the row holding the tip (label row, checkbox row or
+   legend), from its start edge, so it never runs off a narrow screen. */
+.fg-tip { display: inline-flex; vertical-align: middle; margin-inline-start: 0.25rem; }
+:has(> .fg-tip) { position: relative; }
 .fg-label-row > .fg-tip { margin-inline-start: 0; }
 .fg-tip-button { display: inline-flex; align-items: center; justify-content: center; inline-size: 1.125rem; block-size: 1.125rem; padding: 0; font: 600 0.6875rem/1 system-ui, sans-serif; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); background: transparent; border: 1px solid currentColor; border-radius: 50%; cursor: help; }
 .fg-tip-button:focus-visible { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
-.fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); left: 50%; z-index: 20; inline-size: max-content; max-inline-size: 16rem; padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; transform: translateX(-50%); visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
+.fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); inset-inline-start: 0; z-index: 20; inline-size: max-content; max-inline-size: min(16rem, calc(100vw - 2rem)); padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
 .fg-tip:hover .fg-tip-text, .fg-tip-button:focus + .fg-tip-text { visibility: visible; opacity: 1; }
 
 /* Floating labels (meta.floatingLabels): the label floats when the control is focused or filled. */

@@ -361,6 +361,21 @@ describe('palette → canvas → properties workflow', () => {
     expect(wrapper.text()).toContain('Text Input')
   })
 
+  it('examples dialog: the dropdown previews each example; using one loads it', async () => {
+    const { wrapper, store } = mountApp()
+    await wrapper.get('[data-testid="toolbar-templates"]').trigger('click')
+    const preview = () => wrapper.get('[data-testid="templates-preview"]')
+    expect(preview().text()).toContain('Get in touch')
+    await wrapper.get('[data-testid="templates-select"]').setValue('booking')
+    expect(preview().text()).toContain('Book your stay')
+    expect(preview().find('.fg-dual').exists()).toBe(true) // the budget range slider
+    expect(wrapper.get('[data-testid="templates-description"]').text()).toContain('budget')
+    expect(store.schema.tree).toHaveLength(0) // previewing changes nothing
+    await wrapper.get('[data-testid="template-use"]').trigger('click')
+    expect(store.schema.meta.name).toBe('hotel_booking')
+    expect(wrapper.find('[data-testid="templates-dialog"]').exists()).toBe(false)
+  })
+
   it('adds into a selected container and renders nested chrome', async () => {
     const { wrapper, store } = mountApp()
     const structureTab = wrapper

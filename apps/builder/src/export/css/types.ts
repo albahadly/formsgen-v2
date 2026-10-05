@@ -78,6 +78,8 @@ export type Slot =
   | 'chipList'
   /** A secondary button inside a pair row that never shrinks (Add date). */
   | 'pairButton'
+  /** The dash between a date range's two inputs. */
+  | 'pairSeparator'
   /** Matrix: scroll wrapper, table, column/row headers, row, cell, radio. */
   | 'matrixWrap'
   | 'matrix'
