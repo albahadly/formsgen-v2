@@ -41,7 +41,7 @@ describe('HTML blocks in every code target', () => {
 
   it('keeps hostile input inert in every language', () => {
     const evil = schema(
-      '<script>alert(1)</script><img src=x onerror=alert(1)><a href="javascript:alert(1)">a</a><p>{{ secret }} @DateTime.Now {x}\nnext</p><iframe src="https://evil"></iframe><style>*{}</style>',
+      '<script>alert(1)</script><img src=x onerror=alert(1)><a href="javascript:alert(1)">a</a><p>{{ secret }} @DateTime.Now {x}\nnext</p><iframe src="http://evil"></iframe><style>*{}</style>',
     )
     for (const target of ['html', 'react', 'vue-standalone', 'blazor']) {
       const code = out(target, evil)
@@ -59,5 +59,23 @@ describe('HTML blocks in every code target', () => {
     expect(def.category).toBe('static')
     const control = def.propertyPanel[0]!.controls[0]!
     expect(control).toMatchObject({ kind: 'text', prop: 'html', multiline: true })
+  })
+})
+
+describe('iframes in HTML blocks', () => {
+  const s = schema('<iframe src="https://www.youtube.com/embed/x" width="560" height="315" title="Video" allowfullscreen></iframe>')
+  const tail = 'sandbox="allow-scripts allow-same-origin allow-presentation" referrerpolicy="strict-origin-when-cross-origin" loading="lazy"></iframe>'
+
+  it('keep their src and get the sandbox in every language', () => {
+    expect(out('html', s)).toContain(`<iframe src="https://www.youtube.com/embed/x" width="560" height="315" title="Video" allowfullscreen ${tail}`)
+    expect(out('vue-standalone', s)).toContain(`<iframe :src="'https://www.youtube.com/embed/x'" width="560" height="315" title="Video" allowfullscreen ${tail}`)
+    expect(out('blazor', s)).toContain(`<iframe src="https://www.youtube.com/embed/x" width="560" height="315" title="Video" allowfullscreen ${tail}`)
+    expect(out('react', s)).toContain(
+      '<iframe src="https://www.youtube.com/embed/x" width="560" height="315" title="Video" allowFullScreen sandbox="allow-scripts allow-same-origin allow-presentation" referrerPolicy="strict-origin-when-cross-origin" loading="lazy"></iframe>',
+    )
+  })
+
+  it('without an https src they are dropped', () => {
+    expect(out('html', schema('<iframe src="http://x.example"></iframe>ok'))).not.toContain('<iframe')
   })
 })

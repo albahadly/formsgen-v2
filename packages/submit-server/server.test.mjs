@@ -91,3 +91,47 @@ test('multipart parsing keeps binary bodies intact', () => {
   assert.deepEqual([...part.body], [0, 13, 10, 45, 45, 255])
   assert.equal(part.filename, 'x.bin')
 })
+
+test('with a Turnstile secret, only submissions with a passed check are stored (the token is not kept)', async () => {
+  const seen = []
+  const checked = createSubmitServer({
+    dir,
+    log: () => {},
+    turnstileSecret: '1x0000000000000000000000000000000AA',
+    verify: async (secret, token) => {
+      seen.push([secret, token])
+      return token === 'good-token' ? { success: true } : { success: false, 'error-codes': ['invalid-input-response'] }
+    },
+  })
+  await new Promise((resolve) => checked.listen(0, '127.0.0.1', resolve))
+  const url = `http://127.0.0.1:${checked.address().port}/submit`
+  const post = (data) => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+  try {
+    const missing = await post({ name: 'Ana' })
+    assert.equal(missing.status, 403)
+    assert.deepEqual(await missing.json(), { ok: false, error: 'spam check missing' })
+    const bad = await post({ name: 'Ana', 'cf-turnstile-response': 'bad-token' })
+    assert.equal(bad.status, 403)
+    assert.deepEqual(await bad.json(), { ok: false, error: 'spam check failed' })
+    const good = await post({ name: 'Ana', 'cf-turnstile-response': 'good-token' })
+    assert.equal(good.status, 201)
+    const { id } = await good.json()
+    const record = JSON.parse(await readFile(join(dir, id, 'submission.json'), 'utf8'))
+    assert.deepEqual(record.data, { name: 'Ana' })
+    assert.deepEqual(seen.map(([secret, token]) => [secret.length, token]), [[35, 'bad-token'], [35, 'good-token']])
+    // Multipart: the token travels inside the JSON data part.
+    const body = new FormData()
+    body.append('data', JSON.stringify({ name: 'Bo', 'cf-turnstile-response': 'good-token' }))
+    const multi = await fetch(url, { method: 'POST', body })
+    assert.equal(multi.status, 201)
+  } finally {
+    checked.close()
+  }
+})
+
+test('without a secret, a token sent anyway is not stored', async () => {
+  const res = await fetch(`${base}/submit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Ana', 'cf-turnstile-response': 'x' }) })
+  const { id } = await res.json()
+  const record = JSON.parse(await readFile(join(dir, id, 'submission.json'), 'utf8'))
+  assert.deepEqual(record.data, { name: 'Ana' })
+})

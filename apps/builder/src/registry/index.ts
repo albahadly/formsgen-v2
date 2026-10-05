@@ -8,6 +8,9 @@ import { hiddenElement } from './elements/hidden'
 import { fileElement, imageUploadElement } from './elements/upload'
 import { dateRangeElement, datesElement, rangeSliderElement } from './elements/composite'
 import { calculatedElement } from './elements/calculated'
+import { signatureElement } from './elements/signature'
+import { richTextElement } from './elements/richtext'
+import { locationElement } from './elements/location'
 import { matrixElement } from './elements/matrix'
 import { repeaterElement } from './elements/repeater'
 import { numberElement, rangeElement } from './elements/number'
@@ -101,6 +104,9 @@ for (const def of [
   calculatedElement,
   fileElement,
   imageUploadElement,
+  signatureElement,
+  richTextElement,
+  locationElement,
   hiddenElement,
   // static
   headingElement,

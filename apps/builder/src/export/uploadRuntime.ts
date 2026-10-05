@@ -116,18 +116,22 @@ function fgRemoveFile(path: string, index: number): void {
 /** React: module-level pure helpers (thumbnails, sizes, labels). */
 export function reactUploadModule(fields: ExportField[], messages: MessageCatalog): string {
   if (uploadFields(fields).length === 0) return ''
-  return `${commonTs(messages)}
-
-const FG_FILE_MULTIPLE: Record<string, boolean> = ${multipleMap(fields)}
-
-function fgFileList(data: FormData, path: string): File[] {
+  const fileList = `function fgFileList(data: FormData, path: string): File[] {
   return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], data) as File[]
 }`
+  // Signature pads only: no picking, file lists or thumbnails.
+  if (uploadFields(fields).every((f) => f.node.type === 'signature')) return fileList
+  return `${commonTs(messages)}
+
+const FG_FILE_MULTIPLE: Record<string, boolean> = ${multipleMap(fields.filter((f) => f.node.type !== 'signature'))}
+
+${fileList}`
 }
 
 /** React: handlers inside the component (state through setField). */
 export function reactUploadHandlers(fields: ExportField[]): string {
-  if (uploadFields(fields).length === 0) return ''
+  // Picking and dropping: file inputs only (a signature has its own pad).
+  if (!uploadFields(fields).some((f) => f.node.type !== 'signature')) return ''
   return `  // "Only one file fits here, …" per field path, until its next change.
   const [fgFileNotes, setFgFileNotes] = useState<Record<string, string>>({})
   function fgFileNote(path: string, note: string): void {

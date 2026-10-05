@@ -220,11 +220,12 @@ function fgDraftState() {
     items[list.getAttribute('data-fg-items')] = list.children.length
   })
   var controls = {}
-  Array.prototype.forEach.call(form.querySelectorAll('input, select, textarea'), function (el) {
+  Array.prototype.forEach.call(form.querySelectorAll('input, select, textarea, [data-fg-richtext]'), function (el) {
     var country = el.getAttribute('data-fg-phone-country')
     var key = el.id || (country ? 'country:' + country : '')
     if (!key || el.type === 'file' || el.type === 'hidden' || el.type === 'submit' || el.type === 'button') return
-    if (el.type === 'checkbox' || el.type === 'radio') controls[key] = el.checked
+    if (el.hasAttribute('data-fg-richtext')) controls[key] = fgRichClean(el.innerHTML)
+    else if (el.type === 'checkbox' || el.type === 'radio') controls[key] = el.checked
     else if (el.multiple) controls[key] = Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
     else controls[key] = el.value
   })
@@ -249,7 +250,8 @@ function fgDraftApply(state) {${opts.repeaters ? `
       : document.getElementById(key)
     if (!el || !form.contains(el)) return
     var value = controls[key]
-    if (el.type === 'checkbox' || el.type === 'radio') el.checked = value === true
+    if (el.hasAttribute('data-fg-richtext')) el.innerHTML = fgRichClean(value)
+    else if (el.type === 'checkbox' || el.type === 'radio') el.checked = value === true
     else if (el.multiple) Array.prototype.forEach.call(el.options, function (option) { option.selected = Array.isArray(value) && value.indexOf(option.value) !== -1 })
     else if (typeof value === 'string') el.value = value
     changed.push(el)

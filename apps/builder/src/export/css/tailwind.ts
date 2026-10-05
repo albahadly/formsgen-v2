@@ -81,6 +81,20 @@ const CLASSES: Record<Slot, string> = {
   repeaterMove:
     'inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600',
   repeaterHandle: 'cursor-grab select-none px-1 text-xl leading-none text-gray-500 dark:text-gray-400',
+  signature: 'flex flex-col gap-2',
+  signaturePad: 'block w-full touch-none cursor-crosshair rounded-md border border-dashed border-gray-300 bg-white dark:border-gray-600',
+  signatureRow: 'flex justify-end gap-2 [&>input]:min-w-0 [&>input]:flex-1',
+  richtext: 'rounded-md border border-gray-300 bg-white shadow-sm focus-within:ring-2 focus-within:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800',
+  richtextToolbar: 'flex flex-wrap gap-1 border-b border-gray-200 p-1 dark:border-gray-700',
+  richtextButton: 'min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300',
+  location: 'flex flex-col gap-2',
+  locationMap: 'isolate z-0 w-full rounded-md border border-gray-300 dark:border-gray-600',
+  locationRow: 'flex flex-wrap items-end gap-2',
+  locationCoord: 'flex flex-[1_1_8rem] flex-col gap-1 text-sm text-gray-700 dark:text-gray-300',
+  locationStatus: 'm-0 text-sm text-gray-600 empty:hidden dark:text-gray-400',
+  captcha: 'mt-4 flex flex-col gap-1',
+  captchaHint: 'm-0 text-sm text-gray-600 dark:text-gray-400',
+  richtextEditor: 'min-h-24 px-3 py-2 text-sm outline-none [overflow-wrap:anywhere] [&_ol]:list-decimal [&_ol]:ps-6 [&_ul]:list-disc [&_ul]:ps-6 [&_a]:text-indigo-600 [&_a]:underline [&_p]:mb-2',
   repeaterAdd:
     'mt-4 rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50',
   calculated:

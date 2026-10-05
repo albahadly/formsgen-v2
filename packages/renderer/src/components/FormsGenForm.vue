@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, watch } from 'vue'
+import { CAPTCHA_FIELD, captchaSiteKey, loadTurnstile, type Turnstile } from '../captcha'
 import { getValueByPath } from '../conditions'
 import { FORM_CONTEXT, type FormContext } from '../context'
 import { fill, pluralText, resolveMessages } from '../messages'
@@ -246,6 +247,7 @@ const context: FormContext = {
     text: submitText.value,
     secondary: submitCfg.value?.variant === 'secondary',
   }),
+  submitBlocked: () => uploading.value || captchaBlocks.value,
 }
 provide(FORM_CONTEXT, context)
 
@@ -373,15 +375,75 @@ watch(
   },
 )
 
+// ---- spam check (meta.captcha, see captcha.ts) ----
+const captchaKey = computed(() => captchaSiteKey(props.schema.meta))
+const captchaEl = ref<HTMLElement | null>(null)
+const captchaToken = ref('')
+const captchaBroken = ref(false)
+/** The submit button waits for a passed check. */
+const captchaBlocks = computed(() => captchaKey.value !== null && captchaToken.value === '')
+const captchaHintId = computed(() => `fg-${props.schema.meta.name}-captcha`)
+let captchaApi: Turnstile | null = null
+let captchaWidget: string | null = null
+let gone = false
+function startCaptcha(): void {
+  const key = captchaKey.value
+  if (!key || !captchaEl.value || captchaWidget !== null) return
+  loadTurnstile()
+    .then((turnstile) => {
+      if (gone || !captchaEl.value || captchaWidget !== null) return
+      captchaApi = turnstile
+      captchaWidget = turnstile.render(captchaEl.value, {
+        sitekey: key,
+        language: props.schema.meta.locale,
+        callback: (token: string) => {
+          captchaToken.value = token
+          captchaBroken.value = false
+        },
+        'expired-callback': () => (captchaToken.value = ''),
+        'error-callback': () => {
+          captchaToken.value = ''
+          captchaBroken.value = true
+        },
+      })
+    })
+    .catch(() => (captchaBroken.value = true))
+}
+function stopCaptcha(): void {
+  if (captchaWidget !== null) captchaApi?.remove(captchaWidget)
+  captchaWidget = null
+  captchaToken.value = ''
+  captchaBroken.value = false
+}
+onMounted(startCaptcha)
+// A new site key (the builder's settings): a new widget.
+watch(captchaKey, () => {
+  stopCaptcha()
+  void nextTick(startCaptcha)
+})
+onBeforeUnmount(() => {
+  gone = true
+  stopCaptcha()
+})
+
 function onSubmit(): void {
   if (uploading.value) return
   submitted.value = true
   const ok = validateAll()
   submitAttempts.value++
-  if (ok) {
+  if (ok && captchaBlocks.value) {
+    announce(messages.value.captchaWait)
+  } else if (ok) {
     announce(messages.value.submitted)
     forgetDraft()
-    emit('submit', pickVisibleData(props.schema.tree, data))
+    const answers = pickVisibleData(props.schema.tree, data)
+    if (captchaKey.value) {
+      answers[CAPTCHA_FIELD] = captchaToken.value
+      // A token works once: the check runs again for the next submission.
+      captchaToken.value = ''
+      if (captchaWidget !== null) captchaApi?.reset(captchaWidget)
+    }
+    emit('submit', answers)
   } else {
     announce(
       pluralText(messages.value, messages.value.errors, Object.values(errors).filter(Boolean).length),
@@ -429,6 +491,26 @@ function onSubmit(): void {
         parent-path=""
         :default-span="12"
       />
+    </div>
+    <div
+      v-if="captchaKey"
+      class="fg-captcha"
+      data-fg-captcha
+    >
+      <div ref="captchaEl" />
+      <p
+        v-if="captchaBroken"
+        class="fg-error"
+      >
+        {{ messages.captchaFailed }}
+      </p>
+      <p
+        v-else-if="captchaBlocks"
+        :id="captchaHintId"
+        class="fg-captcha-hint"
+      >
+        {{ messages.captchaWait }}
+      </p>
     </div>
     <div
       v-if="upload"
@@ -479,7 +561,8 @@ function onSubmit(): void {
           :class="submitClass"
           :style="submitStyle"
           type="submit"
-          :disabled="uploading"
+          :disabled="uploading || captchaBlocks"
+          :aria-describedby="captchaBlocks && !captchaBroken ? captchaHintId : undefined"
         >
           {{ submitText }}
         </button>

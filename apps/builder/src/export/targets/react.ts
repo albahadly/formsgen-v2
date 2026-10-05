@@ -8,6 +8,10 @@ import { FILE_HELPERS_TS, RUNTIME_HELPERS_TS, pruneUnusedHelpers } from '../comp
 import { calcSteps, reactCalcBlock } from '../calc'
 import { answerHelpers, usesAnswers } from '../answers'
 import { dragHandle, dragTargetAttrs, movedIndexJs, reactItemDrag } from '../itemDrag'
+import { hasSignature, reactSignatureHooks, reactSignatureModule } from '../signature'
+import { hasRichText, reactRichTextHooks, richTextRuntime } from '../richAnswer'
+import { hasLocation, locationRuntime, reactLocationHooks } from '../location'
+import { CAPTCHA_FIELD, captchaKeyOf, captchaMarkup, captchaRuntime, reactCaptchaHooks } from '../captcha'
 import { draftBar, draftHelpers, reactDraftHandlers, reactDraftHooks, usesDraft } from '../draft'
 import { postsUploads, reactUploadHandlers, reactUploadModule, uploadFields, uploadStatusMarkup, uploadTextHelper } from '../uploadRuntime'
 import {
@@ -111,7 +115,12 @@ export const reactTarget: ExportTarget = {
     const submitClass = css.classes(sb.secondary ? 'buttonSecondary' : 'submitButton')
     // Upload forms that post show progress; submit waits for the upload.
     const progress = postsUploads(schema, typedFields)
-    const submitDisabled = progress ? ` disabled={fgUpload.state === 'uploading'}` : ''
+    // The spam check (meta.captcha): submit waits for a passed check.
+    const captchaKey = captchaKeyOf(schema)
+    const disabledWhen = [progress ? "fgUpload.state === 'uploading'" : '', captchaKey ? "fgCaptchaToken === ''" : ''].filter(Boolean)
+    const submitDisabled = disabledWhen.length
+      ? ` disabled={${disabledWhen.join(' || ')}}${captchaKey ? ` aria-describedby={fgCaptchaToken === '' && !fgCaptchaFailed ? 'fg_captcha_hint' : undefined}` : ''}`
+      : ''
 
     const renderSections = (host: RenderedSectionHost): string => {
       const state = `fgSec_${host.key}`
@@ -164,12 +173,16 @@ export const reactTarget: ExportTarget = {
           ${r.sortable && r.limits.min > 0 ? `{${list}.length > ${r.limits.min} && ${removeButton}}` : removeButton}
         </div>`
       const addBtn = `<button type="button" className="${css.classes('repeaterAdd')}" data-fg-add="${r.path}" onClick={() => fgAddItem('${r.path}')}>${r.addText}</button>`
+      const itemMarkup = reactItemMarkup(r.itemHtml, r.path, r.depth)
+      // Fields run by a script on the form (signatures, rich text, maps)
+      // don't read the item: name it _item then (strict unused checks).
+      const itemParam = new RegExp(`\\b${item}\\b`).test(itemMarkup) ? item : `_${item}`
       return `<fieldset className="${css.classes('group')}" data-fg-repeater="${r.path}">${repeaterLegend(css, r, 'className')}
   <div className="${css.classes('repeaterItems')}">
-    {${list}.map((${item}, ${i}) => (
+    {${list}.map((${itemParam}, ${i}) => (
       <fieldset key={fgKeyAt('${r.path}', ${i})} className="${css.classes('repeaterItem')}" data-fg-item tabIndex={-1}${r.sortable ? dragTargetAttrs('react', { path: r.path, index: i, list }) : ''}>
         <legend className="${css.classes('repeaterItemLabel')}">{fgItemLabel('${r.path}', ${i})}</legend>
-${indentBlock(reactItemMarkup(r.itemHtml, r.path, r.depth), 4)}
+${indentBlock(itemMarkup, 4)}
         ${shownAbove > 0 ? `{${list}.length > ${shownAbove} && (
         ${removeBtn}
         )}` : removeBtn}
@@ -567,6 +580,9 @@ ${resetLines}
     const hasUploads = uploadFields(typedFields).length > 0
     const submitUrl = schema.meta.submit?.url
     const draft = usesDraft(schema)
+    const signatures = hasSignature(schema.tree)
+    const rich = hasRichText(schema.tree)
+    const locations = hasLocation(schema.tree)
     const submitBlock = progress
       ? `    setFgUpload({ state: 'uploading', percent: 0 })
     // multipart: a JSON "data" part + one part per file; XMLHttpRequest reports upload progress
@@ -608,7 +624,7 @@ ${resetLines}
 import React, { useEffect, useRef, useState } from 'react'
 ${cssImport}
 ${RUNTIME_HELPERS_TS}${hasMultiMatrix(schema) ? `\n${MATRIX_TOGGLE_TS}` : ''}${steps.length ? `\n${reactCalcBlock(steps)}` : ''}${usesAnswers(schema.tree) ? `\n${answerHelpers(true)}` : ''}
-${hasUploads ? `${FILE_HELPERS_TS}\n` : ''}${draft ? `${draftHelpers(schema, 'react', true)}\n` : ''}
+${hasUploads ? `${FILE_HELPERS_TS}\n` : ''}${draft ? `${draftHelpers(schema, 'react', true)}\n` : ''}${signatures ? `${reactSignatureModule()}\n` : ''}${rich ? `${richTextRuntime(messages.richLinkPrompt, true)}\n` : ''}${locations ? `${locationRuntime(messages, true)}\n` : ''}${captchaKey ? `${captchaRuntime(true)}\n` : ''}
 type FormData = ${formDataType(schema)}
 
 const INITIAL: FormData = ${toJsLiteral(defaults)}
@@ -716,7 +732,7 @@ ${stepHandlers ? `\n${stepHandlers}\n` : ''}
     touched.current.add(path)
     validateField(path, form)
   }
-${tagsHandlers ? `\n${tagsHandlers}\n` : ''}${compositeHandlers ? `\n${compositeHandlers}\n` : ''}${hasUploads ? `\n${reactUploadHandlers(typedFields)}\n` : ''}${repeaterHandlers ? `\n${repeaterHandlers}\n` : ''}${resetHandler ? `\n${resetHandler}\n` : ''}${draft ? `\n${reactDraftHandlers(messages, resetLines)}\n` : ''}
+${tagsHandlers ? `\n${tagsHandlers}\n` : ''}${!hasRepeaters && (signatures || rich || locations) ? '\n  const fgRoot = useRef<HTMLFormElement>(null)\n' : ''}${signatures ? `\n${reactSignatureHooks()}\n` : ''}${rich ? `\n${reactRichTextHooks()}\n` : ''}${locations ? `\n${reactLocationHooks()}\n` : ''}${captchaKey ? `\n${reactCaptchaHooks(captchaKey, schema.meta.locale)}\n` : ''}${compositeHandlers ? `\n${compositeHandlers}\n` : ''}${hasUploads ? `\n${reactUploadHandlers(typedFields)}\n` : ''}${repeaterHandlers ? `\n${repeaterHandlers}\n` : ''}${resetHandler ? `\n${resetHandler}\n` : ''}${draft ? `\n${reactDraftHandlers(messages, resetLines)}\n` : ''}
   function handleSubmit(event: React.FormEvent): void {
     event.preventDefault()${progress ? "\n    if (fgUpload.state === 'uploading') return" : ''}
     const nextErrors: Record<string, string> = {}
@@ -730,19 +746,27 @@ ${tagsHandlers ? `\n${tagsHandlers}\n` : ''}${compositeHandlers ? `\n${composite
 ${jumpBlock ? `${jumpBlock}\n` : ''}      fgAnnounce(fgErrorsText(Object.keys(nextErrors).length))
       return
     }
-    const data = buildPayload(form)
+    const data = buildPayload(form)${captchaKey ? `
+    if (fgCaptchaToken === '') {
+      fgAnnounce(${JSON.stringify(messages.captchaWait)})
+      return
+    }
+    data[${JSON.stringify(CAPTCHA_FIELD)}] = fgCaptchaToken
+    // A token works once: a new check for the next submission.
+    setFgCaptchaToken('')
+    fgCaptchaReset(fgCaptchaEl.current)` : ''}
     setResult(data)
     fgAnnounce(${progress ? JSON.stringify(messages.uploadStarted) : submittedText(messages)})
     onSubmit?.(data)
 ${submitBlock}  }
 
   return (
-    <form${hasRepeaters ? ' ref={fgRoot}' : ''} className="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} dir="${schema.meta.dir}" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>${draft ? `\n${indentBlock(draftBar('react', schema, css, messages), 3)}` : ''}
+    <form${hasRepeaters || signatures || rich || locations ? ' ref={fgRoot}' : ''} className="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} dir="${schema.meta.dir}" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>${draft ? `\n${indentBlock(draftBar('react', schema, css, messages), 3)}` : ''}
       <div className="${css.classes('grid')}">
 ${indentBlock(markup, 4)}
       </div>
 ${progress ? `      ${uploadStatusMarkup('react', css, messages)}
-` : ''}      <div className="${css.classes('srOnly')}" role="status" aria-live="polite" aria-atomic="true">{fgAnnouncement}</div>${actionsBlock}
+` : ''}${captchaKey ? `${indentBlock(captchaMarkup('react', css, messages), 3)}\n` : ''}      <div className="${css.classes('srOnly')}" role="status" aria-live="polite" aria-atomic="true">{fgAnnouncement}</div>${actionsBlock}
       {result && <pre className="${css.classes('payload')}">{JSON.stringify(result, ${hasUploads ? 'fgFileJson' : 'null'}, 2)}</pre>}
     </form>
   )

@@ -9,6 +9,8 @@
 // item's own field; a reference that isn't a field (or an item field from
 // outside its item) stays as typed, so mistakes are visible.
 
+import { richPlainText } from './richAnswer'
+import { locationText } from './location'
 import { calculatedDecimals, CALCULATED_TYPE, formatCalculated } from './formula'
 import { getCoreElement } from './elements'
 import type { MessageCatalog } from './messages'
@@ -53,6 +55,8 @@ export function answerText(node: ElementNode, value: unknown, messages: MessageC
   if (node.type === CALCULATED_TYPE) return formatCalculated(value, calculatedDecimals(node))
   if (YES_NO.has(node.type)) return value === true ? messages.yes : value === false ? messages.no : ''
   if (node.type === 'matrix') return ''
+  if (node.type === 'richtext') return richPlainText(value)
+  if (node.type === 'location') return locationText(value)
   if (value === null || value === undefined || value === '') return ''
   if (CHOICES.has(node.type)) {
     const values = Array.isArray(value) ? value : [value]

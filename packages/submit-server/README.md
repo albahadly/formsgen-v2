@@ -20,4 +20,20 @@ node packages/submit-server/server.mjs --port 4180 --dir ./submissions
 The builder's export dialog can add this file to a code export's ZIP
 ("Sample server"), with a README. Tests: `node --test`.
 
-It is for local testing: no authentication, rate limiting or spam checks.
+## Spam check (Cloudflare Turnstile)
+
+When the form has a spam check (Settings → Spam check), it sends a
+Turnstile token with the answers as `cf-turnstile-response`. Start the
+server with your Turnstile secret key and it accepts only submissions whose
+token Cloudflare confirms (403 otherwise); the token is not stored:
+
+```sh
+TURNSTILE_SECRET=0x4AAA... node packages/submit-server/server.mjs
+```
+
+For testing, Cloudflare's test keys work on any site: site key
+`1x00000000000000000000AA` (always passes) with secret
+`1x0000000000000000000000000000000AA` (always accepts). Without
+`TURNSTILE_SECRET` the server stores submissions unchecked.
+
+It is for local testing: no authentication or rate limiting.

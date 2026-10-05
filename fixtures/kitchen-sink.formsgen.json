@@ -335,6 +335,24 @@
       "conditions": [[{ "field": "attachments", "operator": "not-empty" }]]
     },
     {
+      "id": "ks-about",
+      "type": "richtext",
+      "name": "about",
+      "props": { "label": "About you", "description": "Bold, lists and links are kept." }
+    },
+    {
+      "id": "ks-meet",
+      "type": "location",
+      "name": "meet",
+      "props": { "label": "Meeting point", "lat": 23.588, "lng": 58.3829, "zoom": 11, "height": 220 }
+    },
+    {
+      "id": "ks-signature",
+      "type": "signature",
+      "name": "signature",
+      "props": { "label": "Signature", "typing": true, "height": 140 }
+    },
+    {
       "id": "ks-quote",
       "type": "quote",
       "props": { "text": "Forms are conversations.", "cite": "FormsGen" }

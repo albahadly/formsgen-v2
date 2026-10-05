@@ -32,6 +32,10 @@ import { postsUploads, uploadStatusMarkup } from '../uploadRuntime'
 import { CALC_HELPERS_CS, calcSteps, formulaCs, type FormulaAccess } from '../calc'
 import { answerHelpersCs, usesAnswers } from '../answers'
 import { blazorItemDrag, dragHandle } from '../itemDrag'
+import { blazorSignature, hasSignature } from '../signature'
+import { blazorRichText, hasRichText } from '../richAnswer'
+import { blazorLocation, hasLocation } from '../location'
+import { CAPTCHA_FIELD, blazorCaptcha, captchaKeyOf, captchaMarkup } from '../captcha'
 import { blazorDraftBlock, draftBar, usesDraft } from '../draft'
 import {
   renderTree,
@@ -129,7 +133,10 @@ export const blazorTarget: ExportTarget = {
     const embeddedHost = sb.gatingHosts.length === 1 ? sb.gatingHosts[0]! : null
     // Upload forms that post show progress; submit waits for the upload.
     const progress = postsUploads(schema, typedFields)
-    const submitButton = `<button class="${css.classes(sb.secondary ? 'buttonSecondary' : 'submitButton')}"${sb.buttonStyle ? ` style="${sb.buttonStyle}"` : ''} type="submit"${progress ? ` disabled='@(fgUploadState == "uploading")'` : ''}>${sb.text}</button>`
+    // The spam check (meta.captcha): submit waits for a passed check.
+    const captchaKey = captchaKeyOf(schema)
+    const disabledWhen = [progress ? 'fgUploadState == "uploading"' : '', captchaKey ? 'fgCaptchaToken == ""' : ''].filter(Boolean)
+    const submitButton = `<button class="${css.classes(sb.secondary ? 'buttonSecondary' : 'submitButton')}"${sb.buttonStyle ? ` style="${sb.buttonStyle}"` : ''} type="submit"${disabledWhen.length ? ` disabled='@(${disabledWhen.join(' || ')})'` : ''}${captchaKey ? ` aria-describedby='@(fgCaptchaToken == "" && !fgCaptchaFailed ? "fg_captcha_hint" : null)'` : ''}>${sb.text}</button>`
 
     const stepsHosts = hosts.filter((h) => h.kind === 'steps')
     const memberOf = (path: string): string => pascalMember(pathKey(path))
@@ -137,6 +144,18 @@ export const blazorTarget: ExportTarget = {
     // Calculated fields: stored properties recomputed (FgCalc) before every
     // render and before validation, in order (a field after those it reads).
     const steps = calcSteps(schema)
+    // Signature pads (a script on the form root, through IJSRuntime).
+    const signatures = hasSignature(schema.tree)
+    // Rich-text editors (a script on the form root too).
+    const rich = hasRichText(schema.tree)
+    // Location fields: maps run by a script on the form root as well.
+    const locations = hasLocation(schema.tree)
+    // Scripts run through IJSRuntime on the form's root: dragging items,
+    // signature pads, rich-text editors, maps. A new EditContext (start,
+    // reset, saved answers) makes EditForm rebuild the form's elements, so
+    // they are wired again after the next render.
+    const sortable = repeaters.some((r) => r.node.props['sortable'] === true)
+    const interop = sortable || signatures || rich || locations || captchaKeyOf(schema) !== null
     const calcLines = steps.map((step) => {
       const access = (itemVar: string): FormulaAccess => ({
         read: (path) =>
@@ -322,6 +341,8 @@ ${indentBlock(item, 3)}
                       ? 'Dictionary<string, string?>'
                       : kind === 'multimap'
                         ? 'Dictionary<string, List<string>>'
+                      : kind === 'location'
+                        ? 'FgLatLng?'
                 : kind === 'array'
                 ? 'string[]'
                 : 'string'
@@ -347,6 +368,8 @@ ${indentBlock(item, 3)}
         }
         case 'array':
           return ' = Array.Empty<string>();'
+        case 'location':
+          return ''
         default:
           return ` = ${typeof def === 'string' ? csStr(def) : '""'};`
       }
@@ -410,7 +433,9 @@ ${[
           ? `FgFilesPart(parts, ${pathExpr}, ${member})`
           : type === 'rangeslider' || type === 'daterange'
             ? `new Dictionary<string, object?> { ["from"] = ${member}.From, ["to"] = ${member}.To }`
-            : member
+            : type === 'location'
+              ? `${member} is null ? null : new Dictionary<string, object?> { ["lat"] = ${member}.Lat, ["lng"] = ${member}.Lng }`
+              : member
     const payloadStatements: string[] = []
     let dictCounter = 0
     /**
@@ -519,7 +544,7 @@ ${[
     protected override void OnInitialized()${steps.length ? '\n    {\n        FgInitEdit();\n        FgCalc();\n    }' : ' => FgInitEdit();'}
 
     private void FgInitEdit()
-    {
+    {${interop ? '\n        fgWire = true;' : ''}${captchaKeyOf(schema) ? '\n        // New elements, a new check.\n        fgCaptchaToken = "";' : ''}${rich ? '\n        fgRichShow = true;' : ''}${locations ? '\n        fgLocShow = true;' : ''}
         fgEdit = new EditContext(Model);
         fgMessages = new ValidationMessageStore(fgEdit);
         fgEdit.OnValidationRequested += (_, _) => FgValidateAll();
@@ -788,7 +813,7 @@ ${fields.map((f) => `        ${csStr(pascalMember(f.key))},`).join('\n')}
     const resetLines = `        Model = new();
         FgInitEdit();${steps.length ? '\n        FgCalc();' : ''}${hasRepeaters ? '\n        fgItemRefs.Clear();' : ''}
         fgDeferredFields.Clear();
-        ResultJson = null;${tagsKeys.length ? '\n        foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";' : ''}${typedFields.some((f) => f.node.type === 'dates') ? '\n        foreach (var key in fgDateDrafts.Keys.ToList()) fgDateDrafts[key] = "";' : ''}${phoneCountryFields(typedFields).length ? '\n        fgPhoneCountry.Clear();' : ''}`
+        ResultJson = null;${tagsKeys.length ? '\n        foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";' : ''}${typedFields.some((f) => f.node.type === 'dates') ? '\n        foreach (var key in fgDateDrafts.Keys.ToList()) fgDateDrafts[key] = "";' : ''}${phoneCountryFields(typedFields).length ? '\n        fgPhoneCountry.Clear();' : ''}${signatures ? '\n        await FgJs.InvokeVoidAsync("fgSignClear", fgFormRoot);' : ''}`
     const resetBlock = hasResetButton(schema)
       ? `
     private async Task FgReset()
@@ -871,7 +896,7 @@ ${repeaterVisible(r) === 'true' ? '' : `        if (!(${repeaterVisible(r)})) re
         fgFocusMove = (list[target], delta < 0 ? target > 0 : target == list.Count - 1);
         await FgAnnounce(${csStr(messages.itemMoved)}.Replace("{label}", label).Replace("{n}", (target + 1).ToString()));
     }
-${blazorItemDrag(name, messages, csStr)}`
+${blazorItemDrag(messages, csStr)}`
         : ''
     }
     private string? fgFocusAdd;
@@ -1276,7 +1301,7 @@ ${progress ? `
     }
 `
         : '',
-      hasRange || dateMembers.length || hasGrid || phoneFields.length || hasUploads || tagsKeys.length
+      hasRange || dateMembers.length || hasGrid || phoneFields.length || hasUploads || tagsKeys.length || rich || locations
         ? `
     // Field keys: a member name ("Stay"), or for a field inside a repeater
     // item its template member plus the item ("CrewIStay#2"). Drafts and
@@ -1414,21 +1439,54 @@ ${Object.entries(dialCodes(typedFields, schema.meta.locale)).map(([code, dial]) 
     ].join('')
 
     const saveDraft = usesDraft(schema)
-    const sortable = repeaters.some((r) => r.node.props['sortable'] === true)
+    const interopBlock = interop
+      ? `
+    // Scripts on the form's root (loaded once, after the first render) call
+    // back into this component through fgSelf. They are wired to the form's
+    // element after each render that follows a new EditContext (EditForm
+    // then builds new elements).
+    private ElementReference fgFormRoot;
+    private Microsoft.JSInterop.DotNetObjectReference<${name}>? fgSelf;
+    private bool fgWire;
+
+    private async Task FgInteropInit()
+    {
+        fgSelf = Microsoft.JSInterop.DotNetObjectReference.Create(this);${sortable ? `
+        await FgJs.InvokeVoidAsync("eval", FgItemDragScript);` : ''}${signatures ? `
+        await FgJs.InvokeVoidAsync("eval", FgSignatureScript);` : ''}${rich ? `
+        await FgJs.InvokeVoidAsync("eval", FgRichTextScript);` : ''}${locations ? `
+        await FgJs.InvokeVoidAsync("eval", FgLocationScript);` : ''}${captchaKey ? `
+        await FgJs.InvokeVoidAsync("eval", FgCaptchaScript);` : ''}
+    }
+
+    private async Task FgInteropWire()
+    {
+        if (!fgWire || fgSelf is null) return;
+        fgWire = false;${sortable ? `
+        await FgJs.InvokeVoidAsync("fgItemDrag", fgFormRoot, fgSelf);` : ''}${signatures ? `
+        await FgJs.InvokeVoidAsync("fgSignatures", fgFormRoot, fgSelf);` : ''}${rich ? `
+        await FgJs.InvokeVoidAsync("fgRich", fgFormRoot, fgSelf);` : ''}${locations ? `
+        await FgJs.InvokeVoidAsync("fgLocations", fgFormRoot, fgSelf);` : ''}${captchaKey ? `
+        await FgJs.InvokeVoidAsync("fgCaptchaWire", fgCaptchaEl, fgSelf);` : ''}
+    }
+
+    public void Dispose() => fgSelf?.Dispose();
+${signatures ? blazorSignature().members : ''}${rich ? blazorRichText(messages.richLinkPrompt).members : ''}${locations ? blazorLocation(messages).members : ''}${captchaKey ? blazorCaptcha(captchaKey, schema.meta.locale).members : ''}`
+      : ''
     const afterRenderBlock =
-      hasRepeaters || hasUploads || hasSlider || saveDraft
+      hasRepeaters || hasUploads || hasSlider || saveDraft || interop
         ? `
     protected override async Task OnAfterRenderAsync(bool firstRender)
-    {${hasRepeaters ? '\n        await FgFocusRepeaters();' : ''}${hasUploads ? '\n        await FgFocusUploads();' : ''}${hasSlider ? '\n        await FgFocusDual();' : ''}${sortable ? '\n        if (firstRender) await FgItemDragInit();' : ''}${saveDraft ? '\n        // Saved answers: restored after the first render, kept after later ones.\n        if (firstRender) await FgDraftLoad();\n        else await FgDraftSave();' : ''}
+    {${hasRepeaters ? '\n        await FgFocusRepeaters();' : ''}${hasUploads ? '\n        await FgFocusUploads();' : ''}${hasSlider ? '\n        await FgFocusDual();' : ''}${interop ? '\n        if (firstRender) await FgInteropInit();\n        await FgInteropWire();' : ''}${rich ? '\n        // Values from a new model (start, reset, saved answers) into the editors.\n        await FgRichShowValues();' : ''}${locations ? '\n        // Values from a new model into the location fields.\n        await FgLocShowValues();' : ''}${saveDraft ? '\n        // Saved answers: restored after the first render, kept after later ones.\n        if (firstRender) await FgDraftLoad();\n        else await FgDraftSave();' : ''}
     }
 `
         : ''
 
     const answerBlock = usesAnswers(schema.tree)
-      ? answerHelpersCs({ range: hasRangeSlider(schema), dateRange: hasDateRange(schema), uploads: typedFields.some((f) => FILE_TYPES.has(f.node.type)) })
+      ? answerHelpersCs({ range: hasRangeSlider(schema), dateRange: hasDateRange(schema), uploads: typedFields.some((f) => FILE_TYPES.has(f.node.type)), location: locations })
       : ''
     const draftBlock = saveDraft ? blazorDraftBlock(schema, `${name}Model`, messages, { uploads: hasUploads, calc: steps.length > 0, resetLines }) : ''
-    const helperBlocks = `${calcBlock}${answerBlock}${editContextBlock}${announceBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}${repeaterBlock}${uploadBlock}${compositeBlock}${afterRenderBlock}${resetBlock}${draftBlock}`
+    const helperBlocks = `${calcBlock}${answerBlock}${editContextBlock}${announceBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}${repeaterBlock}${uploadBlock}${compositeBlock}${afterRenderBlock}${resetBlock}${draftBlock}${interopBlock}`
 
     const formBinding = 'EditContext="fgEdit" OnSubmit="FgSubmit"'
     const extraUsings = '@using System.Linq\n@using Microsoft.AspNetCore.Components.Forms\n'
@@ -1497,13 +1555,13 @@ ${Object.entries(dialCodes(typedFields, schema.meta.locale)).map(([code, dial]) 
     const draft = `@* Generated by FormsGen (.NET 8). *@
 @using System.ComponentModel.DataAnnotations
 @using System.Text.Json
-${extraUsings}${submitUrl ? '@using System.Net.Http.Json\n' : ''}${httpInject}${saveDraft || sortable ? '@inject Microsoft.JSInterop.IJSRuntime FgJs\n' : ''}${sortable ? '@implements IDisposable\n' : ''}
+${extraUsings}${submitUrl ? '@using System.Net.Http.Json\n' : ''}${httpInject}${saveDraft || interop ? '@inject Microsoft.JSInterop.IJSRuntime FgJs\n' : ''}${interop ? '@implements IDisposable\n' : ''}
 <EditForm ${formBinding} novalidate dir="${schema.meta.dir}">
-    <div class="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd"${sortable ? ' @ref="fgFormRoot"' : ''}>${saveDraft ? `\n${indentBlock(draftBar('blazor', schema, css, messages), 2)}` : ''}
+    <div class="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd"${interop ? ' @ref="fgFormRoot"' : ''}>${saveDraft ? `\n${indentBlock(draftBar('blazor', schema, css, messages), 2)}` : ''}
     <div class="${css.classes('grid')}">
 ${indentBlock(markup, 2)}
     </div>
-${progress ? `    ${uploadStatusMarkup('blazor', css, messages)}\n` : ''}    <div class="${css.classes('srOnly')}" role="status" aria-live="polite" aria-atomic="true">@fgAnnouncement</div>${actionsBlock}
+${progress ? `    ${uploadStatusMarkup('blazor', css, messages)}\n` : ''}${captchaKey ? `${captchaMarkup('blazor', css, messages).split('\n').map((l) => `    ${l}`).join('\n')}\n` : ''}    <div class="${css.classes('srOnly')}" role="status" aria-live="polite" aria-atomic="true">@fgAnnouncement</div>${actionsBlock}
     @if (ResultJson is not null)
     {
         <pre class="${css.classes('payload')}">@ResultJson</pre>
@@ -1517,7 +1575,16 @@ ${progress ? `    ${uploadStatusMarkup('blazor', css, messages)}\n` : ''}    <di
 ${sectionFields ? `\n${sectionFields}\n` : ''}${helperBlocks}${STATIC_HELPERS}
     private async Task HandleValidSubmit()
     {
-${hasUploads ? '        var parts = new List<(string Path, FgUpload File)>();\n        var payload = BuildPayload(parts);' : '        var payload = BuildPayload();'}
+${captchaKey ? `        if (fgCaptchaToken == "")
+        {
+            await FgAnnounce(${csStr(messages.captchaWait)});
+            return;
+        }
+` : ''}${hasUploads ? '        var parts = new List<(string Path, FgUpload File)>();\n        var payload = BuildPayload(parts);' : '        var payload = BuildPayload();'}${captchaKey ? `
+        payload[${csStr(CAPTCHA_FIELD)}] = fgCaptchaToken;
+        // A token works once: a new check for the next submission.
+        fgCaptchaToken = "";
+        await FgJs.InvokeVoidAsync("fgCaptchaReset", fgCaptchaEl);` : ''}
         ResultJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
 ${submitCall}${progress ? '' : `        await FgAnnounce(${csStr(messages.submitted)});\n`}    }
 

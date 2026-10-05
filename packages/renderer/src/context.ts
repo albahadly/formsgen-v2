@@ -30,6 +30,8 @@ export interface FormContext {
   submitEmbedHostId?(): string | null
   /** Resolved submit button label/style for the embedding wizard. */
   submitButtonSpec?(): { text: string; secondary: boolean }
+  /** The submit button is disabled (uploading, or the spam check hasn't passed). */
+  submitBlocked?(): boolean
   /** Speak a message through the form's polite aria-live region. */
   announce?(message: string): void
   /** A repeater removed an item: shift later items' touched state/errors. */

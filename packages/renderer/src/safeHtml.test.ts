@@ -43,7 +43,9 @@ describe('parseSafeHtml', () => {
       ['<a href="java\tscript:alert(1)">x</a>', '<a>x</a>'],
       ['<a href="data:text/html,<script>alert(1)</script>">x</a>', '<a>x</a>'],
       ['<svg onload=alert(1)><circle/></svg>after', 'after'],
-      ['<iframe src="https://evil"></iframe>after', 'after'],
+      ['<iframe src="http://plain"></iframe>after', 'after'],
+      ['<iframe src="javascript:alert(1)"></iframe>after', 'after'],
+      ['<iframe srcdoc="<script>x</script>"></iframe>after', 'after'],
       ['<style>body{display:none}</style>after', 'after'],
       // The broken tag goes; what is left is plain (escaped) text.
       ['<scr<script>ipt>alert(1)</script>', 'ipt&gt;alert(1)'],
@@ -57,6 +59,18 @@ describe('parseSafeHtml', () => {
       ['<a href="https://a"><a href="https://b">inner</a></a>', '<a href="https://a"></a><a href="https://b">inner</a>'],
     ]
     for (const [input, expected] of vectors) expect(clean(input), input).toBe(expected)
+  })
+
+  it('keeps https iframes, always sandboxed, lazy and with a strict referrer', () => {
+    const sandbox = 'sandbox="allow-scripts allow-same-origin allow-presentation" referrerpolicy="strict-origin-when-cross-origin" loading="lazy"'
+    expect(clean('<iframe src="https://www.youtube.com/embed/x" width="560" height="315" title="Video" allow="autoplay; encrypted-media; camera; geolocation" allowfullscreen>old browsers</iframe>after')).toBe(
+      `<iframe src="https://www.youtube.com/embed/x" width="560" height="315" title="Video" allow="autoplay; encrypted-media" allowfullscreen="" ${sandbox}></iframe>after`,
+    )
+    // The author's own sandbox, referrer and handlers never survive.
+    expect(clean('<iframe src="https://maps.example/x" sandbox="allow-top-navigation allow-popups" referrerpolicy="unsafe-url" onload="x()" style="border:0"></iframe>')).toBe(
+      `<iframe src="https://maps.example/x" style="border: 0" ${sandbox}></iframe>`,
+    )
+    expect(clean('<iframe></iframe><iframe src="//x.example"></iframe>ok')).toBe('ok')
   })
 
   it('filters inline styles and reads the text back', () => {

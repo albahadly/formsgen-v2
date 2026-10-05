@@ -104,10 +104,13 @@ describe('vue-standalone target', () => {
     expect(file!.content).toContain('form-control')
     expect(file!.content).toContain('is-invalid')
     expect(file!.content).not.toContain('fg-input')
-    // The only stylesheet: what Bootstrap has no utilities for (dragged items, upload drop zones).
+    // The only stylesheet: what Bootstrap has no utilities for (rich-text
+    // editors, maps, signature pads, dragged items, upload drop zones).
     const style = file!.content.split('<style scoped>')[1] ?? ''
-    expect(style.trim().startsWith('/* Sortable items: the dragged item, where it would land */')).toBe(true)
-    expect(style).toContain('/* Upload drop zones */')
+    expect(style.trim().startsWith('/* Rich text editors */')).toBe(true)
+    for (const part of ['/* Location fields', '/* Signature pads', '/* Sortable items: the dragged item, where it would land */', '/* Upload drop zones */']) {
+      expect(style).toContain(part)
+    }
     expect(style).not.toContain('.fg-form')
   })
 })

@@ -72,6 +72,12 @@ export const coreElements: Record<string, CoreElementMeta> = {
   // Uploads hold the chosen File objects (an empty list when none).
   file: meta('file', true, false, () => []),
   imageupload: meta('imageupload', true, false, () => []),
+  // A signature is drawn or typed, then held as one PNG file.
+  signature: meta('signature', true, false, () => []),
+  // Rich text: the cleaned HTML ('' when empty), see richAnswer.ts.
+  richtext: meta('richtext', true, false, () => ''),
+  // A point on the map, { lat, lng }; null until one is picked (location.ts).
+  location: meta('location', true, false, () => null),
   textarea: meta('textarea', true, false, () => ''),
   number: meta('number', true, false, () => null),
   select: meta('select', true, false, () => null),

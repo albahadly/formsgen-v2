@@ -10,7 +10,16 @@ import { VOID_TAGS, parseSafeHtml, type ElementNode, type HtmlNode } from '@form
 import { esc } from '@/registry/emitters/shared'
 import type { EmitCtx, EmitterLang } from '@/registry/types'
 
-const JSX_NAMES: Record<string, string> = { class: 'className', colspan: 'colSpan', rowspan: 'rowSpan', datetime: 'dateTime' }
+const JSX_NAMES: Record<string, string> = {
+  class: 'className',
+  colspan: 'colSpan',
+  rowspan: 'rowSpan',
+  datetime: 'dateTime',
+  allowfullscreen: 'allowFullScreen',
+  referrerpolicy: 'referrerPolicy',
+}
+/** Attributes without a value (present = on). */
+const BOOLEAN_ATTRS: ReadonlySet<string> = new Set(['open', 'reversed', 'allowfullscreen'])
 const JSX_NUMBERS: ReadonlySet<string> = new Set(['colspan', 'rowspan', 'start'])
 
 function jsxStyle(style: string): string {
@@ -35,12 +44,12 @@ function attrs(list: [string, string][], lang: EmitterLang): string {
     .map(([name, value]) => {
       if (lang === 'react') {
         if (name === 'style') return ` style=${jsxStyle(value)}`
-        if (value === '' && (name === 'open' || name === 'reversed')) return ` ${name}`
+        if (value === '' && BOOLEAN_ATTRS.has(name)) return ` ${JSX_NAMES[name] ?? name}`
         // React types these as numbers (the parser kept digits only).
         if (JSX_NUMBERS.has(name)) return ` ${JSX_NAMES[name] ?? name}={${Number(value)}}`
         return ` ${JSX_NAMES[name] ?? name}="${esc(value)}"`
       }
-      if (value === '' && (name === 'open' || name === 'reversed')) return ` ${name}`
+      if (value === '' && BOOLEAN_ATTRS.has(name)) return ` ${name}`
       if (lang === 'vue' && name === 'src') return ` :src="${esc(jsSingle(value))}"`
       return ` ${name}="${esc(value)}"`
     })

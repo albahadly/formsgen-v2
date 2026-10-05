@@ -1,6 +1,7 @@
 // Structural validation for untrusted schema input (project open, JSON
 // import, export round-trips). Dependency-free by design — no zod.
 
+import { SITE_KEY_PATTERN } from './captcha'
 import { isSafeUrl } from './elements'
 import { REPEATER_TYPE, itemPlacementProblem } from './repeater'
 import {
@@ -78,6 +79,14 @@ export function parseFormSchema(input: unknown): ParseResult {
     }
     if (meta['saveDraft'] !== undefined && typeof meta['saveDraft'] !== 'boolean') {
       errors.push('meta.saveDraft: expected a boolean')
+    }
+    const captcha = meta['captcha']
+    if (captcha !== undefined) {
+      if (!isRecord(captcha) || captcha['provider'] !== 'turnstile') {
+        errors.push('meta.captcha: expected { provider: "turnstile", siteKey }')
+      } else if (typeof captcha['siteKey'] !== 'string' || !SITE_KEY_PATTERN.test(captcha['siteKey'])) {
+        errors.push('meta.captcha.siteKey: expected a Turnstile site key (10–100 letters, digits, "_" or "-")')
+      }
     }
     const fieldSize = meta['fieldSize']
     if (fieldSize !== undefined && !['sm', 'md', 'lg'].includes(fieldSize as string)) {

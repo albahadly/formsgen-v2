@@ -442,6 +442,15 @@ function job(lang: TemplateLocale): FormSchema {
       validation: [{ rule: 'required' }],
     },
     {
+      id: 'tpl-job-cover',
+      type: 'richtext',
+      name: 'cover_letter',
+      props: {
+        label: L(tx('Cover letter', 'رسالة التقديم')),
+        description: L(tx('Bold, lists and links are kept.', 'يُحتفظ بالخط الغامق والقوائم والروابط.')),
+      },
+    },
+    {
       id: 'tpl-job-interview',
       type: 'dates',
       name: 'interview_days',
@@ -463,6 +472,18 @@ function job(lang: TemplateLocale): FormSchema {
       type: 'checkbox',
       name: 'consent',
       props: { label: L(tx('Keep my application on file for future roles', 'احتفظوا بطلبي للوظائف القادمة')) },
+    },
+    {
+      id: 'tpl-job-signature',
+      type: 'signature',
+      name: 'signature',
+      props: {
+        label: L(tx('Signature', 'التوقيع')),
+        description: L(tx('By signing, you confirm the details above are true.', 'بتوقيعك تؤكد صحة البيانات أعلاه.')),
+        typing: true,
+        height: 140,
+      },
+      validation: [{ rule: 'required' }],
     },
   ]
   return { $schema: SCHEMA_ID, meta: meta('job_application', tx('Job application', 'طلب توظيف'), lang, tx('Apply', 'تقديم الطلب')), tree }
@@ -527,6 +548,19 @@ function booking(lang: TemplateLocale): FormSchema {
             '<table><caption>أسعار الليلة</caption><thead><tr><th>الغرفة</th><th>السعر</th></tr></thead><tbody><tr><td>عادية</td><td>35 ر.ع</td></tr><tr><td>فاخرة</td><td>55 ر.ع</td></tr><tr><td>جناح</td><td>85 ر.ع</td></tr></tbody></table><p><small>يشمل الإفطار والضرائب. <a href="https://example.com/rates" target="_blank">قائمة الأسعار كاملة</a></small></p>',
           ),
         ),
+      },
+    },
+    {
+      id: 'tpl-book-pickup',
+      type: 'location',
+      name: 'pickup',
+      props: {
+        label: L(tx('Where should our driver pick you up?', 'أين يقلّك سائقنا؟')),
+        description: L(tx('Optional: tap the map, use your location or type the coordinates.', 'اختياري: انقر على الخريطة أو استخدم موقعك أو اكتب الإحداثيات.')),
+        lat: 23.588,
+        lng: 58.3829,
+        zoom: 11,
+        height: 240,
       },
     },
     {

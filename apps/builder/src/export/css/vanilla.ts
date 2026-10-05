@@ -67,6 +67,20 @@ const CLASSES: Record<Slot, string> = {
   repeaterRemove: 'fg-repeater-remove',
   repeaterMove: 'fg-repeater-move',
   repeaterHandle: 'fg-repeater-handle',
+  signature: 'fg-signature',
+  signaturePad: 'fg-signature-pad',
+  signatureRow: 'fg-signature-row',
+  richtext: 'fg-richtext',
+  richtextToolbar: 'fg-richtext-toolbar',
+  richtextButton: 'fg-richtext-button',
+  richtextEditor: 'fg-richtext-editor',
+  location: 'fg-location',
+  locationMap: 'fg-location-map',
+  locationRow: 'fg-location-row',
+  locationCoord: 'fg-location-coord',
+  locationStatus: 'fg-location-status',
+  captcha: 'fg-captcha',
+  captchaHint: 'fg-captcha-hint',
   repeaterAdd: 'fg-button fg-button--secondary fg-repeater-add',
   calculated: 'fg-input fg-calculated',
   fileDrop: 'fg-file-drop',
@@ -173,6 +187,31 @@ function baseStylesheet(theme: ThemeTokens | undefined): string {
 :where(.fg-html) :where(th, td) { padding: 0.25rem 0.5rem; border: 1px solid var(--fg-color-border); text-align: start; }
 :where(.fg-html) img { max-inline-size: 100%; block-size: auto; }
 :where(.fg-html) a { color: var(--fg-color-primary); }
+/* Signature: a light pad (dark ink in any theme), the typing box and Clear */
+.fg-signature { display: flex; flex-direction: column; gap: 0.5rem; }
+.fg-signature-pad { display: block; inline-size: 100%; border: 1px dashed var(--fg-color-border); border-radius: var(--fg-radius); background: #fff; touch-action: none; cursor: crosshair; }
+.fg-signature-row { display: flex; gap: 0.5rem; justify-content: flex-end; }
+.fg-signature-row > input { flex: 1 1 auto; min-inline-size: 0; }
+/* Rich text: toolbar and editor */
+.fg-richtext { border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-bg); }
+.fg-richtext:focus-within { border-color: var(--fg-color-primary); }
+.fg-richtext-toolbar { display: flex; flex-wrap: wrap; gap: 0.25rem; padding: 0.25rem; border-block-end: 1px solid var(--fg-color-border); }
+.fg-richtext-button { min-inline-size: 2rem; padding: 0.25rem 0.5rem; border: 1px solid transparent; border-radius: var(--fg-radius); background: none; color: inherit; font: inherit; cursor: pointer; }
+.fg-richtext-button:hover, .fg-richtext-button:focus-visible { border-color: var(--fg-color-border); background: var(--fg-color-surface); }
+.fg-richtext-editor { min-block-size: 6rem; padding: 0.5rem 0.75rem; outline: none; overflow-wrap: anywhere; }
+.fg-richtext-editor :where(p, ul, ol) { margin: 0 0 0.5em; }
+.fg-richtext-editor :where(ul, ol) { padding-inline-start: 1.5em; }
+.fg-richtext-editor a { color: var(--fg-color-primary); }
+/* Location: the map (Leaflet), the coordinate boxes and buttons, messages */
+.fg-location { display: flex; flex-direction: column; gap: 0.5rem; }
+.fg-location-map { inline-size: 100%; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); isolation: isolate; z-index: 0; }
+.fg-location-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: flex-end; }
+.fg-location-coord { display: flex; flex: 1 1 8rem; flex-direction: column; gap: 0.25rem; font-size: 0.875rem; }
+.fg-location-status { margin: 0; font-size: 0.875rem; }
+.fg-location-status:empty { display: none; }
+/* Spam check: the widget and its hint above the actions row */
+.fg-captcha { display: flex; flex-direction: column; gap: 0.25rem; margin-block-start: 1rem; }
+.fg-captcha-hint { margin: 0; font-size: 0.875rem; color: var(--fg-color-muted); }
 /* Sortable items: drag handle, the dragged item, where it would land */
 .fg-repeater-handle { padding: 0 0.25rem; color: var(--fg-color-muted); font-size: 1.25rem; line-height: 1; cursor: grab; user-select: none; }
 [data-fg-item][data-fg-drag] { opacity: 0.5; }

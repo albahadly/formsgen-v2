@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { SITE_KEY_PATTERN } from '@formsgen/renderer'
 import { SAMPLE_SERVER_URL } from '@/export/submitServer'
 import { computed, ref, watch } from 'vue'
 import { useFocusTrap } from '@/composables/useFocusTrap'
@@ -62,6 +63,16 @@ const saveDraft = computed({
   get: () => builder.schema.meta.saveDraft === true,
   set: (v: boolean) => builder.updateMeta({ saveDraft: v || undefined }),
 })
+
+// Spam check: a Cloudflare Turnstile site key (empty = off).
+const captchaKey = computed({
+  get: () => builder.schema.meta.captcha?.siteKey ?? '',
+  set: (v: string) => {
+    const key = v.trim()
+    builder.updateMeta({ captcha: key === '' ? undefined : { provider: 'turnstile', siteKey: key } })
+  },
+})
+const captchaKeyBad = computed(() => captchaKey.value !== '' && !SITE_KEY_PATTERN.test(captchaKey.value))
 
 const submitUrl = computed({
   get: () => builder.schema.meta.submit?.url ?? '',
@@ -241,6 +252,27 @@ function onKeydown(event: KeyboardEvent): void {
             {{ t('settings.saveDraftHint') }}
           </p>
         </div>
+
+        <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
+          {{ t('settings.captcha') }}
+          <input
+            v-model.lazy="captchaKey"
+            type="text"
+            dir="ltr"
+            spellcheck="false"
+            autocomplete="off"
+            placeholder="0x4AAAAAAA…"
+            class="rounded border border-gray-300 px-2 py-1.5 font-mono text-sm font-normal"
+            :aria-invalid="captchaKeyBad ? 'true' : undefined"
+            data-testid="settings-captcha"
+          >
+          <span class="font-normal text-gray-500">{{ t('settings.captchaHint') }}</span>
+          <span
+            v-if="captchaKeyBad"
+            class="font-normal text-red-600"
+            role="alert"
+          >{{ t('settings.captchaBad') }}</span>
+        </label>
 
         <div class="grid grid-cols-[1fr_auto] gap-3">
           <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">

@@ -5,6 +5,9 @@ import type { Component } from 'vue'
 import { TEXT_INPUT_TYPES } from '../elements'
 import FgCalculated from './fields/FgCalculated.vue'
 import FgCheckbox from './fields/FgCheckbox.vue'
+import FgSignature from './fields/FgSignature.vue'
+import FgRichText from './fields/FgRichText.vue'
+import FgLocation from './fields/FgLocation.vue'
 import FgFile from './fields/FgFile.vue'
 import FgCheckboxGroup from './fields/FgCheckboxGroup.vue'
 import FgDateRange from './fields/FgDateRange.vue'
@@ -40,6 +43,9 @@ export const FIELD_COMPONENTS: Readonly<Record<string, Component>> = {
   phone: FgPhone,
   file: FgFile,
   imageupload: FgFile,
+  signature: FgSignature,
+  richtext: FgRichText,
+  location: FgLocation,
   calculated: FgCalculated,
 }
 

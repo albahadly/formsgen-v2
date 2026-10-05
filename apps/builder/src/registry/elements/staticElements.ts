@@ -245,7 +245,7 @@ export const htmlElement: ElementDefinition = {
           prop: 'html',
           label: 'HTML',
           multiline: true,
-          hint: 'Scripts, styles, frames, form controls and event attributes are removed; links and images need safe URLs.',
+          hint: 'Scripts, styles, form controls and event attributes are removed; links and images need safe URLs. Embedded pages (iframe) need an https address and are sandboxed.',
         },
       ],
     },

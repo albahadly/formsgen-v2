@@ -38,8 +38,27 @@ ${posts ? `This form already posts to \`${SAMPLE_SERVER_URL}\`.` : `Set the form
 - **http://localhost:4180/** lists the submissions with their files;
   **/submissions** returns them as JSON.
 
-It is meant for local testing: there is no authentication, rate limiting or
-spam protection. Use it as a starting point for your own backend.
+${
+    schema.meta.captcha
+      ? `
+## Spam check
+
+This form sends a Cloudflare Turnstile token with its answers
+(\`cf-turnstile-response\`). Start the server with the secret key that goes
+with the form's site key, and it stores only submissions Cloudflare confirms
+(the token itself is not stored):
+
+\`\`\`sh
+TURNSTILE_SECRET=your-secret-key node server/server.mjs
+\`\`\`
+
+With Cloudflare's test site key (\`1x00000000000000000000AA\`) use the test
+secret \`1x0000000000000000000000000000000AA\`.
+`
+      : ''
+  }
+It is meant for local testing: there is no authentication or rate limiting.
+Use it as a starting point for your own backend.
 `
 }
 

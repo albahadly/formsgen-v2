@@ -113,6 +113,9 @@ describe('FormsGenForm', () => {
       references: [{ name: 'Dana', may_contact: false }],
       attachments: [attachment],
       attachments_note: '', // shown once a file is chosen
+      about: '',
+      meet: null,
+      signature: [],
       contact_method: 'email',
       twitter: '',
       github: '',

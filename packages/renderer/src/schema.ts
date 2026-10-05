@@ -15,6 +15,13 @@ export interface SubmitConfig {
   headers?: Record<string, string> | undefined
 }
 
+/** A spam check before sending (see captcha.ts). */
+export interface CaptchaConfig {
+  provider: 'turnstile'
+  /** The Cloudflare Turnstile site key (public; the secret stays on the server). */
+  siteKey: string
+}
+
 export type SubmitAlign = 'start' | 'center' | 'end'
 
 /** Appearance and placement of the form's submit button. */
@@ -50,6 +57,8 @@ export interface FormMeta {
   floatingLabels?: boolean | undefined
   /** Save and continue later: answers are kept in the visitor's browser until sent (see draft.ts). */
   saveDraft?: boolean | undefined
+  /** Spam check: the submit button waits for a passed check (see captcha.ts). */
+  captcha?: CaptchaConfig | undefined
 }
 
 export type RuleName =

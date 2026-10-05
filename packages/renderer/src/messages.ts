@@ -70,6 +70,30 @@ export interface MessageCatalog {
   moveItemDown: string
   /** Tooltip of a sortable item's drag handle. */
   dragItem: string
+  /** Signature field: the pad's name, the typing alternative and the clear button. */
+  signatureDraw: string
+  signatureType: string
+  signatureClear: string
+  /** Rich text: the toolbar's name, its buttons, and the link prompt. */
+  richToolbar: string
+  richBold: string
+  richItalic: string
+  richBullets: string
+  richNumbers: string
+  richLink: string
+  richLinkPrompt: string
+  /** Location field: the map's label, coordinates, buttons and status. */
+  locationMap: string
+  locationLat: string
+  locationLng: string
+  locationMine: string
+  locationClear: string
+  locationFinding: string
+  locationDenied: string
+  locationNoMap: string
+  /** Spam check (meta.captcha): while it hasn't passed; when it can't load. */
+  captchaWait: string
+  captchaFailed: string
   /** {label} {n} — announced after an item moved (n = its new position) */
   itemMoved: string
   /** {name} {size} — a chosen file over the size limit (MB) */
@@ -161,6 +185,26 @@ const en: MessageCatalog = {
   moveItemUp: 'Move {label} up',
   moveItemDown: 'Move {label} down',
   dragItem: 'Drag to reorder',
+  signatureDraw: 'Signature pad: draw your signature here',
+  signatureType: 'Or type your name',
+  signatureClear: 'Clear',
+  richToolbar: 'Formatting',
+  richBold: 'Bold',
+  richItalic: 'Italic',
+  richBullets: 'Bulleted list',
+  richNumbers: 'Numbered list',
+  richLink: 'Link',
+  richLinkPrompt: 'Link address (leave empty to remove the link)',
+  locationMap: 'Map: click or tap to place the pin, drag the pin to move it',
+  locationLat: 'Latitude',
+  locationLng: 'Longitude',
+  locationMine: 'Use my location',
+  locationClear: 'Clear',
+  locationFinding: 'Finding your location…',
+  locationDenied: "Your location isn't available. Place the pin on the map or type the coordinates.",
+  locationNoMap: "The map didn't load. Type the coordinates instead.",
+  captchaWait: 'The form can be sent once the check above has passed.',
+  captchaFailed: "The check didn't load. Reload the page to try again.",
   itemMoved: '{label} moved to position {n}',
   fileTooLarge: '{name} is larger than {size} MB',
   fileType: '{name} is not an accepted file type',
@@ -230,6 +274,26 @@ const ar: MessageCatalog = {
   moveItemUp: 'نقل {label} إلى الأعلى',
   moveItemDown: 'نقل {label} إلى الأسفل',
   dragItem: 'اسحب لإعادة الترتيب',
+  signatureDraw: 'لوحة التوقيع: ارسم توقيعك هنا',
+  signatureType: 'أو اكتب اسمك',
+  signatureClear: 'مسح',
+  richToolbar: 'التنسيق',
+  richBold: 'غامق',
+  richItalic: 'مائل',
+  richBullets: 'قائمة نقطية',
+  richNumbers: 'قائمة مرقّمة',
+  richLink: 'رابط',
+  richLinkPrompt: 'عنوان الرابط (اتركه فارغًا لإزالة الرابط)',
+  locationMap: 'الخريطة: انقر أو المس لوضع الدبوس، واسحب الدبوس لتحريكه',
+  locationLat: 'خط العرض',
+  locationLng: 'خط الطول',
+  locationMine: 'استخدم موقعي',
+  locationClear: 'مسح',
+  locationFinding: 'جارٍ تحديد موقعك…',
+  locationDenied: 'موقعك غير متاح. ضع الدبوس على الخريطة أو اكتب الإحداثيات.',
+  locationNoMap: 'لم يتم تحميل الخريطة. اكتب الإحداثيات بدلًا من ذلك.',
+  captchaWait: 'يمكن إرسال النموذج بعد اجتياز التحقق أعلاه.',
+  captchaFailed: 'تعذّر تحميل التحقق. أعد تحميل الصفحة للمحاولة مجددًا.',
   itemMoved: 'نُقل {label} إلى الموضع {n}',
   fileTooLarge: 'حجم {name} أكبر من {size} ميغابايت',
   fileType: '{name} ليس من أنواع الملفات المقبولة',

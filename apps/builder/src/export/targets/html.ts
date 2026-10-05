@@ -9,6 +9,10 @@ import { FILE_HELPERS, RUNTIME_HELPERS, compileConditions } from '../compile'
 import { calcSteps, htmlCalcBlock } from '../calc'
 import { htmlAnswerPainter, usesAnswers } from '../answers'
 import { dragHandle, htmlItemDrag } from '../itemDrag'
+import { hasSignature, signatureRuntime } from '../signature'
+import { hasRichText, richTextRuntime } from '../richAnswer'
+import { hasLocation, locationRuntime } from '../location'
+import { CAPTCHA_FIELD, captchaKeyOf, captchaMarkup, captchaRuntime } from '../captcha'
 import { draftBar, draftHelpers, htmlDraftRuntime, usesDraft } from '../draft'
 import { fieldsByPath, listSeparator } from '@formsgen/renderer'
 import { dropFirstHelper, postsUploads, uploadFields, uploadStatusMarkup, uploadTextHelper } from '../uploadRuntime'
@@ -42,6 +46,9 @@ function indentBlock(text: string, depth: number): string {
     .map((line) => (line === '' ? line : pad + line))
     .join('\n')
 }
+
+const indentHtml = (text: string, depth: number): string =>
+  text.split('\n').map((line) => (line ? ' '.repeat(depth) + line : line)).join('\n')
 
 export const htmlTarget: ExportTarget = {
   id: 'html',
@@ -197,6 +204,11 @@ ${indentBlock(r.itemHtml, 3)}
     // Save and continue later: answers kept in this browser until sent.
     const draft = usesDraft(schema)
     const hasUploads = uploadFields(typedFields).length > 0
+    const signatures = hasSignature(schema.tree)
+    const rich = hasRichText(schema.tree)
+    const locations = hasLocation(schema.tree)
+    // The spam check (meta.captcha): submit waits for a passed check.
+    const captchaKey = captchaKeyOf(schema)
     const submitUrl = schema.meta.submit?.url
     // Upload forms that post show progress; submit waits for the upload.
     const progress = postsUploads(schema, typedFields)
@@ -369,7 +381,8 @@ function fgWirePhone(root) {
           fgItemElements(path).forEach(function (item) { item.remove() })
           for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
         })` : ''}
-        document.getElementById('fg-result').hidden = true
+        document.getElementById('fg-result').hidden = true${rich ? `
+        fgEach(document, '[data-fg-kind="richtext"]', function (el) { el.innerHTML = '' })` : ''}
         updateConditions()
 `
     const resetScript = draft
@@ -409,7 +422,7 @@ ${resetBody}        fgAnnounce(${JSON.stringify(messages.formReset)})
       box.querySelector('[data-fg-upload-bar]').style.width = percent + '%'
       text.textContent = fgUploadText(state, percent)
       Array.prototype.forEach.call(form.querySelectorAll('[data-fg-submit]'), function (button) {
-        button.disabled = state === 'uploading'
+        button.disabled = state === 'uploading'${captchaKey ? " || fgCaptchaToken === ''" : ''}
       })
     }`
     }
@@ -479,6 +492,10 @@ function fgPaintFiles(path) {
   })
 }
 function fgWireFiles(root) {
+  // Signature pads hold their PNG in fgFiles too (see fgWireSignatures).
+  fgEach(root, '[data-fg-kind="signature"]', function (canvas) {
+    fgFiles[canvas.getAttribute('data-fg-path')] = []
+  })
   fgEach(root, '[data-fg-kind="files"]', function (input) {
     fgFiles[input.getAttribute('data-fg-path')] = []
     // The input covers its drop zone; mark the zone while files are over it.
@@ -818,8 +835,10 @@ ${htmlItemDrag(messages)}
         var dial = country && country.selectedOptions[0] ? country.selectedOptions[0].getAttribute('data-dial') : ''
         return el.value.trim() === '' ? '' : '+' + dial + ' ' + el.value
       }` : ''}
-      if (kind === 'tags') return (fgTags[path] || []).slice()${hasUploads ? `
-      if (kind === 'files') return (fgFiles[path] || []).slice()` : ''}
+      if (kind === 'tags') return (fgTags[path] || []).slice()${rich ? `
+      if (kind === 'richtext') return fgRichClean(el.innerHTML)` : ''}${locations ? `
+      if (kind === 'location') return fgLocTyped(el.closest('[data-fg-loc]'))` : ''}${hasUploads ? `
+      if (kind === 'files' || kind === 'signature') return (fgFiles[path] || []).slice()` : ''}
       if (kind === 'checks') {
         return Array.prototype.map.call(
           document.querySelectorAll('[data-fg-path="' + path + '"]:checked'),
@@ -867,7 +886,7 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
       return validate ? Boolean(validate()) : false
     }
 
-${steps.length ? `    ${htmlCalcBlock(steps).split('\n').join('\n    ')}\n` : ''}${answers ? `    ${htmlAnswerPainter(fieldsByPath(schema.tree), messages, listSeparator(schema.meta.locale)).split('\n').join('\n    ')}\n` : ''}    function updateConditions() {${steps.length ? '\n      fgCalcAll()' : ''}${answers ? '\n      fgPaintAnswers()' : ''}
+${steps.length ? `    ${htmlCalcBlock(steps).split('\n').join('\n    ')}\n` : ''}${answers ? `    ${htmlAnswerPainter(fieldsByPath(schema.tree), messages, listSeparator(schema.meta.locale)).split('\n').join('\n    ')}\n` : ''}    function updateConditions() {${steps.length ? '\n      fgCalcAll()' : ''}${answers ? '\n      fgPaintAnswers()' : ''}${signatures ? "\n      fgSignSync(form, function (canvas) { return (fgFiles[canvas.getAttribute('data-fg-path')] || []).length === 0 })" : ''}${locations ? '\n      fgLocPins(form)' : ''}
       FG_CONDITIONS.forEach(function (c) {
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
         if (el) el.hidden = !c.test()
@@ -1062,7 +1081,48 @@ ${wires.map((w) => `      ${w}(root)`).join('\n')}
       if (path) fgBlurValidate(path)
     })
     form.addEventListener('input', onFieldEvent)
-    form.addEventListener('change', onFieldEvent)
+    form.addEventListener('change', onFieldEvent)${rich ? `
+    ${richTextRuntime(messages.richLinkPrompt, false).split('\n').join('\n    ')}
+    // Editor changes also fire input events (validation, conditions run there).
+    fgWireRichText(form, function () { updateConditions() })` : ''}${locations ? `
+    ${locationRuntime(messages, false).split('\n').join('\n    ')}
+    // Typing fires input events (validation, conditions run there); map
+    // picks, "Use my location" and Clear report here.
+    fgWireLocations(form, function (group, point, touch) {
+      var path = fgLocParts(group).lat.getAttribute('data-fg-path')
+      if (touch) {
+        touched[path] = true
+        validateField(path)
+      }
+      updateConditions()
+    })` : ''}${signatures ? `
+    ${signatureRuntime(false).split('\n').join('\n    ')}
+    fgWireSignatures(form, function (canvas, file) {
+      var path = canvas.getAttribute('data-fg-path')
+      fgFiles[path] = file ? [file] : []
+      touched[path] = true
+      validateField(path)
+      updateConditions()
+    })` : ''}${captchaKey ? `
+    ${captchaRuntime(false).split('\n').join('\n    ')}
+    // The submit button waits for a passed check.
+    var fgCaptchaToken = ''
+    var fgCaptchaEl = form.querySelector('[data-fg-captcha]')
+    function fgCaptchaPaint(failed) {
+      var waiting = fgCaptchaToken === ''
+      Array.prototype.forEach.call(form.querySelectorAll('[data-fg-submit]'), function (button) {
+        button.disabled = waiting${progress ? " || fgUploadState === 'uploading'" : ''}
+        if (waiting && !failed) button.setAttribute('aria-describedby', 'fg_captcha_hint')
+        else button.removeAttribute('aria-describedby')
+      })
+      form.querySelector('[data-fg-captcha-hint]').hidden = !waiting || failed
+      form.querySelector('[data-fg-captcha-failed]').hidden = !failed
+    }
+    fgCaptchaPaint(false)
+    fgCaptcha(fgCaptchaEl, ${JSON.stringify(captchaKey)}, ${JSON.stringify(schema.meta.locale)}, function (token, failed) {
+      fgCaptchaToken = token
+      fgCaptchaPaint(failed)
+    })` : ''}
     function onFieldEvent(event) {
       updateConditions()
       var path = event.target.getAttribute && event.target.getAttribute('data-fg-path')
@@ -1089,7 +1149,16 @@ ${progress ? `${uploadProgressScript()}\n` : ''}${resetScript}${draft ? `    ${d
         })
         return
       }
-      var data = buildPayload()
+${captchaKey ? `      if (fgCaptchaToken === '') {
+        fgAnnounce(${JSON.stringify(messages.captchaWait)})
+        return
+      }
+` : ''}      var data = buildPayload()${captchaKey ? `
+      data[${JSON.stringify(CAPTCHA_FIELD)}] = fgCaptchaToken
+      // A token works once: a new check for the next submission.
+      fgCaptchaToken = ''
+      fgCaptchaReset(fgCaptchaEl)
+      fgCaptchaPaint(false)` : ''}
       var out = document.getElementById('fg-result')
       out.textContent = JSON.stringify(data, ${hasUploads ? 'fgFileJson' : 'null'}, 2)
       out.hidden = false
@@ -1114,7 +1183,7 @@ ${headAssets}${headAssets && styleTag ? '\n' : ''}${styleTag}
     <div class="${css.classes('grid')}">
 ${indentBlock(markup, 3)}
     </div>
-${progress ? `    ${uploadStatusMarkup('html', css, messages)}\n` : ''}    <div id="fg-live" class="${css.classes('srOnly')}" role="status" aria-live="polite" aria-atomic="true"></div>${actionsBlock}
+${progress ? `    ${uploadStatusMarkup('html', css, messages)}\n` : ''}${captchaKey ? `${indentHtml(captchaMarkup('html', css, messages), 4)}\n` : ''}    <div id="fg-live" class="${css.classes('srOnly')}" role="status" aria-live="polite" aria-atomic="true"></div>${actionsBlock}
     <pre id="fg-result" class="${css.classes('payload')}" hidden></pre>
   </form>
 ${script}

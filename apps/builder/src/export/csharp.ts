@@ -60,6 +60,7 @@ export type CsFieldKind =
   | 'daterange' // date range (FgDateRange: From/To ISO strings)
   | 'map' // matrix (Dictionary<string, string?>: row → chosen column)
   | 'multimap' // matrix with several answers per row (Dictionary<string, List<string>>)
+  | 'location' // a point on a map (FgLatLng?: Lat/Lng, null until picked)
 
 export function csFieldKind(node: ElementNode): CsFieldKind {
   switch (node.type) {
@@ -85,7 +86,10 @@ export function csFieldKind(node: ElementNode): CsFieldKind {
       return 'array'
     case 'file':
     case 'imageupload':
+    case 'signature':
       return 'files'
+    case 'location':
+      return 'location'
     default:
       return 'string'
   }
@@ -100,7 +104,7 @@ export function csAttributes(field: ExportField, kind: CsFieldKind): string[] | 
   const rules = field.node.validation ?? []
   if (rules.length === 0) return []
   if (field.conditionChain.length > 0) return null
-  if (['bool', 'list', 'array', 'files', 'range2', 'daterange', 'map', 'multimap'].includes(kind)) {
+  if (['bool', 'list', 'array', 'files', 'range2', 'daterange', 'map', 'multimap', 'location'].includes(kind)) {
     return null // Validate() handles these
   }
   const numeric = kind === 'number' || kind === 'numberValue'
@@ -271,6 +275,8 @@ function csEmptyExpr(kind: CsFieldKind, member: string): string {
       return `${member}.Values.Any(string.IsNullOrEmpty)`
     case 'multimap':
       return `${member}.Values.Any(answers => answers.Count == 0)`
+    case 'location':
+      return `${member} is null`
     default:
       return `string.IsNullOrWhiteSpace(${member})`
   }

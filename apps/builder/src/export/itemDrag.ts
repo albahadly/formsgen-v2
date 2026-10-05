@@ -249,7 +249,7 @@ function fgMoveItemTo(path, from, to) {
  * marks, accepted drops, then FgItemDropped(list, from, to) in .NET. Lists
  * are told apart by data-fg-list ids (FgListId), items by their position.
  */
-export function blazorItemDrag(component: string, messages: MessageCatalog, csStr: (s: string) => string): string {
+export function blazorItemDrag(messages: MessageCatalog, csStr: (s: string) => string): string {
   const script = `window.fgItemDrag = window.fgItemDrag || function (root, dotnet) {
   var drag = null;
   function itemOf(el) { return el && el.closest ? el.closest('[data-fg-item]') : null; }
@@ -308,8 +308,6 @@ export function blazorItemDrag(component: string, messages: MessageCatalog, csSt
     // Dragging items by their handle: a script on the form's root runs the
     // drag (Razor can't accept a drop only while dragging, nor set drag data)
     // and calls FgItemDropped; lists are known by id (data-fg-list).
-    private ElementReference fgFormRoot;
-    private Microsoft.JSInterop.DotNetObjectReference<${component}>? fgSelf;
     private readonly List<(object List, string Path)> fgLists = new();
 
     private int FgListId(object list, string path)
@@ -321,13 +319,6 @@ export function blazorItemDrag(component: string, messages: MessageCatalog, csSt
     }
 
     private const string FgItemDragScript = ${csString(script)};
-
-    private async Task FgItemDragInit()
-    {
-        fgSelf = Microsoft.JSInterop.DotNetObjectReference.Create(this);
-        await FgJs.InvokeVoidAsync("eval", FgItemDragScript);
-        await FgJs.InvokeVoidAsync("fgItemDrag", fgFormRoot, fgSelf);
-    }
 
     [Microsoft.JSInterop.JSInvokable]
     public async Task FgItemDropped(int list, int from, int to)
@@ -342,10 +333,8 @@ export function blazorItemDrag(component: string, messages: MessageCatalog, csSt
         await FgAnnounce(${csStr(messages.itemMoved)}.Replace("{label}", label).Replace("{n}", (to + 1).ToString()));
         StateHasChanged();
     }
-
-    public void Dispose() => fgSelf?.Dispose();
 `
 }
 
 /** A C# verbatim string literal. */
-const csString = (s: string): string => `@"${s.replace(/"/g, '""')}"`
+export const csString = (s: string): string => `@"${s.replace(/"/g, '""')}"`

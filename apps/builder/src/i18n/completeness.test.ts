@@ -22,7 +22,7 @@ import { useBuilderStore } from '@/stores/builder'
 import { hasArabicText, setLocale, t } from './index'
 
 /** Technical tokens and product names that read the same in Arabic. */
-const SAME_IN_ARABIC = /^(H\d|Bootstrap 5|Tailwind CSS|https:\/\/)$/
+const SAME_IN_ARABIC = /^(H\d|Bootstrap 5|Tailwind CSS|https:\/\/(\S*\{z\}\S*)?)$/
 
 function panelPhrases(): string[] {
   const phrases = new Set<string>()

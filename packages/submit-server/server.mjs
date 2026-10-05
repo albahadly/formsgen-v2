@@ -6,8 +6,11 @@
 //   node server.mjs [--port 4180] [--dir ./submissions] [--origin *] [--max-mb 25]
 //
 // Set the form's submit URL to http://localhost:4180/submit (any path works).
+// With TURNSTILE_SECRET set, submissions must carry a passed Cloudflare
+// Turnstile check (the form's spam check, "cf-turnstile-response"); the
+// token is checked with Cloudflare, then left out of what is stored.
 // No dependencies: Node 20 or newer. It is a starting point for local
-// testing, not a production backend: no authentication, no spam checks.
+// testing, not a production backend: no authentication or rate limits.
 
 import { randomBytes } from 'node:crypto'
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
@@ -95,12 +98,30 @@ function decode(body, contentType) {
   throw Object.assign(new Error(`unsupported content type ${type || '(none)'}`), { status: 415 })
 }
 
+/** The answers' spam-check token field (Cloudflare's own name). */
+export const CAPTCHA_FIELD = 'cf-turnstile-response'
+
+/** Asks Cloudflare whether a Turnstile token is good: { success, 'error-codes' }. */
+export async function verifyTurnstile(secret, token, ip) {
+  const body = new URLSearchParams({ secret, response: token })
+  if (ip) body.set('remoteip', ip)
+  const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', { method: 'POST', body })
+  return res.json()
+}
+
 /**
  * The server: POST or PUT anywhere stores a submission; GET / lists them,
  * GET /submissions returns them as JSON, GET /submissions/<id>/files/<n>
  * downloads a file.
  */
-export function createSubmitServer({ dir = 'submissions', origin = '*', maxMb = 25, log = console.log } = {}) {
+export function createSubmitServer({
+  dir = 'submissions',
+  origin = '*',
+  maxMb = 25,
+  log = console.log,
+  turnstileSecret = '',
+  verify = verifyTurnstile,
+} = {}) {
   const root = resolve(dir)
   const cors = {
     'Access-Control-Allow-Origin': origin,
@@ -139,6 +160,23 @@ export function createSubmitServer({ dir = 'submissions', origin = '*', maxMb = 
       decoded = decode(body, req.headers['content-type'] ?? '')
     } catch (error) {
       throw Object.assign(error, { status: error.status ?? 400 })
+    }
+    // The spam check: the token goes (it works once), after Cloudflare's yes.
+    const data = decoded.data && typeof decoded.data === 'object' ? decoded.data : null
+    const token = data && typeof data[CAPTCHA_FIELD] === 'string' ? data[CAPTCHA_FIELD] : ''
+    if (data) delete data[CAPTCHA_FIELD]
+    if (turnstileSecret) {
+      if (!token) throw Object.assign(new Error('spam check missing'), { status: 403 })
+      let result
+      try {
+        result = await verify(turnstileSecret, token, req.socket.remoteAddress)
+      } catch {
+        throw Object.assign(new Error('spam check unavailable'), { status: 503 })
+      }
+      if (!result || result.success !== true) {
+        log(`[formsgen] spam check failed: ${(result?.['error-codes'] ?? []).join(', ') || 'no reason given'}`)
+        throw Object.assign(new Error('spam check failed'), { status: 403 })
+      }
     }
     const id = `${Date.now()}-${randomBytes(3).toString('hex')}`
     const folder = join(root, id)
@@ -227,9 +265,11 @@ function option(name, fallback) {
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const port = Number(option('port', process.env.PORT ?? 4180))
   const dir = option('dir', 'submissions')
-  const server = createSubmitServer({ dir, origin: option('origin', '*'), maxMb: Number(option('max-mb', 25)) })
+  const turnstileSecret = process.env.TURNSTILE_SECRET ?? ''
+  const server = createSubmitServer({ dir, origin: option('origin', '*'), maxMb: Number(option('max-mb', 25)), turnstileSecret })
   server.listen(port, () => {
     console.log(`FormsGen submission server: http://localhost:${port}/ (forms post to http://localhost:${port}/submit)`)
     console.log(`Storing submissions in ${resolve(dir)}`)
+    if (turnstileSecret) console.log('Spam check: Cloudflare Turnstile tokens are required (TURNSTILE_SECRET is set)')
   })
 }

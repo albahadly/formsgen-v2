@@ -75,6 +75,22 @@ export type Slot =
   | 'repeaterMove'
   /** A sortable item's drag handle (⠿). */
   | 'repeaterHandle'
+  /** Signature: wrapper, the drawing pad (a canvas), and the typing/Clear row. */
+  | 'signature'
+  | 'signaturePad'
+  | 'signatureRow'
+  /** Rich text: wrapper, toolbar, its buttons and the editor. */
+  | 'richtext'
+  | 'richtextToolbar'
+  | 'richtextButton'
+  | 'richtextEditor'
+  | 'location'
+  | 'locationMap'
+  | 'locationRow'
+  | 'locationCoord'
+  | 'locationStatus'
+  | 'captcha'
+  | 'captchaHint'
   | 'repeaterAdd'
   /** Upload drop zone (the file input covers it) and its text. */
   /** A calculated field's read-only box. */

@@ -34,7 +34,7 @@ describe('dragging sortable items in the exports', () => {
     expect(out('html', true)).toContain('fgWireItemDrag(item, listPath)')
     const razor = out('blazor', true)
     expect(razor).toContain(`data-fg-list='@FgListId(Model.People, "people")'`)
-    expect(razor).toContain('if (firstRender) await FgItemDragInit();')
+    expect(razor).toContain('if (firstRender) await FgInteropInit();')
     expect(razor).toContain('@ref="fgFormRoot"')
     expect(razor).toContain('@implements IDisposable')
     expect(razor).toContain('[Microsoft.JSInterop.JSInvokable]')

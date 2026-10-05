@@ -53,6 +53,7 @@ function formatJs(node: ElementNode, value: string, env: PipeEnv): string {
   if (node.type === CALCULATED_TYPE) return `fgFmt(${value}, ${calculatedDecimals(node)})`
   if (YES_NO.has(node.type)) return `fgYesNo(${value}, ${JSON.stringify(env.messages.yes)}, ${JSON.stringify(env.messages.no)})`
   if (node.type === 'matrix') return `''`
+  if (node.type === 'richtext') return `fgRichPlain(${value})`
   if (CHOICES.has(node.type)) return `fgPick(${value}, ${JSON.stringify(labelsOf(node))}, ${sep})`
   return `fgAnswer(${value}, ${sep})`
 }
@@ -68,6 +69,7 @@ function formatCs(node: ElementNode, value: string, env: PipeEnv): string {
   if (node.type === CALCULATED_TYPE) return `FgFmt(${value}, ${calculatedDecimals(node)})`
   if (YES_NO.has(node.type)) return `(${value} ? ${csStr(env.messages.yes)} : ${csStr(env.messages.no)})`
   if (node.type === 'matrix') return '""'
+  if (node.type === 'richtext') return `FgRichPlain(${value})`
   if (CHOICES.has(node.type)) {
     const entries = Object.entries(labelsOf(node)).map(([k, v]) => `[${csStr(k)}] = ${csStr(v)}`)
     return `FgPick(${value}, new Dictionary<string, string> { ${entries.join(', ')} }, ${sep})`
@@ -126,7 +128,9 @@ function fgAnswer(v${t(': unknown')}, sep${t(': string')})${t(': string')} {
   if (v === null || v === undefined || v === '') return ''
   if (Array.isArray(v)) return v.map((x) => (x && typeof x === 'object' && 'name' in x ? String(x.name) : String(x))).join(sep)
   if (typeof v === 'object') {
-    const r = v${t(' as { from?: unknown; to?: unknown }')}
+    const r = v${t(' as { from?: unknown; to?: unknown; lat?: unknown; lng?: unknown }')}
+    // A location: "lat, lng".
+    if (typeof r.lat === 'number' && typeof r.lng === 'number') return r.lat + ', ' + r.lng
     const from = r.from === null || r.from === undefined ? '' : String(r.from)
     const to = r.to === null || r.to === undefined ? '' : String(r.to)
     return from !== '' && to !== '' ? from + ' – ' + to : ''
@@ -146,7 +150,7 @@ function fgOr(text${t(': string')}, fallback${t(': string')})${t(': string')} {
 }
 
 /** C# helpers; `types` lists which composite classes exist in this form. */
-export function answerHelpersCs(types: { range: boolean; dateRange: boolean; uploads: boolean }): string {
+export function answerHelpersCs(types: { range: boolean; dateRange: boolean; uploads: boolean; location?: boolean }): string {
   return `
     // Answers inside text: a value as text ("" when empty).
     private static string FgAnswer(object? value, string sep) => value switch
@@ -157,7 +161,8 @@ export function answerHelpersCs(types: { range: boolean; dateRange: boolean; upl
         int number => number.ToString(System.Globalization.CultureInfo.InvariantCulture),${types.dateRange ? `
         FgDateRange range => string.IsNullOrEmpty(range.From) || string.IsNullOrEmpty(range.To) ? "" : range.From + " – " + range.To,` : ''}${types.range ? `
         FgRange range => range.From.ToString(System.Globalization.CultureInfo.InvariantCulture) + " – " + range.To.ToString(System.Globalization.CultureInfo.InvariantCulture),` : ''}${types.uploads ? `
-        IEnumerable<FgUpload> files => string.Join(sep, files.Select(f => f.Name)),` : ''}
+        IEnumerable<FgUpload> files => string.Join(sep, files.Select(f => f.Name)),` : ''}${types.location ? `
+        FgLatLng point => point.Lat.ToString(System.Globalization.CultureInfo.InvariantCulture) + ", " + point.Lng.ToString(System.Globalization.CultureInfo.InvariantCulture),` : ''}
         IEnumerable<string> list => string.Join(sep, list),
         _ => Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? "",
     };
@@ -171,6 +176,12 @@ export function answerHelpersCs(types: { range: boolean; dateRange: boolean; upl
     };
 
     private static string FgOr(string text, string fallback) => text == "" ? fallback : text;
+
+    // A rich-text answer's text: tags as spaces, entities decoded.
+    private static string FgRichPlain(string? html) => System.Text.RegularExpressions.Regex.Replace(
+        System.Net.WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Replace(
+            System.Text.RegularExpressions.Regex.Replace(html ?? "", "<br>|</?(p|li|ul|ol)>", " "), "<[^>]*>", "")),
+        @"\\s+", " ").Trim();
 `
 }
 

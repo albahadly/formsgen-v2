@@ -9,7 +9,8 @@ import { fill, type MessageCatalog } from './messages'
 import { evaluateRules, type FieldLookup } from './rules'
 import type { ElementNode } from './schema'
 
-export const FILE_TYPES: ReadonlySet<string> = new Set(['file', 'imageupload'])
+/** Values that are lists of files (a signature is one PNG). */
+export const FILE_TYPES: ReadonlySet<string> = new Set(['file', 'imageupload', 'signature'])
 
 export interface FileLimits {
   multiple: boolean

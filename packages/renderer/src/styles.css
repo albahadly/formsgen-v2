@@ -523,3 +523,28 @@ fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
 [data-fg-item][data-fg-drag] { opacity: 0.5; }
 [data-fg-item][data-fg-drop="before"] { box-shadow: 0 -3px 0 0 var(--fg-color-primary); }
 [data-fg-item][data-fg-drop="after"] { box-shadow: 0 3px 0 0 var(--fg-color-primary); }
+/* Signature: a light pad (dark ink in any theme), the typing box and Clear */
+.fg-signature { display: flex; flex-direction: column; gap: 0.5rem; }
+.fg-signature-pad { display: block; inline-size: 100%; border: 1px dashed var(--fg-color-border); border-radius: var(--fg-radius); background: #fff; touch-action: none; cursor: crosshair; }
+.fg-signature-row { display: flex; gap: 0.5rem; justify-content: flex-end; }
+.fg-signature-row > input { flex: 1 1 auto; min-inline-size: 0; }
+/* Rich text: toolbar and editor */
+.fg-richtext { border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-bg); }
+.fg-richtext:focus-within { border-color: var(--fg-color-primary); }
+.fg-richtext-toolbar { display: flex; flex-wrap: wrap; gap: 0.25rem; padding: 0.25rem; border-block-end: 1px solid var(--fg-color-border); }
+.fg-richtext-button { min-inline-size: 2rem; padding: 0.25rem 0.5rem; border: 1px solid transparent; border-radius: var(--fg-radius); background: none; color: inherit; font: inherit; cursor: pointer; }
+.fg-richtext-button:hover, .fg-richtext-button:focus-visible { border-color: var(--fg-color-border); background: var(--fg-color-surface); }
+.fg-richtext-editor { min-block-size: 6rem; padding: 0.5rem 0.75rem; outline: none; overflow-wrap: anywhere; }
+.fg-richtext-editor :where(p, ul, ol) { margin: 0 0 0.5em; }
+.fg-richtext-editor :where(ul, ol) { padding-inline-start: 1.5em; }
+.fg-richtext-editor a { color: var(--fg-color-primary); }
+
+.fg-location { display: flex; flex-direction: column; gap: 0.5rem; }
+.fg-location-map { inline-size: 100%; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); isolation: isolate; z-index: 0; }
+.fg-location-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: flex-end; }
+.fg-location-coord { display: flex; flex: 1 1 8rem; flex-direction: column; gap: 0.25rem; font-size: 0.875rem; }
+.fg-location-status { margin: 0; font-size: 0.875rem; }
+.fg-location-status:empty { display: none; }
+
+.fg-captcha { display: flex; flex-direction: column; gap: 0.25rem; margin-block-start: 1rem; }
+.fg-captcha-hint { margin: 0; font-size: 0.875rem; color: var(--fg-color-muted); }

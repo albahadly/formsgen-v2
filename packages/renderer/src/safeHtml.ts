@@ -2,8 +2,12 @@
 // into a tree of allowed tags and attributes, never injected as a string.
 // Each target writes the tree out with its own escaping, so nothing outside
 // the allowlist survives, however the input is written:
-//   - script, style, iframe, object, svg, media and form controls are
-//     dropped with everything inside them;
+//   - script, style, object, svg, media and form controls are dropped with
+//     everything inside them;
+//   - an iframe stays only with an https:// src, always sandboxed
+//     (IFRAME_SANDBOX: scripts and its own origin, so videos and maps
+//     work, but no forms, popups or navigating the page), lazy, with a
+//     strict referrer; its fallback content goes;
 //   - other unknown tags (custom elements, font, center …) are unwrapped:
 //     their content stays, the tag goes;
 //   - event handlers (on*), id and unknown attributes are dropped;
@@ -27,7 +31,7 @@ const ALLOWED_TAGS: ReadonlySet<string> = new Set([
 
 /** Dropped together with their content. */
 const DROPPED_WITH_CONTENT: ReadonlySet<string> = new Set([
-  'script', 'style', 'iframe', 'frame', 'frameset', 'object', 'embed', 'applet', 'template', 'noscript', 'noembed',
+  'script', 'style', 'frame', 'frameset', 'object', 'embed', 'applet', 'template', 'noscript', 'noembed',
   'noframes', 'textarea', 'title', 'xmp', 'select', 'option', 'button', 'head', 'math', 'svg', 'canvas', 'video', 'audio',
   'form', 'input', 'source', 'track', 'link', 'meta', 'base', 'param', 'picture', 'map', 'dialog', 'portal',
 ])
@@ -49,7 +53,15 @@ const TAG_ATTRS: Record<string, ReadonlySet<string>> = {
   ol: new Set(['start', 'reversed']),
   time: new Set(['datetime']),
   details: new Set(['open']),
+  iframe: new Set(['src', 'width', 'height', 'allow', 'allowfullscreen']),
 }
+
+/** Every kept iframe gets these (the author's own sandbox/referrer are dropped). */
+export const IFRAME_SANDBOX = 'allow-scripts allow-same-origin allow-presentation'
+/** Features an embed may ask for (`allow`); anything else is dropped. */
+const IFRAME_FEATURES: ReadonlySet<string> = new Set([
+  'autoplay', 'encrypted-media', 'fullscreen', 'picture-in-picture', 'clipboard-write', 'web-share', 'accelerometer', 'gyroscope',
+])
 
 /** Opening one of these closes an open element of the listed types first. */
 const AUTO_CLOSE: Record<string, string[]> = {
@@ -89,7 +101,13 @@ export function safeStyle(style: string): string {
 
 function keepAttr(tag: string, name: string, value: string): string | null {
   if (!GLOBAL_ATTRS.has(name) && !TAG_ATTRS[tag]?.has(name)) return null
+  if (tag === 'iframe' && name === 'src') return /^https:\/\/[^\s]/i.test(value.trim()) && isSafeUrl(value) ? value.trim() : null
   if (name === 'href' || name === 'src') return isSafeUrl(value) ? value.trim() : null
+  if (name === 'allow') {
+    const features = value.split(';').map((f) => f.trim().split(/\s+/)[0]!.toLowerCase()).filter((f) => IFRAME_FEATURES.has(f))
+    return features.length ? [...new Set(features)].join('; ') : null
+  }
+  if (name === 'allowfullscreen') return ''
   if (name === 'style') return safeStyle(value) || null
   if (name === 'target') return value === '_blank' ? '_blank' : null
   if (['width', 'height', 'colspan', 'rowspan', 'start'].includes(name)) return /^\d{1,5}$/.test(value.trim()) ? value.trim() : null
@@ -174,6 +192,16 @@ export function parseSafeHtml(html: string): HtmlNode[] {
       if (kept !== null && !attrs.some(([n]) => n === name)) attrs.push([name, kept])
     }
     i = Math.min(j + 1, html.length)
+    if (tag === 'iframe') {
+      // Its content is fallback text for old browsers: skipped.
+      const end = html.toLowerCase().indexOf('</iframe', i)
+      if (!selfClosing) i = end === -1 ? html.length : (html.indexOf('>', end) + 1 || html.length)
+      if (attrs.some(([n]) => n === 'src')) {
+        attrs.push(['sandbox', IFRAME_SANDBOX], ['referrerpolicy', 'strict-origin-when-cross-origin'], ['loading', 'lazy'])
+        top().c.push({ t: 'el', tag, attrs, c: [] })
+      }
+      continue
+    }
     if (RAW_TEXT.has(tag)) {
       const end = html.toLowerCase().indexOf(`</${tag}`, i)
       i = end === -1 ? html.length : (html.indexOf('>', end) + 1 || html.length)
