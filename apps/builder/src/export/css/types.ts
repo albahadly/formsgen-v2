@@ -75,6 +75,8 @@ export type Slot =
   | 'repeaterMove'
   | 'repeaterAdd'
   /** Upload drop zone (the file input covers it) and its text. */
+  /** A calculated field's read-only box. */
+  | 'calculated'
   | 'fileDrop'
   | 'fileDropText'
   | 'fileInput'

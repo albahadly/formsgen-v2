@@ -7,6 +7,7 @@ import { findParent, getCoreElement, isRepeater } from '@formsgen/renderer'
 import { repeaterDepthAt, useBuilderStore } from '@/stores/builder'
 import ControlAppearance from './controls/ControlAppearance.vue'
 import ControlColspan from './controls/ControlColspan.vue'
+import ControlFormula from './controls/ControlFormula.vue'
 import ControlCountry from './controls/ControlCountry.vue'
 import ControlConditions from './controls/ControlConditions.vue'
 import ControlItems from './controls/ControlItems.vue'
@@ -127,6 +128,10 @@ function key(control: PanelControl, index: number): string {
           />
           <ControlColspan
             v-else-if="control.kind === 'colspan'"
+            :node="node"
+          />
+          <ControlFormula
+            v-else-if="control.kind === 'formula'"
             :node="node"
           />
           <ControlConditions

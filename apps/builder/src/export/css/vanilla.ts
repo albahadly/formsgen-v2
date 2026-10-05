@@ -67,6 +67,7 @@ const CLASSES: Record<Slot, string> = {
   repeaterRemove: 'fg-repeater-remove',
   repeaterMove: 'fg-repeater-move',
   repeaterAdd: 'fg-button fg-button--secondary fg-repeater-add',
+  calculated: 'fg-input fg-calculated',
   fileDrop: 'fg-file-drop',
   fileDropText: 'fg-file-drop-text',
   fileInput: 'fg-file-input',
@@ -168,6 +169,8 @@ function baseStylesheet(theme: ThemeTokens | undefined): string {
 :where(.fg-html) :where(th, td) { padding: 0.25rem 0.5rem; border: 1px solid var(--fg-color-border); text-align: start; }
 :where(.fg-html) img { max-inline-size: 100%; block-size: auto; }
 :where(.fg-html) a { color: var(--fg-color-primary); }
+/* Calculated fields: read-only, looks set apart from inputs */
+.fg-calculated { background: var(--fg-color-surface); font-variant-numeric: tabular-nums; cursor: default; }
 .fg-rich-text > * { margin: 0; }
 .fg-rich-text > * + * { margin-block-start: 0.5em; }
 .fg-rich-text ul, .fg-rich-text ol { padding-inline-start: 1.25em; }

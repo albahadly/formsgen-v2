@@ -58,6 +58,12 @@
       "validation": [{ "rule": "min", "value": 1 }, { "rule": "max", "value": 50 }]
     },
     {
+      "id": "ks-seat-cost",
+      "type": "calculated",
+      "name": "seat_cost",
+      "props": { "label": "Seat cost", "formula": "{seats} * 25 * if({seats} >= 10, 0.8, 1)", "decimals": 2, "prefix": "$" }
+    },
+    {
       "id": "ks-satisfaction",
       "type": "range",
       "name": "satisfaction",

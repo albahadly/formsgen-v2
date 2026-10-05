@@ -67,6 +67,35 @@ export function collectVisibleFields(
   return fields
 }
 
+/** Every calculated field instance (visible or not), with its data path and item scope. */
+export function collectCalculated(
+  nodes: ElementNode[],
+  data: Record<string, unknown>,
+  parentPath = '',
+  scope: ItemScope | null = null,
+): VisibleField[] {
+  const out: VisibleField[] = []
+  for (const node of nodes) {
+    const core = getCoreElement(node.type)
+    if (!core) continue
+    if (isRepeater(node)) {
+      if (!node.name) continue
+      const path = joinPath(parentPath, node.name)
+      repeaterItems(data, path).forEach((_, index) => {
+        const itemPath = `${path}.${index}`
+        out.push(...collectCalculated(node.children ?? [], data, itemPath, { template: templatePath(path), actual: itemPath, index }))
+      })
+    } else if (core.isContainer) {
+      out.push(...collectCalculated(node.children ?? [], data, node.name ? joinPath(parentPath, node.name) : parentPath, scope))
+    } else if (node.type === 'calculated' && node.name) {
+      const field: VisibleField = { node, path: joinPath(parentPath, node.name) }
+      if (scope) field.scope = scope
+      out.push(field)
+    }
+  }
+  return out
+}
+
 /**
  * Data object containing only visible fields: named containers nest an
  * object (omitted when nothing inside is visible), repeaters an array.

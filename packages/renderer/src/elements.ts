@@ -86,6 +86,8 @@ export const coreElements: Record<string, CoreElementMeta> = {
   daterange: meta('daterange', true, false, () => ({ from: '', to: '' })),
   dates: meta('dates', true, false, () => []),
   matrix: meta('matrix', true, false, matrixDefault),
+  // Computed from a formula (formula.ts); null until it has a value.
+  calculated: meta('calculated', true, false, () => null),
   heading: meta('heading', false, false, () => undefined),
   paragraph: meta('paragraph', false, false, () => undefined),
   divider: meta('divider', false, false, () => undefined),

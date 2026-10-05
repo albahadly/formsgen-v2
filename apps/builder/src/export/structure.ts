@@ -460,6 +460,7 @@ export function hasResetButton(schema: FormSchema): boolean {
 /** TS type for one field's value, by element type. */
 const FIELD_TS_TYPES: Record<string, string> = {
   number: 'number | null',
+  calculated: 'number | null',
   select: 'string | null',
   radiogroup: 'string | null',
   checkbox: 'boolean',

@@ -7,6 +7,7 @@ describe('element registry', () => {
   it('registers the full catalog', () => {
     expect(listElements().map((d) => d.type).sort()).toEqual([
       'button',
+      'calculated',
       'checkbox',
       'checkboxgroup',
       'color',
@@ -73,7 +74,7 @@ describe('element registry', () => {
       'paragraph',
       'quote',
     ])
-    expect(listElements('fields')).toHaveLength(29)
+    expect(listElements('fields')).toHaveLength(30)
   })
 
   it('every definition matches its core semantics in the renderer', () => {

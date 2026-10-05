@@ -82,6 +82,8 @@ const CLASSES: Record<Slot, string> = {
     'inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600',
   repeaterAdd:
     'mt-4 rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50',
+  calculated:
+    'w-full cursor-default rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm tabular-nums shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800/50',
   fileDrop:
     'relative flex min-h-[4.5rem] items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center text-sm text-gray-500 hover:border-indigo-500 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-300 data-[fg-dragging]:border-indigo-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400',
   fileDropText: 'font-medium',

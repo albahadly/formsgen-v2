@@ -45,7 +45,7 @@ const OPTION_OPS: ConditionOperator[] = ['equals', 'not-equals', 'empty', 'not-e
 const LIST_OPS: ConditionOperator[] = ['contains', 'empty', 'not-empty']
 const PRESENCE_OPS: ConditionOperator[] = ['not-empty', 'empty']
 
-const NUMBER_TYPES = new Set(['number', 'range'])
+const NUMBER_TYPES = new Set(['number', 'range', 'calculated'])
 const OPTION_TYPES = new Set(['select', 'radiogroup'])
 const LIST_TYPES = new Set(['multiselect', 'checkboxgroup', 'tags', 'dates'])
 

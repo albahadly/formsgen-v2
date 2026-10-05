@@ -3,6 +3,7 @@
 
 import type { Component } from 'vue'
 import { TEXT_INPUT_TYPES } from '../elements'
+import FgCalculated from './fields/FgCalculated.vue'
 import FgCheckbox from './fields/FgCheckbox.vue'
 import FgFile from './fields/FgFile.vue'
 import FgCheckboxGroup from './fields/FgCheckboxGroup.vue'
@@ -39,6 +40,7 @@ export const FIELD_COMPONENTS: Readonly<Record<string, Component>> = {
   phone: FgPhone,
   file: FgFile,
   imageupload: FgFile,
+  calculated: FgCalculated,
 }
 
 export function fieldComponentFor(type: string): Component | undefined {

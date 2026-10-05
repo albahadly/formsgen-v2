@@ -29,6 +29,7 @@ import {
 } from '../csharp'
 import { collectExportFields, collectExportRepeaters } from '../logic'
 import { postsUploads, uploadStatusMarkup } from '../uploadRuntime'
+import { CALC_HELPERS_CS, calcSteps, formulaCs, type FormulaAccess } from '../calc'
 import {
   renderTree,
   stepButtonLabels,
@@ -129,6 +130,53 @@ export const blazorTarget: ExportTarget = {
 
     const stepsHosts = hosts.filter((h) => h.kind === 'steps')
     const memberOf = (path: string): string => pascalMember(pathKey(path))
+
+    // Calculated fields: stored properties recomputed (FgCalc) before every
+    // render and before validation, in order (a field after those it reads).
+    const steps = calcSteps(schema)
+    const calcLines = steps.map((step) => {
+      const access = (itemVar: string): FormulaAccess => ({
+        read: (path) =>
+          step.repeater && path.startsWith(`${step.repeater}.`)
+            ? `${itemVar}.${pascalMember(path.slice(step.repeater.length + 1))}`
+            : `Model.${memberOf(path)}`,
+        items: (repeater) => `Model.${repeaterMember(repeaters.find((r) => r.path === repeater)!)}`,
+        itemField: (_repeater, field) => `it.${pascalMember(field)}`,
+      })
+      const value = (itemVar: string): string =>
+        step.tree ? `FgCalcValue(${formulaCs(step.tree, access(itemVar))}, ${step.decimals})` : 'null'
+      return step.repeater
+        ? `        foreach (var item in Model.${repeaterMember(repeaters.find((r) => r.path === step.repeater)!)}) item.${pascalMember(step.name)} = ${value('item')};`
+        : `        Model.${memberOf(step.path)} = ${value('')};`
+    })
+    const calcTop = steps.filter((s) => !s.repeater).map((s) => csStr(memberOf(s.path)))
+    const calcItems = steps
+      .filter((s) => s.repeater)
+      .map((s) => `        foreach (var item in Model.${repeaterMember(repeaters.find((r) => r.path === s.repeater)!)}) FgValidateItemField(new FieldIdentifier(item, ${csStr(pascalMember(s.name))}), false);`)
+    const calcBlock = steps.length
+      ? `
+    private void FgCalc()
+    {
+${calcLines.join('\n')}
+    }
+
+    // After a submit attempt, calculated fields' errors follow their new values.
+    private bool fgSubmitted;
+
+    private void FgRevalidateCalc()
+    {
+        if (!fgSubmitted) return;${calcTop.length ? `\n        FgValidateMembers(new[] { ${calcTop.join(', ')} });` : ''}${calcItems.length ? `\n${calcItems.join('\n')}\n        fgEdit.NotifyValidationStateChanged();` : ''}
+    }
+
+    protected override bool ShouldRender()
+    {
+        FgCalc();
+        return true;
+    }
+${CALC_HELPERS_CS}
+    private static double FgDaysRange(object? value) => ${hasDateRange(schema) ? 'value is FgDateRange range ? FgDay(range.To) - FgDay(range.From) : double.NaN' : 'double.NaN'};
+`
+      : ''
 
     // Tabs/steps: int state fields + @if-rendered panels. Steps gate Next
     // behind per-step validation (FgNext_* via an explicit EditContext).
@@ -460,7 +508,7 @@ ${[
     private bool fgPressing;
     private readonly HashSet<string> fgDeferredFields = new();
 
-    protected override void OnInitialized() => FgInitEdit();
+    protected override void OnInitialized()${steps.length ? '\n    {\n        FgInitEdit();\n        FgCalc();\n    }' : ' => FgInitEdit();'}
 
     private void FgInitEdit()
     {
@@ -483,7 +531,7 @@ ${[
     }
 
     private void FgFieldChanged(string name)
-    {
+    {${steps.length ? '\n        FgCalc();\n        FgRevalidateCalc();' : ''}
         if (fgPressing)
         {
             fgDeferredFields.Add(name);
@@ -507,7 +555,7 @@ ${[
     }
 
     private void FgValidateAll()
-    {
+    {${steps.length ? '\n        FgCalc();\n        fgSubmitted = true;' : ''}
         fgDeferredFields.Clear();
         fgMessages.Clear();
         FgValidateMembers(fgAllMembers);${repeaters
@@ -819,7 +867,7 @@ ${repeaterVisible(r) === 'true' ? '' : `        if (!(${repeaterVisible(r)})) re
     private string? fgFocusAdd;
 
     private void FgFieldChanged(FieldIdentifier field)
-    {
+    {${steps.length ? '\n        FgCalc();\n        FgRevalidateCalc();' : ''}
         if (ReferenceEquals(field.Model, Model))
         {
             FgFieldChanged(field.FieldName);
@@ -1342,7 +1390,7 @@ ${Object.entries(dialCodes(typedFields, schema.meta.locale)).map(([code, dial]) 
 `
         : ''
 
-    const helperBlocks = `${editContextBlock}${announceBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}${repeaterBlock}${uploadBlock}${compositeBlock}${afterRenderBlock}${resetBlock}`
+    const helperBlocks = `${calcBlock}${editContextBlock}${announceBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}${repeaterBlock}${uploadBlock}${compositeBlock}${afterRenderBlock}${resetBlock}`
 
     const formBinding = 'EditContext="fgEdit" OnSubmit="FgSubmit"'
     const extraUsings = '@using System.Linq\n@using Microsoft.AspNetCore.Components.Forms\n'

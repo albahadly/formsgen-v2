@@ -6,6 +6,7 @@
 import { fileLimits, resolveMessages, type ElementNode } from '@formsgen/renderer'
 import { errorsTextFunction, jsTemplate, stepAnnouncements, submittedText } from '../announce'
 import { FILE_HELPERS, RUNTIME_HELPERS, compileConditions } from '../compile'
+import { calcSteps, htmlCalcBlock } from '../calc'
 import { postsUploads, uploadFields, uploadStatusMarkup, uploadTextHelper } from '../uploadRuntime'
 import { exportStylesheet, hasDateRange, hasDates, hasMatrix, hasRangeSlider, phoneCountryFields } from '../composite'
 import {
@@ -184,6 +185,8 @@ ${indentBlock(r.itemHtml, 3)}
 
     // Item fields too (by template path), for the per-type runtime.
     const typedFields = collectTemplateFields(schema)
+    // Calculated fields: recomputed at the start of every updateConditions().
+    const steps = calcSteps(schema)
     const hasUploads = uploadFields(typedFields).length > 0
     const submitUrl = schema.meta.submit?.url
     // Upload forms that post show progress; submit waits for the upload.
@@ -732,7 +735,11 @@ function fgMoveItem(path, index, delta) {
       var kind = el.getAttribute('data-fg-kind')
       if (kind === 'checkbox') return el.checked
       if (kind === 'select') return el.value === '' ? null : el.value
-      if (kind === 'number') return el.value === '' ? null : Number(el.value)
+      if (kind === 'number') return el.value === '' ? null : Number(el.value)${steps.length ? `
+      if (kind === 'calculated') {
+        var stored = el.getAttribute('data-fg-value')
+        return stored === null || stored === '' ? null : Number(stored)
+      }` : ''}
       if (kind === 'radio') {
         var checked = document.querySelector('[data-fg-path="' + path + '"]:checked')
         return checked ? checked.value : null
@@ -816,7 +823,7 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
       return validate ? Boolean(validate()) : false
     }
 
-    function updateConditions() {
+${steps.length ? `    ${htmlCalcBlock(steps).split('\n').join('\n    ')}\n` : ''}    function updateConditions() {${steps.length ? '\n      fgCalcAll()' : ''}
       FG_CONDITIONS.forEach(function (c) {
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
         if (el) el.hidden = !c.test()

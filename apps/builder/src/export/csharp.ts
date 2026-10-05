@@ -67,6 +67,7 @@ export function csFieldKind(node: ElementNode): CsFieldKind {
     case 'toggle':
       return 'bool'
     case 'number':
+    case 'calculated':
       return 'number'
     case 'range':
       return 'numberValue'

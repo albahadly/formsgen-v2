@@ -5,7 +5,9 @@ import { FORM_CONTEXT, type FormContext } from '../context'
 import { fill, pluralText, resolveMessages } from '../messages'
 import { cloneData, firstFieldError, type UploadStatus } from '../files'
 import { pinsLightScheme, themeInlineStyle } from '../theme'
-import { collectVisibleFields, pickVisibleData, scopedLookup, setValueByPath } from '../runtime'
+import { analyzeFormulas, calculatedDecimals, calculatedValue, calculationOrder } from '../formula'
+import { resolveScoped } from '../repeater'
+import { collectCalculated, collectVisibleFields, pickVisibleData, scopedLookup, setValueByPath } from '../runtime'
 import type { FormSchema } from '../schema'
 import { buildDefaultData } from '../tree'
 import FgNode from './FgNode.vue'
@@ -93,9 +95,38 @@ function validateAll(): boolean {
   return ok
 }
 
+// Calculated fields: recomputed whenever an answer changes, in dependency
+// order (a field after those it reads); writing an unchanged value is skipped.
+const formulas = computed(() => analyzeFormulas(props.schema.tree))
+const calcOrder = computed(() => calculationOrder(props.schema.tree))
+function applyCalculations(): void {
+  const instances = collectCalculated(props.schema.tree, data)
+  for (const node of calcOrder.value) {
+    const tree = formulas.value.get(node.id)?.tree ?? null
+    for (const field of instances.filter((f) => f.node === node)) {
+      const next = tree
+        ? calculatedValue(
+            tree,
+            {
+              value: (path) => getValueByPath(data, resolveScoped(path, field.scope)),
+              items: (path) => {
+                const items = getValueByPath(data, path)
+                return Array.isArray(items) ? (items as Record<string, unknown>[]) : []
+              },
+            },
+            calculatedDecimals(node),
+          )
+        : null
+      if (getValueByPath(data, field.path) !== next) setValueByPath(data, field.path, next)
+    }
+  }
+}
+applyCalculations()
+
 watch(
   data,
   () => {
+    applyCalculations()
     emit('update:modelValue', cloneData(data))
     // Live re-validation for fields the user already interacted with.
     for (const path of touched) validateField(path)

@@ -124,6 +124,23 @@ export {
   type CountryOption,
 } from './countries'
 export { FLOATING_TYPES, floatsLabel } from './labels'
+export {
+  CALCULATED_TYPE,
+  analyzeFormulas,
+  calculatedDecimals,
+  calculatedValue,
+  calculationOrder,
+  evaluateFormula,
+  formatCalculated,
+  formulaDay,
+  formulaNumber,
+  formulaRound,
+  parseFormula,
+  type FNode,
+  type FormulaContext,
+  type FormulaInfo,
+} from './formula'
+export { collectCalculated } from './runtime'
 export { VOID_TAGS, decodeEntities, htmlText, parseSafeHtml, safeStyle, type HtmlNode } from './safeHtml'
 export { isMarkdownParagraph, markdownText, parseInline, parseMarkdown, type MdBlock, type MdInline } from './markdown'
 export { MATRIX_TYPE, matrixColumns, matrixDefault, matrixMultiple, matrixRows, toggleMatrixCell, type MatrixOption } from './matrix'

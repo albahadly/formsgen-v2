@@ -70,6 +70,7 @@ describe('buildDefaultData', () => {
       email: '',
       website: '',
       seats: null,
+      seat_cost: null,
       satisfaction: 5, // props.default wins over the range min
       // unnamed columns container is transparent:
       city: '',

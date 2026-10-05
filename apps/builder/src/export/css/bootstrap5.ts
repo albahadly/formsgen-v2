@@ -68,6 +68,7 @@ const CLASSES: Record<Slot, string> = {
   repeaterMove: 'btn btn-outline-secondary btn-sm',
   repeaterAdd: 'btn btn-outline-secondary mt-3',
   // The (transparent) input covers the zone; see BOOTSTRAP_UPLOAD_CSS.
+  calculated: 'form-control bg-body-tertiary',
   fileDrop:
     'fg-file-drop position-relative d-flex align-items-center justify-content-center border border-2 rounded-3 p-4 text-center small text-body-secondary bg-body-tertiary',
   fileDropText: 'fw-medium',

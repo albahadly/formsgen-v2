@@ -53,6 +53,8 @@ export type PanelControl =
   | { kind: 'appearance'; features: AppearanceFeature[] }
   /** 12-column span picker (layout.colSpan). */
   | { kind: 'colspan' }
+  /** A calculated field's formula, checked against the form (props.formula). */
+  | { kind: 'formula' }
 
 export interface PanelSection {
   title: string

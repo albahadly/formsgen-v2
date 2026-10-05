@@ -89,6 +89,7 @@ describe('FormsGenForm', () => {
       email: 'jane@example.com',
       website: '',
       seats: null,
+      seat_cost: 0,
       satisfaction: 5,
       city: '',
       zip: '',

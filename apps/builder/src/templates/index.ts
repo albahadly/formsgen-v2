@@ -545,6 +545,31 @@ function booking(lang: TemplateLocale): FormSchema {
       },
     },
     {
+      id: 'tpl-book-cost',
+      type: 'columns',
+      props: { count: 2 },
+      children: [
+        {
+          id: 'tpl-book-nights',
+          type: 'calculated',
+          name: 'nights',
+          props: { label: L(tx('Nights', 'عدد الليالي')), formula: 'days({stay})', decimals: 0 },
+        },
+        {
+          id: 'tpl-book-estimate',
+          type: 'calculated',
+          name: 'estimate',
+          props: {
+            label: L(tx('Estimated cost', 'التكلفة التقديرية')),
+            description: L(tx('$90 a night, plus $15 a night for each extra.', '90$ لليلة، و15$ لليلة لكل إضافة.')),
+            formula: '{nights} * (90 + 15 * {extras})',
+            decimals: 2,
+            prefix: '$',
+          },
+        },
+      ],
+    },
+    {
       id: 'tpl-book-flight',
       type: 'text',
       name: 'flight_number',
