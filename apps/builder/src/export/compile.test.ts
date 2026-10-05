@@ -104,3 +104,11 @@ describe('compiled conditions match renderer semantics', () => {
     expect(makeCondition(or)(data)).toBe(true)
   })
 })
+
+describe('pruneUnusedHelpers', () => {
+  it('drops uncalled fg helpers (and their comments), keeping what is used', async () => {
+    const { pruneUnusedHelpers } = await import('./compile')
+    const code = `function fgUsed(): number {\n  return fgInner()\n}\n// only inner\nfunction fgInner(): number {\n  return 1\n}\n// never called\nfunction fgUnused(): number {\n  return fgDead()\n}\nfunction fgDead(): number {\n  return 2\n}\nconsole.log(fgUsed())\n`
+    expect(pruneUnusedHelpers(code)).toBe(`function fgUsed(): number {\n  return fgInner()\n}\n// only inner\nfunction fgInner(): number {\n  return 1\n}\nconsole.log(fgUsed())\n`)
+  })
+})

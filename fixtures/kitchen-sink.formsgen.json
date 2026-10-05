@@ -71,7 +71,7 @@
           "type": "text",
           "name": "city",
           "props": { "label": "City" },
-          "layout": { "colSpan": 6 }
+          "layout": { "colSpan": 6, "colSpanSm": 6, "colSpanLg": 4 }
         },
         {
           "id": "ks-zip",
@@ -79,7 +79,7 @@
           "type": "text",
           "name": "zip",
           "props": { "label": "ZIP" },
-          "layout": { "colSpan": 6 },
+          "layout": { "colSpan": 6, "colSpanSm": 6, "colSpanLg": 6 },
           "validation": [{ "rule": "regex", "value": "^[0-9]{4,6}$" }]
         }
       ]

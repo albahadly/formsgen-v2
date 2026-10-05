@@ -39,6 +39,7 @@ const submittedJson = computed(() =>
         class="rounded-lg p-6 shadow-sm"
         :schema="builder.schema"
         :data-fg-theme="pinsLightScheme(builder.schema.meta.theme) ? 'light' : ui.previewTheme"
+        :viewport="ui.device === 'mobile' ? 'sm' : ui.device === 'tablet' ? 'md' : undefined"
         @submit="onSubmit"
       />
       <div

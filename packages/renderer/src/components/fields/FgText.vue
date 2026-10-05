@@ -5,6 +5,7 @@ import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
 import FgAffix from './FgAffix.vue'
 import FgFieldLabel from './FgFieldLabel.vue'
+import FgFloat from './FgFloat.vue'
 
 const props = defineProps<{ node: ElementNode; path: string }>()
 const {
@@ -19,6 +20,7 @@ const {
   sizeClass,
   prefix,
   suffix,
+  floating,
 } = useField(props)
 
 const inputType = computed(() => TEXT_INPUT_TYPES[props.node.type] ?? 'text')
@@ -44,27 +46,34 @@ const affixDescribedBy = computed(
     :class="{ 'fg-field--error': error }"
   >
     <FgFieldLabel
+      v-if="!floating"
       :node="node"
       :for-id="fieldId"
     />
-    <FgAffix
-      :id="fieldId"
-      :prefix="prefix"
-      :suffix="suffix"
+    <FgFloat
+      :node="node"
+      :for-id="fieldId"
+      :floating="floating"
     >
-      <input
+      <FgAffix
         :id="fieldId"
-        v-model="text"
-        class="fg-input"
-        :class="[sizeClass, { 'fg-input--color': inputType === 'color' }]"
-        :type="inputType"
-        :name="node.name"
-        :placeholder="placeholder"
-        :aria-invalid="error ? 'true' : undefined"
-        :aria-describedby="affixDescribedBy"
-        @blur="onBlur"
+        :prefix="prefix"
+        :suffix="suffix"
       >
-    </FgAffix>
+        <input
+          :id="fieldId"
+          v-model="text"
+          class="fg-input"
+          :class="[sizeClass, { 'fg-input--color': inputType === 'color' }]"
+          :type="inputType"
+          :name="node.name"
+          :placeholder="floating ? placeholder || ' ' : placeholder"
+          :aria-invalid="error ? 'true' : undefined"
+          :aria-describedby="affixDescribedBy"
+          @blur="onBlur"
+        >
+      </FgAffix>
+    </FgFloat>
     <p
       v-if="description"
       class="fg-description"

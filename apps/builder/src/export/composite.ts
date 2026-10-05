@@ -57,6 +57,15 @@ export const COMPOSITE_CSS = `/* Composite fields (two-handle slider, date range
 .fg-tip-button:focus-visible { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
 .fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); left: 50%; z-index: 20; inline-size: max-content; max-inline-size: 16rem; padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; transform: translateX(-50%); visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
 .fg-tip:hover .fg-tip-text, .fg-tip-button:focus + .fg-tip-text { visibility: visible; opacity: 1; }
+
+/* Floating labels (meta.floatingLabels): the label floats when the control is focused or filled. */
+.fg-floating { position: relative; }
+.fg-floating > .fg-input, .fg-floating > .fg-select { padding-block: 1.375rem 0.375rem; }
+.fg-floating > .fg-floating-label { position: absolute; inset-block-start: 0; inset-inline-start: 0; padding: 0.875rem 0.75rem 0; font-size: 0.875rem; color: var(--fg-color-muted); pointer-events: none; transform-origin: 0 0; transition: transform 0.12s ease, color 0.12s ease; }
+[dir='rtl'] .fg-floating > .fg-floating-label { transform-origin: 100% 0; }
+.fg-floating > :focus ~ .fg-floating-label, .fg-floating > :not(:placeholder-shown) ~ .fg-floating-label, .fg-floating > select ~ .fg-floating-label { transform: translateY(-0.5rem) scale(0.8); }
+.fg-floating > :focus ~ .fg-floating-label { color: var(--fg-color-primary); }
+.fg-floating > :not(:focus)::placeholder { color: transparent; }
 `
 
 /** Help-tooltip rules (framework-neutral, like the slider's). */
@@ -132,6 +141,10 @@ export function exportStylesheet(css: CssFrameworkAdapter, schema: FormSchema): 
   const extra = [
     hasRangeSlider(schema) ? `/* Two-handle range slider */\n${DUAL_RANGE_CSS}` : '',
     hasTooltips(schema) ? `/* Help tooltips */\n${TIP_CSS}` : '',
+    // Bootstrap hides floating-label placeholders even on focus; show the hint then.
+    css.id === 'bootstrap5' && schema.meta.floatingLabels
+      ? '/* Floating labels: the placeholder hint shows on focus */\n.form-floating > .form-control:focus::placeholder { color: var(--bs-secondary-color); }\n'
+      : '',
   ].filter(Boolean)
   if (extra.length === 0) return base
   return [base, ...extra].filter(Boolean).join('\n')

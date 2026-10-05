@@ -15,6 +15,7 @@ import {
   vueError,
   vueEvents,
   vueInvalid,
+  floatWrap,
 } from '../emitters/shared'
 import { commonFieldSections, type ElementDefinition } from '../types'
 
@@ -56,7 +57,7 @@ export const selectElement: ElementDefinition = {
       fieldWrap(
         [
           labelFor(node, ctx),
-          `<select id="${ctx.id}" v-model="form.${ctx.path}" class="${ctx.css.classes('select')}"${vueInvalid(ctx)}${vueEvents(ctx, true)}>\n    ${optionTags(node)}\n  </select>`,
+          floatWrap(node, ctx, `<select id="${ctx.id}" v-model="form.${ctx.path}" class="${ctx.css.classes('select')}"${vueInvalid(ctx)}${vueEvents(ctx, true)}>\n    ${optionTags(node)}\n  </select>`),
           descriptionFor(node, ctx),
           vueError(ctx),
         ],
@@ -66,7 +67,7 @@ export const selectElement: ElementDefinition = {
       fieldWrap(
         [
           labelFor(node, ctx),
-          `<select id="${ctx.id}" class="${ctx.css.classes('select')}"${htmlDataAttrs(ctx, 'select')}>\n    ${optionTags(node, true)}\n  </select>`,
+          floatWrap(node, ctx, `<select id="${ctx.id}" class="${ctx.css.classes('select')}"${htmlDataAttrs(ctx, 'select')}>\n    ${optionTags(node, true)}\n  </select>`),
           descriptionFor(node, ctx),
           htmlError(ctx),
         ],
@@ -76,7 +77,7 @@ export const selectElement: ElementDefinition = {
       reactFieldWrap(
         [
           reactLabelFor(node, ctx),
-          `<select id="${ctx.id}" value={form.${ctx.path} ?? ''} ${reactControlClass(ctx, 'select')} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setField('${ctx.path}', e.target.value === '' ? null : e.target.value)} onBlur={() => touch('${ctx.path}')}>\n    ${optionTags(node)}\n  </select>`,
+          floatWrap(node, ctx, `<select id="${ctx.id}" value={form.${ctx.path} ?? ''} ${reactControlClass(ctx, 'select')} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setField('${ctx.path}', e.target.value === '' ? null : e.target.value)} onBlur={() => touch('${ctx.path}')}>\n    ${optionTags(node)}\n  </select>`, true),
           reactDescription(node, ctx),
           reactError(ctx),
         ],
@@ -86,7 +87,7 @@ export const selectElement: ElementDefinition = {
       fieldWrap(
         [
           labelFor(node, ctx),
-          `<InputSelect id="${ctx.id}" @bind-Value="Model.${pascalMember(ctx.key)}" class="${ctx.css.classes('select')}">\n    ${optionTags(node)}\n  </InputSelect>`,
+          floatWrap(node, ctx, `<InputSelect id="${ctx.id}" @bind-Value="Model.${pascalMember(ctx.key)}" class="${ctx.css.classes('select')}">\n    ${optionTags(node)}\n  </InputSelect>`),
           descriptionFor(node, ctx),
           blazorValidationMessage(ctx),
         ],

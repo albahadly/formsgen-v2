@@ -81,6 +81,9 @@ const CLASSES: Record<Slot, string> = {
   phoneCountry: 'form-select w-auto flex-shrink-0',
   affixGroup: 'input-group',
   affix: 'input-group-text',
+  floating: 'form-floating',
+  floatingLabel: '',
+  floatingControl: '',
 }
 
 // Bootstrap's own size modifiers are designed to be appended.
@@ -113,7 +116,7 @@ export const bootstrap5Adapter: CssFrameworkAdapter = {
   label: 'Bootstrap 5',
   classes: bootstrapClasses,
   alignClass: (align) => `text-${align}`,
-  cell: (span) => ({ class: `col-12 col-md-${span}` }),
+  cell: ({ sm, md, lg }) => ({ class: `col-${sm} col-md-${md}${lg !== md ? ` col-lg-${lg}` : ''}` }),
   choiceLayout: 'sibling',
   invalidClass: () => 'is-invalid',
   stylesheet: (theme) => bootstrapThemeCss(theme),

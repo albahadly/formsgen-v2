@@ -97,6 +97,10 @@ const CLASSES: Record<Slot, string> = {
     'flex [&>:not(:first-child)]:-ms-px [&>:not(:first-child)]:rounded-s-none [&>:not(:last-child)]:rounded-e-none',
   affix:
     'inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400',
+  floating: 'relative',
+  floatingLabel:
+    'pointer-events-none absolute start-3 top-3.5 origin-[0] text-sm text-gray-500 transition-transform duration-150 peer-focus:-translate-y-2.5 peer-focus:scale-75 peer-[:not(:placeholder-shown)]:-translate-y-2.5 peer-[:not(:placeholder-shown)]:scale-75 rtl:origin-[100%_0] dark:text-gray-400',
+  floatingControl: 'peer pt-5 pb-1.5 placeholder-transparent focus:placeholder-gray-400',
   pairButton:
     'shrink-0 whitespace-nowrap rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50',
   colorInput:
@@ -147,7 +151,7 @@ export const tailwindAdapter: CssFrameworkAdapter = {
   label: 'Tailwind CSS',
   classes: tailwindClasses,
   alignClass: (align) => `text-${align}`,
-  cell: (span) => ({ class: `col-span-12 md:col-span-${span}` }),
+  cell: ({ sm, md, lg }) => ({ class: `col-span-${sm} md:col-span-${md}${lg !== md ? ` lg:col-span-${lg}` : ''}` }),
   choiceLayout: 'wrap',
   invalidClass: () => 'border-red-500 focus:ring-red-200',
   stylesheet: (theme) => tailwindThemeCss(theme),

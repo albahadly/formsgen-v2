@@ -43,7 +43,16 @@ const cellClasses = computed(() => {
   const style = props.node.style
   return [style?.align ? `fg-align-${style.align}` : '', style?.className ?? ''].filter(Boolean)
 })
-const cellStyle = computed(() => ({ gridColumn: `span ${span.value} / span ${span.value}` }))
+// Spans per screen size as custom properties (styles.css picks one per
+// breakpoint). All three are set so nested cells never inherit a parent's.
+const cellStyle = computed(() => {
+  const layout = props.node.layout
+  return {
+    '--fg-span': String(span.value),
+    '--fg-span-sm': String(layout?.colSpanSm ?? 12),
+    '--fg-span-lg': String(layout?.colSpanLg ?? span.value),
+  }
+})
 
 const columnCount = computed(() => Number(props.node.props['count'] ?? 2))
 const childSpan = computed(() => Math.max(1, Math.round(12 / columnCount.value)))

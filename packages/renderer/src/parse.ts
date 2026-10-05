@@ -73,6 +73,9 @@ export function parseFormSchema(input: unknown): ParseResult {
     if (meta['dir'] !== 'ltr' && meta['dir'] !== 'rtl') {
       errors.push('meta.dir: expected "ltr" or "rtl"')
     }
+    if (meta['floatingLabels'] !== undefined && typeof meta['floatingLabels'] !== 'boolean') {
+      errors.push('meta.floatingLabels: expected a boolean')
+    }
     const fieldSize = meta['fieldSize']
     if (fieldSize !== undefined && !['sm', 'md', 'lg'].includes(fieldSize as string)) {
       errors.push('meta.fieldSize: expected one of sm, md, lg')
@@ -137,6 +140,22 @@ function validateStyle(style: unknown, path: string, errors: string[]): void {
   }
 }
 
+const COL_SPANS = [1, 2, 3, 4, 6, 12]
+
+function validateLayout(layout: unknown, path: string, errors: string[]): void {
+  if (layout === undefined) return
+  if (!isRecord(layout)) {
+    errors.push(`${path}: expected an object`)
+    return
+  }
+  for (const key of ['colSpan', 'colSpanSm', 'colSpanLg']) {
+    const value = layout[key]
+    if (value !== undefined && !COL_SPANS.includes(value as number)) {
+      errors.push(`${path}.${key}: expected one of ${COL_SPANS.join(', ')}`)
+    }
+  }
+}
+
 function validateNodes(
   nodes: unknown[],
   path: string,
@@ -197,6 +216,7 @@ function validateNodes(
     validateRules(raw['validation'], `${p}.validation`, errors)
     validateConditions(raw['conditions'], `${p}.conditions`, errors)
     validateStyle(raw['style'], `${p}.style`, errors)
+    validateLayout(raw['layout'], `${p}.layout`, errors)
 
     const children = raw['children']
     if (children !== undefined) {

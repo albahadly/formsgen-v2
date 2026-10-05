@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
 import FgFieldLabel from './FgFieldLabel.vue'
+import FgFloat from './FgFloat.vue'
 
 interface SelectItem {
   value: string
@@ -20,6 +21,7 @@ const {
   describedBy,
   onBlur,
   sizeClass,
+  floating,
 } = useField(props)
 
 const items = computed<SelectItem[]>(() => {
@@ -41,33 +43,40 @@ const selected = computed({
     :class="{ 'fg-field--error': error }"
   >
     <FgFieldLabel
+      v-if="!floating"
       :node="node"
       :for-id="fieldId"
     />
-    <select
-      :id="fieldId"
-      v-model="selected"
-      class="fg-select"
-      :class="sizeClass"
-      :name="node.name"
-      :aria-invalid="error ? 'true' : undefined"
-      :aria-describedby="describedBy"
-      @blur="onBlur"
+    <FgFloat
+      :node="node"
+      :for-id="fieldId"
+      :floating="floating"
     >
-      <option
-        value=""
-        disabled
+      <select
+        :id="fieldId"
+        v-model="selected"
+        class="fg-select"
+        :class="sizeClass"
+        :name="node.name"
+        :aria-invalid="error ? 'true' : undefined"
+        :aria-describedby="describedBy"
+        @blur="onBlur"
       >
-        {{ placeholder || '—' }}
-      </option>
-      <option
-        v-for="item in items"
-        :key="item.value"
-        :value="item.value"
-      >
-        {{ item.label }}
-      </option>
-    </select>
+        <option
+          value=""
+          disabled
+        >
+          {{ placeholder || '—' }}
+        </option>
+        <option
+          v-for="item in items"
+          :key="item.value"
+          :value="item.value"
+        >
+          {{ item.label }}
+        </option>
+      </select>
+    </FgFloat>
     <p
       v-if="description"
       class="fg-description"

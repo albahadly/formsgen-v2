@@ -81,6 +81,9 @@ const CLASSES: Record<Slot, string> = {
   phoneCountry: 'fg-select fg-phone-country',
   affixGroup: 'fg-affix-group',
   affix: 'fg-affix',
+  floating: 'fg-floating',
+  floatingLabel: 'fg-floating-label',
+  floatingControl: '',
 }
 
 /** Mirrors packages/renderer/src/styles.css for self-contained artifacts. */
@@ -112,7 +115,9 @@ function baseStylesheet(theme: ThemeTokens | undefined): string {
   padding: var(--fg-space);
 }
 .fg-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--fg-space); }
-.fg-cell { min-inline-size: 0; }
+.fg-cell { min-inline-size: 0; grid-column: span var(--fg-span-sm, 12) / span var(--fg-span-sm, 12); }
+@media (min-width: 768px) { .fg-cell { grid-column: span var(--fg-span, 12) / span var(--fg-span, 12); } }
+@media (min-width: 1024px) { .fg-cell { grid-column: span var(--fg-span-lg, 12) / span var(--fg-span-lg, 12); } }
 .fg-field { display: flex; flex-direction: column; gap: 0.375rem; }
 .fg-label { font-size: 0.875rem; font-weight: 600; }
 .fg-required { color: var(--fg-color-error); margin-inline-start: 0.125rem; }
@@ -235,7 +240,8 @@ export const vanillaAdapter: CssFrameworkAdapter = {
     return base
   },
   alignClass: (align) => `fg-align-${align}`,
-  cell: (span) => ({ class: 'fg-cell', style: `grid-column: span ${span} / span ${span}` }),
+  // All three set, so a nested cell never inherits its parent's spans.
+  cell: ({ sm, md, lg }) => ({ class: 'fg-cell', style: `--fg-span: ${md}; --fg-span-sm: ${sm}; --fg-span-lg: ${lg}` }),
   choiceLayout: 'wrap',
   invalidClass: () => 'fg-invalid',
   stylesheet: (theme) => baseStylesheet(theme),

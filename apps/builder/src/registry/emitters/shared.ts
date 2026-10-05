@@ -68,7 +68,8 @@ export function affixDescribedBy(node: ElementNode, ctx: EmitCtx): string {
 export function affixWrap(node: ElementNode, ctx: EmitCtx, control: string, jsx = false): string {
   const prefix = textProp(node, 'prefix')
   const suffix = textProp(node, 'suffix')
-  if (!prefix && !suffix) return control
+  // Add-ons and floating labels never combine (see floatsLabel).
+  if (!prefix && !suffix) return floatWrap(node, ctx, control, jsx)
   const c = jsx ? 'className' : 'class'
   const affix = (text: string, part: string): string =>
     `<span id="${ctx.id}_${part}" ${c}="${ctx.css.classes('affix')}">${esc(text)}</span>`
@@ -77,7 +78,26 @@ export function affixWrap(node: ElementNode, ctx: EmitCtx, control: string, jsx 
     .join('\n    ')}\n  </div>`
 }
 
+/**
+ * Floating label: the control, then its label (CSS floats it when the
+ * control is focused or filled). Inputs need a placeholder for
+ * :placeholder-shown, so " " is added when there is none. The control
+ * alone when the label doesn't float (labelFor renders it above).
+ */
+export function floatWrap(node: ElementNode, ctx: EmitCtx, control: string, jsx = false): string {
+  if (!ctx.floating) return control
+  const c = jsx ? 'className' : 'class'
+  const withPlaceholder = /^<(input|Input\w+)\b/.test(control) && !/ placeholder=/.test(control)
+    ? control.replace(/^(<\w+)/, '$1 placeholder=" "')
+    : control
+  const req = ctx.required ? `<span ${c}="${ctx.css.classes('required')}" aria-hidden="true">*</span>` : ''
+  const labelClass = ctx.css.classes('floatingLabel')
+  const label = `<label${labelClass ? ` ${c}="${labelClass}"` : ''} ${jsx ? 'htmlFor' : 'for'}="${ctx.id}">${esc(String(node.props['label'] ?? ''))}${req}</label>`
+  return `<div ${c}="${ctx.css.classes('floating')}">\n    ${withPlaceholder}\n    ${label}\n  </div>`
+}
+
 export function labelFor(node: ElementNode, ctx: EmitCtx): string {
+  if (ctx.floating) return ''
   const text = esc(String(node.props['label'] ?? ''))
   const req = ctx.required
     ? `<span class="${ctx.css.classes('required')}" aria-hidden="true">*</span>`
@@ -132,6 +152,7 @@ export function reactFieldWrap(parts: (string | '')[], ctx: EmitCtx): string {
 }
 
 export function reactLabelFor(node: ElementNode, ctx: EmitCtx): string {
+  if (ctx.floating) return ''
   const text = esc(String(node.props['label'] ?? ''))
   const req = ctx.required
     ? `<span className="${ctx.css.classes('required')}" aria-hidden="true">*</span>`

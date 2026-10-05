@@ -99,3 +99,53 @@ describe('the form-wide field size', () => {
     expect(vanilla).toMatch(/id="fg_b" v-model="form.b" type="text" class="fg-input"/)
   })
 })
+
+describe('floating labels', () => {
+  const tree: ElementNode[] = [
+    { id: 'n', type: 'text', name: 'name', props: { label: 'Name' }, validation: [{ rule: 'required' }] },
+    { id: 'c', type: 'select', name: 'city', props: { label: 'City', items: [{ value: 'm', label: 'Muscat' }] } },
+    { id: 'p', type: 'number', name: 'price', props: { label: 'Price', prefix: '$' } },
+    { id: 'd', type: 'date', name: 'day', props: { label: 'Day' } },
+  ]
+  const s = schema(tree, { floatingLabels: true })
+
+  it('put the label after the control in every target, with a placeholder for :placeholder-shown', () => {
+    for (const target of TARGETS) {
+      const code = out(target, s)
+      expect(code, target).toMatch(/<div class(Name)?="fg-floating">\s*<(input|InputText) placeholder=" "[^\n]*\n\s*<label class(Name)?="fg-floating-label" (for|htmlFor)="fg_name">Name<span/)
+      expect(code, target).toMatch(/<div class(Name)?="fg-floating">\s*<(select|InputSelect)/)
+      // add-ons and date-like inputs keep the label above
+      expect(code, target).toMatch(/<label class(Name)?="fg-label" (for|htmlFor)="fg_price">/)
+      expect(code, target).toMatch(/<label class(Name)?="fg-label" (for|htmlFor)="fg_day">/)
+    }
+  })
+
+  it('use each framework idiom', () => {
+    expect(out('html', s, 'bootstrap5')).toMatch(/<div class="form-floating">\s*<input placeholder=" " id="fg_name" type="text" class="form-control"/)
+    expect(out('html', s, 'tailwind')).toMatch(/class="[^"]*\bpeer\b[^"]*placeholder-transparent/)
+    expect(out('html', s, 'tailwind')).toContain('peer-[:not(:placeholder-shown)]:-translate-y-2.5')
+    expect(out('html', schema(tree))).not.toContain('class="fg-floating"')
+  })
+})
+
+describe('column widths per screen size', () => {
+  const tree: ElementNode[] = [
+    { id: 'a', type: 'text', name: 'a', props: { label: 'A' }, layout: { colSpan: 6, colSpanSm: 6, colSpanLg: 4 } },
+    { id: 'b', type: 'text', name: 'b', props: { label: 'B' }, layout: { colSpan: 6 } },
+  ]
+  const s = schema(tree)
+
+  it('maps to each framework', () => {
+    expect(out('html', s, 'tailwind')).toContain('class="col-span-6 md:col-span-6 lg:col-span-4"')
+    expect(out('html', s, 'tailwind')).toContain('class="col-span-12 md:col-span-6"')
+    expect(out('html', s, 'bootstrap5')).toContain('class="col-6 col-md-6 col-lg-4"')
+    expect(out('html', s, 'bootstrap5')).toContain('class="col-12 col-md-6"')
+    expect(out('html', s)).toContain('style="--fg-span: 6; --fg-span-sm: 6; --fg-span-lg: 4"')
+    expect(out('html', s)).toContain('style="--fg-span: 6; --fg-span-sm: 12; --fg-span-lg: 6"')
+    expect(out('html', s)).toContain('@media (min-width: 1024px) { .fg-cell {')
+  })
+
+  it('reach React as a typed style object (custom properties kept as-is)', () => {
+    expect(out('react', s)).toContain("style={{ '--fg-span': '6', '--fg-span-sm': '6', '--fg-span-lg': '4' } as React.CSSProperties}")
+  })
+})

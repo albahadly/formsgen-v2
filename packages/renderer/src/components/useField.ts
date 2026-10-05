@@ -1,5 +1,6 @@
 import { computed, inject } from 'vue'
 import { FORM_CONTEXT, ITEM_SCOPE, type FormContext } from '../context'
+import { floatsLabel } from '../labels'
 import type { ElementNode } from '../schema'
 
 export interface FieldProps {
@@ -49,6 +50,8 @@ export function useField(props: FieldProps) {
   /** Text add-ons before/after the control (e.g. "$", "kg"). */
   const prefix = computed(() => text('prefix'))
   const suffix = computed(() => text('suffix'))
+  /** The label floats inside the control (meta.floatingLabels). */
+  const floating = computed(() => floatsLabel(props.node, { floatingLabels: ctx.floatingLabels?.() ?? false }))
 
   return {
     ctx: ctx as FormContext,
@@ -67,5 +70,6 @@ export function useField(props: FieldProps) {
     tooltip,
     prefix,
     suffix,
+    floating,
   }
 }

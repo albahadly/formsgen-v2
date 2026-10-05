@@ -46,6 +46,8 @@ export interface FormMeta {
   theme?: ThemeTokens | undefined
   /** Default control size for every field ('md' or absent = medium). */
   fieldSize?: ControlSize | undefined
+  /** Labels float inside single-line controls (see labels.ts). */
+  floatingLabels?: boolean | undefined
 }
 
 export type RuleName =
@@ -92,8 +94,12 @@ export type ConditionGroups = Condition[][]
 export type ColSpan = 1 | 2 | 3 | 4 | 6 | 12
 
 export interface LayoutConfig {
-  /** Span out of a 12-column grid; defaults to full width (12). */
+  /** Span out of a 12-column grid from tablets up (≥768px); defaults to full width (12). */
   colSpan?: ColSpan | undefined
+  /** Span on phones (<768px); defaults to full width (12). */
+  colSpanSm?: ColSpan | undefined
+  /** Span on desktops (≥1024px); defaults to colSpan. */
+  colSpanLg?: ColSpan | undefined
   width?: string | undefined
 }
 

@@ -116,6 +116,7 @@ export {
   splitPhone,
   type CountryOption,
 } from './countries'
+export { FLOATING_TYPES, floatsLabel } from './labels'
 export { MATRIX_TYPE, matrixColumns, matrixDefault, matrixRows, type MatrixOption } from './matrix'
 export {
   DATES_TYPE,

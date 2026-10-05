@@ -27,6 +27,7 @@ Bumping `$schema` to `formsgen/v3` would make every existing document fail `pars
 | Element types `rangeslider` (props `min`, `max`, `step`, `defaultFrom`, `defaultTo`; value `{ from, to }` numbers), `daterange` (value `{ from, to }` ISO dates, built-in end ≥ start check) and `dates` (value: sorted ISO date list). A composite object value counts as empty while any part is | 26a | n/a (older builds report the types as unsupported). Not allowed inside repeaters |
 | Element type `matrix` (props `rows`, `columns`: `{ value, label }` lists; value: row → chosen column or null) and phone props `countrySelect`, `defaultCountry` (ISO code), `countries` (ISO list); a country phone's value stays one string, `"+<code> <number>"` | 26b | n/a for the matrix (older builds report the type as unsupported; not allowed in repeaters). A phone without `countrySelect` (or inside a repeater) is the plain tel input |
 | Props `tooltip` (every field), `prefix` / `suffix` (text-likes, number); `meta.fieldSize` (`sm`\|`md`\|`lg`) and `style.size: 'md'` (explicit medium) | 27a | no tooltip / add-ons; medium fields. `meta.fieldSize` is validated by the parser |
+| `layout.colSpanSm` (phones) and `layout.colSpanLg` (desktops) beside `colSpan` (tablets up); `meta.floatingLabels` (boolean) | 27b | phones full width, desktops = `colSpan`; labels above controls. All spans are validated (1, 2, 3, 4, 6, 12) |
 
 ## Alternatives considered
 

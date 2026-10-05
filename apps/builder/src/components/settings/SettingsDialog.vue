@@ -52,6 +52,11 @@ const fieldSize = computed({
   set: (v: string) => builder.updateMeta({ fieldSize: v === '' ? undefined : (v as 'sm' | 'lg') }),
 })
 
+const floatingLabels = computed({
+  get: () => builder.schema.meta.floatingLabels === true,
+  set: (v: boolean) => builder.updateMeta({ floatingLabels: v || undefined }),
+})
+
 const submitUrl = computed({
   get: () => builder.schema.meta.submit?.url ?? '',
   set: (v: string) =>
@@ -206,6 +211,15 @@ function onKeydown(event: KeyboardEvent): void {
             <option value="">{{ t('properties.appearance.size.md') }}</option>
             <option value="lg">{{ t('properties.appearance.size.lg') }}</option>
           </select>
+        </label>
+        <label class="inline-flex items-center gap-2 text-xs font-medium text-gray-600">
+          <input
+            v-model="floatingLabels"
+            type="checkbox"
+            class="h-4 w-4 accent-indigo-600"
+            data-testid="settings-floating-labels"
+          >
+          {{ t('settings.floatingLabels') }}
         </label>
 
         <div class="grid grid-cols-[1fr_auto] gap-3">

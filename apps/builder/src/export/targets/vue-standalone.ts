@@ -4,7 +4,7 @@
 
 import { resolveMessages } from '@formsgen/renderer'
 import { errorsTextFunction, stepAnnouncementsLiteral, submittedText } from '../announce'
-import { FILE_HELPERS_TS, RUNTIME_HELPERS_TS } from '../compile'
+import { FILE_HELPERS_TS, RUNTIME_HELPERS_TS, pruneUnusedHelpers } from '../compile'
 import { uploadFields, vueUploadRuntime } from '../uploadRuntime'
 import { ADD_DATE_TS, DUAL_RANGE_HELPERS_TS, exportStylesheet, hasRangeSlider, phoneCountryFields, phoneDefaults, phoneHelpers } from '../composite'
 import { compileConditions } from '../compile'
@@ -543,7 +543,7 @@ ${indentBlock(markup, 3)}
       {
         path: `${name}.vue`,
         language: 'xml',
-        content: `${script}\n\n${template}${styleBlock}\n`,
+        content: pruneUnusedHelpers(`${script}\n\n${template}${styleBlock}\n`),
       },
     ]
   },

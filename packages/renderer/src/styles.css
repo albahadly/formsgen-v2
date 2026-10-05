@@ -53,9 +53,21 @@
   gap: var(--fg-space);
 }
 
+/* Cell spans per screen size: phones (<768px), tablets, desktops (≥1024px).
+   The form's data-fg-viewport forces one (the builder's device preview). */
 .fg-cell {
   min-inline-size: 0;
+  grid-column: span var(--fg-span-sm, 12) / span var(--fg-span-sm, 12);
 }
+@media (min-width: 768px) {
+  .fg-cell { grid-column: span var(--fg-span, 12) / span var(--fg-span, 12); }
+}
+@media (min-width: 1024px) {
+  .fg-cell { grid-column: span var(--fg-span-lg, 12) / span var(--fg-span-lg, 12); }
+}
+.fg-form[data-fg-viewport='sm'] .fg-cell { grid-column: span var(--fg-span-sm, 12) / span var(--fg-span-sm, 12); }
+.fg-form[data-fg-viewport='md'] .fg-cell { grid-column: span var(--fg-span, 12) / span var(--fg-span, 12); }
+.fg-form[data-fg-viewport='lg'] .fg-cell { grid-column: span var(--fg-span-lg, 12) / span var(--fg-span-lg, 12); }
 
 .fg-field {
   display: flex;
@@ -456,3 +468,12 @@ fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
 .fg-tip-button:focus-visible { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
 .fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); left: 50%; z-index: 20; inline-size: max-content; max-inline-size: 16rem; padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; transform: translateX(-50%); visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
 .fg-tip:hover .fg-tip-text, .fg-tip-button:focus + .fg-tip-text { visibility: visible; opacity: 1; }
+
+/* Floating labels (meta.floatingLabels): the label floats when the control is focused or filled. */
+.fg-floating { position: relative; }
+.fg-floating > .fg-input, .fg-floating > .fg-select { padding-block: 1.375rem 0.375rem; }
+.fg-floating > .fg-floating-label { position: absolute; inset-block-start: 0; inset-inline-start: 0; padding: 0.875rem 0.75rem 0; font-size: 0.875rem; color: var(--fg-color-muted); pointer-events: none; transform-origin: 0 0; transition: transform 0.12s ease, color 0.12s ease; }
+[dir='rtl'] .fg-floating > .fg-floating-label { transform-origin: 100% 0; }
+.fg-floating > :focus ~ .fg-floating-label, .fg-floating > :not(:placeholder-shown) ~ .fg-floating-label, .fg-floating > select ~ .fg-floating-label { transform: translateY(-0.5rem) scale(0.8); }
+.fg-floating > :focus ~ .fg-floating-label { color: var(--fg-color-primary); }
+.fg-floating > :not(:focus)::placeholder { color: transparent; }

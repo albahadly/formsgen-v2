@@ -6,6 +6,7 @@ import PalettePanel from '@/components/palette/PalettePanel.vue'
 import PropertiesPanel from '@/components/panel/PropertiesPanel.vue'
 import { defineAsyncComponent } from 'vue'
 import SettingsDialog from '@/components/settings/SettingsDialog.vue'
+import TemplatesDialog from '@/components/toolbar/TemplatesDialog.vue'
 
 // Lazy: pulls in jszip + highlight.js only when first opened.
 const ExportDialog = defineAsyncComponent(
@@ -152,6 +153,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     </div>
 
     <SettingsDialog />
+    <TemplatesDialog />
     <ExportDialog />
 
     <div

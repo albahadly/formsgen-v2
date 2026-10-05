@@ -132,7 +132,10 @@ describe('typed targets compile under strict TypeScript', () => {
       expect(code, target).toContain('function fgIsEmpty(v: unknown): boolean')
       expect(code, target).toContain('if (fgIsBlank(v)) return')
       expect(code, target).toContain('fgIsBlank(')
-      expect(code, target).not.toMatch(/data\.\w+ === false|\bv === false\b(?![\s\S]*function fgSize)/)
+      expect(code, target).not.toMatch(/data\.\w+ === false/)
+      // the only `v === false` is fgIsBlank's own
+      expect(code.match(/\bv === false\b/g), target).toHaveLength(1)
+      expect(code, target).toMatch(/function fgIsBlank\(v: unknown\): boolean \{\n {2}return fgIsEmpty\(v\) \|\| v === false/)
     }
     expect(out('vue-standalone', tree)).toContain('const form = reactive<FormData>(')
   })

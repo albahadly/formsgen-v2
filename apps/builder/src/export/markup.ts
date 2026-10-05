@@ -7,6 +7,7 @@ import {
   fill,
   isRepeater,
   repeaterLimits,
+  floatsLabel,
   getCoreElement,
   joinPath,
   resolveMessages,
@@ -137,6 +138,37 @@ function withNodeStyle(
   }
 }
 
+/** Floating labels: the control's slot also carries the framework's floating classes. */
+function withFloatingControl(css: CssFrameworkAdapter): CssFrameworkAdapter {
+  const extra = css.classes('floatingControl')
+  if (!extra) return css
+  return {
+    ...css,
+    classes: (slot, mods) =>
+      slot === 'input' || slot === 'select' ? `${css.classes(slot, mods)} ${extra}` : css.classes(slot, mods),
+  }
+}
+
+/**
+ * A CSS declaration string as a JSX style object. Custom properties keep
+ * their names (React sets them as-is), which CSSProperties doesn't type.
+ */
+export function jsxStyle(css: string): string {
+  const entries = css
+    .split(';')
+    .map((d) => d.trim())
+    .filter(Boolean)
+    .map((d) => {
+      const i = d.indexOf(':')
+      const prop = d.slice(0, i).trim()
+      const value = d.slice(i + 1).trim().replace(/'/g, "\\'")
+      const key = prop.startsWith('--') ? `'${prop}'` : prop.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase())
+      return `${key}: '${value}'`
+    })
+  const object = `{ ${entries.join(', ')} }`
+  return entries.some((e) => e.startsWith("'--")) ? `${object} as React.CSSProperties` : object
+}
+
 function indentBlock(text: string, depth: number): string {
   const pad = '  '.repeat(depth)
   return text
@@ -191,7 +223,7 @@ export function renderTree(schema: FormSchema, rootOptions: MarkupOptions): stri
     }
 
     const span = node.layout?.colSpan ?? defaultSpan
-    const cell = css.cell(span)
+    const cell = css.cell({ sm: node.layout?.colSpanSm ?? 12, md: span, lg: node.layout?.colSpanLg ?? span })
     const condExpr = node.conditions?.length
       ? (options.conditionExpr ?? ((groups) => compileConditions(groups, options.accessor)))(
           node.conditions,
@@ -201,7 +233,7 @@ export function renderTree(schema: FormSchema, rootOptions: MarkupOptions): stri
       condExpr && !options.wrapConditional ? options.conditionAttr(node, condExpr) : ''
     const styleAttr = cell.style
       ? classAttr === 'className'
-        ? ` style={{ gridColumn: '${cell.style.replace('grid-column: ', '')}' }}`
+        ? ` style={${jsxStyle(cell.style)}}`
         : ` style="${cell.style}"`
       : ''
     const cellClass = [
@@ -288,8 +320,11 @@ export function renderTree(schema: FormSchema, rootOptions: MarkupOptions): stri
       } else {
         const path = node.name ? joinPath(parentPath, node.name) : ''
         const key = pathKey(path)
+        const floating = floatsLabel(node, schema.meta)
+        const styled = withNodeStyle(css, node.style, schema.meta.fieldSize)
         inner = emitter(node, {
-          css: withNodeStyle(css, node.style, schema.meta.fieldSize),
+          css: floating ? withFloatingControl(styled) : styled,
+          floating,
           path,
           key,
           id: `fg_${key}`,

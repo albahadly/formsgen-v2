@@ -13,6 +13,8 @@ import FgNode from './FgNode.vue'
 const props = defineProps<{
   schema: FormSchema
   modelValue?: Record<string, unknown>
+  /** Force a screen size's layout (builder device preview); default: the viewport's. */
+  viewport?: 'sm' | 'md' | 'lg' | undefined
 }>()
 
 const emit = defineEmits<{
@@ -153,6 +155,7 @@ const context: FormContext = {
   messages: () => messages.value,
   locale: () => props.schema.meta.locale,
   fieldSize: () => props.schema.meta.fieldSize,
+  floatingLabels: () => props.schema.meta.floatingLabels === true,
   submitButtonSpec: () => ({
     text: submitText.value,
     secondary: submitCfg.value?.variant === 'secondary',
@@ -265,6 +268,7 @@ function onSubmit(): void {
     :dir="schema.meta.dir"
     :style="themeStyle"
     :data-fg-theme="pinnedScheme"
+    :data-fg-viewport="viewport"
     novalidate
     @submit.prevent="onSubmit"
     @pointerdown.capture="onPointerDown"

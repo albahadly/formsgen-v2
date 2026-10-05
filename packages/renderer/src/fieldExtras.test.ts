@@ -60,3 +60,44 @@ describe('help tooltips, add-ons and the form-wide field size', () => {
     expect(bad.ok ? [] : bad.errors).toEqual(['meta.fieldSize: expected one of sm, md, lg'])
   })
 })
+
+describe('floating labels and per-screen widths', () => {
+  const tree: ElementNode[] = [
+    { id: 'n', type: 'text', name: 'n', props: { label: 'Name', placeholder: 'Jane' }, validation: [{ rule: 'required' }], layout: { colSpan: 6, colSpanLg: 4 } },
+    { id: 'c', type: 'select', name: 'c', props: { label: 'City', items: [{ value: 'm', label: 'Muscat' }] } },
+    { id: 'p', type: 'text', name: 'p', props: { label: 'Price', prefix: '$' } },
+    { id: 't', type: 'textarea', name: 't', props: { label: 'Notes' } },
+  ]
+
+  it('puts eligible labels after their control inside .fg-floating', () => {
+    const wrapper = mount(FormsGenForm, { props: { schema: schema(tree, { floatingLabels: true }) } })
+    const floating = wrapper.findAll('.fg-floating')
+    expect(floating).toHaveLength(2) // text + select; the prefixed field and the textarea keep a normal label
+    expect(floating[0]!.element.firstElementChild!.id).toBe('fg-n')
+    expect(floating[0]!.get('label').attributes('for')).toBe('fg-n')
+    expect(floating[0]!.get('label').text()).toBe('Name*')
+    expect(wrapper.get('#fg-n').attributes('placeholder')).toBe('Jane')
+    expect(wrapper.get('label[for="fg-p"]').classes()).toContain('fg-label')
+    expect(wrapper.get('label[for="fg-t"]').classes()).toContain('fg-label')
+  })
+
+  it('sets every span for each cell and forces a viewport on request', () => {
+    const wrapper = mount(FormsGenForm, { props: { schema: schema(tree), viewport: 'sm' } })
+    expect(wrapper.get('form').attributes('data-fg-viewport')).toBe('sm')
+    const cell = wrapper.get('#fg-n').element.closest('.fg-cell') as HTMLElement
+    expect(cell.style.getPropertyValue('--fg-span')).toBe('6')
+    expect(cell.style.getPropertyValue('--fg-span-sm')).toBe('12')
+    expect(cell.style.getPropertyValue('--fg-span-lg')).toBe('4')
+  })
+
+  it('validates layout spans and floatingLabels', () => {
+    const bad = parseFormSchema({
+      ...schema([{ id: 'x', type: 'text', name: 'x', props: {}, layout: { colSpanSm: 5 } } as unknown as ElementNode]),
+      meta: { name: 'x', locale: 'en', dir: 'ltr', floatingLabels: 'yes' },
+    })
+    expect(bad.ok ? [] : bad.errors).toEqual([
+      'meta.floatingLabels: expected a boolean',
+      'tree[0].layout.colSpanSm: expected one of 1, 2, 3, 4, 6, 12',
+    ])
+  })
+})

@@ -72,6 +72,14 @@ async function onFileChosen(event: Event): Promise<void> {
     <button
       type="button"
       class="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+      data-testid="toolbar-templates"
+      @click="ui.openTemplates()"
+    >
+      {{ t('toolbar.templates') }}
+    </button>
+    <button
+      type="button"
+      class="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
       data-testid="toolbar-open"
       @click="openPicker"
     >

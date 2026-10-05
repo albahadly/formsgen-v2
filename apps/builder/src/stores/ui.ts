@@ -19,6 +19,7 @@ export const useUiStore = defineStore('ui', {
     previewTheme: 'light' as PreviewTheme,
     showSettings: false,
     showExport: false,
+    showTemplates: false,
   }),
   getters: {
     deviceWidth: (state) => DEVICE_WIDTHS[state.device],
@@ -38,6 +39,12 @@ export const useUiStore = defineStore('ui', {
     },
     closeSettings(): void {
       this.showSettings = false
+    },
+    openTemplates(): void {
+      this.showTemplates = true
+    },
+    closeTemplates(): void {
+      this.showTemplates = false
     },
     openExport(): void {
       this.showExport = true

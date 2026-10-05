@@ -42,6 +42,8 @@ export interface FormContext {
   locale?(): string
   /** Default control size for every field (meta.fieldSize). */
   fieldSize?(): ControlSize | undefined
+  /** meta.floatingLabels */
+  floatingLabels?(): boolean
 }
 
 export const FORM_CONTEXT: InjectionKey<FormContext> = Symbol('formsgen-form')

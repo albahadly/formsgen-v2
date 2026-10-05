@@ -188,3 +188,29 @@ export function compileConditions(
   })
   return parts.join(' || ')
 }
+
+/**
+ * Drops top-level `fg*` helper functions the generated code never calls
+ * (e.g. fgSize without size rules), repeatedly, so typed exports compile
+ * under noUnusedLocals. A helper is a `function fgX(` at the start of a
+ * line whose body ends at the next line holding only `}`.
+ */
+export function pruneUnusedHelpers(code: string): string {
+  let out = code
+  for (;;) {
+    const unused = [...out.matchAll(/^function (fg\w+)\(/gm)].find(
+      (m) => out.split(new RegExp(`\\b${m[1]}\\b`)).length - 1 === 1,
+    )
+    if (!unused || unused.index === undefined) return out
+    const end = out.indexOf('\n}\n', unused.index)
+    if (end === -1) return out
+    // also drop a comment block directly above the function
+    let start = unused.index
+    while (start > 0) {
+      const lineStart = out.lastIndexOf('\n', start - 2) + 1
+      if (!out.slice(lineStart, start).startsWith('//')) break
+      start = lineStart
+    }
+    out = out.slice(0, start) + out.slice(end + 3)
+  }
+}

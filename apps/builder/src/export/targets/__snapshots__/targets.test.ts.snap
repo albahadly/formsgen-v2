@@ -59,14 +59,14 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         </div>
         <div class="col-12 col-md-12">
           <div class="row g-3">
-            <div class="col-12 col-md-6">
+            <div class="col-6 col-md-6 col-lg-4">
               <div class="d-flex flex-column gap-1">
                 <label class="form-label fw-semibold fs-6 mb-0" for="fg_city">City</label>
                 <InputText id="fg_city" @bind-Value="Model.City" class="form-control" />
                 <ValidationMessage For="@(() => Model.City)" class="invalid-feedback d-block mt-0" />
               </div>
             </div>
-            <div class="col-12 col-md-6">
+            <div class="col-6 col-md-6">
               <div class="d-flex flex-column gap-1">
                 <label class="visually-hidden" for="fg_zip">ZIP</label>
                 <InputText id="fg_zip" @bind-Value="Model.Zip" class="form-control" />
@@ -1945,14 +1945,14 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         </div>
         <div class="col-span-12 md:col-span-12">
           <div class="grid grid-cols-12 gap-4">
-            <div class="col-span-12 md:col-span-6">
+            <div class="col-span-6 md:col-span-6 lg:col-span-4">
               <div class="flex flex-col gap-1.5">
                 <label class="text-sm font-semibold" for="fg_city">City</label>
                 <InputText id="fg_city" @bind-Value="Model.City" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
                 <ValidationMessage For="@(() => Model.City)" class="text-xs text-red-600" />
               </div>
             </div>
-            <div class="col-span-12 md:col-span-6">
+            <div class="col-span-6 md:col-span-6">
               <div class="flex flex-col gap-1.5">
                 <label class="sr-only" for="fg_zip">ZIP</label>
                 <InputText id="fg_zip" @bind-Value="Model.Zip" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
@@ -3790,34 +3790,34 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
 <EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate dir="ltr">
     <div class="fg-form" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
     <div class="fg-grid">
-        <div class="fg-cell fg-align-center" style="grid-column: span 12 / span 12">
+        <div class="fg-cell fg-align-center" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <h2 class="fg-heading fg-tone-primary">Kitchen Sink</h2>
         </div>
-        <div class="fg-cell fg-align-center" style="grid-column: span 12 / span 12">
+        <div class="fg-cell fg-align-center" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <p class="fg-paragraph">Every implemented element appears in this form.</p>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div class="fg-field">
             <label class="fg-label" for="fg_full_name">Full name<span class="fg-required" aria-hidden="true">*</span></label>
             <InputText id="fg_full_name" @bind-Value="Model.FullName" class="fg-input" placeholder="Jane Doe" />
             <ValidationMessage For="@(() => Model.FullName)" class="fg-error" />
           </div>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div class="fg-field">
             <label class="fg-label" for="fg_email">Email<span class="fg-required" aria-hidden="true">*</span></label>
             <InputText id="fg_email" type="email" @bind-Value="Model.Email" class="fg-input" placeholder="jane&#64;example.com" />
             <ValidationMessage For="@(() => Model.Email)" class="fg-error" />
           </div>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div class="fg-field">
             <label class="fg-label" for="fg_website">Website</label>
             <InputText id="fg_website" type="url" @bind-Value="Model.Website" class="fg-input fg-control--sm" />
             <ValidationMessage For="@(() => Model.Website)" class="fg-error" />
           </div>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div class="fg-field">
             <div class="fg-label-row"><label class="fg-label" for="fg_seats">Seats</label><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_seats_tip">?</button><span role="tooltip" id="fg_seats_tip" class="fg-tip-text">Including yourself</span></span></div>
             <div class="fg-affix-group">
@@ -3827,26 +3827,26 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             <ValidationMessage For="@(() => Model.Seats)" class="fg-error" />
           </div>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div class="fg-field">
             <label class="fg-label" for="fg_satisfaction">Satisfaction</label>
             <input id="fg_satisfaction" type="range" @bind="Model.Satisfaction" @bind:event="oninput" class="fg-range" min="0" max="10" step="1" />
             <ValidationMessage For="@(() => Model.Satisfaction)" class="fg-error" />
           </div>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <hr class="fg-divider fg-tone-primary" />
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div class="fg-grid">
-            <div class="fg-cell" style="grid-column: span 6 / span 6">
+            <div class="fg-cell" style="--fg-span: 6; --fg-span-sm: 6; --fg-span-lg: 4">
               <div class="fg-field">
                 <label class="fg-label" for="fg_city">City</label>
                 <InputText id="fg_city" @bind-Value="Model.City" class="fg-input" />
                 <ValidationMessage For="@(() => Model.City)" class="fg-error" />
               </div>
             </div>
-            <div class="fg-cell" style="grid-column: span 6 / span 6">
+            <div class="fg-cell" style="--fg-span: 6; --fg-span-sm: 6; --fg-span-lg: 6">
               <div class="fg-field">
                 <label class="fg-sr-only" for="fg_zip">ZIP</label>
                 <InputText id="fg_zip" @bind-Value="Model.Zip" class="fg-input" />
@@ -3855,11 +3855,11 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             </div>
           </div>
         </div>
-        <div class="fg-cell account-box" style="grid-column: span 12 / span 12">
+        <div class="fg-cell account-box" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <fieldset class="fg-group">
             <legend class="fg-group-label">Account</legend>
             <div class="fg-grid">
-              <div class="fg-cell" style="grid-column: span 12 / span 12">
+              <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                 <div class="fg-field">
                   <label class="fg-label" for="fg_account_username">Username<span class="fg-required" aria-hidden="true">*</span></label>
                   <div class="fg-affix-group">
@@ -3869,28 +3869,28 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
                   <ValidationMessage For="@(() => Model.AccountUsername)" class="fg-error" />
                 </div>
               </div>
-              <div class="fg-cell" style="grid-column: span 12 / span 12">
+              <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                 <div class="fg-field">
                   <label class="fg-label" for="fg_account_password">Password</label>
                   <InputText id="fg_account_password" type="password" @bind-Value="Model.AccountPassword" class="fg-input" />
                   <ValidationMessage For="@(() => Model.AccountPassword)" class="fg-error" />
                 </div>
               </div>
-              <div class="fg-cell" style="grid-column: span 12 / span 12">
+              <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                 <div class="fg-field">
                   <label class="fg-label" for="fg_account_bio">Bio</label>
                   <InputTextArea id="fg_account_bio" @bind-Value="Model.AccountBio" class="fg-textarea fg-control--lg" rows="4" />
                   <ValidationMessage For="@(() => Model.AccountBio)" class="fg-error" />
                 </div>
               </div>
-              <div class="fg-cell" style="grid-column: span 12 / span 12">
+              <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                 <div class="fg-field">
                   <label class="fg-label" for="fg_account_birthday">Birthday</label>
                   <InputText id="fg_account_birthday" type="date" @bind-Value="Model.AccountBirthday" class="fg-input" />
                   <ValidationMessage For="@(() => Model.AccountBirthday)" class="fg-error" />
                 </div>
               </div>
-              <div class="fg-cell" style="grid-column: span 12 / span 12">
+              <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                 <div class="fg-field">
                   <label class="fg-label" for="fg_account_avatar">Profile picture</label>
                   <InputFile @key='fgFileKeys["AccountAvatar"]' @ref='fgFileInputs["AccountAvatar"]' id="fg_account_avatar" class="fg-file-input" accept="image/*" OnChange='@(e => FgPickFiles(Model.AccountAvatar, e, false, 2097152L, true, "AccountAvatar"))' />
@@ -3917,7 +3917,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             </div>
           </fieldset>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <fieldset class="fg-field" aria-labelledby="fg_plan_legend">
             <legend class="fg-label"><span id="fg_plan_legend">Plan</span><span class="fg-required" aria-hidden="true">*</span><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_plan_tip">?</button><span role="tooltip" id="fg_plan_tip" class="fg-tip-text">You can switch plans at any time</span></span></legend>
             <InputRadioGroup @bind-Value="Model.Plan">
@@ -3935,7 +3935,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             <ValidationMessage For="@(() => Model.Plan)" class="fg-error" />
           </fieldset>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <fieldset class="fg-field">
             <legend class="fg-label">Interests</legend>
             <div class="fg-options">
@@ -3951,7 +3951,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             <ValidationMessage For="@(() => Model.Interests)" class="fg-error" />
           </fieldset>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div class="fg-field">
             <label class="fg-label" for="fg_channels">Notification channels</label>
             <InputSelect id="fg_channels" multiple @bind-Value="Model.Channels" class="fg-select">
@@ -3962,7 +3962,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             <ValidationMessage For="@(() => Model.Channels)" class="fg-error" />
           </div>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div class="fg-field">
             <label class="fg-label" for="fg_topics">Topics</label>
             <div class="fg-tags">
@@ -3977,7 +3977,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             <ValidationMessage For="@(() => Model.Topics)" class="fg-error" />
           </div>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <fieldset class="fg-field">
             <legend class="fg-label">Billing</legend>
             <InputRadioGroup @bind-Value="Model.Billing">
@@ -3995,7 +3995,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             <ValidationMessage For="@(() => Model.Billing)" class="fg-error" />
           </fieldset>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <fieldset class="fg-field">
             <legend class="fg-label">Extras</legend>
             <div class="fg-options fg-options--blocks">
@@ -4011,7 +4011,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             <ValidationMessage For="@(() => Model.Extras)" class="fg-error" />
           </fieldset>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div class="fg-field">
             <div class="fg-checkbox-row">
               <InputCheckbox id="fg_notify" role="switch" @bind-Value="Model.Notify" class="fg-switch" />
@@ -4020,28 +4020,28 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             <ValidationMessage For="@(() => Model.Notify)" class="fg-error" />
           </div>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div class="fg-field">
             <label class="fg-label" for="fg_appointment">Appointment</label>
             <InputText id="fg_appointment" type="datetime-local" @bind-Value="Model.Appointment" class="fg-input" />
             <ValidationMessage For="@(() => Model.Appointment)" class="fg-error" />
           </div>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div class="fg-field">
             <label class="fg-label" for="fg_brand_color">Brand color</label>
             <InputText id="fg_brand_color" type="color" @bind-Value="Model.BrandColor" class="fg-input fg-input--color" />
             <ValidationMessage For="@(() => Model.BrandColor)" class="fg-error" />
           </div>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div class="fg-field">
             <label class="fg-label" for="fg_volume">Volume</label>
             <input id="fg_volume" type="range" @bind="Model.Volume" @bind:event="oninput" class="fg-range" min="0" max="10" step="1" aria-orientation="vertical" style="writing-mode: vertical-lr; direction: rtl; align-self: flex-start; width: auto; height: 10rem" />
             <ValidationMessage For="@(() => Model.Volume)" class="fg-error" />
           </div>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div class="fg-field">
             <label class="fg-label" for="fg_budget">Budget</label>
             <div class="fg-dual">
@@ -4053,7 +4053,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             <ValidationMessage For="@(() => Model.Budget)" class="fg-error" />
           </div>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div class="fg-field">
             <label class="fg-label" for="fg_stay">Stay<span class="fg-required" aria-hidden="true">*</span></label>
             <div class="fg-pair">
@@ -4064,7 +4064,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             <ValidationMessage For="@(() => Model.Stay)" class="fg-error" />
           </div>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div class="fg-field">
             <label class="fg-label" for="fg_days">Available days</label>
             <div class="fg-pair">
@@ -4083,7 +4083,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             <ValidationMessage For="@(() => Model.Days)" class="fg-error" />
           </div>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <fieldset class="fg-field">
             <legend class="fg-label">How did we do?<span class="fg-required" aria-hidden="true">*</span></legend>
             <div class="fg-matrix-scroll">
@@ -4098,7 +4098,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             <ValidationMessage For="@(() => Model.Rating)" class="fg-error" />
           </fieldset>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <fieldset class="fg-group" data-fg-repeater="references">
             <legend class="fg-group-label">References</legend>
             <div class="fg-repeater-items">
@@ -4107,14 +4107,14 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
                   <fieldset @key="item" class="fg-repeater-item" data-fg-item tabindex="-1" @ref="fgItemRefs[item]">
                       <legend class="fg-repeater-item-label">@FgItemLabel("references", i)</legend>
                       <div class="fg-grid">
-                        <div class="fg-cell" style="grid-column: span 12 / span 12">
+                        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                           <div class="fg-field">
                             <label class="fg-label" for="@($"fg_references_{i}_name")">Name<span class="fg-required" aria-hidden="true">*</span></label>
                             <InputText id="@($"fg_references_{i}_name")" @bind-Value="item.Name" class="fg-input" />
                             <ValidationMessage For="@(() => item.Name)" class="fg-error" />
                           </div>
                         </div>
-                        <div class="fg-cell" style="grid-column: span 12 / span 12">
+                        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                           <div class="fg-field">
                             <div class="fg-checkbox-row">
                               <InputCheckbox id="@($"fg_references_{i}_may_contact")" @bind-Value="item.MayContact" class="fg-checkbox" />
@@ -4125,7 +4125,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
                         </div>
                         @if ((Equals(item.MayContact, true)))
                         {
-                            <div class="fg-cell" style="grid-column: span 12 / span 12">
+                            <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                               <div class="fg-field">
                                 <label class="fg-label" for="@($"fg_references_{i}_email")">Their email</label>
                                 <InputText id="@($"fg_references_{i}_email")" type="email" @bind-Value="item.Email" class="fg-input" />
@@ -4146,7 +4146,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             }
           </fieldset>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div class="fg-field">
             <label class="fg-label" for="fg_attachments">Attachments<span class="fg-required" aria-hidden="true">*</span></label>
             <InputFile @key='fgFileKeys["Attachments"]' @ref='fgFileInputs["Attachments"]' id="fg_attachments" class="fg-file-input" accept=".pdf,.doc,.docx" multiple OnChange='@(e => FgPickFiles(Model.Attachments, e, true, 5242880L, false, "Attachments"))' />
@@ -4169,7 +4169,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         </div>
         @if ((!FgIsBlank(Model.Attachments)))
         {
-            <div class="fg-cell" style="grid-column: span 12 / span 12">
+            <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_attachments_note">Notes about the attachments</label>
                 <InputTextArea id="fg_attachments_note" @bind-Value="Model.AttachmentsNote" class="fg-textarea" rows="3" />
@@ -4177,7 +4177,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
               </div>
             </div>
         }
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <figure class="fg-quote">
             <blockquote class="fg-quote-text">
               <p>Forms are conversations.</p>
@@ -4185,10 +4185,10 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             <figcaption class="fg-quote-cite">FormsGen</figcaption>
           </figure>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <a class="fg-link" href="https://example.com/docs" target="_blank" rel="noopener noreferrer">Read the docs<span class="fg-sr-only"> (opens in a new tab)</span></a>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div class="fg-field">
             <label class="fg-label" for="fg_contact_method">Preferred contact method<span class="fg-required" aria-hidden="true">*</span></label>
             <InputSelect id="fg_contact_method" @bind-Value="Model.ContactMethod" class="fg-select">
@@ -4202,7 +4202,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         </div>
         @if ((Equals(Model.ContactMethod, "phone")))
         {
-            <div class="fg-cell" style="grid-column: span 12 / span 12">
+            <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_contact_phone">Phone number</label>
                 <div class="fg-pair">
@@ -4459,7 +4459,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         }
         @if ((Equals(Model.ContactMethod, "other")))
         {
-            <div class="fg-cell" style="grid-column: span 12 / span 12">
+            <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_contact_other">Describe your preferred method</label>
                 <InputTextArea id="fg_contact_other" @bind-Value="Model.ContactOther" class="fg-textarea" rows="3" />
@@ -4467,7 +4467,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
               </div>
             </div>
         }
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div>
             <div class="fg-tab-list" role="tablist">
               <button type="button" class="@(fgSec_ks_social_tabs == 0 ? "fg-tab-button fg-tab-button--active" : "fg-tab-button")" @onclick="() => fgSec_ks_social_tabs = 0">Social</button>
@@ -4476,7 +4476,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
           @if (fgSec_ks_social_tabs == 0)
           {
               <div class="fg-grid">
-                <div class="fg-cell" style="grid-column: span 12 / span 12">
+                <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                   <div class="fg-field">
                     <label class="fg-label" for="fg_twitter">Twitter handle</label>
                     <InputText id="fg_twitter" @bind-Value="Model.Twitter" class="fg-input" />
@@ -4488,7 +4488,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
           @if (fgSec_ks_social_tabs == 1)
           {
               <div class="fg-grid">
-                <div class="fg-cell" style="grid-column: span 12 / span 12">
+                <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                   <div class="fg-field">
                     <label class="fg-label" for="fg_github">GitHub username</label>
                     <InputText id="fg_github" @bind-Value="Model.Github" class="fg-input" />
@@ -4499,7 +4499,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
           }
           </div>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div>
             <ol class="fg-step-list">
               <li class="@(fgSec_ks_wizard == 0 ? "fg-step-item fg-step-item--active" : "fg-step-item")">1. Shipping</li>
@@ -4508,7 +4508,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
           @if (fgSec_ks_wizard == 0)
           {
               <div class="fg-grid">
-                <div class="fg-cell" style="grid-column: span 12 / span 12">
+                <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                   <div class="fg-field">
                     <label class="fg-label" for="fg_shipping_city">Shipping city<span class="fg-required" aria-hidden="true">*</span></label>
                     <InputText id="fg_shipping_city" @bind-Value="Model.ShippingCity" class="fg-input" />
@@ -4520,7 +4520,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
           @if (fgSec_ks_wizard == 1)
           {
               <div class="fg-grid">
-                <div class="fg-cell" style="grid-column: span 12 / span 12">
+                <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                   <div class="fg-field">
                     <label class="fg-label" for="fg_order_notes">Order notes</label>
                     <InputTextArea id="fg_order_notes" @bind-Value="Model.OrderNotes" class="fg-textarea" rows="3" />
@@ -4545,7 +4545,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             </div>
           </div>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div class="fg-field">
             <div class="fg-checkbox-row">
               <InputCheckbox id="fg_newsletter" @bind-Value="Model.Newsletter" class="fg-checkbox" />
@@ -4554,7 +4554,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             <ValidationMessage For="@(() => Model.Newsletter)" class="fg-error" />
           </div>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div class="fg-field">
             <div class="fg-checkbox-row">
               <InputCheckbox id="fg_terms" @bind-Value="Model.Terms" class="fg-checkbox" />
@@ -4563,7 +4563,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             <ValidationMessage For="@(() => Model.Terms)" class="fg-error" />
           </div>
         </div>
-        <div class="fg-cell" style="grid-column: span 12 / span 12">
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <button type="button" class="fg-button fg-button--secondary" @onclick="FgReset">Start over</button>
         </div>
     </div>
@@ -5758,14 +5758,14 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       </div>
       <div class="col-12 col-md-12">
         <div class="row g-3">
-          <div class="col-12 col-md-6">
+          <div class="col-6 col-md-6 col-lg-4">
             <div class="d-flex flex-column gap-1">
               <label class="form-label fw-semibold fs-6 mb-0" for="fg_city">City</label>
               <input id="fg_city" type="text" class="form-control" data-fg-path="city" data-fg-kind="text">
               <p id="fg_err_city" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
             </div>
           </div>
-          <div class="col-12 col-md-6">
+          <div class="col-6 col-md-6">
             <div class="d-flex flex-column gap-1">
               <label class="visually-hidden" for="fg_zip">ZIP</label>
               <input id="fg_zip" type="text" class="form-control" data-fg-path="zip" data-fg-kind="text">
@@ -7341,14 +7341,14 @@ exports[`html target > snapshot (tailwind) 1`] = `
       </div>
       <div class="col-span-12 md:col-span-12">
         <div class="grid grid-cols-12 gap-4">
-          <div class="col-span-12 md:col-span-6">
+          <div class="col-span-6 md:col-span-6 lg:col-span-4">
             <div class="flex flex-col gap-1.5">
               <label class="text-sm font-semibold" for="fg_city">City</label>
               <input id="fg_city" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="city" data-fg-kind="text">
               <p id="fg_err_city" class="text-xs text-red-600" role="alert" hidden></p>
             </div>
           </div>
-          <div class="col-span-12 md:col-span-6">
+          <div class="col-span-6 md:col-span-6">
             <div class="flex flex-col gap-1.5">
               <label class="sr-only" for="fg_zip">ZIP</label>
               <input id="fg_zip" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="zip" data-fg-kind="text">
@@ -8875,7 +8875,9 @@ exports[`html target > snapshot (vanilla) 1`] = `
     padding: var(--fg-space);
   }
   .fg-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--fg-space); }
-  .fg-cell { min-inline-size: 0; }
+  .fg-cell { min-inline-size: 0; grid-column: span var(--fg-span-sm, 12) / span var(--fg-span-sm, 12); }
+  @media (min-width: 768px) { .fg-cell { grid-column: span var(--fg-span, 12) / span var(--fg-span, 12); } }
+  @media (min-width: 1024px) { .fg-cell { grid-column: span var(--fg-span-lg, 12) / span var(--fg-span-lg, 12); } }
   .fg-field { display: flex; flex-direction: column; gap: 0.375rem; }
   .fg-label { font-size: 0.875rem; font-weight: 600; }
   .fg-required { color: var(--fg-color-error); margin-inline-start: 0.125rem; }
@@ -9015,6 +9017,15 @@ exports[`html target > snapshot (vanilla) 1`] = `
   .fg-tip-button:focus-visible { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
   .fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); left: 50%; z-index: 20; inline-size: max-content; max-inline-size: 16rem; padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; transform: translateX(-50%); visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
   .fg-tip:hover .fg-tip-text, .fg-tip-button:focus + .fg-tip-text { visibility: visible; opacity: 1; }
+
+  /* Floating labels (meta.floatingLabels): the label floats when the control is focused or filled. */
+  .fg-floating { position: relative; }
+  .fg-floating > .fg-input, .fg-floating > .fg-select { padding-block: 1.375rem 0.375rem; }
+  .fg-floating > .fg-floating-label { position: absolute; inset-block-start: 0; inset-inline-start: 0; padding: 0.875rem 0.75rem 0; font-size: 0.875rem; color: var(--fg-color-muted); pointer-events: none; transform-origin: 0 0; transition: transform 0.12s ease, color 0.12s ease; }
+  [dir='rtl'] .fg-floating > .fg-floating-label { transform-origin: 100% 0; }
+  .fg-floating > :focus ~ .fg-floating-label, .fg-floating > :not(:placeholder-shown) ~ .fg-floating-label, .fg-floating > select ~ .fg-floating-label { transform: translateY(-0.5rem) scale(0.8); }
+  .fg-floating > :focus ~ .fg-floating-label { color: var(--fg-color-primary); }
+  .fg-floating > :not(:focus)::placeholder { color: transparent; }
   @media (prefers-color-scheme: dark) {
     .fg-form:not([data-fg-theme='light']) {
       --fg-color-bg: #0f172a; --fg-color-surface: #1e293b; --fg-color-text: #e2e8f0;
@@ -9028,34 +9039,34 @@ exports[`html target > snapshot (vanilla) 1`] = `
 <body>
   <form id="fg-form" class="fg-form" novalidate>
     <div class="fg-grid">
-      <div class="fg-cell fg-align-center" style="grid-column: span 12 / span 12">
+      <div class="fg-cell fg-align-center" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <h2 class="fg-heading fg-tone-primary">Kitchen Sink</h2>
       </div>
-      <div class="fg-cell fg-align-center" style="grid-column: span 12 / span 12">
+      <div class="fg-cell fg-align-center" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <p class="fg-paragraph">Every implemented element appears in this form.</p>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_full_name">Full name<span class="fg-required" aria-hidden="true">*</span></label>
           <input id="fg_full_name" type="text" class="fg-input" data-fg-path="full_name" data-fg-kind="text" placeholder="Jane Doe">
           <p id="fg_err_full_name" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_email">Email<span class="fg-required" aria-hidden="true">*</span></label>
           <input id="fg_email" type="email" class="fg-input" data-fg-path="email" data-fg-kind="text" placeholder="jane&#64;example.com">
           <p id="fg_err_email" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_website">Website</label>
           <input id="fg_website" type="url" class="fg-input fg-control--sm" data-fg-path="website" data-fg-kind="text">
           <p id="fg_err_website" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <div class="fg-label-row"><label class="fg-label" for="fg_seats">Seats</label><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_seats_tip">?</button><span role="tooltip" id="fg_seats_tip" class="fg-tip-text">Including yourself</span></span></div>
           <div class="fg-affix-group">
@@ -9065,26 +9076,26 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <p id="fg_err_seats" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_satisfaction">Satisfaction</label>
           <input id="fg_satisfaction" type="range" class="fg-range" data-fg-path="satisfaction" data-fg-kind="number" min="0" max="10" step="1" value="5">
           <p id="fg_err_satisfaction" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <hr class="fg-divider fg-tone-primary">
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-grid">
-          <div class="fg-cell" style="grid-column: span 6 / span 6">
+          <div class="fg-cell" style="--fg-span: 6; --fg-span-sm: 6; --fg-span-lg: 4">
             <div class="fg-field">
               <label class="fg-label" for="fg_city">City</label>
               <input id="fg_city" type="text" class="fg-input" data-fg-path="city" data-fg-kind="text">
               <p id="fg_err_city" class="fg-error" role="alert" hidden></p>
             </div>
           </div>
-          <div class="fg-cell" style="grid-column: span 6 / span 6">
+          <div class="fg-cell" style="--fg-span: 6; --fg-span-sm: 6; --fg-span-lg: 6">
             <div class="fg-field">
               <label class="fg-sr-only" for="fg_zip">ZIP</label>
               <input id="fg_zip" type="text" class="fg-input" data-fg-path="zip" data-fg-kind="text">
@@ -9093,11 +9104,11 @@ exports[`html target > snapshot (vanilla) 1`] = `
           </div>
         </div>
       </div>
-      <div class="fg-cell account-box" style="grid-column: span 12 / span 12">
+      <div class="fg-cell account-box" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <fieldset class="fg-group">
           <legend class="fg-group-label">Account</legend>
           <div class="fg-grid">
-            <div class="fg-cell" style="grid-column: span 12 / span 12">
+            <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_account_username">Username<span class="fg-required" aria-hidden="true">*</span></label>
                 <div class="fg-affix-group">
@@ -9107,28 +9118,28 @@ exports[`html target > snapshot (vanilla) 1`] = `
                 <p id="fg_err_account_username" class="fg-error" role="alert" hidden></p>
               </div>
             </div>
-            <div class="fg-cell" style="grid-column: span 12 / span 12">
+            <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_account_password">Password</label>
                 <input id="fg_account_password" type="password" class="fg-input" data-fg-path="account.password" data-fg-kind="text">
                 <p id="fg_err_account_password" class="fg-error" role="alert" hidden></p>
               </div>
             </div>
-            <div class="fg-cell" style="grid-column: span 12 / span 12">
+            <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_account_bio">Bio</label>
                 <textarea id="fg_account_bio" class="fg-textarea fg-control--lg" rows="4" data-fg-path="account.bio" data-fg-kind="text"></textarea>
                 <p id="fg_err_account_bio" class="fg-error" role="alert" hidden></p>
               </div>
             </div>
-            <div class="fg-cell" style="grid-column: span 12 / span 12">
+            <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_account_birthday">Birthday</label>
                 <input id="fg_account_birthday" type="date" class="fg-input" data-fg-path="account.birthday" data-fg-kind="text">
                 <p id="fg_err_account_birthday" class="fg-error" role="alert" hidden></p>
               </div>
             </div>
-            <div class="fg-cell" style="grid-column: span 12 / span 12">
+            <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_account_avatar">Profile picture</label>
                 <input id="fg_account_avatar" type="file" class="fg-file-input" accept="image/*" data-fg-path="account.avatar" data-fg-kind="files" data-fg-thumbs>
@@ -9139,7 +9150,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           </div>
         </fieldset>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <fieldset class="fg-field" aria-labelledby="fg_plan_legend">
           <legend class="fg-label"><span id="fg_plan_legend">Plan</span><span class="fg-required" aria-hidden="true">*</span><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_plan_tip">?</button><span role="tooltip" id="fg_plan_tip" class="fg-tip-text">You can switch plans at any time</span></span></legend>
           <div class="fg-options">
@@ -9155,7 +9166,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <p id="fg_err_plan" class="fg-error" role="alert" hidden></p>
         </fieldset>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <fieldset class="fg-field">
           <legend class="fg-label">Interests</legend>
           <div class="fg-options">
@@ -9171,7 +9182,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <p id="fg_err_interests" class="fg-error" role="alert" hidden></p>
         </fieldset>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_channels">Notification channels</label>
           <select id="fg_channels" multiple class="fg-select" data-fg-path="channels" data-fg-kind="multiselect">
@@ -9182,7 +9193,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <p id="fg_err_channels" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_topics">Topics</label>
           <div class="fg-tags" data-fg-path="topics" data-fg-kind="tags">
@@ -9193,7 +9204,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <p id="fg_err_topics" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <fieldset class="fg-field">
           <legend class="fg-label">Billing</legend>
           <div class="fg-options fg-options--buttons">
@@ -9209,7 +9220,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <p id="fg_err_billing" class="fg-error" role="alert" hidden></p>
         </fieldset>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <fieldset class="fg-field">
           <legend class="fg-label">Extras</legend>
           <div class="fg-options fg-options--blocks">
@@ -9225,7 +9236,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <p id="fg_err_extras" class="fg-error" role="alert" hidden></p>
         </fieldset>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <div class="fg-checkbox-row">
             <input id="fg_notify" type="checkbox" role="switch" class="fg-switch" data-fg-path="notify" data-fg-kind="checkbox" checked>
@@ -9234,28 +9245,28 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <p id="fg_err_notify" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_appointment">Appointment</label>
           <input id="fg_appointment" type="datetime-local" class="fg-input" data-fg-path="appointment" data-fg-kind="text">
           <p id="fg_err_appointment" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_brand_color">Brand color</label>
           <input id="fg_brand_color" type="color" class="fg-input fg-input--color" data-fg-path="brand_color" data-fg-kind="text">
           <p id="fg_err_brand_color" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_volume">Volume</label>
           <input id="fg_volume" type="range" class="fg-range" data-fg-path="volume" data-fg-kind="number" min="0" max="10" step="1" aria-orientation="vertical" style="writing-mode: vertical-lr; direction: rtl; align-self: flex-start; width: auto; height: 10rem" value="0">
           <p id="fg_err_volume" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_budget">Budget</label>
           <div class="fg-dual" data-fg-dual="budget">
@@ -9267,7 +9278,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <p id="fg_err_budget" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_stay">Stay<span class="fg-required" aria-hidden="true">*</span></label>
           <div class="fg-pair">
@@ -9278,7 +9289,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <p id="fg_err_stay" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_days">Available days</label>
           <div class="fg-pair" data-fg-path="days" data-fg-kind="dates">
@@ -9289,7 +9300,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <p id="fg_err_days" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <fieldset class="fg-field">
           <legend class="fg-label">How did we do?<span class="fg-required" aria-hidden="true">*</span></legend>
           <div class="fg-matrix-scroll">
@@ -9305,7 +9316,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
         </fieldset>
       </div>
       <input id="fg_source" type="hidden" value="kitchen-sink" data-fg-path="source" data-fg-kind="text">
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <fieldset class="fg-group" data-fg-repeater="references">
           <legend class="fg-group-label">References</legend>
           <div class="fg-repeater-items" data-fg-items="references"></div>
@@ -9313,14 +9324,14 @@ exports[`html target > snapshot (vanilla) 1`] = `
             <fieldset class="fg-repeater-item" data-fg-item tabindex="-1">
               <legend class="fg-repeater-item-label" data-fg-item-label></legend>
               <div class="fg-grid">
-                <div class="fg-cell" style="grid-column: span 12 / span 12">
+                <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                   <div class="fg-field">
                     <label class="fg-label" for="fg_references___i___name">Name<span class="fg-required" aria-hidden="true">*</span></label>
                     <input id="fg_references___i___name" type="text" class="fg-input" data-fg-path="references.__i__.name" data-fg-kind="text">
                     <p id="fg_err_references___i___name" class="fg-error" role="alert" hidden></p>
                   </div>
                 </div>
-                <div class="fg-cell" style="grid-column: span 12 / span 12">
+                <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                   <div class="fg-field">
                     <div class="fg-checkbox-row">
                       <input id="fg_references___i___may_contact" type="checkbox" class="fg-checkbox" data-fg-path="references.__i__.may_contact" data-fg-kind="checkbox">
@@ -9329,7 +9340,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
                     <p id="fg_err_references___i___may_contact" class="fg-error" role="alert" hidden></p>
                   </div>
                 </div>
-                <div class="fg-cell" style="grid-column: span 12 / span 12" data-fg-icond="0">
+                <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12" data-fg-icond="0">
                   <div class="fg-field">
                     <label class="fg-label" for="fg_references___i___email">Their email</label>
                     <input id="fg_references___i___email" type="email" class="fg-input" data-fg-path="references.__i__.email" data-fg-kind="text">
@@ -9345,7 +9356,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <button type="button" class="fg-button fg-button--secondary fg-repeater-add" data-fg-add="references">Add reference</button>
         </fieldset>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_attachments">Attachments<span class="fg-required" aria-hidden="true">*</span></label>
           <input id="fg_attachments" type="file" class="fg-file-input" accept=".pdf,.doc,.docx" multiple data-fg-path="attachments" data-fg-kind="files">
@@ -9354,14 +9365,14 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <p id="fg_err_attachments" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12" data-fg-cond="0">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12" data-fg-cond="0">
         <div class="fg-field">
           <label class="fg-label" for="fg_attachments_note">Notes about the attachments</label>
           <textarea id="fg_attachments_note" class="fg-textarea" rows="3" data-fg-path="attachments_note" data-fg-kind="text"></textarea>
           <p id="fg_err_attachments_note" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <figure class="fg-quote">
           <blockquote class="fg-quote-text">
             <p>Forms are conversations.</p>
@@ -9369,10 +9380,10 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <figcaption class="fg-quote-cite">FormsGen</figcaption>
         </figure>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <a class="fg-link" href="https://example.com/docs" target="_blank" rel="noopener noreferrer">Read the docs<span class="fg-sr-only"> (opens in a new tab)</span></a>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_contact_method">Preferred contact method<span class="fg-required" aria-hidden="true">*</span></label>
           <select id="fg_contact_method" class="fg-select" data-fg-path="contact_method" data-fg-kind="select">
@@ -9384,7 +9395,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <p id="fg_err_contact_method" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12" data-fg-cond="1">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12" data-fg-cond="1">
         <div class="fg-field">
           <label class="fg-label" for="fg_contact_phone">Phone number</label>
           <div class="fg-pair">
@@ -9638,14 +9649,14 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <p id="fg_err_contact_phone" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12" data-fg-cond="2">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12" data-fg-cond="2">
         <div class="fg-field">
           <label class="fg-label" for="fg_contact_other">Describe your preferred method</label>
           <textarea id="fg_contact_other" class="fg-textarea" rows="3" data-fg-path="contact_other" data-fg-kind="text"></textarea>
           <p id="fg_err_contact_other" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div>
           <div class="fg-tab-list" role="tablist">
             <button type="button" class="fg-tab-button fg-tab-button--active" data-fg-sec-btn="ks_social_tabs:0">Social</button>
@@ -9653,7 +9664,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           </div>
           <div data-fg-sec-panel="ks_social_tabs:0">
           <div class="fg-grid">
-            <div class="fg-cell" style="grid-column: span 12 / span 12">
+            <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_twitter">Twitter handle</label>
                 <input id="fg_twitter" type="text" class="fg-input" data-fg-path="twitter" data-fg-kind="text">
@@ -9664,7 +9675,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           </div>
           <div data-fg-sec-panel="ks_social_tabs:1" hidden>
           <div class="fg-grid">
-            <div class="fg-cell" style="grid-column: span 12 / span 12">
+            <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_github">GitHub username</label>
                 <input id="fg_github" type="text" class="fg-input" data-fg-path="github" data-fg-kind="text">
@@ -9675,7 +9686,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           </div>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div>
           <ol class="fg-step-list">
             <li class="fg-step-item fg-step-item--active" data-fg-sec-item="ks_wizard:0">1. Shipping</li>
@@ -9683,7 +9694,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           </ol>
           <div data-fg-sec-panel="ks_wizard:0">
           <div class="fg-grid">
-            <div class="fg-cell" style="grid-column: span 12 / span 12">
+            <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_shipping_city">Shipping city<span class="fg-required" aria-hidden="true">*</span></label>
                 <input id="fg_shipping_city" type="text" class="fg-input" data-fg-path="shipping_city" data-fg-kind="text">
@@ -9694,7 +9705,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           </div>
           <div data-fg-sec-panel="ks_wizard:1" hidden>
           <div class="fg-grid">
-            <div class="fg-cell" style="grid-column: span 12 / span 12">
+            <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_order_notes">Order notes</label>
                 <textarea id="fg_order_notes" class="fg-textarea" rows="3" data-fg-path="order_notes" data-fg-kind="text"></textarea>
@@ -9710,7 +9721,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           </div>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <div class="fg-checkbox-row">
             <input id="fg_newsletter" type="checkbox" class="fg-checkbox" data-fg-path="newsletter" data-fg-kind="checkbox" checked>
@@ -9719,7 +9730,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <p id="fg_err_newsletter" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <div class="fg-checkbox-row">
             <input id="fg_terms" type="checkbox" class="fg-checkbox" data-fg-path="terms" data-fg-kind="checkbox">
@@ -9728,7 +9739,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <p id="fg_err_terms" class="fg-error" role="alert" hidden></p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <button type="button" class="fg-button fg-button--secondary" data-fg-reset>Start over</button>
       </div>
     </div>
@@ -10630,30 +10641,6 @@ function fgFileProblem(v: unknown, accept: string, maxMb: number, maxFiles: numb
 function fgFileJson(_key: string, value: unknown): unknown {
   return value instanceof File ? { name: value.name, size: value.size, type: value.type } : value
 }
-function fgMultipart(payload: Record<string, unknown>) {
-  const files: { path: string; file: File }[] = []
-  const walk = (value: unknown, path: string): unknown => {
-    if (value instanceof File) {
-      files.push({ path, file: value })
-      return fgFileJson('', value)
-    }
-    if (Array.isArray(value)) {
-      const fileList = value.length > 0 && value.every((v) => v instanceof File)
-      return value.map((v, i) => walk(v, fileList ? path : path + '.' + i))
-    }
-    if (value && typeof value === 'object') {
-      const out: Record<string, unknown> = {}
-      for (const [key, v] of Object.entries(value)) out[key] = walk(v, path ? path + '.' + key : key)
-      return out
-    }
-    return value
-  }
-  const data = walk(payload, '')
-  const body = new FormData()
-  body.append('data', JSON.stringify(data))
-  for (const part of files) body.append(part.path, part.file, part.file.name)
-  return body
-}
 
 type FormData = {
   full_name: string
@@ -11368,14 +11355,14 @@ export default function KitchenSinkForm({
         </div>
         <div className="col-12 col-md-12">
           <div className="row g-3">
-            <div className="col-12 col-md-6">
+            <div className="col-6 col-md-6 col-lg-4">
               <div className="d-flex flex-column gap-1">
                 <label className="form-label fw-semibold fs-6 mb-0" htmlFor="fg_city">City</label>
                 <input id="fg_city" type="text" value={form.city} className={errors['city'] ? "form-control is-invalid" : "form-control"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('city', e.target.value)} onBlur={() => touch('city')} />
                 {errors['city'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['city']}</p>}
               </div>
             </div>
-            <div className="col-12 col-md-6">
+            <div className="col-6 col-md-6">
               <div className="d-flex flex-column gap-1">
                 <label className="visually-hidden" htmlFor="fg_zip">ZIP</label>
                 <input id="fg_zip" type="text" value={form.zip} className={errors['zip'] ? "form-control is-invalid" : "form-control"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('zip', e.target.value)} onBlur={() => touch('zip')} />
@@ -12115,30 +12102,6 @@ function fgFileProblem(v: unknown, accept: string, maxMb: number, maxFiles: numb
 function fgFileJson(_key: string, value: unknown): unknown {
   return value instanceof File ? { name: value.name, size: value.size, type: value.type } : value
 }
-function fgMultipart(payload: Record<string, unknown>) {
-  const files: { path: string; file: File }[] = []
-  const walk = (value: unknown, path: string): unknown => {
-    if (value instanceof File) {
-      files.push({ path, file: value })
-      return fgFileJson('', value)
-    }
-    if (Array.isArray(value)) {
-      const fileList = value.length > 0 && value.every((v) => v instanceof File)
-      return value.map((v, i) => walk(v, fileList ? path : path + '.' + i))
-    }
-    if (value && typeof value === 'object') {
-      const out: Record<string, unknown> = {}
-      for (const [key, v] of Object.entries(value)) out[key] = walk(v, path ? path + '.' + key : key)
-      return out
-    }
-    return value
-  }
-  const data = walk(payload, '')
-  const body = new FormData()
-  body.append('data', JSON.stringify(data))
-  for (const part of files) body.append(part.path, part.file, part.file.name)
-  return body
-}
 
 type FormData = {
   full_name: string
@@ -12853,14 +12816,14 @@ export default function KitchenSinkForm({
         </div>
         <div className="col-span-12 md:col-span-12">
           <div className="grid grid-cols-12 gap-4">
-            <div className="col-span-12 md:col-span-6">
+            <div className="col-span-6 md:col-span-6 lg:col-span-4">
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-semibold" htmlFor="fg_city">City</label>
                 <input id="fg_city" type="text" value={form.city} className={errors['city'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('city', e.target.value)} onBlur={() => touch('city')} />
                 {errors['city'] && <p className="text-xs text-red-600" role="alert">{errors['city']}</p>}
               </div>
             </div>
-            <div className="col-span-12 md:col-span-6">
+            <div className="col-span-6 md:col-span-6">
               <div className="flex flex-col gap-1.5">
                 <label className="sr-only" htmlFor="fg_zip">ZIP</label>
                 <input id="fg_zip" type="text" value={form.zip} className={errors['zip'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('zip', e.target.value)} onBlur={() => touch('zip')} />
@@ -13608,30 +13571,6 @@ function fgFileProblem(v: unknown, accept: string, maxMb: number, maxFiles: numb
 function fgFileJson(_key: string, value: unknown): unknown {
   return value instanceof File ? { name: value.name, size: value.size, type: value.type } : value
 }
-function fgMultipart(payload: Record<string, unknown>) {
-  const files: { path: string; file: File }[] = []
-  const walk = (value: unknown, path: string): unknown => {
-    if (value instanceof File) {
-      files.push({ path, file: value })
-      return fgFileJson('', value)
-    }
-    if (Array.isArray(value)) {
-      const fileList = value.length > 0 && value.every((v) => v instanceof File)
-      return value.map((v, i) => walk(v, fileList ? path : path + '.' + i))
-    }
-    if (value && typeof value === 'object') {
-      const out: Record<string, unknown> = {}
-      for (const [key, v] of Object.entries(value)) out[key] = walk(v, path ? path + '.' + key : key)
-      return out
-    }
-    return value
-  }
-  const data = walk(payload, '')
-  const body = new FormData()
-  body.append('data', JSON.stringify(data))
-  for (const part of files) body.append(part.path, part.file, part.file.name)
-  return body
-}
 
 type FormData = {
   full_name: string
@@ -14296,34 +14235,34 @@ export default function KitchenSinkForm({
   return (
     <form ref={fgRoot} className="fg-form" dir="ltr" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
       <div className="fg-grid">
-        <div className="fg-cell fg-align-center" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell fg-align-center" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <h2 className="fg-heading fg-tone-primary">Kitchen Sink</h2>
         </div>
-        <div className="fg-cell fg-align-center" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell fg-align-center" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <p className="fg-paragraph">Every implemented element appears in this form.</p>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <label className="fg-label" htmlFor="fg_full_name">Full name<span className="fg-required" aria-hidden="true">*</span></label>
             <input id="fg_full_name" type="text" value={form.full_name} className={errors['full_name'] ? "fg-input fg-invalid" : "fg-input"} placeholder="Jane Doe" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('full_name', e.target.value)} onBlur={() => touch('full_name')} />
             {errors['full_name'] && <p className="fg-error" role="alert">{errors['full_name']}</p>}
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <label className="fg-label" htmlFor="fg_email">Email<span className="fg-required" aria-hidden="true">*</span></label>
             <input id="fg_email" type="email" value={form.email} className={errors['email'] ? "fg-input fg-invalid" : "fg-input"} placeholder="jane&#64;example.com" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('email', e.target.value)} onBlur={() => touch('email')} />
             {errors['email'] && <p className="fg-error" role="alert">{errors['email']}</p>}
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <label className="fg-label" htmlFor="fg_website">Website</label>
             <input id="fg_website" type="url" value={form.website} className={errors['website'] ? "fg-input fg-control--sm fg-invalid" : "fg-input fg-control--sm"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('website', e.target.value)} onBlur={() => touch('website')} />
             {errors['website'] && <p className="fg-error" role="alert">{errors['website']}</p>}
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <div className="fg-label-row"><label className="fg-label" htmlFor="fg_seats">Seats</label><span className="fg-tip"><button type="button" className="fg-tip-button" aria-label="More information" aria-describedby="fg_seats_tip">?</button><span role="tooltip" id="fg_seats_tip" className="fg-tip-text">Including yourself</span></span></div>
             <div className="fg-affix-group">
@@ -14333,7 +14272,7 @@ export default function KitchenSinkForm({
             {errors['seats'] && <p className="fg-error" role="alert">{errors['seats']}</p>}
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <label className="fg-label" htmlFor="fg_satisfaction">Satisfaction</label>
             <input id="fg_satisfaction" type="range" value={form.satisfaction} className="fg-range" min="0" max="10" step="1" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('satisfaction', Number(e.target.value)); touch('satisfaction') }} />
@@ -14341,19 +14280,19 @@ export default function KitchenSinkForm({
             {errors['satisfaction'] && <p className="fg-error" role="alert">{errors['satisfaction']}</p>}
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <hr className="fg-divider fg-tone-primary" />
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-grid">
-            <div className="fg-cell" style={{ gridColumn: 'span 6 / span 6' }}>
+            <div className="fg-cell" style={{ '--fg-span': '6', '--fg-span-sm': '6', '--fg-span-lg': '4' } as React.CSSProperties}>
               <div className="fg-field">
                 <label className="fg-label" htmlFor="fg_city">City</label>
                 <input id="fg_city" type="text" value={form.city} className={errors['city'] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('city', e.target.value)} onBlur={() => touch('city')} />
                 {errors['city'] && <p className="fg-error" role="alert">{errors['city']}</p>}
               </div>
             </div>
-            <div className="fg-cell" style={{ gridColumn: 'span 6 / span 6' }}>
+            <div className="fg-cell" style={{ '--fg-span': '6', '--fg-span-sm': '6', '--fg-span-lg': '6' } as React.CSSProperties}>
               <div className="fg-field">
                 <label className="fg-sr-only" htmlFor="fg_zip">ZIP</label>
                 <input id="fg_zip" type="text" value={form.zip} className={errors['zip'] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('zip', e.target.value)} onBlur={() => touch('zip')} />
@@ -14362,11 +14301,11 @@ export default function KitchenSinkForm({
             </div>
           </div>
         </div>
-        <div className="fg-cell account-box" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell account-box" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <fieldset className="fg-group">
             <legend className="fg-group-label">Account</legend>
             <div className="fg-grid">
-              <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+              <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
                 <div className="fg-field">
                   <label className="fg-label" htmlFor="fg_account_username">Username<span className="fg-required" aria-hidden="true">*</span></label>
                   <div className="fg-affix-group">
@@ -14376,28 +14315,28 @@ export default function KitchenSinkForm({
                   {errors['account.username'] && <p className="fg-error" role="alert">{errors['account.username']}</p>}
                 </div>
               </div>
-              <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+              <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
                 <div className="fg-field">
                   <label className="fg-label" htmlFor="fg_account_password">Password</label>
                   <input id="fg_account_password" type="password" value={form.account.password} className={errors['account.password'] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('account.password', e.target.value)} onBlur={() => touch('account.password')} />
                   {errors['account.password'] && <p className="fg-error" role="alert">{errors['account.password']}</p>}
                 </div>
               </div>
-              <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+              <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
                 <div className="fg-field">
                   <label className="fg-label" htmlFor="fg_account_bio">Bio</label>
                   <textarea id="fg_account_bio" rows={4} value={form.account.bio} className={errors['account.bio'] ? "fg-textarea fg-control--lg fg-invalid" : "fg-textarea fg-control--lg"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('account.bio', e.target.value)} onBlur={() => touch('account.bio')} />
                   {errors['account.bio'] && <p className="fg-error" role="alert">{errors['account.bio']}</p>}
                 </div>
               </div>
-              <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+              <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
                 <div className="fg-field">
                   <label className="fg-label" htmlFor="fg_account_birthday">Birthday</label>
                   <input id="fg_account_birthday" type="date" value={form.account.birthday} className={errors['account.birthday'] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('account.birthday', e.target.value)} onBlur={() => touch('account.birthday')} />
                   {errors['account.birthday'] && <p className="fg-error" role="alert">{errors['account.birthday']}</p>}
                 </div>
               </div>
-              <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+              <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
                 <div className="fg-field">
                   <label className="fg-label" htmlFor="fg_account_avatar">Profile picture</label>
                   <input id="fg_account_avatar" type="file" className="fg-file-input" accept="image/*" aria-invalid={errors['account.avatar'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('account.avatar', e.target)} />
@@ -14419,7 +14358,7 @@ export default function KitchenSinkForm({
             </div>
           </fieldset>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <fieldset className="fg-field" aria-labelledby="fg_plan_legend">
             <legend className="fg-label"><span id="fg_plan_legend">Plan</span><span className="fg-required" aria-hidden="true">*</span><span className="fg-tip"><button type="button" className="fg-tip-button" aria-label="More information" aria-describedby="fg_plan_tip">?</button><span role="tooltip" id="fg_plan_tip" className="fg-tip-text">You can switch plans at any time</span></span></legend>
@@ -14437,7 +14376,7 @@ export default function KitchenSinkForm({
             {errors['plan'] && <p className="fg-error" role="alert">{errors['plan']}</p>}
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <fieldset className="fg-field">
             <legend className="fg-label">Interests</legend>
@@ -14455,7 +14394,7 @@ export default function KitchenSinkForm({
             {errors['interests'] && <p className="fg-error" role="alert">{errors['interests']}</p>}
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <label className="fg-label" htmlFor="fg_channels">Notification channels</label>
             <select id="fg_channels" multiple value={form.channels} className={errors['channels'] ? "fg-select fg-invalid" : "fg-select"} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => { setField('channels', Array.from(e.target.selectedOptions).map((o) => o.value)); touch('channels') }}>
@@ -14466,7 +14405,7 @@ export default function KitchenSinkForm({
             {errors['channels'] && <p className="fg-error" role="alert">{errors['channels']}</p>}
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <label className="fg-label" htmlFor="fg_topics">Topics</label>
             <div className="fg-tags">
@@ -14479,7 +14418,7 @@ export default function KitchenSinkForm({
             {errors['topics'] && <p className="fg-error" role="alert">{errors['topics']}</p>}
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <fieldset className="fg-field">
             <legend className="fg-label">Billing</legend>
@@ -14497,7 +14436,7 @@ export default function KitchenSinkForm({
             {errors['billing'] && <p className="fg-error" role="alert">{errors['billing']}</p>}
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <fieldset className="fg-field">
             <legend className="fg-label">Extras</legend>
@@ -14515,7 +14454,7 @@ export default function KitchenSinkForm({
             {errors['extras'] && <p className="fg-error" role="alert">{errors['extras']}</p>}
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <div className="fg-checkbox-row">
               <input id="fg_notify" type="checkbox" role="switch" checked={form.notify} className="fg-switch" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('notify', e.target.checked); touch('notify') }} />
@@ -14524,21 +14463,21 @@ export default function KitchenSinkForm({
             {errors['notify'] && <p className="fg-error" role="alert">{errors['notify']}</p>}
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <label className="fg-label" htmlFor="fg_appointment">Appointment</label>
             <input id="fg_appointment" type="datetime-local" value={form.appointment} className={errors['appointment'] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('appointment', e.target.value)} onBlur={() => touch('appointment')} />
             {errors['appointment'] && <p className="fg-error" role="alert">{errors['appointment']}</p>}
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <label className="fg-label" htmlFor="fg_brand_color">Brand color</label>
             <input id="fg_brand_color" type="color" value={form.brand_color} className={errors['brand_color'] ? "fg-input fg-input--color fg-invalid" : "fg-input fg-input--color"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('brand_color', e.target.value)} onBlur={() => touch('brand_color')} />
             {errors['brand_color'] && <p className="fg-error" role="alert">{errors['brand_color']}</p>}
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <label className="fg-label" htmlFor="fg_volume">Volume</label>
             <input id="fg_volume" type="range" value={form.volume} className="fg-range" min="0" max="10" step="1" aria-orientation="vertical" style={{ writingMode: 'vertical-lr', direction: 'rtl', alignSelf: 'flex-start', width: 'auto', height: '10rem' }} onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('volume', Number(e.target.value)); touch('volume') }} />
@@ -14546,7 +14485,7 @@ export default function KitchenSinkForm({
             {errors['volume'] && <p className="fg-error" role="alert">{errors['volume']}</p>}
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <label className="fg-label" htmlFor="fg_budget">Budget</label>
             <div className="fg-dual">
@@ -14558,7 +14497,7 @@ export default function KitchenSinkForm({
             {errors['budget'] && <p className="fg-error" role="alert">{errors['budget']}</p>}
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <label className="fg-label" htmlFor="fg_stay">Stay<span className="fg-required" aria-hidden="true">*</span></label>
             <div className="fg-pair">
@@ -14569,7 +14508,7 @@ export default function KitchenSinkForm({
             {errors['stay'] && <p className="fg-error" role="alert">{errors['stay']}</p>}
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <label className="fg-label" htmlFor="fg_days">Available days</label>
             <div className="fg-pair">
@@ -14586,7 +14525,7 @@ export default function KitchenSinkForm({
             {errors['days'] && <p className="fg-error" role="alert">{errors['days']}</p>}
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <fieldset className="fg-field">
             <legend className="fg-label">How did we do?<span className="fg-required" aria-hidden="true">*</span></legend>
             <div className="fg-matrix-scroll">
@@ -14601,7 +14540,7 @@ export default function KitchenSinkForm({
             {errors['rating'] && <p className="fg-error" role="alert">{errors['rating']}</p>}
           </fieldset>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <fieldset className="fg-group" data-fg-repeater="references">
             <legend className="fg-group-label">References</legend>
             <div className="fg-repeater-items">
@@ -14609,14 +14548,14 @@ export default function KitchenSinkForm({
                 <fieldset key={fgKeyAt('references', i)} className="fg-repeater-item" data-fg-item tabIndex={-1}>
                   <legend className="fg-repeater-item-label">{fgItemLabel('references', i)}</legend>
                   <div className="fg-grid">
-                    <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+                    <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
                       <div className="fg-field">
                         <label className="fg-label" htmlFor={'fg_references_' + i + '_name'}>Name<span className="fg-required" aria-hidden="true">*</span></label>
                         <input id={'fg_references_' + i + '_name'} type="text" value={item.name} className={errors[('references.' + i + '.name')] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField(('references.' + i + '.name'), e.target.value)} onBlur={() => touch(('references.' + i + '.name'))} />
                         {errors[('references.' + i + '.name')] && <p className="fg-error" role="alert">{errors[('references.' + i + '.name')]}</p>}
                       </div>
                     </div>
-                    <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+                    <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
                       <div className="fg-field">
                         <div className="fg-checkbox-row">
                           <input id={'fg_references_' + i + '_may_contact'} type="checkbox" checked={item.may_contact} className="fg-checkbox" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField(('references.' + i + '.may_contact'), e.target.checked); touch(('references.' + i + '.may_contact')) }} />
@@ -14626,7 +14565,7 @@ export default function KitchenSinkForm({
                       </div>
                     </div>
                     {((item.may_contact === true)) && (
-                      <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+                      <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
                         <div className="fg-field">
                           <label className="fg-label" htmlFor={'fg_references_' + i + '_email'}>Their email</label>
                           <input id={'fg_references_' + i + '_email'} type="email" value={item.email} className={errors[('references.' + i + '.email')] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField(('references.' + i + '.email'), e.target.value)} onBlur={() => touch(('references.' + i + '.email'))} />
@@ -14644,7 +14583,7 @@ export default function KitchenSinkForm({
             {form.references.length < 3 && <button type="button" className="fg-button fg-button--secondary fg-repeater-add" data-fg-add="references" onClick={() => fgAddItem('references')}>Add reference</button>}
           </fieldset>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <label className="fg-label" htmlFor="fg_attachments">Attachments<span className="fg-required" aria-hidden="true">*</span></label>
             <input id="fg_attachments" type="file" className="fg-file-input" accept=".pdf,.doc,.docx" multiple aria-invalid={errors['attachments'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('attachments', e.target)} />
@@ -14664,7 +14603,7 @@ export default function KitchenSinkForm({
           </div>
         </div>
         {((!fgIsBlank(form.attachments))) && (
-          <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+          <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
             <div className="fg-field">
               <label className="fg-label" htmlFor="fg_attachments_note">Notes about the attachments</label>
               <textarea id="fg_attachments_note" rows={3} value={form.attachments_note} className={errors['attachments_note'] ? "fg-textarea fg-invalid" : "fg-textarea"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('attachments_note', e.target.value)} onBlur={() => touch('attachments_note')} />
@@ -14672,7 +14611,7 @@ export default function KitchenSinkForm({
             </div>
           </div>
         )}
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <figure className="fg-quote">
             <blockquote className="fg-quote-text">
               <p>Forms are conversations.</p>
@@ -14680,10 +14619,10 @@ export default function KitchenSinkForm({
             <figcaption className="fg-quote-cite">FormsGen</figcaption>
           </figure>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <a className="fg-link" href="https://example.com/docs" target="_blank" rel="noopener noreferrer">Read the docs<span className="fg-sr-only"> (opens in a new tab)</span></a>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <label className="fg-label" htmlFor="fg_contact_method">Preferred contact method<span className="fg-required" aria-hidden="true">*</span></label>
             <select id="fg_contact_method" value={form.contact_method ?? ''} className={errors['contact_method'] ? "fg-select fg-invalid" : "fg-select"} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setField('contact_method', e.target.value === '' ? null : e.target.value)} onBlur={() => touch('contact_method')}>
@@ -14696,7 +14635,7 @@ export default function KitchenSinkForm({
           </div>
         </div>
         {((form.contact_method === "phone")) && (
-          <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+          <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
             <div className="fg-field">
               <label className="fg-label" htmlFor="fg_contact_phone">Phone number</label>
               <div className="fg-pair">
@@ -14952,7 +14891,7 @@ export default function KitchenSinkForm({
           </div>
         )}
         {((form.contact_method === "other")) && (
-          <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+          <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
             <div className="fg-field">
               <label className="fg-label" htmlFor="fg_contact_other">Describe your preferred method</label>
               <textarea id="fg_contact_other" rows={3} value={form.contact_other} className={errors['contact_other'] ? "fg-textarea fg-invalid" : "fg-textarea"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('contact_other', e.target.value)} onBlur={() => touch('contact_other')} />
@@ -14960,7 +14899,7 @@ export default function KitchenSinkForm({
             </div>
           </div>
         )}
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div>
             <div className="fg-tab-list" role="tablist">
               <button type="button" className={fgSec_ks_social_tabs === 0 ? "fg-tab-button fg-tab-button--active" : "fg-tab-button"} onClick={() => setFgSec_ks_social_tabs(0)}>Social</button>
@@ -14968,7 +14907,7 @@ export default function KitchenSinkForm({
             </div>
             <div style={{ display: fgSec_ks_social_tabs === 0 ? undefined : 'none' }}>
               <div className="fg-grid">
-                <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+                <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
                   <div className="fg-field">
                     <label className="fg-label" htmlFor="fg_twitter">Twitter handle</label>
                     <input id="fg_twitter" type="text" value={form.twitter} className={errors['twitter'] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('twitter', e.target.value)} onBlur={() => touch('twitter')} />
@@ -14979,7 +14918,7 @@ export default function KitchenSinkForm({
             </div>
             <div style={{ display: fgSec_ks_social_tabs === 1 ? undefined : 'none' }}>
               <div className="fg-grid">
-                <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+                <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
                   <div className="fg-field">
                     <label className="fg-label" htmlFor="fg_github">GitHub username</label>
                     <input id="fg_github" type="text" value={form.github} className={errors['github'] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('github', e.target.value)} onBlur={() => touch('github')} />
@@ -14990,7 +14929,7 @@ export default function KitchenSinkForm({
             </div>
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div>
             <ol className="fg-step-list">
               <li className={fgSec_ks_wizard === 0 ? "fg-step-item fg-step-item--active" : "fg-step-item"}>1. Shipping</li>
@@ -14998,7 +14937,7 @@ export default function KitchenSinkForm({
             </ol>
             <div style={{ display: fgSec_ks_wizard === 0 ? undefined : 'none' }}>
               <div className="fg-grid">
-                <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+                <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
                   <div className="fg-field">
                     <label className="fg-label" htmlFor="fg_shipping_city">Shipping city<span className="fg-required" aria-hidden="true">*</span></label>
                     <input id="fg_shipping_city" type="text" value={form.shipping_city} className={errors['shipping_city'] ? "fg-input fg-invalid" : "fg-input"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('shipping_city', e.target.value)} onBlur={() => touch('shipping_city')} />
@@ -15009,7 +14948,7 @@ export default function KitchenSinkForm({
             </div>
             <div style={{ display: fgSec_ks_wizard === 1 ? undefined : 'none' }}>
               <div className="fg-grid">
-                <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+                <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
                   <div className="fg-field">
                     <label className="fg-label" htmlFor="fg_order_notes">Order notes</label>
                     <textarea id="fg_order_notes" rows={3} value={form.order_notes} className={errors['order_notes'] ? "fg-textarea fg-invalid" : "fg-textarea"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('order_notes', e.target.value)} onBlur={() => touch('order_notes')} />
@@ -15025,7 +14964,7 @@ export default function KitchenSinkForm({
             </div>
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <div className="fg-checkbox-row">
               <input id="fg_newsletter" type="checkbox" checked={form.newsletter} className="fg-checkbox" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('newsletter', e.target.checked); touch('newsletter') }} />
@@ -15034,7 +14973,7 @@ export default function KitchenSinkForm({
             {errors['newsletter'] && <p className="fg-error" role="alert">{errors['newsletter']}</p>}
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <div className="fg-checkbox-row">
               <input id="fg_terms" type="checkbox" checked={form.terms} className="fg-checkbox" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('terms', e.target.checked); touch('terms') }} />
@@ -15043,7 +14982,7 @@ export default function KitchenSinkForm({
             {errors['terms'] && <p className="fg-error" role="alert">{errors['terms']}</p>}
           </div>
         </div>
-        <div className="fg-cell" style={{ gridColumn: 'span 12 / span 12' }}>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <button type="button" className="fg-button fg-button--secondary" onClick={fgReset}>Start over</button>
         </div>
       </div>
@@ -15225,30 +15164,6 @@ function fgFileProblem(v: unknown, accept: string, maxMb: number, maxFiles: numb
 }
 function fgFileJson(_key: string, value: unknown): unknown {
   return value instanceof File ? { name: value.name, size: value.size, type: value.type } : value
-}
-function fgMultipart(payload: Record<string, unknown>) {
-  const files: { path: string; file: File }[] = []
-  const walk = (value: unknown, path: string): unknown => {
-    if (value instanceof File) {
-      files.push({ path, file: value })
-      return fgFileJson('', value)
-    }
-    if (Array.isArray(value)) {
-      const fileList = value.length > 0 && value.every((v) => v instanceof File)
-      return value.map((v, i) => walk(v, fileList ? path : path + '.' + i))
-    }
-    if (value && typeof value === 'object') {
-      const out: Record<string, unknown> = {}
-      for (const [key, v] of Object.entries(value)) out[key] = walk(v, path ? path + '.' + key : key)
-      return out
-    }
-    return value
-  }
-  const data = walk(payload, '')
-  const body = new FormData()
-  body.append('data', JSON.stringify(data))
-  for (const part of files) body.append(part.path, part.file, part.file.name)
-  return body
 }
 const fgThumbs = new WeakMap<File, string>()
 function fgThumb(file: File): string {
@@ -15869,14 +15784,14 @@ async function onSubmit(): Promise<void> {
       </div>
       <div class="col-12 col-md-12">
         <div class="row g-3">
-          <div class="col-12 col-md-6">
+          <div class="col-6 col-md-6 col-lg-4">
             <div class="d-flex flex-column gap-1">
               <label class="form-label fw-semibold fs-6 mb-0" for="fg_city">City</label>
               <input id="fg_city" v-model="form.city" type="text" class="form-control" :class="{ 'is-invalid': !!errors['city'] }" @blur="touch('city')" @input="revalidate('city')">
               <p v-if="errors['city']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['city'] }}</p>
             </div>
           </div>
-          <div class="col-12 col-md-6">
+          <div class="col-6 col-md-6">
             <div class="d-flex flex-column gap-1">
               <label class="visually-hidden" for="fg_zip">ZIP</label>
               <input id="fg_zip" v-model="form.zip" type="text" class="form-control" :class="{ 'is-invalid': !!errors['zip'] }" @blur="touch('zip')" @input="revalidate('zip')">
@@ -16732,30 +16647,6 @@ function fgFileProblem(v: unknown, accept: string, maxMb: number, maxFiles: numb
 function fgFileJson(_key: string, value: unknown): unknown {
   return value instanceof File ? { name: value.name, size: value.size, type: value.type } : value
 }
-function fgMultipart(payload: Record<string, unknown>) {
-  const files: { path: string; file: File }[] = []
-  const walk = (value: unknown, path: string): unknown => {
-    if (value instanceof File) {
-      files.push({ path, file: value })
-      return fgFileJson('', value)
-    }
-    if (Array.isArray(value)) {
-      const fileList = value.length > 0 && value.every((v) => v instanceof File)
-      return value.map((v, i) => walk(v, fileList ? path : path + '.' + i))
-    }
-    if (value && typeof value === 'object') {
-      const out: Record<string, unknown> = {}
-      for (const [key, v] of Object.entries(value)) out[key] = walk(v, path ? path + '.' + key : key)
-      return out
-    }
-    return value
-  }
-  const data = walk(payload, '')
-  const body = new FormData()
-  body.append('data', JSON.stringify(data))
-  for (const part of files) body.append(part.path, part.file, part.file.name)
-  return body
-}
 const fgThumbs = new WeakMap<File, string>()
 function fgThumb(file: File): string {
   let url = fgThumbs.get(file)
@@ -17375,14 +17266,14 @@ async function onSubmit(): Promise<void> {
       </div>
       <div class="col-span-12 md:col-span-12">
         <div class="grid grid-cols-12 gap-4">
-          <div class="col-span-12 md:col-span-6">
+          <div class="col-span-6 md:col-span-6 lg:col-span-4">
             <div class="flex flex-col gap-1.5">
               <label class="text-sm font-semibold" for="fg_city">City</label>
               <input id="fg_city" v-model="form.city" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['city'] }" @blur="touch('city')" @input="revalidate('city')">
               <p v-if="errors['city']" class="text-xs text-red-600" role="alert">{{ errors['city'] }}</p>
             </div>
           </div>
-          <div class="col-span-12 md:col-span-6">
+          <div class="col-span-6 md:col-span-6">
             <div class="flex flex-col gap-1.5">
               <label class="sr-only" for="fg_zip">ZIP</label>
               <input id="fg_zip" v-model="form.zip" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['zip'] }" @blur="touch('zip')" @input="revalidate('zip')">
@@ -18246,30 +18137,6 @@ function fgFileProblem(v: unknown, accept: string, maxMb: number, maxFiles: numb
 function fgFileJson(_key: string, value: unknown): unknown {
   return value instanceof File ? { name: value.name, size: value.size, type: value.type } : value
 }
-function fgMultipart(payload: Record<string, unknown>) {
-  const files: { path: string; file: File }[] = []
-  const walk = (value: unknown, path: string): unknown => {
-    if (value instanceof File) {
-      files.push({ path, file: value })
-      return fgFileJson('', value)
-    }
-    if (Array.isArray(value)) {
-      const fileList = value.length > 0 && value.every((v) => v instanceof File)
-      return value.map((v, i) => walk(v, fileList ? path : path + '.' + i))
-    }
-    if (value && typeof value === 'object') {
-      const out: Record<string, unknown> = {}
-      for (const [key, v] of Object.entries(value)) out[key] = walk(v, path ? path + '.' + key : key)
-      return out
-    }
-    return value
-  }
-  const data = walk(payload, '')
-  const body = new FormData()
-  body.append('data', JSON.stringify(data))
-  for (const part of files) body.append(part.path, part.file, part.file.name)
-  return body
-}
 const fgThumbs = new WeakMap<File, string>()
 function fgThumb(file: File): string {
   let url = fgThumbs.get(file)
@@ -18839,34 +18706,34 @@ async function onSubmit(): Promise<void> {
     @pointerdown.capture="fgPointerDown"
   >
     <div class="fg-grid">
-      <div class="fg-cell fg-align-center" style="grid-column: span 12 / span 12">
+      <div class="fg-cell fg-align-center" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <h2 class="fg-heading fg-tone-primary">Kitchen Sink</h2>
       </div>
-      <div class="fg-cell fg-align-center" style="grid-column: span 12 / span 12">
+      <div class="fg-cell fg-align-center" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <p class="fg-paragraph">Every implemented element appears in this form.</p>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_full_name">Full name<span class="fg-required" aria-hidden="true">*</span></label>
           <input id="fg_full_name" v-model="form.full_name" type="text" class="fg-input" :class="{ 'fg-invalid': !!errors['full_name'] }" placeholder="Jane Doe" @blur="touch('full_name')" @input="revalidate('full_name')">
           <p v-if="errors['full_name']" class="fg-error" role="alert">{{ errors['full_name'] }}</p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_email">Email<span class="fg-required" aria-hidden="true">*</span></label>
           <input id="fg_email" v-model="form.email" type="email" class="fg-input" :class="{ 'fg-invalid': !!errors['email'] }" placeholder="jane&#64;example.com" @blur="touch('email')" @input="revalidate('email')">
           <p v-if="errors['email']" class="fg-error" role="alert">{{ errors['email'] }}</p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_website">Website</label>
           <input id="fg_website" v-model="form.website" type="url" class="fg-input fg-control--sm" :class="{ 'fg-invalid': !!errors['website'] }" @blur="touch('website')" @input="revalidate('website')">
           <p v-if="errors['website']" class="fg-error" role="alert">{{ errors['website'] }}</p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <div class="fg-label-row"><label class="fg-label" for="fg_seats">Seats</label><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_seats_tip">?</button><span role="tooltip" id="fg_seats_tip" class="fg-tip-text">Including yourself</span></span></div>
           <div class="fg-affix-group">
@@ -18876,7 +18743,7 @@ async function onSubmit(): Promise<void> {
           <p v-if="errors['seats']" class="fg-error" role="alert">{{ errors['seats'] }}</p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_satisfaction">Satisfaction</label>
           <input id="fg_satisfaction" v-model.number="form.satisfaction" type="range" class="fg-range" min="0" max="10" step="1" @change="touch('satisfaction')">
@@ -18884,19 +18751,19 @@ async function onSubmit(): Promise<void> {
           <p v-if="errors['satisfaction']" class="fg-error" role="alert">{{ errors['satisfaction'] }}</p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <hr class="fg-divider fg-tone-primary">
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-grid">
-          <div class="fg-cell" style="grid-column: span 6 / span 6">
+          <div class="fg-cell" style="--fg-span: 6; --fg-span-sm: 6; --fg-span-lg: 4">
             <div class="fg-field">
               <label class="fg-label" for="fg_city">City</label>
               <input id="fg_city" v-model="form.city" type="text" class="fg-input" :class="{ 'fg-invalid': !!errors['city'] }" @blur="touch('city')" @input="revalidate('city')">
               <p v-if="errors['city']" class="fg-error" role="alert">{{ errors['city'] }}</p>
             </div>
           </div>
-          <div class="fg-cell" style="grid-column: span 6 / span 6">
+          <div class="fg-cell" style="--fg-span: 6; --fg-span-sm: 6; --fg-span-lg: 6">
             <div class="fg-field">
               <label class="fg-sr-only" for="fg_zip">ZIP</label>
               <input id="fg_zip" v-model="form.zip" type="text" class="fg-input" :class="{ 'fg-invalid': !!errors['zip'] }" @blur="touch('zip')" @input="revalidate('zip')">
@@ -18905,11 +18772,11 @@ async function onSubmit(): Promise<void> {
           </div>
         </div>
       </div>
-      <div class="fg-cell account-box" style="grid-column: span 12 / span 12">
+      <div class="fg-cell account-box" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <fieldset class="fg-group">
           <legend class="fg-group-label">Account</legend>
           <div class="fg-grid">
-            <div class="fg-cell" style="grid-column: span 12 / span 12">
+            <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_account_username">Username<span class="fg-required" aria-hidden="true">*</span></label>
                 <div class="fg-affix-group">
@@ -18919,28 +18786,28 @@ async function onSubmit(): Promise<void> {
                 <p v-if="errors['account.username']" class="fg-error" role="alert">{{ errors['account.username'] }}</p>
               </div>
             </div>
-            <div class="fg-cell" style="grid-column: span 12 / span 12">
+            <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_account_password">Password</label>
                 <input id="fg_account_password" v-model="form.account.password" type="password" class="fg-input" :class="{ 'fg-invalid': !!errors['account.password'] }" @blur="touch('account.password')" @input="revalidate('account.password')">
                 <p v-if="errors['account.password']" class="fg-error" role="alert">{{ errors['account.password'] }}</p>
               </div>
             </div>
-            <div class="fg-cell" style="grid-column: span 12 / span 12">
+            <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_account_bio">Bio</label>
                 <textarea id="fg_account_bio" v-model="form.account.bio" class="fg-textarea fg-control--lg" rows="4" :class="{ 'fg-invalid': !!errors['account.bio'] }" @blur="touch('account.bio')" @input="revalidate('account.bio')"></textarea>
                 <p v-if="errors['account.bio']" class="fg-error" role="alert">{{ errors['account.bio'] }}</p>
               </div>
             </div>
-            <div class="fg-cell" style="grid-column: span 12 / span 12">
+            <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_account_birthday">Birthday</label>
                 <input id="fg_account_birthday" v-model="form.account.birthday" type="date" class="fg-input" :class="{ 'fg-invalid': !!errors['account.birthday'] }" @blur="touch('account.birthday')" @input="revalidate('account.birthday')">
                 <p v-if="errors['account.birthday']" class="fg-error" role="alert">{{ errors['account.birthday'] }}</p>
               </div>
             </div>
-            <div class="fg-cell" style="grid-column: span 12 / span 12">
+            <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_account_avatar">Profile picture</label>
                 <input id="fg_account_avatar" type="file" class="fg-file-input" accept="image/*" :aria-invalid="errors['account.avatar'] ? 'true' : undefined" @change="fgPickFiles('account.avatar', $event)">
@@ -18958,7 +18825,7 @@ async function onSubmit(): Promise<void> {
           </div>
         </fieldset>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <fieldset class="fg-field" aria-labelledby="fg_plan_legend">
           <legend class="fg-label"><span id="fg_plan_legend">Plan</span><span class="fg-required" aria-hidden="true">*</span><span class="fg-tip"><button type="button" class="fg-tip-button" aria-label="More information" aria-describedby="fg_plan_tip">?</button><span role="tooltip" id="fg_plan_tip" class="fg-tip-text">You can switch plans at any time</span></span></legend>
           <div class="fg-options">
@@ -18974,7 +18841,7 @@ async function onSubmit(): Promise<void> {
           <p v-if="errors['plan']" class="fg-error" role="alert">{{ errors['plan'] }}</p>
         </fieldset>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <fieldset class="fg-field">
           <legend class="fg-label">Interests</legend>
           <div class="fg-options">
@@ -18990,7 +18857,7 @@ async function onSubmit(): Promise<void> {
           <p v-if="errors['interests']" class="fg-error" role="alert">{{ errors['interests'] }}</p>
         </fieldset>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_channels">Notification channels</label>
           <select id="fg_channels" v-model="form.channels" multiple class="fg-select" :class="{ 'fg-invalid': !!errors['channels'] }" @change="touch('channels')">
@@ -19001,7 +18868,7 @@ async function onSubmit(): Promise<void> {
           <p v-if="errors['channels']" class="fg-error" role="alert">{{ errors['channels'] }}</p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_topics">Topics</label>
           <div class="fg-tags">
@@ -19012,7 +18879,7 @@ async function onSubmit(): Promise<void> {
           <p v-if="errors['topics']" class="fg-error" role="alert">{{ errors['topics'] }}</p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <fieldset class="fg-field">
           <legend class="fg-label">Billing</legend>
           <div class="fg-options fg-options--buttons">
@@ -19028,7 +18895,7 @@ async function onSubmit(): Promise<void> {
           <p v-if="errors['billing']" class="fg-error" role="alert">{{ errors['billing'] }}</p>
         </fieldset>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <fieldset class="fg-field">
           <legend class="fg-label">Extras</legend>
           <div class="fg-options fg-options--blocks">
@@ -19044,7 +18911,7 @@ async function onSubmit(): Promise<void> {
           <p v-if="errors['extras']" class="fg-error" role="alert">{{ errors['extras'] }}</p>
         </fieldset>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <div class="fg-checkbox-row">
             <input id="fg_notify" v-model="form.notify" type="checkbox" role="switch" class="fg-switch" @change="touch('notify')">
@@ -19053,21 +18920,21 @@ async function onSubmit(): Promise<void> {
           <p v-if="errors['notify']" class="fg-error" role="alert">{{ errors['notify'] }}</p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_appointment">Appointment</label>
           <input id="fg_appointment" v-model="form.appointment" type="datetime-local" class="fg-input" :class="{ 'fg-invalid': !!errors['appointment'] }" @blur="touch('appointment')" @input="revalidate('appointment')">
           <p v-if="errors['appointment']" class="fg-error" role="alert">{{ errors['appointment'] }}</p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_brand_color">Brand color</label>
           <input id="fg_brand_color" v-model="form.brand_color" type="color" class="fg-input fg-input--color" :class="{ 'fg-invalid': !!errors['brand_color'] }" @blur="touch('brand_color')" @input="revalidate('brand_color')">
           <p v-if="errors['brand_color']" class="fg-error" role="alert">{{ errors['brand_color'] }}</p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_volume">Volume</label>
           <input id="fg_volume" v-model.number="form.volume" type="range" class="fg-range" min="0" max="10" step="1" aria-orientation="vertical" style="writing-mode: vertical-lr; direction: rtl; align-self: flex-start; width: auto; height: 10rem" @change="touch('volume')">
@@ -19075,7 +18942,7 @@ async function onSubmit(): Promise<void> {
           <p v-if="errors['volume']" class="fg-error" role="alert">{{ errors['volume'] }}</p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_budget">Budget</label>
           <div class="fg-dual">
@@ -19087,7 +18954,7 @@ async function onSubmit(): Promise<void> {
           <p v-if="errors['budget']" class="fg-error" role="alert">{{ errors['budget'] }}</p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_stay">Stay<span class="fg-required" aria-hidden="true">*</span></label>
           <div class="fg-pair">
@@ -19098,7 +18965,7 @@ async function onSubmit(): Promise<void> {
           <p v-if="errors['stay']" class="fg-error" role="alert">{{ errors['stay'] }}</p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_days">Available days</label>
           <div class="fg-pair">
@@ -19111,7 +18978,7 @@ async function onSubmit(): Promise<void> {
           <p v-if="errors['days']" class="fg-error" role="alert">{{ errors['days'] }}</p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <fieldset class="fg-field">
           <legend class="fg-label">How did we do?<span class="fg-required" aria-hidden="true">*</span></legend>
           <div class="fg-matrix-scroll">
@@ -19126,21 +18993,21 @@ async function onSubmit(): Promise<void> {
           <p v-if="errors['rating']" class="fg-error" role="alert">{{ errors['rating'] }}</p>
         </fieldset>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <fieldset class="fg-group" data-fg-repeater="references">
           <legend class="fg-group-label">References</legend>
           <div class="fg-repeater-items">
             <fieldset v-for="(item, i) in form.references" :key="fgKeyOf(item)" class="fg-repeater-item" data-fg-item tabindex="-1">
               <legend class="fg-repeater-item-label">{{ fgItemLabel('references', i) }}</legend>
               <div class="fg-grid">
-                <div class="fg-cell" style="grid-column: span 12 / span 12">
+                <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                   <div class="fg-field">
                     <label class="fg-label" :for="'fg_references_' + i + '_name'">Name<span class="fg-required" aria-hidden="true">*</span></label>
                     <input :id="'fg_references_' + i + '_name'" v-model="item.name" type="text" class="fg-input" :class="{ 'fg-invalid': !!errors[('references.' + i + '.name')] }" @blur="touch(('references.' + i + '.name'))" @input="revalidate(('references.' + i + '.name'))">
                     <p v-if="errors[('references.' + i + '.name')]" class="fg-error" role="alert">{{ errors[('references.' + i + '.name')] }}</p>
                   </div>
                 </div>
-                <div class="fg-cell" style="grid-column: span 12 / span 12">
+                <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                   <div class="fg-field">
                     <div class="fg-checkbox-row">
                       <input :id="'fg_references_' + i + '_may_contact'" v-model="item.may_contact" type="checkbox" class="fg-checkbox" @change="touch(('references.' + i + '.may_contact'))">
@@ -19149,7 +19016,7 @@ async function onSubmit(): Promise<void> {
                     <p v-if="errors[('references.' + i + '.may_contact')]" class="fg-error" role="alert">{{ errors[('references.' + i + '.may_contact')] }}</p>
                   </div>
                 </div>
-                <div class="fg-cell" style="grid-column: span 12 / span 12" v-if='(item.may_contact === true)'>
+                <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12" v-if='(item.may_contact === true)'>
                   <div class="fg-field">
                     <label class="fg-label" :for="'fg_references_' + i + '_email'">Their email</label>
                     <input :id="'fg_references_' + i + '_email'" v-model="item.email" type="email" class="fg-input" :class="{ 'fg-invalid': !!errors[('references.' + i + '.email')] }" @blur="touch(('references.' + i + '.email'))" @input="revalidate(('references.' + i + '.email'))">
@@ -19165,7 +19032,7 @@ async function onSubmit(): Promise<void> {
           <button v-if="form.references.length < 3" type="button" class="fg-button fg-button--secondary fg-repeater-add" data-fg-add="references" @click="fgAddItem('references')">Add reference</button>
         </fieldset>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_attachments">Attachments<span class="fg-required" aria-hidden="true">*</span></label>
           <input id="fg_attachments" type="file" class="fg-file-input" accept=".pdf,.doc,.docx" multiple :aria-invalid="errors['attachments'] ? 'true' : undefined" @change="fgPickFiles('attachments', $event)">
@@ -19180,14 +19047,14 @@ async function onSubmit(): Promise<void> {
           <p v-if="errors['attachments']" class="fg-error" role="alert">{{ errors['attachments'] }}</p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12" v-if='(!fgIsBlank(form.attachments))'>
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12" v-if='(!fgIsBlank(form.attachments))'>
         <div class="fg-field">
           <label class="fg-label" for="fg_attachments_note">Notes about the attachments</label>
           <textarea id="fg_attachments_note" v-model="form.attachments_note" class="fg-textarea" rows="3" :class="{ 'fg-invalid': !!errors['attachments_note'] }" @blur="touch('attachments_note')" @input="revalidate('attachments_note')"></textarea>
           <p v-if="errors['attachments_note']" class="fg-error" role="alert">{{ errors['attachments_note'] }}</p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <figure class="fg-quote">
           <blockquote class="fg-quote-text">
             <p>Forms are conversations.</p>
@@ -19195,10 +19062,10 @@ async function onSubmit(): Promise<void> {
           <figcaption class="fg-quote-cite">FormsGen</figcaption>
         </figure>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <a class="fg-link" href="https://example.com/docs" target="_blank" rel="noopener noreferrer">Read the docs<span class="fg-sr-only"> (opens in a new tab)</span></a>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_contact_method">Preferred contact method<span class="fg-required" aria-hidden="true">*</span></label>
           <select id="fg_contact_method" v-model="form.contact_method" class="fg-select" :class="{ 'fg-invalid': !!errors['contact_method'] }" @blur="touch('contact_method')" @change="revalidate('contact_method')">
@@ -19210,7 +19077,7 @@ async function onSubmit(): Promise<void> {
           <p v-if="errors['contact_method']" class="fg-error" role="alert">{{ errors['contact_method'] }}</p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12" v-if='(form.contact_method === "phone")'>
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12" v-if='(form.contact_method === "phone")'>
         <div class="fg-field">
           <label class="fg-label" for="fg_contact_phone">Phone number</label>
           <div class="fg-pair">
@@ -19464,14 +19331,14 @@ async function onSubmit(): Promise<void> {
           <p v-if="errors['contact_phone']" class="fg-error" role="alert">{{ errors['contact_phone'] }}</p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12" v-if='(form.contact_method === "other")'>
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12" v-if='(form.contact_method === "other")'>
         <div class="fg-field">
           <label class="fg-label" for="fg_contact_other">Describe your preferred method</label>
           <textarea id="fg_contact_other" v-model="form.contact_other" class="fg-textarea" rows="3" :class="{ 'fg-invalid': !!errors['contact_other'] }" @blur="touch('contact_other')" @input="revalidate('contact_other')"></textarea>
           <p v-if="errors['contact_other']" class="fg-error" role="alert">{{ errors['contact_other'] }}</p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div>
           <div class="fg-tab-list" role="tablist">
             <button type="button" :class="fgSec_ks_social_tabs === 0 ? 'fg-tab-button fg-tab-button--active' : 'fg-tab-button'" @click="fgSec_ks_social_tabs = 0">Social</button>
@@ -19479,7 +19346,7 @@ async function onSubmit(): Promise<void> {
           </div>
           <div v-show="fgSec_ks_social_tabs === 0">
             <div class="fg-grid">
-              <div class="fg-cell" style="grid-column: span 12 / span 12">
+              <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                 <div class="fg-field">
                   <label class="fg-label" for="fg_twitter">Twitter handle</label>
                   <input id="fg_twitter" v-model="form.twitter" type="text" class="fg-input" :class="{ 'fg-invalid': !!errors['twitter'] }" @blur="touch('twitter')" @input="revalidate('twitter')">
@@ -19490,7 +19357,7 @@ async function onSubmit(): Promise<void> {
           </div>
           <div v-show="fgSec_ks_social_tabs === 1">
             <div class="fg-grid">
-              <div class="fg-cell" style="grid-column: span 12 / span 12">
+              <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                 <div class="fg-field">
                   <label class="fg-label" for="fg_github">GitHub username</label>
                   <input id="fg_github" v-model="form.github" type="text" class="fg-input" :class="{ 'fg-invalid': !!errors['github'] }" @blur="touch('github')" @input="revalidate('github')">
@@ -19501,7 +19368,7 @@ async function onSubmit(): Promise<void> {
           </div>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div>
           <ol class="fg-step-list">
             <li :class="fgSec_ks_wizard === 0 ? 'fg-step-item fg-step-item--active' : 'fg-step-item'">1. Shipping</li>
@@ -19509,7 +19376,7 @@ async function onSubmit(): Promise<void> {
           </ol>
           <div v-show="fgSec_ks_wizard === 0">
             <div class="fg-grid">
-              <div class="fg-cell" style="grid-column: span 12 / span 12">
+              <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                 <div class="fg-field">
                   <label class="fg-label" for="fg_shipping_city">Shipping city<span class="fg-required" aria-hidden="true">*</span></label>
                   <input id="fg_shipping_city" v-model="form.shipping_city" type="text" class="fg-input" :class="{ 'fg-invalid': !!errors['shipping_city'] }" @blur="touch('shipping_city')" @input="revalidate('shipping_city')">
@@ -19520,7 +19387,7 @@ async function onSubmit(): Promise<void> {
           </div>
           <div v-show="fgSec_ks_wizard === 1">
             <div class="fg-grid">
-              <div class="fg-cell" style="grid-column: span 12 / span 12">
+              <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                 <div class="fg-field">
                   <label class="fg-label" for="fg_order_notes">Order notes</label>
                   <textarea id="fg_order_notes" v-model="form.order_notes" class="fg-textarea" rows="3" :class="{ 'fg-invalid': !!errors['order_notes'] }" @blur="touch('order_notes')" @input="revalidate('order_notes')"></textarea>
@@ -19536,7 +19403,7 @@ async function onSubmit(): Promise<void> {
           </div>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <div class="fg-checkbox-row">
             <input id="fg_newsletter" v-model="form.newsletter" type="checkbox" class="fg-checkbox" @change="touch('newsletter')">
@@ -19545,7 +19412,7 @@ async function onSubmit(): Promise<void> {
           <p v-if="errors['newsletter']" class="fg-error" role="alert">{{ errors['newsletter'] }}</p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <div class="fg-checkbox-row">
             <input id="fg_terms" v-model="form.terms" type="checkbox" class="fg-checkbox" @change="touch('terms')">
@@ -19554,7 +19421,7 @@ async function onSubmit(): Promise<void> {
           <p v-if="errors['terms']" class="fg-error" role="alert">{{ errors['terms'] }}</p>
         </div>
       </div>
-      <div class="fg-cell" style="grid-column: span 12 / span 12">
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <button type="button" class="fg-button fg-button--secondary" @click="fgReset">Start over</button>
       </div>
     </div>
@@ -19583,7 +19450,9 @@ async function onSubmit(): Promise<void> {
   padding: var(--fg-space);
 }
 .fg-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--fg-space); }
-.fg-cell { min-inline-size: 0; }
+.fg-cell { min-inline-size: 0; grid-column: span var(--fg-span-sm, 12) / span var(--fg-span-sm, 12); }
+@media (min-width: 768px) { .fg-cell { grid-column: span var(--fg-span, 12) / span var(--fg-span, 12); } }
+@media (min-width: 1024px) { .fg-cell { grid-column: span var(--fg-span-lg, 12) / span var(--fg-span-lg, 12); } }
 .fg-field { display: flex; flex-direction: column; gap: 0.375rem; }
 .fg-label { font-size: 0.875rem; font-weight: 600; }
 .fg-required { color: var(--fg-color-error); margin-inline-start: 0.125rem; }
@@ -19723,6 +19592,15 @@ fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
 .fg-tip-button:focus-visible { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
 .fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); left: 50%; z-index: 20; inline-size: max-content; max-inline-size: 16rem; padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; transform: translateX(-50%); visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
 .fg-tip:hover .fg-tip-text, .fg-tip-button:focus + .fg-tip-text { visibility: visible; opacity: 1; }
+
+/* Floating labels (meta.floatingLabels): the label floats when the control is focused or filled. */
+.fg-floating { position: relative; }
+.fg-floating > .fg-input, .fg-floating > .fg-select { padding-block: 1.375rem 0.375rem; }
+.fg-floating > .fg-floating-label { position: absolute; inset-block-start: 0; inset-inline-start: 0; padding: 0.875rem 0.75rem 0; font-size: 0.875rem; color: var(--fg-color-muted); pointer-events: none; transform-origin: 0 0; transition: transform 0.12s ease, color 0.12s ease; }
+[dir='rtl'] .fg-floating > .fg-floating-label { transform-origin: 100% 0; }
+.fg-floating > :focus ~ .fg-floating-label, .fg-floating > :not(:placeholder-shown) ~ .fg-floating-label, .fg-floating > select ~ .fg-floating-label { transform: translateY(-0.5rem) scale(0.8); }
+.fg-floating > :focus ~ .fg-floating-label { color: var(--fg-color-primary); }
+.fg-floating > :not(:focus)::placeholder { color: transparent; }
 @media (prefers-color-scheme: dark) {
   .fg-form:not([data-fg-theme='light']) {
     --fg-color-bg: #0f172a; --fg-color-surface: #1e293b; --fg-color-text: #e2e8f0;

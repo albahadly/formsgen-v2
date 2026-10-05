@@ -137,13 +137,17 @@ export const useBuilderStore = defineStore('builder', {
     },
 
     setColSpan(id: string, span: ColSpan | undefined): void {
+      this.setSpan(id, 'colSpan', span)
+    },
+
+    /** One screen size's span (colSpan = tablets up, colSpanSm phones, colSpanLg desktops). */
+    setSpan(id: string, key: 'colSpan' | 'colSpanSm' | 'colSpanLg', span: ColSpan | undefined): void {
       const node = findNodeById(this.schema.tree, id)
       if (!node) return
-      if (span === undefined) {
-        delete node.layout
-      } else {
-        node.layout = { ...node.layout, colSpan: span }
-      }
+      const layout = { ...node.layout, [key]: span }
+      if (span === undefined) delete layout[key]
+      if (Object.keys(layout).length === 0) delete node.layout
+      else node.layout = layout
     },
 
     setValidation(id: string, rules: Rule[]): void {

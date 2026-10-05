@@ -91,6 +91,10 @@ export type Slot =
   /** Text add-ons around a control (prefix/suffix) and their row. */
   | 'affixGroup'
   | 'affix'
+  /** Floating labels: wrapper, label, and extra classes on the control. */
+  | 'floating'
+  | 'floatingLabel'
+  | 'floatingControl'
 
 export interface CellAttrs {
   class: string
@@ -103,6 +107,12 @@ export interface CellAttrs {
  * and divider. Adapters return a complete class string per variant, so
  * conflicting utilities are never stacked on one element.
  */
+export interface CellSpans {
+  sm: number
+  md: number
+  lg: number
+}
+
 export interface SlotMods {
   /** Medium ('md') is the absence of a size modifier. */
   size?: Exclude<ControlSize, 'md'> | undefined
@@ -115,8 +125,8 @@ export interface CssFrameworkAdapter {
   classes(slot: Slot, mods?: SlotMods): string
   /** Class aligning an element's text (style.align). */
   alignClass(align: TextAlign): string
-  /** Grid cell carrying a 12-column span. */
-  cell(span: number): CellAttrs
+  /** Grid cell carrying 12-column spans for phones (sm), tablets (md) and desktops (lg). */
+  cell(spans: CellSpans): CellAttrs
   /**
    * Markup shape of block/button choice options: the input inside its
    * label ('wrap'), or input then label as siblings ('sibling', which

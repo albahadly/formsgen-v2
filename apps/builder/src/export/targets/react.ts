@@ -4,7 +4,7 @@
 
 import { resolveMessages } from '@formsgen/renderer'
 import { errorsTextFunction, stepAnnouncementsLiteral, submittedText } from '../announce'
-import { FILE_HELPERS_TS, RUNTIME_HELPERS_TS } from '../compile'
+import { FILE_HELPERS_TS, RUNTIME_HELPERS_TS, pruneUnusedHelpers } from '../compile'
 import { reactUploadHandlers, reactUploadModule, uploadFields } from '../uploadRuntime'
 import {
   ADD_DATE_TS,
@@ -607,7 +607,7 @@ ${indentBlock(markup, 4)}
 `
 
     const files: { path: string; language: 'typescript' | 'css'; content: string }[] = [
-      { path: `${name}.tsx`, language: 'typescript', content: tsx },
+      { path: `${name}.tsx`, language: 'typescript', content: pruneUnusedHelpers(tsx) },
     ]
     if (stylesheet) {
       files.push({ path: `${name}.css`, language: 'css', content: stylesheet })

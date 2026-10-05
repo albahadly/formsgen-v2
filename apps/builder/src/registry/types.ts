@@ -22,6 +22,8 @@ export interface EmitCtx {
   messages: MessageCatalog
   /** The form's locale (meta.locale), e.g. for country names. */
   locale: string
+  /** The label floats inside the control (meta.floatingLabels + floatsLabel). */
+  floating?: boolean
 }
 
 /** Emits the element's field markup for one target language. */
