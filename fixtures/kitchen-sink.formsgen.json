@@ -21,6 +21,14 @@
       "props": { "text": "Every implemented element appears in this form." }
     },
     {
+      "id": "ks-intro-rich",
+      "type": "paragraph",
+      "props": {
+        "format": "markdown",
+        "text": "Fields marked * are **required**. See the [docs](https://example.com/docs):\n- *one* answer per row in Rating\n- several in Usage"
+      }
+    },
+    {
       "id": "ks-full-name",
       "type": "text",
       "name": "full_name",
@@ -256,6 +264,17 @@
         "columns": [{ "value": "1", "label": "Poor" }, { "value": "2", "label": "OK" }, { "value": "3", "label": "Great" }]
       },
       "validation": [{ "rule": "required" }]
+    },
+    {
+      "id": "ks-usage",
+      "type": "matrix",
+      "name": "usage",
+      "props": {
+        "label": "Where do you use each feature?",
+        "multiple": true,
+        "rows": [{ "value": "forms", "label": "Forms" }, { "value": "reports", "label": "Reports" }],
+        "columns": [{ "value": "web", "label": "Web" }, { "value": "mobile", "label": "Mobile" }]
+      }
     },
     {
       "id": "ks-source",

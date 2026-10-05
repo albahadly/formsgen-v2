@@ -2,8 +2,11 @@
 // each row to the chosen column (null = unanswered); "required" means
 // every row is answered. Each radio is named "<row>: <column>". Blazor
 // models it as Dictionary<string, string?> and sets cells via FgSetCell.
+// With props.multiple, each row is a set of checkboxes: the value maps each
+// row to its chosen columns in column order (Blazor: List<string> per row,
+// toggled via FgToggleCell).
 
-import { matrixColumns, matrixRows, type ElementNode } from '@formsgen/renderer'
+import { matrixColumns, matrixMultiple, matrixRows, type ElementNode } from '@formsgen/renderer'
 import {
   blazorValidationMessage,
   descriptionFor,
@@ -70,6 +73,15 @@ const jsSingle = (s: string): string => `'${s.replace(/\\/g, '\\\\').replace(/'/
 
 const radioName = (ctx: EmitCtx, row: string): string => `${ctx.id}_${row.replace(/[^\w-]/g, '_')}`
 
+/** radio, or checkbox when each row takes several answers. */
+const cellType = (node: ElementNode): string => (matrixMultiple(node) ? 'checkbox' : 'radio')
+
+/** A row's answers with `column` toggled (fgToggleCell keeps column order). */
+function toggled(node: ElementNode, current: string, column: string): string {
+  const columns = matrixColumns(node).map((c) => jsSingle(c.value))
+  return `fgToggleCell([${columns.join(', ')}], ${current}, ${jsSingle(column)})`
+}
+
 export const matrixElement: ElementDefinition = {
   type: 'matrix',
   category: 'fields',
@@ -93,6 +105,7 @@ export const matrixElement: ElementDefinition = {
     [
       { kind: 'items', prop: 'rows', label: 'Rows (questions)' },
       { kind: 'items', prop: 'columns', label: 'Columns (answers)' },
+      { kind: 'toggle', prop: 'multiple', label: 'Several answers per row' },
     ],
     ['hideLabel', 'align', 'className'],
   ).map((section) => ({
@@ -108,8 +121,12 @@ export const matrixElement: ElementDefinition = {
             node,
             ctx,
             'vue',
-            (row, column, id, label) =>
-              `<input id="${id}" type="radio"${cls(ctx, 'matrixRadio', 'vue')} name="${radioName(ctx, row)}" value="${esc(column)}" v-model="form.${ctx.path}[${esc(jsSingle(row))}]" aria-label="${label}" @change="revalidate('${ctx.path}')" @blur="touch('${ctx.path}')">`,
+            (row, column, id, label) => {
+              const cell = `form.${ctx.path}[${esc(jsSingle(row))}]`
+              return matrixMultiple(node)
+                ? `<input id="${id}" type="checkbox"${cls(ctx, 'matrixRadio', 'vue')} name="${radioName(ctx, row)}" value="${esc(column)}" :checked="${cell}.includes(${esc(jsSingle(column))})" aria-label="${label}" @change="${cell} = ${esc(toggled(node, cell, column))}; revalidate('${ctx.path}')" @blur="touch('${ctx.path}')">`
+                : `<input id="${id}" type="radio"${cls(ctx, 'matrixRadio', 'vue')} name="${radioName(ctx, row)}" value="${esc(column)}" v-model="${cell}" aria-label="${label}" @change="revalidate('${ctx.path}')" @blur="touch('${ctx.path}')">`
+            },
           ),
           descriptionFor(node, ctx),
           vueError(ctx),
@@ -127,7 +144,7 @@ export const matrixElement: ElementDefinition = {
             ctx,
             'html',
             (row, column, id, label) =>
-              `<input id="${id}" type="radio"${cls(ctx, 'matrixRadio', 'html')} name="${radioName(ctx, row)}" value="${esc(column)}" data-fg-path="${ctx.path}" data-fg-kind="matrix" data-fg-row="${esc(row)}" aria-label="${label}">`,
+              `<input id="${id}" type="${cellType(node)}"${cls(ctx, 'matrixRadio', 'html')} name="${radioName(ctx, row)}" value="${esc(column)}" data-fg-path="${ctx.path}" data-fg-kind="matrix" data-fg-row="${esc(row)}" aria-label="${label}">`,
           ),
           descriptionFor(node, ctx),
           htmlError(ctx),
@@ -144,8 +161,12 @@ export const matrixElement: ElementDefinition = {
             node,
             ctx,
             'react',
-            (row, column, id, label) =>
-              `<input id="${id}" type="radio"${cls(ctx, 'matrixRadio', 'react')} name="${radioName(ctx, row)}" value="${esc(column)}" checked={form.${ctx.path}[${JSON.stringify(row)}] === ${JSON.stringify(column)}} aria-label="${label}" onChange={() => setField('${ctx.path}', { ...form.${ctx.path}, [${JSON.stringify(row)}]: ${JSON.stringify(column)} })} onBlur={() => touch('${ctx.path}')} />`,
+            (row, column, id, label) => {
+              const cell = `form.${ctx.path}[${JSON.stringify(row)}]`
+              return matrixMultiple(node)
+                ? `<input id="${id}" type="checkbox"${cls(ctx, 'matrixRadio', 'react')} name="${radioName(ctx, row)}" value="${esc(column)}" checked={${cell}.includes(${JSON.stringify(column)})} aria-label="${label}" onChange={() => setField('${ctx.path}', { ...form.${ctx.path}, [${JSON.stringify(row)}]: ${toggled(node, cell, column)} })} onBlur={() => touch('${ctx.path}')} />`
+                : `<input id="${id}" type="radio"${cls(ctx, 'matrixRadio', 'react')} name="${radioName(ctx, row)}" value="${esc(column)}" checked={${cell} === ${JSON.stringify(column)}} aria-label="${label}" onChange={() => setField('${ctx.path}', { ...form.${ctx.path}, [${JSON.stringify(row)}]: ${JSON.stringify(column)} })} onBlur={() => touch('${ctx.path}')} />`
+            },
           ),
           reactDescription(node, ctx),
           reactError(ctx),
@@ -166,7 +187,9 @@ export const matrixElement: ElementDefinition = {
             ctx,
             'blazor',
             (row, column, id, label) =>
-              `<input id="${id}" type="radio"${cls(ctx, 'matrixRadio', 'blazor')} name="${radioName(ctx, row)}" value="${esc(column)}" checked='@(${m}[${cs(row)}] == ${cs(column)})' aria-label="${label}" @onchange='() => FgSetCell(${m}, ${cs(row)}, ${cs(column)}, "${member}")' />`,
+              matrixMultiple(node)
+                ? `<input id="${id}" type="checkbox"${cls(ctx, 'matrixRadio', 'blazor')} name="${radioName(ctx, row)}" value="${esc(column)}" checked='@(${m}[${cs(row)}].Contains(${cs(column)}))' aria-label="${label}" @onchange='() => FgToggleCell(${m}, ${cs(row)}, ${cs(column)}, new[] { ${matrixColumns(node).map((c) => cs(c.value)).join(', ')} }, "${member}")' />`
+                : `<input id="${id}" type="radio"${cls(ctx, 'matrixRadio', 'blazor')} name="${radioName(ctx, row)}" value="${esc(column)}" checked='@(${m}[${cs(row)}] == ${cs(column)})' aria-label="${label}" @onchange='() => FgSetCell(${m}, ${cs(row)}, ${cs(column)}, "${member}")' />`,
           ),
           descriptionFor(node, ctx),
           blazorValidationMessage(ctx),

@@ -100,7 +100,8 @@ describe('uploads in every code target', () => {
   it('JS targets post multipart when the form has uploads, JSON otherwise', () => {
     for (const target of ['html', 'react', 'vue-standalone']) {
       const code = out(target, s)
-      expect(code, target).toContain('body: fgMultipart(data)')
+      // sent with XMLHttpRequest (fgSend), which reports upload progress
+      expect(code, target).toMatch(/fgSend\(\s*"https:\/\/example\.com\/[a-z]+",\s*"POST",\s*fgMultipart\(data\)/)
       expect(code, target).not.toContain("'Content-Type': 'application/json'")
       const plain = out(target, schema([note]))
       expect(plain, target).toContain("'Content-Type': 'application/json'")
@@ -155,5 +156,105 @@ describe('uploads in every code target', () => {
 
   it('conditions on uploads offer only presence operators', () => {
     expect(operatorsFor('file')).toEqual(['not-empty', 'empty'])
+  })
+})
+
+describe('drop zones and upload progress', () => {
+  const s = schema([docs, photo])
+  const noUrl = (tree: ElementNode[]): FormSchema => {
+    const base = schema(tree)
+    return { ...base, meta: { ...base.meta, submit: undefined } }
+  }
+
+  it('every target puts the file input over a drop zone with its text', () => {
+    for (const target of ['html', 'react', 'vue-standalone', 'blazor']) {
+      const code = out(target, s)
+      expect(code, target).toContain('class' + (target === 'react' ? 'Name' : '') + '="fg-file-drop"')
+      expect(code, target).toContain(MESSAGES.en.dropFiles) // docs: several files
+      expect(code, target).toContain(MESSAGES.en.dropFile) // photo: one file
+    }
+    expect(out('vue-standalone', s)).toContain('@dragenter="fgDrag($event.currentTarget, true)"')
+    expect(out('react', s)).toContain('onDragEnter={(e) => fgDrag(e.currentTarget, true)}')
+    expect(out('html', s)).toContain("input.addEventListener('dragenter', drag(true))")
+    const razor = out('blazor', s)
+    expect(razor).toContain(`data-fg-dragging='@(fgDragging["Docs"] ? "" : null)'`)
+    expect(razor).toContain(`@ondragenter='() => fgDragging["Docs"] = true'`)
+  })
+
+  it('forms that post uploads show progress and disable submit while sending', () => {
+    const vue = out('vue-standalone', s)
+    expect(vue).toContain('role="progressbar"')
+    expect(vue).toContain(`:disabled="fgUpload.state === 'uploading'"`)
+    expect(vue).toContain(`fgAnnounce(${JSON.stringify(MESSAGES.en.uploadStarted)})`)
+    const react = out('react', s)
+    expect(react).toContain('aria-valuenow={fgUpload.percent}')
+    expect(react).toContain(`disabled={fgUpload.state === 'uploading'}`)
+    const html = out('html', s)
+    expect(html).toContain('data-fg-upload hidden')
+    expect(html).toContain("fgUploadPaint('uploading', 0)")
+    const razor = out('blazor', s)
+    expect(razor).toContain('new FgProgressContent(body, percent =>')
+    expect(razor).toContain(`disabled='@(fgUploadState == "uploading")'`)
+    expect(razor).toContain('ok = response.IsSuccessStatusCode;')
+  })
+
+  it('without a submit URL (or without uploads) there is no progress machinery', () => {
+    for (const target of ['html', 'react', 'vue-standalone', 'blazor']) {
+      for (const code of [out(target, noUrl([docs])), out(target, schema([note]))]) {
+        expect(code, target).not.toContain('progressbar')
+        expect(code, target).not.toMatch(/fgUpload\b|FgProgressContent|fgUploadState/)
+      }
+    }
+  })
+
+  it('Bootstrap exports ship the drop-zone rules Bootstrap has no utilities for', () => {
+    const files = getTarget('html')!.generate({ schema: s, css: getCssAdapter('bootstrap5') })
+    expect(files[0]!.content).toContain('.fg-file-drop { min-block-size: 4.5rem; border-style: dashed !important; }')
+  })
+
+  it('fgSend reports progress in percent and success by status', () => {
+    const sent: { method?: string; url?: string; body?: unknown } = {}
+    let request: {
+      status: number
+      upload: { onprogress: ((e: object) => void) | null }
+      onload: (() => void) | null
+      onerror: (() => void) | null
+    } | null = null
+    class FakeXhr {
+      status = 0
+      upload = { onprogress: null }
+      onload = null
+      onerror = null
+      onabort = null
+      constructor() {
+        request = this // eslint-disable-line @typescript-eslint/no-this-alias
+      }
+      open(method: string, url: string) {
+        sent.method = method
+        sent.url = url
+      }
+      send(body: unknown) {
+        sent.body = body
+      }
+    }
+    const fgSend = new Function('XMLHttpRequest', `${FILE_HELPERS}\nreturn fgSend`)(FakeXhr) as (
+      url: string,
+      method: string,
+      body: unknown,
+      onProgress: (n: number) => void,
+      onDone: (ok: boolean) => void,
+    ) => void
+    const progress: number[] = []
+    const done: boolean[] = []
+    fgSend('/up', 'PUT', 'BODY', (n) => progress.push(n), (ok) => done.push(ok))
+    expect(sent).toEqual({ method: 'PUT', url: '/up', body: 'BODY' })
+    request!.upload.onprogress!({ lengthComputable: true, loaded: 1, total: 3 })
+    request!.upload.onprogress!({ lengthComputable: false, loaded: 2, total: 0 })
+    request!.status = 204
+    request!.onload!()
+    fgSend('/up', 'POST', 'BODY', () => {}, (ok) => done.push(ok))
+    request!.onerror!()
+    expect(progress).toEqual([33])
+    expect(done).toEqual([true, false])
   })
 })

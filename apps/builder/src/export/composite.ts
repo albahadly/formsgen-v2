@@ -10,6 +10,8 @@ import {
   MATRIX_TYPE,
   RANGE_SLIDER_TYPE,
   hasCountrySelect,
+  hasUploadFields,
+  matrixMultiple,
   initialPhoneCountry,
   phoneCountries,
   type ElementNode,
@@ -17,6 +19,7 @@ import {
 } from '@formsgen/renderer'
 import type { ExportField } from './structure'
 import type { CssFrameworkAdapter } from './css/types'
+import { BOOTSTRAP_UPLOAD_CSS } from './uploadRuntime'
 
 /** Mirrors the renderer's "Composite fields" block (styles.css). */
 export const COMPOSITE_CSS = `/* Composite fields (two-handle slider, date range, multiple dates).
@@ -108,6 +111,18 @@ export const hasDateRange = (schema: FormSchema): boolean => treeHasType(schema.
 export const hasDates = (schema: FormSchema): boolean => treeHasType(schema.tree, DATES_TYPE)
 export const hasMatrix = (schema: FormSchema): boolean => treeHasType(schema.tree, MATRIX_TYPE)
 
+function nodesHaveMultiMatrix(nodes: ElementNode[]): boolean {
+  return nodes.some((n) => (n.type === MATRIX_TYPE && matrixMultiple(n)) || nodesHaveMultiMatrix(n.children ?? []))
+}
+/** Vue/React: a matrix row's answers with one column ticked or unticked, in column order. */
+export const MATRIX_TOGGLE_TS = `// A matrix row's answers with one column ticked or unticked, in column order.
+function fgToggleCell(columns: string[], current: string[], column: string): string[] {
+  return columns.filter((c) => (c === column) !== current.includes(c))
+}`
+
+/** A matrix taking several answers per row (checkboxes). */
+export const hasMultiMatrix = (schema: FormSchema): boolean => nodesHaveMultiMatrix(schema.tree)
+
 /** Phone fields showing the country selector (repeater items never do). */
 export function phoneCountryFields(fields: ExportField[]): ExportField[] {
   return fields.filter((f) => hasCountrySelect(f.node))
@@ -148,6 +163,7 @@ export function exportStylesheet(css: CssFrameworkAdapter, schema: FormSchema): 
   const extra = [
     hasRangeSlider(schema) ? `/* Two-handle range slider */\n${DUAL_RANGE_CSS}` : '',
     hasTooltips(schema) ? `/* Help tooltips */\n${TIP_CSS}` : '',
+    css.id === 'bootstrap5' && hasUploadFields(schema.tree) ? `/* Upload drop zones */\n${BOOTSTRAP_UPLOAD_CSS}` : '',
     // Bootstrap hides floating-label placeholders even on focus; show the hint then.
     css.id === 'bootstrap5' && schema.meta.floatingLabels
       ? '/* Floating labels: the placeholder hint shows on focus */\n.form-floating > .form-control:focus::placeholder { color: var(--bs-secondary-color); }\n'

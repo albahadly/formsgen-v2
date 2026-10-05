@@ -5,6 +5,7 @@
 import {
   MATRIX_TYPE,
   SECTION_CONTAINERS,
+  matrixMultiple,
   matrixRows,
   isRepeater,
   repeaterItemDefaults,
@@ -477,8 +478,9 @@ const FIELD_TS_TYPES: Record<string, string> = {
 /** TS type of one field's value (a matrix lists its rows). */
 function fieldTsType(node: ElementNode): string {
   if (node.type === MATRIX_TYPE) {
-    const rows = matrixRows(node).map((r) => `${/^[A-Za-z_$][\w$]*$/.test(r.value) ? r.value : JSON.stringify(r.value)}: string | null`)
-    return rows.length ? `{ ${rows.join('; ')} }` : 'Record<string, string | null>'
+    const answer = matrixMultiple(node) ? 'string[]' : 'string | null'
+    const rows = matrixRows(node).map((r) => `${/^[A-Za-z_$][\w$]*$/.test(r.value) ? r.value : JSON.stringify(r.value)}: ${answer}`)
+    return rows.length ? `{ ${rows.join('; ')} }` : `Record<string, ${answer}>`
   }
   return FIELD_TS_TYPES[node.type] ?? 'string'
 }

@@ -143,6 +143,37 @@ export function toSubmission(
   return { body, headers: {} }
 }
 
+/** Where a submission with files stands: shown by FormsGenForm's `upload` prop. */
+export interface UploadStatus {
+  state: 'uploading' | 'done' | 'failed'
+  /** Share of the request body sent, 0–1. */
+  progress: number
+}
+
+/**
+ * Sends a submission (see toSubmission) and reports upload progress, which
+ * fetch can't. Resolves with whether the server accepted it (2xx); network
+ * errors resolve as not ok.
+ */
+export function sendSubmission(
+  url: string,
+  payload: Record<string, unknown>,
+  options: { method?: string; multipart?: boolean; onProgress?: (progress: number) => void } = {},
+): Promise<{ ok: boolean; status: number }> {
+  const { body, headers } = toSubmission(payload, options.multipart === undefined ? {} : { multipart: options.multipart })
+  return new Promise((resolve) => {
+    const request = new XMLHttpRequest()
+    request.open(options.method ?? 'POST', url)
+    for (const [name, value] of Object.entries(headers)) request.setRequestHeader(name, value)
+    request.upload.onprogress = (event) => {
+      if (event.lengthComputable && event.total > 0) options.onProgress?.(event.loaded / event.total)
+    }
+    request.onload = () => resolve({ ok: request.status >= 200 && request.status < 300, status: request.status })
+    request.onerror = request.onabort = () => resolve({ ok: false, status: 0 })
+    request.send(body)
+  })
+}
+
 /**
  * A field's first error: "required" first, then the field's built-in
  * check (upload size/type/count, date range order), then the other rules.

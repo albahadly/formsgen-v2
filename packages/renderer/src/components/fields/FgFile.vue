@@ -2,7 +2,9 @@
 // File / image upload: a native file input picks files; the chosen files
 // are listed (thumbnails for images) with remove buttons. The input is
 // cleared after each pick so the same file can be chosen again.
-import { computed, onBeforeUnmount } from 'vue'
+// The input covers a drop zone (transparent), so a click anywhere opens
+// the picker and a dropped file reaches the input as a normal pick.
+import { computed, onBeforeUnmount, ref } from 'vue'
 import { fileLimits, isFile } from '../../files'
 import { MESSAGES, fill } from '../../messages'
 import type { ElementNode } from '../../schema'
@@ -37,7 +39,10 @@ onBeforeUnmount(() => {
   for (const file of [...urls.keys()]) release(file)
 })
 
+const dragging = ref(false)
+
 function onPick(event: Event): void {
+  dragging.value = false
   const input = event.target as HTMLInputElement
   const picked = [...(input.files ?? [])]
   input.value = ''
@@ -65,16 +70,25 @@ function formatSize(bytes: number): string {
       :node="node"
       :for-id="fieldId"
     />
-    <input
-      :id="fieldId"
-      class="fg-file-input"
-      type="file"
-      :accept="limits.accept || undefined"
-      :multiple="limits.multiple"
-      :aria-invalid="error ? 'true' : undefined"
-      :aria-describedby="describedBy"
-      @change="onPick"
+    <div
+      class="fg-file-drop"
+      :data-fg-dragging="dragging ? '' : undefined"
     >
+      <span class="fg-file-drop-text">{{ limits.multiple ? messages.dropFiles : messages.dropFile }}</span>
+      <input
+        :id="fieldId"
+        class="fg-file-input"
+        type="file"
+        :accept="limits.accept || undefined"
+        :multiple="limits.multiple"
+        :aria-invalid="error ? 'true' : undefined"
+        :aria-describedby="describedBy"
+        @change="onPick"
+        @dragenter="dragging = true"
+        @dragleave="dragging = false"
+        @drop="dragging = false"
+      >
+    </div>
     <ul
       v-if="files.length"
       class="fg-file-list"

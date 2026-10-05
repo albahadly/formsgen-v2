@@ -169,6 +169,30 @@ describe('matrix and phone country in every code target', () => {
     expect(razor).toContain('["AE"] = "971",')
   })
 
+  it('a matrix with several answers per row uses checkboxes and lists per row', () => {
+    const multi = schema([{ ...rating, props: { ...rating.props, multiple: true } }])
+    expect(formDataType(multi)).toContain('rating: { speed: string[]; quality: string[] }')
+    for (const target of ['html', 'react', 'vue-standalone', 'blazor']) {
+      const code = out(target, multi)
+      expect(code, target).toMatch(/type="checkbox"[^>]*aria-label="Quality: Great"/)
+      expect(code, target).not.toContain('type="radio"')
+    }
+    expect(out('vue-standalone', multi)).toContain(
+      `@change="form.rating['quality'] = fgToggleCell(['1', '2'], form.rating['quality'], '2'); revalidate('rating')"`,
+    )
+    expect(out('vue-standalone', multi)).toContain('function fgToggleCell(columns: string[], current: string[], column: string): string[]')
+    expect(out('react', multi)).toContain(`["quality"]: fgToggleCell(['1', '2'], form.rating["quality"], '2')`)
+    expect(out('html', multi)).toContain("var several = cell.type === 'checkbox'")
+    const razor = out('blazor', multi)
+    expect(razor).toContain('public Dictionary<string, List<string>> Rating { get; set; } = new() { ["speed"] = new(), ["quality"] = new() };')
+    expect(razor).toContain(`@onchange='() => FgToggleCell(Model.Rating, "quality", "2", new[] { "1", "2" }, "Rating")'`)
+    expect(razor).toContain('if (Rating.Values.Any(answers => answers.Count == 0))')
+    expect(razor).not.toContain('private void FgSetCell(')
+    // single-answer forms keep their radios and no toggle helper
+    expect(out('vue-standalone', s)).not.toContain('fgToggleCell')
+    expect(out('blazor', s)).not.toContain('FgToggleCell')
+  })
+
   it('the selector needs countrySelect, and works per repeater item', () => {
     const plain = schema([{ ...phone, props: { label: 'Phone' } }])
     for (const target of ['html', 'react', 'vue-standalone', 'blazor']) {

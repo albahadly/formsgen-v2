@@ -33,5 +33,6 @@ Read the latest handoff before starting any phase (Phase Standard, REBUILD_PROMP
 | 26 | Range slider (two handles), date range, multiple dates, matrix, phone country selector | ✅ Complete | [phase-26-composite-fields.md](./phase-26-composite-fields.md) |
 | 27 | Form polish: tooltips, text add-ons, form-wide field size, per-screen widths, floating labels, starter templates; examples gallery covering every element (27c) | ✅ Complete | [phase-27-form-polish.md](./phase-27-form-polish.md) |
 | 28 | Finish repeaters: every field type inside items and move up/down reordering (28a); nested repeaters, groups/columns in items (28b) | ✅ Complete | [phase-28-repeaters.md](./phase-28-repeaters.md) |
+| 29 | Drag-and-drop uploads and an upload progress bar (29a); matrix with several answers per row, formatted text, examples showing repeaters (29b) | ✅ Complete | [phase-29-uploads-matrix-text.md](./phase-29-uploads-matrix-text.md) |
 
-**All 11 planned phases are complete**, plus 10b and 12–28 from the backlog. Remaining backlog: npm publish of `@formsgen/renderer` (parked by user); see the "Not done" list in [phase-16-arabic-messages.md](./phase-16-arabic-messages.md).
+**All 11 planned phases are complete**, plus 10b and 12–29 from the backlog. Remaining backlog: npm publish of `@formsgen/renderer` (parked by user); see the "Not done" list in [phase-16-arabic-messages.md](./phase-16-arabic-messages.md).

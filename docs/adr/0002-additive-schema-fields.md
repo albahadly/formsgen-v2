@@ -30,6 +30,8 @@ Bumping `$schema` to `formsgen/v3` would make every existing document fail `pars
 | `layout.colSpanSm` (phones) and `layout.colSpanLg` (desktops) beside `colSpan` (tablets up); `meta.floatingLabels` (boolean) | 27b | phones full width, desktops = `colSpan`; labels above controls. All spans are validated (1, 2, 3, 4, 6, 12) |
 | Repeater prop `sortable` (boolean, move up / move down). Repeater children may now be any field type (tags, uploads, range slider, date range, multiple dates, matrix, phone with country); containers are still not allowed | 28a | no move buttons. Older builds' parsers reject the newly allowed child types inside a repeater |
 | Repeater items may hold unnamed groups/columns (layout only) and one inner repeater (two levels); an inner repeater's conditions may name its outer item's fields (`travellers.has_bags`), an inner field's its own siblings (`travellers.bags.fragile`) | 28b | n/a: older builds' parsers reject containers inside a repeater. The parser enforces: no tabs/steps in items, at most two repeater levels, no named group inside an item |
+| Matrix prop `multiple` (boolean): each row takes several answers (checkboxes); the value maps each row to its chosen columns in column order (`[]` = none), and "required" means every row has at least one | 29b | one answer per row (radios). Older builds ignore the prop and show radios, reading a list value as unanswered |
+| Paragraph prop `format: 'markdown'`: simple formatting in `text` (`**bold**`, `*italics*`/`_italics_`, `[text](url)`, `- ` / `1. ` lists, blank line = new paragraph). It is parsed into a tree, never injected as HTML; links keep only safe URLs | 29b | plain text. Older builds show the markers as typed |
 
 ## Alternatives considered
 

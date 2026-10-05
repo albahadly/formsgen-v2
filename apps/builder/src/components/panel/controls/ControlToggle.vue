@@ -8,12 +8,14 @@ const props = defineProps<{
   node: ElementNode
   prop: string
   label: string
+  /** The prop holds this string while on (e.g. format: 'markdown'), instead of true. */
+  on?: string | undefined
 }>()
 
 const store = useBuilderStore()
 const value = computed({
-  get: () => props.node.props[props.prop] === true,
-  set: (v: boolean) => store.updateProps(props.node.id, { [props.prop]: v }),
+  get: () => props.node.props[props.prop] === (props.on ?? true),
+  set: (v: boolean) => store.updateProps(props.node.id, { [props.prop]: props.on === undefined ? v : v ? props.on : undefined }),
 })
 </script>
 

@@ -2,8 +2,8 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, watch } from 'vue'
 import { getValueByPath } from '../conditions'
 import { FORM_CONTEXT, type FormContext } from '../context'
-import { pluralText, resolveMessages } from '../messages'
-import { cloneData, firstFieldError } from '../files'
+import { fill, pluralText, resolveMessages } from '../messages'
+import { cloneData, firstFieldError, type UploadStatus } from '../files'
 import { pinsLightScheme, themeInlineStyle } from '../theme'
 import { collectVisibleFields, pickVisibleData, scopedLookup, setValueByPath } from '../runtime'
 import type { FormSchema } from '../schema'
@@ -15,6 +15,12 @@ const props = defineProps<{
   modelValue?: Record<string, unknown>
   /** Force a screen size's layout (builder device preview); default: the viewport's. */
   viewport?: 'sm' | 'md' | 'lg' | undefined
+  /**
+   * Upload progress of the submission the host is sending (see
+   * sendSubmission): shows a progress bar, then "Upload complete" or the
+   * failure; the submit button is disabled while uploading.
+   */
+  upload?: UploadStatus | null | undefined
 }>()
 
 const emit = defineEmits<{
@@ -250,7 +256,19 @@ context.reset = () => {
   })
 }
 
+const uploadPercent = computed(() => Math.round(Math.min(1, Math.max(0, props.upload?.progress ?? 0)) * 100))
+const uploading = computed(() => props.upload?.state === 'uploading')
+watch(
+  () => props.upload?.state,
+  (state) => {
+    if (state === 'uploading') announce(messages.value.uploadStarted)
+    else if (state === 'done') announce(messages.value.submitted)
+    else if (state === 'failed') announce(messages.value.uploadFailed)
+  },
+)
+
 function onSubmit(): void {
+  if (uploading.value) return
   submitted.value = true
   const ok = validateAll()
   submitAttempts.value++
@@ -286,6 +304,36 @@ function onSubmit(): void {
       />
     </div>
     <div
+      v-if="upload"
+      class="fg-upload"
+      data-fg-upload
+    >
+      <template v-if="upload.state !== 'failed'">
+        <div
+          class="fg-progress"
+          role="progressbar"
+          :aria-label="messages.uploadProgress"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          :aria-valuenow="uploadPercent"
+        >
+          <div
+            class="fg-progress-bar"
+            :style="{ inlineSize: `${uploadPercent}%` }"
+          />
+        </div>
+        <p class="fg-progress-text">
+          {{ upload.state === 'done' ? messages.uploadDone : fill(messages.uploading, { n: uploadPercent }) }}
+        </p>
+      </template>
+      <p
+        v-else
+        class="fg-error"
+      >
+        {{ messages.uploadFailed }}
+      </p>
+    </div>
+    <div
       class="fg-sr-only"
       role="status"
       aria-live="polite"
@@ -304,6 +352,7 @@ function onSubmit(): void {
           :class="submitClass"
           :style="submitStyle"
           type="submit"
+          :disabled="uploading"
         >
           {{ submitText }}
         </button>

@@ -1,7 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import FormsGenForm from './components/FormsGenForm.vue'
-import { acceptsFile, describeFiles, fileLimits, fileProblem, hasUploadFields, toSubmission } from './files'
+import { acceptsFile, describeFiles, fileLimits, fileProblem, hasUploadFields, sendSubmission, toSubmission } from './files'
 import { MESSAGES } from './messages'
 import type { ElementNode, FormSchema } from './schema'
 
@@ -99,5 +99,114 @@ describe('<FormsGenForm> with an upload field', () => {
     const model = wrapper.emitted('update:modelValue')!.at(-1)![0] as { docs: File[] }
     expect(model.docs[0]).toBeInstanceOf(File)
     wrapper.unmount()
+  })
+
+  it('wraps the input in a drop zone that highlights while files are dragged over', async () => {
+    const wrapper = mount(FormsGenForm, { props: { schema }, attachTo: document.body })
+    const zone = wrapper.get('.fg-file-drop')
+    expect(zone.get('.fg-file-drop-text').text()).toBe('Choose files or drag them here')
+    // The input covers the zone, so drops and clicks land on it.
+    const input = zone.get('input[type=file]')
+    await input.trigger('dragenter')
+    expect(zone.attributes('data-fg-dragging')).toBe('')
+    await input.trigger('dragleave')
+    expect(zone.attributes('data-fg-dragging')).toBeUndefined()
+    await input.trigger('dragenter')
+    await pick(input.element as HTMLInputElement, [file('a.pdf', 'application/pdf')])
+    expect(zone.attributes('data-fg-dragging')).toBeUndefined()
+    expect(wrapper.findAll('.fg-file-item')).toHaveLength(1)
+    wrapper.unmount()
+  })
+
+  it('says "Choose a file" when the field takes one file', () => {
+    const single = { ...schema, tree: [{ ...tree[0]!, props: { label: 'CV' } }] } as FormSchema
+    const wrapper = mount(FormsGenForm, { props: { schema: single } })
+    expect(wrapper.get('.fg-file-drop-text').text()).toBe('Choose a file or drag it here')
+  })
+
+  it('shows upload progress from the upload prop and disables submit meanwhile', async () => {
+    const wrapper = mount(FormsGenForm, { props: { schema }, attachTo: document.body })
+    expect(wrapper.find('[data-fg-upload]').exists()).toBe(false)
+    await wrapper.setProps({ upload: { state: 'uploading', progress: 0.42 } })
+    await flushPromises()
+    const bar = wrapper.get('[role=progressbar]')
+    expect(bar.attributes('aria-valuenow')).toBe('42')
+    expect(bar.attributes('aria-label')).toBe('Upload progress')
+    expect(wrapper.get('.fg-progress-bar').attributes('style')).toContain('inline-size: 42%')
+    expect(wrapper.get('.fg-progress-text').text()).toBe('Uploading… 42%')
+    expect(wrapper.get('[data-fg-live]').text()).toBe('Uploading files…')
+    expect(wrapper.get('button[type=submit]').attributes('disabled')).toBeDefined()
+    await wrapper.setProps({ upload: { state: 'done', progress: 1 } })
+    await flushPromises()
+    expect(wrapper.get('.fg-progress-text').text()).toBe('Upload complete.')
+    expect(wrapper.get('[data-fg-live]').text()).toBe('Form submitted.')
+    expect(wrapper.get('button[type=submit]').attributes('disabled')).toBeUndefined()
+    await wrapper.setProps({ upload: { state: 'failed', progress: 0.3 } })
+    await flushPromises()
+    expect(wrapper.find('[role=progressbar]').exists()).toBe(false)
+    expect(wrapper.get('[data-fg-upload] .fg-error').text()).toBe('Upload failed. Please try again.')
+    expect(wrapper.get('[data-fg-live]').text()).toBe('Upload failed. Please try again.')
+    wrapper.unmount()
+  })
+})
+
+describe('sendSubmission', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  /** A stand-in XMLHttpRequest that records the request and lets the test drive it. */
+  function fakeXhr() {
+    const sent: { method?: string; url?: string; body?: unknown; headers: Record<string, string> } = { headers: {} }
+    let current: FakeXhr | null = null
+    class FakeXhr {
+      status = 0
+      upload: { onprogress: ((e: ProgressEvent) => void) | null } = { onprogress: null }
+      onload: (() => void) | null = null
+      onerror: (() => void) | null = null
+      onabort: (() => void) | null = null
+      constructor() {
+        current = this // eslint-disable-line @typescript-eslint/no-this-alias
+      }
+      open(method: string, url: string) {
+        sent.method = method
+        sent.url = url
+      }
+      setRequestHeader(name: string, value: string) {
+        sent.headers[name] = value
+      }
+      send(body: unknown) {
+        sent.body = body
+      }
+    }
+    vi.stubGlobal('XMLHttpRequest', FakeXhr)
+    return { sent, xhr: () => current! }
+  }
+
+  it('posts multipart, reports progress and resolves ok on 2xx', async () => {
+    const { sent, xhr } = fakeXhr()
+    const progress: number[] = []
+    const done = sendSubmission('/api', { cv: [file('a.pdf', 'application/pdf')] }, { onProgress: (p) => progress.push(p) })
+    expect(sent.method).toBe('POST')
+    expect(sent.url).toBe('/api')
+    expect(sent.body).toBeInstanceOf(FormData)
+    xhr().upload.onprogress!({ lengthComputable: true, loaded: 25, total: 100 } as ProgressEvent)
+    xhr().upload.onprogress!({ lengthComputable: false, loaded: 50, total: 0 } as ProgressEvent)
+    xhr().status = 201
+    xhr().onload!()
+    expect(await done).toEqual({ ok: true, status: 201 })
+    expect(progress).toEqual([0.25])
+  })
+
+  it('sends JSON without files and resolves not ok on errors', async () => {
+    const { sent, xhr } = fakeXhr()
+    const failed = sendSubmission('/api', { name: 'Ana' }, { method: 'PUT' })
+    expect(sent.method).toBe('PUT')
+    expect(sent.headers).toEqual({ 'Content-Type': 'application/json' })
+    expect(sent.body).toBe('{"name":"Ana"}')
+    xhr().status = 500
+    xhr().onload!()
+    expect(await failed).toEqual({ ok: false, status: 500 })
+    const offline = sendSubmission('/api', { name: 'Ana' })
+    xhr().onerror!()
+    expect(await offline).toEqual({ ok: false, status: 0 })
   })
 })

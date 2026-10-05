@@ -7,6 +7,7 @@
 import {
   FILE_TYPES,
   getCoreElement,
+  matrixMultiple,
   matrixRows,
   rangeSliderDefault,
   isRepeater,
@@ -27,6 +28,7 @@ import {
   type CsFieldKind,
 } from '../csharp'
 import { collectExportFields, collectExportRepeaters } from '../logic'
+import { postsUploads, uploadStatusMarkup } from '../uploadRuntime'
 import {
   renderTree,
   stepButtonLabels,
@@ -50,7 +52,7 @@ function tokenPath(r: ExportRepeater): string {
   return r.depth === 1 ? r.path : `${r.parent}.${ITEM_TOKENS[0]}${r.path.slice(r.parent!.length)}`
 }
 import { scopeForBlazor } from '../css/blazorScope'
-import { dialCodes, exportStylesheet, hasDateRange, hasMatrix, hasRangeSlider, phoneCountryFields, phoneDefaults } from '../composite'
+import { dialCodes, exportStylesheet, hasDateRange, hasMatrix, hasMultiMatrix, hasRangeSlider, phoneCountryFields, phoneDefaults } from '../composite'
 import { formRootClass, pinnedSchemeAttr } from '../css/themeBridge'
 import { componentName, type ExportTarget } from './types'
 
@@ -121,7 +123,9 @@ export const blazorTarget: ExportTarget = {
     // step; otherwise the bottom button is shown/gated.
     const sb = resolveSubmitButton(schema, hosts)
     const embeddedHost = sb.gatingHosts.length === 1 ? sb.gatingHosts[0]! : null
-    const submitButton = `<button class="${css.classes(sb.secondary ? 'buttonSecondary' : 'submitButton')}"${sb.buttonStyle ? ` style="${sb.buttonStyle}"` : ''} type="submit">${sb.text}</button>`
+    // Upload forms that post show progress; submit waits for the upload.
+    const progress = postsUploads(schema, typedFields)
+    const submitButton = `<button class="${css.classes(sb.secondary ? 'buttonSecondary' : 'submitButton')}"${sb.buttonStyle ? ` style="${sb.buttonStyle}"` : ''} type="submit"${progress ? ` disabled='@(fgUploadState == "uploading")'` : ''}>${sb.text}</button>`
 
     const stepsHosts = hosts.filter((h) => h.kind === 'steps')
     const memberOf = (path: string): string => pascalMember(pathKey(path))
@@ -260,6 +264,8 @@ ${indentBlock(item, 3)}
                     ? 'FgDateRange'
                     : kind === 'map'
                       ? 'Dictionary<string, string?>'
+                      : kind === 'multimap'
+                        ? 'Dictionary<string, List<string>>'
                 : kind === 'array'
                 ? 'string[]'
                 : 'string'
@@ -277,6 +283,8 @@ ${indentBlock(item, 3)}
           return ' = new();'
         case 'map':
           return ` = new() { ${matrixRows(node).map((r) => `[${csStr(r.value)}] = null`).join(', ')} };`
+        case 'multimap':
+          return ` = new() { ${matrixRows(node).map((r) => `[${csStr(r.value)}] = new()`).join(', ')} };`
         case 'range2': {
           const initial = rangeSliderDefault(node)
           return ` = new(${initial.from}, ${initial.to});`
@@ -289,7 +297,7 @@ ${indentBlock(item, 3)}
     }
     const properties = fields
       .map((field) => {
-        const kind = csFieldKind(field.node.type)
+        const kind = csFieldKind(field.node)
         const member = pascalMember(field.key)
         const attrs = csAttributes(field, kind)
         const attrLines = (attrs ?? []).map((a) => `        ${a}`).join('\n')
@@ -313,7 +321,7 @@ ${indentBlock(item, 3)}
     {
 ${[
   ...r.fields.map((f) => {
-    const kind = csFieldKind(f.node.type)
+    const kind = csFieldKind(f.node)
     return `        public ${csType(kind)} ${pascalMember(f.name)} { get; set; }${csInit(kind, fieldDefault(f.node), f.node)}`
   }),
   ...innerOf(r).map(
@@ -329,7 +337,7 @@ ${[
     // Validate() handles what attributes can't.
     const validateStatements = fields
       .flatMap((field) => {
-        const kind = csFieldKind(field.node.type)
+        const kind = csFieldKind(field.node)
         const needsValidate =
           ((field.node.validation?.length ?? 0) > 0 || kind === 'files' || kind === 'daterange') &&
           (field.conditionChain.length > 0 || csAttributes(field, kind) === null)
@@ -545,7 +553,7 @@ ${valueArms}
     }
 
     private async Task FgSubmit(EditContext context)
-    {
+    {${progress ? '\n        if (fgUploadState == "uploading") return;' : ''}
         if (context.Validate())
         {
             await HandleValidSubmit();
@@ -841,7 +849,7 @@ ${validatedRepeaters
 ${r.fields
   .filter(itemChecked)
   .map((f) => {
-    const kind = csFieldKind(f.node.type)
+    const kind = csFieldKind(f.node)
     const member = `item.${pascalMember(f.name)}`
     const guard = f.conditions.length
       ? `                        if (!(${csChain(f.conditions, itemCsAccessor(r))})) return null;\n`
@@ -968,6 +976,8 @@ ${repeaters.map((r) => `        ${csStr(r.path)} => ${csStr(r.itemLabel)},`).joi
     public sealed record FgUpload(string Name, long Size, string ContentType, byte[]? Data, string? Thumb);
 
     private readonly FgStore<int> fgFileKeys = new(_ => 0);
+    // Drop zones with files dragged over them.
+    private readonly FgStore<bool> fgDragging = new(_ => false);
     private readonly Dictionary<string, InputFile> fgFileInputs = new();
     private string? fgFocusFile;
 
@@ -1030,7 +1040,55 @@ ${repeaters.map((r) => `        ${csStr(r.path)} => ${csStr(r.itemLabel)},`).joi
         fgFocusFile = null;
         if (fgFileInputs.TryGetValue(member, out var input) && input.Element is ElementReference element) await element.FocusAsync();
     }
-${schema.meta.submit?.url ? `
+${progress ? `
+    // Upload progress of the submission being sent.
+    private string fgUploadState = "";
+    private int fgUploadPercent;
+
+    private string FgUploadText() =>
+        fgUploadState == "done" ? ${csStr(messages.uploadDone)} : ${csStr(messages.uploading)}.Replace("{n}", fgUploadPercent.ToString());
+
+    /** A request body that reports the share of it written so far (0–100). */
+    private sealed class FgProgressContent : System.Net.Http.HttpContent
+    {
+        private readonly System.Net.Http.HttpContent inner;
+        private readonly Action<int> report;
+
+        public FgProgressContent(System.Net.Http.HttpContent inner, Action<int> report)
+        {
+            this.inner = inner;
+            this.report = report;
+            Headers.ContentType = inner.Headers.ContentType;
+        }
+
+        protected override async Task SerializeToStreamAsync(System.IO.Stream stream, System.Net.TransportContext? context)
+        {
+            var total = inner.Headers.ContentLength ?? 0;
+            using var source = await inner.ReadAsStreamAsync();
+            var buffer = new byte[16 * 1024];
+            long sent = 0;
+            int read;
+            while ((read = await source.ReadAsync(buffer)) > 0)
+            {
+                await stream.WriteAsync(buffer.AsMemory(0, read));
+                sent += read;
+                if (total > 0) report((int)(sent * 100 / total));
+            }
+        }
+
+        protected override bool TryComputeLength(out long length)
+        {
+            length = inner.Headers.ContentLength ?? -1;
+            return length >= 0;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) inner.Dispose();
+            base.Dispose(disposing);
+        }
+    }
+` : ''}${schema.meta.submit?.url ? `
     private static System.Net.Http.HttpContent FgFilePart(FgUpload file, string path)
     {
         var content = new System.Net.Http.ByteArrayContent(file.Data ?? Array.Empty<byte>());
@@ -1060,6 +1118,7 @@ ${schema.meta.submit?.url ? `
     const hasRange = hasDateRange(schema)
     const dateMembers = typedFields.filter((f) => f.node.type === 'dates').map((f) => pascalMember(f.key))
     const hasGrid = hasMatrix(schema)
+    const grids = typedFields.filter((f) => f.node.type === 'matrix')
     const phoneFields = phoneCountryFields(typedFields)
     const compositeBlock = [
       hasSlider
@@ -1194,11 +1253,22 @@ ${
     private void FgChanged(string member) => fgEdit.NotifyFieldChanged(FgField(member));
 `
         : '',
-      hasGrid
+      grids.some((f) => !matrixMultiple(f.node))
         ? `
     private void FgSetCell(Dictionary<string, string?> answers, string row, string column, string member)
     {
         answers[row] = column;
+        FgChanged(member);
+    }
+`
+        : '',
+      grids.some((f) => matrixMultiple(f.node))
+        ? `
+    // Ticks or unticks one answer of a row; answers stay in column order.
+    private void FgToggleCell(Dictionary<string, List<string>> answers, string row, string column, string[] columns, string member)
+    {
+        var current = answers[row];
+        answers[row] = columns.Where(c => (c == column) != current.Contains(c)).ToList();
         FgChanged(member);
     }
 `
@@ -1281,6 +1351,38 @@ ${Object.entries(dialCodes(typedFields, schema.meta.locale)).map(([code, dial]) 
     const httpInject = submitUrl ? '@inject HttpClient Http\n' : ''
     const submitCall = !submitUrl
       ? ''
+      : progress
+        ? `        fgUploadState = "uploading";
+        fgUploadPercent = 0;
+        await FgAnnounce(${csStr(messages.uploadStarted)});
+        var ok = false;
+        try
+        {
+            // multipart: a JSON "data" part + one part per file, sent through FgProgressContent
+            var body = new System.Net.Http.MultipartFormDataContent();
+            body.Add(FgPart(new System.Net.Http.StringContent(JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json"), "data"));
+            foreach (var (path, file) in parts) body.Add(FgFilePart(file, path));
+            var shown = 0;
+            using var content = new FgProgressContent(body, percent =>
+            {
+                if (percent == shown) return;
+                shown = percent;
+                _ = InvokeAsync(() =>
+                {
+                    if (fgUploadState != "uploading") return;
+                    fgUploadPercent = percent;
+                    StateHasChanged();
+                });
+            });
+            using var response = await Http.${schema.meta.submit?.method === 'PUT' ? 'PutAsync' : 'PostAsync'}(${csStr(submitUrl)}, content);
+            ok = response.IsSuccessStatusCode;
+        }
+        catch (Exception)
+        {
+        }
+        fgUploadState = ok ? "done" : "failed";
+        fgUploadPercent = ok ? 100 : 0;
+        await FgAnnounce(ok ? ${csStr(messages.submitted)} : ${csStr(messages.uploadFailed)});\n`
       : hasUploads
         ? `        // multipart: a JSON "data" part + one part per file
         using var body = new System.Net.Http.MultipartFormDataContent();
@@ -1313,7 +1415,7 @@ ${extraUsings}${submitUrl ? '@using System.Net.Http.Json\n' : ''}${httpInject}
     <div class="${css.classes('grid')}">
 ${indentBlock(markup, 2)}
     </div>
-    <div class="${css.classes('srOnly')}" role="status" aria-live="polite" aria-atomic="true">@fgAnnouncement</div>${actionsBlock}
+${progress ? `    ${uploadStatusMarkup('blazor', css, messages)}\n` : ''}    <div class="${css.classes('srOnly')}" role="status" aria-live="polite" aria-atomic="true">@fgAnnouncement</div>${actionsBlock}
     @if (ResultJson is not null)
     {
         <pre class="${css.classes('payload')}">@ResultJson</pre>
@@ -1329,8 +1431,7 @@ ${sectionFields ? `\n${sectionFields}\n` : ''}${helperBlocks}${STATIC_HELPERS}
     {
 ${hasUploads ? '        var parts = new List<(string Path, FgUpload File)>();\n        var payload = BuildPayload(parts);' : '        var payload = BuildPayload();'}
         ResultJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
-${submitCall}        await FgAnnounce(${csStr(messages.submitted)});
-    }
+${submitCall}${progress ? '' : `        await FgAnnounce(${csStr(messages.submitted)});\n`}    }
 
     private Dictionary<string, object?> BuildPayload(${hasUploads ? 'List<(string Path, FgUpload File)> parts' : ''})
     {
@@ -1360,7 +1461,8 @@ ${itemClasses}}
         null => true,
         string text => string.IsNullOrWhiteSpace(text),
         bool on => !on,${hasMatrix(schema) ? `
-        IDictionary<string, string?> answers => answers.Values.Any(string.IsNullOrEmpty),` : ''}${hasDateRange(schema) ? `
+        IDictionary<string, string?> answers => answers.Values.Any(string.IsNullOrEmpty),` : ''}${hasMultiMatrix(schema) ? `
+        IDictionary<string, List<string>> answers => answers.Values.Any(list => list.Count == 0),` : ''}${hasDateRange(schema) ? `
         FgDateRange range => string.IsNullOrWhiteSpace(range.From) || string.IsNullOrWhiteSpace(range.To),` : ''}
         System.Collections.ICollection list => list.Count == 0,
         _ => false,

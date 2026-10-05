@@ -107,6 +107,8 @@ export {
   hasUploadFields,
   isFile,
   toSubmission,
+  sendSubmission,
+  type UploadStatus,
   type FileLimits,
 } from './files'
 export { default as FgButton } from './components/fields/FgButton.vue'
@@ -122,7 +124,8 @@ export {
   type CountryOption,
 } from './countries'
 export { FLOATING_TYPES, floatsLabel } from './labels'
-export { MATRIX_TYPE, matrixColumns, matrixDefault, matrixRows, type MatrixOption } from './matrix'
+export { isMarkdownParagraph, markdownText, parseInline, parseMarkdown, type MdBlock, type MdInline } from './markdown'
+export { MATRIX_TYPE, matrixColumns, matrixDefault, matrixMultiple, matrixRows, toggleMatrixCell, type MatrixOption } from './matrix'
 export {
   DATES_TYPE,
   DATE_RANGE_TYPE,

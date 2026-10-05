@@ -26,6 +26,20 @@ function inputAttrs(node: ElementNode, jsx = false): string {
 
 const isImageUpload = (node: ElementNode): boolean => node.type === 'imageupload'
 
+/**
+ * The drop zone: the (transparent) file input covers it, so a click opens
+ * the picker and a dropped file reaches the input as a normal pick. While
+ * files are dragged over it, the zone carries data-fg-dragging.
+ */
+function dropZone(node: ElementNode, ctx: EmitCtx, input: string, jsx = false, zoneAttrs = ''): string {
+  const text = fileLimits(node).multiple ? ctx.messages.dropFiles : ctx.messages.dropFile
+  const cls = jsx ? 'className' : 'class'
+  return `<div ${cls}="${ctx.css.classes('fileDrop')}"${zoneAttrs}>
+    <span ${cls}="${ctx.css.classes('fileDropText')}">${esc(text)}</span>
+    ${input}
+  </div>`
+}
+
 function vueList(node: ElementNode, ctx: EmitCtx): string {
   const list = `form.${ctx.path}`
   const thumb = isImageUpload(node)
@@ -88,7 +102,9 @@ function blazorInput(node: ElementNode, ctx: EmitCtx): string {
   const member = pascalMember(ctx.key)
   const maxBytes = limits.maxSizeMb > 0 ? `${Math.round(limits.maxSizeMb * 1024 * 1024)}L` : '0L'
   const args = [`Model.${member}`, 'e', String(limits.multiple), maxBytes, String(isImageUpload(node)), `"${member}"`]
-  return `<InputFile @key='fgFileKeys["${member}"]' @ref='fgFileInputs["${member}"]' id="${ctx.id}" class="${ctx.css.classes('fileInput')}"${inputAttrs(node)} OnChange='@(e => FgPickFiles(${args.join(', ')}))' />`
+  const drag = (on: boolean): string => `'() => fgDragging["${member}"] = ${on}'`
+  const input = `<InputFile @key='fgFileKeys["${member}"]' @ref='fgFileInputs["${member}"]' id="${ctx.id}" class="${ctx.css.classes('fileInput')}"${inputAttrs(node)} OnChange='@(e => FgPickFiles(${args.join(', ')}))' @ondragenter=${drag(true)} @ondragleave=${drag(false)} @ondrop=${drag(false)} />`
+  return dropZone(node, ctx, input, false, ` data-fg-dragging='@(fgDragging["${member}"] ? "" : null)'`)
 }
 
 function makeUpload(config: { type: string; label: string; description: string; icon: string }): ElementDefinition {
@@ -122,7 +138,11 @@ function makeUpload(config: { type: string; label: string; description: string; 
         fieldWrap(
           [
             labelFor(node, ctx),
-            `<input id="${ctx.id}" type="file" class="${ctx.css.classes('fileInput')}"${inputAttrs(node)} :aria-invalid="errors['${ctx.path}'] ? 'true' : undefined" @change="fgPickFiles('${ctx.path}', $event)">`,
+            dropZone(
+              node,
+              ctx,
+              `<input id="${ctx.id}" type="file" class="${ctx.css.classes('fileInput')}"${inputAttrs(node)} :aria-invalid="errors['${ctx.path}'] ? 'true' : undefined" @change="fgPickFiles('${ctx.path}', $event)" @dragenter="fgDrag($event.currentTarget, true)" @dragleave="fgDrag($event.currentTarget, false)" @drop="fgDrag($event.currentTarget, false)">`,
+            ),
             vueList(node, ctx),
             descriptionFor(node, ctx),
             vueError(ctx),
@@ -133,7 +153,11 @@ function makeUpload(config: { type: string; label: string; description: string; 
         fieldWrap(
           [
             labelFor(node, ctx),
-            `<input id="${ctx.id}" type="file" class="${ctx.css.classes('fileInput')}"${inputAttrs(node)} data-fg-path="${ctx.path}" data-fg-kind="files"${isImageUpload(node) ? ' data-fg-thumbs' : ''}>`,
+            dropZone(
+              node,
+              ctx,
+              `<input id="${ctx.id}" type="file" class="${ctx.css.classes('fileInput')}"${inputAttrs(node)} data-fg-path="${ctx.path}" data-fg-kind="files"${isImageUpload(node) ? ' data-fg-thumbs' : ''}>`,
+            ),
             `<ul class="${ctx.css.classes('fileList')}" data-fg-file-list="${ctx.path}" hidden></ul>`,
             descriptionFor(node, ctx),
             htmlError(ctx),
@@ -144,7 +168,12 @@ function makeUpload(config: { type: string; label: string; description: string; 
         reactFieldWrap(
           [
             reactLabelFor(node, ctx),
-            `<input id="${ctx.id}" type="file" className="${ctx.css.classes('fileInput')}"${inputAttrs(node, true)} aria-invalid={errors['${ctx.path}'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('${ctx.path}', e.target)} />`,
+            dropZone(
+              node,
+              ctx,
+              `<input id="${ctx.id}" type="file" className="${ctx.css.classes('fileInput')}"${inputAttrs(node, true)} aria-invalid={errors['${ctx.path}'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('${ctx.path}', e.target)} onDragEnter={(e) => fgDrag(e.currentTarget, true)} onDragLeave={(e) => fgDrag(e.currentTarget, false)} onDrop={(e) => fgDrag(e.currentTarget, false)} />`,
+              true,
+            ),
             reactList(node, ctx),
             reactDescription(node, ctx),
             reactError(ctx),

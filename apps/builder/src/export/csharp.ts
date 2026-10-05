@@ -9,6 +9,7 @@ import {
   defaultRuleMessage,
   fileLimits,
   fill,
+  matrixMultiple,
   type Condition,
   type ConditionGroups,
   type ElementNode,
@@ -58,9 +59,10 @@ export type CsFieldKind =
   | 'range2' // two-handle range slider (FgRange: From/To doubles)
   | 'daterange' // date range (FgDateRange: From/To ISO strings)
   | 'map' // matrix (Dictionary<string, string?>: row → chosen column)
+  | 'multimap' // matrix with several answers per row (Dictionary<string, List<string>>)
 
-export function csFieldKind(type: string): CsFieldKind {
-  switch (type) {
+export function csFieldKind(node: ElementNode): CsFieldKind {
+  switch (node.type) {
     case 'checkbox':
     case 'toggle':
       return 'bool'
@@ -77,7 +79,7 @@ export function csFieldKind(type: string): CsFieldKind {
     case 'daterange':
       return 'daterange'
     case 'matrix':
-      return 'map'
+      return matrixMultiple(node) ? 'multimap' : 'map'
     case 'multiselect':
       return 'array'
     case 'file':
@@ -97,7 +99,7 @@ export function csAttributes(field: ExportField, kind: CsFieldKind): string[] | 
   const rules = field.node.validation ?? []
   if (rules.length === 0) return []
   if (field.conditionChain.length > 0) return null
-  if (['bool', 'list', 'array', 'files', 'range2', 'daterange', 'map'].includes(kind)) {
+  if (['bool', 'list', 'array', 'files', 'range2', 'daterange', 'map', 'multimap'].includes(kind)) {
     return null // Validate() handles these
   }
   const numeric = kind === 'number' || kind === 'numberValue'
@@ -266,6 +268,8 @@ function csEmptyExpr(kind: CsFieldKind, member: string): string {
       return `(string.IsNullOrWhiteSpace(${member}.From) || string.IsNullOrWhiteSpace(${member}.To))`
     case 'map':
       return `${member}.Values.Any(string.IsNullOrEmpty)`
+    case 'multimap':
+      return `${member}.Values.Any(answers => answers.Count == 0)`
     default:
       return `string.IsNullOrWhiteSpace(${member})`
   }

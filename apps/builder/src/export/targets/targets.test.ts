@@ -104,7 +104,10 @@ describe('vue-standalone target', () => {
     expect(file!.content).toContain('form-control')
     expect(file!.content).toContain('is-invalid')
     expect(file!.content).not.toContain('fg-input')
-    expect(file!.content).not.toContain('<style scoped>')
+    // The only stylesheet: what Bootstrap has no utilities for (upload drop zones).
+    const style = file!.content.split('<style scoped>')[1] ?? ''
+    expect(style.trim().startsWith('/* Upload drop zones */')).toBe(true)
+    expect(style).not.toContain('.fg-form')
   })
 })
 

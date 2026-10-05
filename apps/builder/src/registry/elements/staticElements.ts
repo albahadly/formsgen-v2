@@ -1,9 +1,10 @@
 // Static (non-value) elements: heading, paragraph, divider, image, link,
 // quote. Link and image URLs are emitted only when safe (isSafeUrl).
 
-import { isSafeUrl, type ElementNode } from '@formsgen/renderer'
+import { isMarkdownParagraph, isSafeUrl, type ElementNode } from '@formsgen/renderer'
+import { richTextMarkup } from '@/export/richText'
 import { esc } from '../emitters/shared'
-import { appearanceSection, type ElementDefinition, type EmitCtx } from '../types'
+import { appearanceSection, type ElementDefinition, type EmitCtx, type EmitterLang } from '../types'
 
 function headingTag(node: ElementNode): string {
   const level = Number(node.props['level'] ?? 2)
@@ -55,6 +56,12 @@ export const headingElement: ElementDefinition = {
 const paragraphMarkup = (node: ElementNode, ctx: EmitCtx, classAttr: string): string =>
   `<p ${classAttr}="${ctx.css.classes('paragraph')}">${esc(String(node.props['text'] ?? ''))}</p>`
 
+/** Plain text, or simple formatting (bold, italics, links, lists) when props.format is 'markdown'. */
+const paragraphFor =
+  (lang: EmitterLang) =>
+  (node: ElementNode, ctx: EmitCtx): string =>
+    isMarkdownParagraph(node) ? richTextMarkup(node, ctx, lang) : paragraphMarkup(node, ctx, lang === 'react' ? 'className' : 'class')
+
 export const paragraphElement: ElementDefinition = {
   type: 'paragraph',
   category: 'static',
@@ -65,17 +72,20 @@ export const paragraphElement: ElementDefinition = {
   propertyPanel: [
     {
       title: 'Properties',
-      controls: [{ kind: 'text', prop: 'text', label: 'Text' }],
+      controls: [
+        { kind: 'text', prop: 'text', label: 'Text', multiline: true },
+        { kind: 'toggle', prop: 'format', label: 'Simple formatting: **bold**, *italics*, [link](https://…), - lists', on: 'markdown' },
+      ],
     },
     { title: 'Layout', controls: [{ kind: 'colspan' }] },
     appearanceSection(['align', 'tone', 'className']),
     { title: 'Conditions', controls: [{ kind: 'conditions' }] },
   ],
   export: {
-    vue: (node, ctx) => paragraphMarkup(node, ctx, 'class'),
-    html: (node, ctx) => paragraphMarkup(node, ctx, 'class'),
-    react: (node, ctx) => paragraphMarkup(node, ctx, 'className'),
-    blazor: (node, ctx) => paragraphMarkup(node, ctx, 'class'),
+    vue: paragraphFor('vue'),
+    html: paragraphFor('html'),
+    react: paragraphFor('react'),
+    blazor: paragraphFor('blazor'),
   },
 }
 

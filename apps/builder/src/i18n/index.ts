@@ -545,6 +545,8 @@ const arText: Record<string, string> = {
   'Maximum items (empty = no limit)': 'الحد الأقصى للعناصر (فارغ = بلا حد)',
   'Items shown at start': 'عدد العناصر في البداية',
   'Let people reorder items': 'السماح بإعادة ترتيب العناصر',
+  'Several answers per row': 'عدة إجابات لكل صف',
+  'Simple formatting: **bold**, *italics*, [link](https://…), - lists': 'تنسيق بسيط: **غامق**، *مائل*، [رابط](https://…)، - قوائم',
   // export dialog
   'JSON schema': 'مخطط JSON',
   'Vue (renderer package)': 'Vue (حزمة العارض)',

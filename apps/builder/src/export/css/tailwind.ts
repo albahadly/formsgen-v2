@@ -23,13 +23,17 @@ const CLASSES: Record<Slot, string> = {
   groupLabel: 'px-1 text-sm font-semibold text-gray-500 dark:text-gray-400',
   actions: 'mt-4',
   submitButton:
-    'rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300',
+    'rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60',
   payload: 'mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300',
   options: 'flex flex-col gap-1.5',
   option: 'inline-flex items-center gap-2 text-sm',
   range: 'w-full accent-indigo-600',
   heading: 'font-semibold',
   paragraph: 'text-sm text-gray-600 dark:text-gray-300',
+  richText: 'space-y-2',
+  richBlock: '',
+  richList: 'list-disc ps-5',
+  richListOrdered: 'list-decimal ps-5',
   divider: 'border-t border-gray-200 dark:border-gray-700',
   tabList: 'mb-4 flex flex-wrap gap-1 border-b border-gray-200 dark:border-gray-700',
   tabButton:
@@ -75,8 +79,10 @@ const CLASSES: Record<Slot, string> = {
     'inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600',
   repeaterAdd:
     'mt-4 rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50',
-  fileInput:
-    'block w-full text-sm file:me-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-indigo-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white',
+  fileDrop:
+    'relative flex min-h-[4.5rem] items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center text-sm text-gray-500 hover:border-indigo-500 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-300 data-[fg-dragging]:border-indigo-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400',
+  fileDropText: 'font-medium',
+  fileInput: 'absolute inset-0 h-full w-full cursor-pointer opacity-0',
   fileList: 'flex flex-col gap-1.5',
   fileItem:
     'flex items-center gap-2 rounded-md border border-gray-300 bg-gray-50 px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800/50',
@@ -84,6 +90,10 @@ const CLASSES: Record<Slot, string> = {
   fileName: 'min-w-0 flex-1 truncate',
   fileSize: 'text-xs text-gray-500 dark:text-gray-400',
   fileRemove: 'px-1.5 text-lg leading-none text-gray-500 hover:text-red-600',
+  upload: 'mt-4 flex flex-col gap-1.5',
+  progress: 'h-2 overflow-hidden rounded-full bg-gray-300 dark:bg-gray-600',
+  progressBar: 'h-full rounded-full bg-indigo-600 transition-[width]',
+  progressText: 'text-sm text-gray-500 dark:text-gray-400',
   pair: 'flex items-center gap-2 [&>*]:min-w-0',
   chipList: 'mt-2 flex flex-wrap gap-1.5',
   matrixWrap: 'overflow-x-auto',

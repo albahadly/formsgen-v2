@@ -34,9 +34,10 @@ export type EmitterLang = 'vue' | 'html' | 'react' | 'blazor'
 
 /** Declarative properties-panel controls, rendered by ~8 shared components. */
 export type PanelControl =
-  | { kind: 'text'; prop: string; label: string; placeholder?: string }
+  | { kind: 'text'; prop: string; label: string; placeholder?: string; multiline?: boolean }
   | { kind: 'number'; prop: string; label: string; min?: number; max?: number }
-  | { kind: 'toggle'; prop: string; label: string }
+  /** A switch; with `on`, the prop holds that string when on (and is removed when off). */
+  | { kind: 'toggle'; prop: string; label: string; on?: string }
   | { kind: 'select'; prop: string; label: string; options: { value: string; label: string }[] }
   /** Key/value option-list editor (e.g. select items). */
   | { kind: 'items'; prop: string; label: string }

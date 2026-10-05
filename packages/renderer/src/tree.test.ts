@@ -90,6 +90,7 @@ describe('buildDefaultData', () => {
       stay: { from: '', to: '' },
       days: [],
       rating: { speed: null, quality: null },
+      usage: { forms: [], reports: [] },
       source: 'kitchen-sink',
       references: [{ name: '', may_contact: false, email: '', phone: '' }],
       attachments: [],

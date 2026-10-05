@@ -73,6 +73,7 @@ function key(control: PanelControl, index: number): string {
             :prop="control.prop"
             :label="control.label"
             :placeholder="control.placeholder"
+            :multiline="control.multiline"
           />
           <ControlNumber
             v-else-if="control.kind === 'number'"
@@ -87,6 +88,7 @@ function key(control: PanelControl, index: number): string {
             :node="node"
             :prop="control.prop"
             :label="control.label"
+            :on="control.on"
           />
           <ControlSelect
             v-else-if="control.kind === 'select'"

@@ -17,6 +17,15 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
           <p class="text-secondary">Every implemented element appears in this form.</p>
         </div>
         <div class="col-12 col-md-12">
+          <div class="text-secondary">
+            <p class="mb-2">Fields marked * are <strong>required</strong>. See the <a class="link-primary" href="https://example.com/docs">docs</a>:</p>
+            <ul class="mb-2">
+              <li><em>one</em> answer per row in Rating</li>
+              <li>several in Usage</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-12 col-md-12">
           <div class="d-flex flex-column gap-1">
             <label class="form-label fw-semibold fs-6 mb-0" for="fg_full_name">Full name<span class="text-danger ms-1" aria-hidden="true">*</span></label>
             <InputText id="fg_full_name" @bind-Value="Model.FullName" class="form-control" placeholder="Jane Doe" />
@@ -113,7 +122,10 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
               <div class="col-12 col-md-12">
                 <div class="d-flex flex-column gap-1">
                   <label class="form-label fw-semibold fs-6 mb-0" for="fg_account_avatar">Profile picture</label>
-                  <InputFile @key='fgFileKeys["AccountAvatar"]' @ref='fgFileInputs["AccountAvatar"]' id="fg_account_avatar" class="form-control" accept="image/*" OnChange='@(e => FgPickFiles(Model.AccountAvatar, e, false, 2097152L, true, "AccountAvatar"))' />
+                  <div class="fg-file-drop position-relative d-flex align-items-center justify-content-center border border-2 rounded-3 p-4 text-center small text-body-secondary bg-body-tertiary" data-fg-dragging='@(fgDragging["AccountAvatar"] ? "" : null)'>
+                    <span class="fw-medium">Choose a file or drag it here</span>
+                    <InputFile @key='fgFileKeys["AccountAvatar"]' @ref='fgFileInputs["AccountAvatar"]' id="fg_account_avatar" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept="image/*" OnChange='@(e => FgPickFiles(Model.AccountAvatar, e, false, 2097152L, true, "AccountAvatar"))' @ondragenter='() => fgDragging["AccountAvatar"] = true' @ondragleave='() => fgDragging["AccountAvatar"] = false' @ondrop='() => fgDragging["AccountAvatar"] = false' />
+                  </div>
                   @if (Model.AccountAvatar.Count > 0)
                   {
                       <ul class="list-group mt-2">
@@ -308,6 +320,21 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
               </table>
             </div>
             <ValidationMessage For="@(() => Model.Rating)" class="invalid-feedback d-block mt-0" />
+          </fieldset>
+        </div>
+        <div class="col-12 col-md-12">
+          <fieldset class="d-flex flex-column gap-1">
+            <legend class="form-label fw-semibold fs-6 mb-0">Where do you use each feature?</legend>
+            <div class="table-responsive">
+              <table class="table table-sm table-striped align-middle mb-0">
+                <thead><tr><td></td><th scope="col" class="text-center fw-semibold text-body-secondary">Web</th><th scope="col" class="text-center fw-semibold text-body-secondary">Mobile</th></tr></thead>
+                <tbody>
+                <tr><th scope="row" class="text-start fw-medium">Forms</th><td class="text-center"><input id="fg_usage" type="checkbox" class="form-check-input" name="fg_usage_forms" value="web" checked='@(Model.Usage["forms"].Contains("web"))' aria-label="Forms: Web" @onchange='() => FgToggleCell(Model.Usage, "forms", "web", new[] { "web", "mobile" }, "Usage")' /></td><td class="text-center"><input id="fg_usage_0_1" type="checkbox" class="form-check-input" name="fg_usage_forms" value="mobile" checked='@(Model.Usage["forms"].Contains("mobile"))' aria-label="Forms: Mobile" @onchange='() => FgToggleCell(Model.Usage, "forms", "mobile", new[] { "web", "mobile" }, "Usage")' /></td></tr>
+                <tr><th scope="row" class="text-start fw-medium">Reports</th><td class="text-center"><input id="fg_usage_1_0" type="checkbox" class="form-check-input" name="fg_usage_reports" value="web" checked='@(Model.Usage["reports"].Contains("web"))' aria-label="Reports: Web" @onchange='() => FgToggleCell(Model.Usage, "reports", "web", new[] { "web", "mobile" }, "Usage")' /></td><td class="text-center"><input id="fg_usage_1_1" type="checkbox" class="form-check-input" name="fg_usage_reports" value="mobile" checked='@(Model.Usage["reports"].Contains("mobile"))' aria-label="Reports: Mobile" @onchange='() => FgToggleCell(Model.Usage, "reports", "mobile", new[] { "web", "mobile" }, "Usage")' /></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <ValidationMessage For="@(() => Model.Usage)" class="invalid-feedback d-block mt-0" />
           </fieldset>
         </div>
         <div class="col-12 col-md-12">
@@ -626,7 +653,10 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         <div class="col-12 col-md-12">
           <div class="d-flex flex-column gap-1">
             <label class="form-label fw-semibold fs-6 mb-0" for="fg_attachments">Attachments<span class="text-danger ms-1" aria-hidden="true">*</span></label>
-            <InputFile @key='fgFileKeys["Attachments"]' @ref='fgFileInputs["Attachments"]' id="fg_attachments" class="form-control" accept=".pdf,.doc,.docx" multiple OnChange='@(e => FgPickFiles(Model.Attachments, e, true, 5242880L, false, "Attachments"))' />
+            <div class="fg-file-drop position-relative d-flex align-items-center justify-content-center border border-2 rounded-3 p-4 text-center small text-body-secondary bg-body-tertiary" data-fg-dragging='@(fgDragging["Attachments"] ? "" : null)'>
+              <span class="fw-medium">Choose files or drag them here</span>
+              <InputFile @key='fgFileKeys["Attachments"]' @ref='fgFileInputs["Attachments"]' id="fg_attachments" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept=".pdf,.doc,.docx" multiple OnChange='@(e => FgPickFiles(Model.Attachments, e, true, 5242880L, false, "Attachments"))' @ondragenter='() => fgDragging["Attachments"] = true' @ondragleave='() => fgDragging["Attachments"] = false' @ondrop='() => fgDragging["Attachments"] = false' />
+            </div>
             @if (Model.Attachments.Count > 0)
             {
                 <ul class="list-group mt-2">
@@ -1146,6 +1176,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
             "Stay" => Model.Stay,
             "Days" => Model.Days,
             "Rating" => Model.Rating,
+            "Usage" => Model.Usage,
             "Source" => Model.Source,
             "Attachments" => Model.Attachments,
             "AttachmentsNote" => Model.AttachmentsNote,
@@ -1249,6 +1280,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         "Stay",
         "Days",
         "Rating",
+        "Usage",
         "Source",
         "Attachments",
         "AttachmentsNote",
@@ -1526,6 +1558,8 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
     public sealed record FgUpload(string Name, long Size, string ContentType, byte[]? Data, string? Thumb);
 
     private readonly FgStore<int> fgFileKeys = new(_ => 0);
+    // Drop zones with files dragged over them.
+    private readonly FgStore<bool> fgDragging = new(_ => false);
     private readonly Dictionary<string, InputFile> fgFileInputs = new();
     private string? fgFocusFile;
 
@@ -1705,6 +1739,14 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
     private void FgSetCell(Dictionary<string, string?> answers, string row, string column, string member)
     {
         answers[row] = column;
+        FgChanged(member);
+    }
+
+    // Ticks or unticks one answer of a row; answers stay in column order.
+    private void FgToggleCell(Dictionary<string, List<string>> answers, string row, string column, string[] columns, string member)
+    {
+        var current = answers[row];
+        answers[row] = columns.Where(c => (c == column) != current.Contains(c)).ToList();
         FgChanged(member);
     }
 
@@ -2028,6 +2070,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         string text => string.IsNullOrWhiteSpace(text),
         bool on => !on,
         IDictionary<string, string?> answers => answers.Values.Any(string.IsNullOrEmpty),
+        IDictionary<string, List<string>> answers => answers.Values.Any(list => list.Count == 0),
         FgDateRange range => string.IsNullOrWhiteSpace(range.From) || string.IsNullOrWhiteSpace(range.To),
         System.Collections.ICollection list => list.Count == 0,
         _ => false,
@@ -2080,6 +2123,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         payload["stay"] = new Dictionary<string, object?> { ["from"] = Model.Stay.From, ["to"] = Model.Stay.To };
         payload["days"] = Model.Days;
         payload["rating"] = Model.Rating;
+        payload["usage"] = Model.Usage;
         payload["source"] = Model.Source;
         var list1 = new List<Dictionary<string, object?>>();
         for (var n1 = 0; n1 < Model.References.Count; n1++)
@@ -2171,6 +2215,8 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
 
         public Dictionary<string, string?> Rating { get; set; } = new() { ["speed"] = null, ["quality"] = null };
 
+        public Dictionary<string, List<string>> Usage { get; set; } = new() { ["forms"] = new(), ["reports"] = new() };
+
         public string Source { get; set; } = "kitchen-sink";
 
         public List<FgUpload> Attachments { get; set; } = new();
@@ -2246,6 +2292,15 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         </div>
         <div class="col-span-12 md:col-span-12 text-center">
           <p class="text-sm text-gray-600 dark:text-gray-300">Every implemented element appears in this form.</p>
+        </div>
+        <div class="col-span-12 md:col-span-12">
+          <div class="text-sm text-gray-600 dark:text-gray-300 space-y-2">
+            <p>Fields marked * are <strong>required</strong>. See the <a class="font-medium text-indigo-600 underline underline-offset-2 dark:text-indigo-400" href="https://example.com/docs">docs</a>:</p>
+            <ul class="list-disc ps-5">
+              <li><em>one</em> answer per row in Rating</li>
+              <li>several in Usage</li>
+            </ul>
+          </div>
         </div>
         <div class="col-span-12 md:col-span-12">
           <div class="flex flex-col gap-1.5">
@@ -2344,7 +2399,10 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
               <div class="col-span-12 md:col-span-12">
                 <div class="flex flex-col gap-1.5">
                   <label class="text-sm font-semibold" for="fg_account_avatar">Profile picture</label>
-                  <InputFile @key='fgFileKeys["AccountAvatar"]' @ref='fgFileInputs["AccountAvatar"]' id="fg_account_avatar" class="block w-full text-sm file:me-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-indigo-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" accept="image/*" OnChange='@(e => FgPickFiles(Model.AccountAvatar, e, false, 2097152L, true, "AccountAvatar"))' />
+                  <div class="relative flex min-h-[4.5rem] items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center text-sm text-gray-500 hover:border-indigo-500 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-300 data-[fg-dragging]:border-indigo-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400" data-fg-dragging='@(fgDragging["AccountAvatar"] ? "" : null)'>
+                    <span class="font-medium">Choose a file or drag it here</span>
+                    <InputFile @key='fgFileKeys["AccountAvatar"]' @ref='fgFileInputs["AccountAvatar"]' id="fg_account_avatar" class="absolute inset-0 h-full w-full cursor-pointer opacity-0" accept="image/*" OnChange='@(e => FgPickFiles(Model.AccountAvatar, e, false, 2097152L, true, "AccountAvatar"))' @ondragenter='() => fgDragging["AccountAvatar"] = true' @ondragleave='() => fgDragging["AccountAvatar"] = false' @ondrop='() => fgDragging["AccountAvatar"] = false' />
+                  </div>
                   @if (Model.AccountAvatar.Count > 0)
                   {
                       <ul class="flex flex-col gap-1.5">
@@ -2547,6 +2605,21 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
               </table>
             </div>
             <ValidationMessage For="@(() => Model.Rating)" class="text-xs text-red-600" />
+          </fieldset>
+        </div>
+        <div class="col-span-12 md:col-span-12">
+          <fieldset class="flex flex-col gap-1.5">
+            <legend class="text-sm font-semibold">Where do you use each feature?</legend>
+            <div class="overflow-x-auto">
+              <table class="w-full border-collapse text-sm">
+                <thead><tr><td></td><th scope="col" class="px-2 py-2 text-center font-semibold text-gray-500 dark:text-gray-400">Web</th><th scope="col" class="px-2 py-2 text-center font-semibold text-gray-500 dark:text-gray-400">Mobile</th></tr></thead>
+                <tbody>
+                <tr class="border-t border-gray-200 dark:border-gray-700"><th scope="row" class="px-2 py-2 text-start font-medium">Forms</th><td class="px-2 py-2 text-center"><input id="fg_usage" type="checkbox" class="h-4 w-4 accent-indigo-600" name="fg_usage_forms" value="web" checked='@(Model.Usage["forms"].Contains("web"))' aria-label="Forms: Web" @onchange='() => FgToggleCell(Model.Usage, "forms", "web", new[] { "web", "mobile" }, "Usage")' /></td><td class="px-2 py-2 text-center"><input id="fg_usage_0_1" type="checkbox" class="h-4 w-4 accent-indigo-600" name="fg_usage_forms" value="mobile" checked='@(Model.Usage["forms"].Contains("mobile"))' aria-label="Forms: Mobile" @onchange='() => FgToggleCell(Model.Usage, "forms", "mobile", new[] { "web", "mobile" }, "Usage")' /></td></tr>
+                <tr class="border-t border-gray-200 dark:border-gray-700"><th scope="row" class="px-2 py-2 text-start font-medium">Reports</th><td class="px-2 py-2 text-center"><input id="fg_usage_1_0" type="checkbox" class="h-4 w-4 accent-indigo-600" name="fg_usage_reports" value="web" checked='@(Model.Usage["reports"].Contains("web"))' aria-label="Reports: Web" @onchange='() => FgToggleCell(Model.Usage, "reports", "web", new[] { "web", "mobile" }, "Usage")' /></td><td class="px-2 py-2 text-center"><input id="fg_usage_1_1" type="checkbox" class="h-4 w-4 accent-indigo-600" name="fg_usage_reports" value="mobile" checked='@(Model.Usage["reports"].Contains("mobile"))' aria-label="Reports: Mobile" @onchange='() => FgToggleCell(Model.Usage, "reports", "mobile", new[] { "web", "mobile" }, "Usage")' /></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <ValidationMessage For="@(() => Model.Usage)" class="text-xs text-red-600" />
           </fieldset>
         </div>
         <div class="col-span-12 md:col-span-12">
@@ -2865,7 +2938,10 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         <div class="col-span-12 md:col-span-12">
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-semibold" for="fg_attachments">Attachments<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-            <InputFile @key='fgFileKeys["Attachments"]' @ref='fgFileInputs["Attachments"]' id="fg_attachments" class="block w-full text-sm file:me-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-indigo-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" accept=".pdf,.doc,.docx" multiple OnChange='@(e => FgPickFiles(Model.Attachments, e, true, 5242880L, false, "Attachments"))' />
+            <div class="relative flex min-h-[4.5rem] items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center text-sm text-gray-500 hover:border-indigo-500 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-300 data-[fg-dragging]:border-indigo-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400" data-fg-dragging='@(fgDragging["Attachments"] ? "" : null)'>
+              <span class="font-medium">Choose files or drag them here</span>
+              <InputFile @key='fgFileKeys["Attachments"]' @ref='fgFileInputs["Attachments"]' id="fg_attachments" class="absolute inset-0 h-full w-full cursor-pointer opacity-0" accept=".pdf,.doc,.docx" multiple OnChange='@(e => FgPickFiles(Model.Attachments, e, true, 5242880L, false, "Attachments"))' @ondragenter='() => fgDragging["Attachments"] = true' @ondragleave='() => fgDragging["Attachments"] = false' @ondrop='() => fgDragging["Attachments"] = false' />
+            </div>
             @if (Model.Attachments.Count > 0)
             {
                 <ul class="flex flex-col gap-1.5">
@@ -3252,11 +3328,11 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
               }
               @if (fgSec_ks_wizard < 1)
               {
-                  <button type="button" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" @onclick="FgNext_ks_wizard">Next</button>
+                  <button type="button" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60" @onclick="FgNext_ks_wizard">Next</button>
               }
               @if (fgSec_ks_wizard == 1)
               {
-                  <button class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" type="submit">Submit</button>
+                  <button class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60" type="submit">Submit</button>
               }
             </div>
           </div>
@@ -3385,6 +3461,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
             "Stay" => Model.Stay,
             "Days" => Model.Days,
             "Rating" => Model.Rating,
+            "Usage" => Model.Usage,
             "Source" => Model.Source,
             "Attachments" => Model.Attachments,
             "AttachmentsNote" => Model.AttachmentsNote,
@@ -3488,6 +3565,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         "Stay",
         "Days",
         "Rating",
+        "Usage",
         "Source",
         "Attachments",
         "AttachmentsNote",
@@ -3765,6 +3843,8 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
     public sealed record FgUpload(string Name, long Size, string ContentType, byte[]? Data, string? Thumb);
 
     private readonly FgStore<int> fgFileKeys = new(_ => 0);
+    // Drop zones with files dragged over them.
+    private readonly FgStore<bool> fgDragging = new(_ => false);
     private readonly Dictionary<string, InputFile> fgFileInputs = new();
     private string? fgFocusFile;
 
@@ -3944,6 +4024,14 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
     private void FgSetCell(Dictionary<string, string?> answers, string row, string column, string member)
     {
         answers[row] = column;
+        FgChanged(member);
+    }
+
+    // Ticks or unticks one answer of a row; answers stay in column order.
+    private void FgToggleCell(Dictionary<string, List<string>> answers, string row, string column, string[] columns, string member)
+    {
+        var current = answers[row];
+        answers[row] = columns.Where(c => (c == column) != current.Contains(c)).ToList();
         FgChanged(member);
     }
 
@@ -4267,6 +4355,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         string text => string.IsNullOrWhiteSpace(text),
         bool on => !on,
         IDictionary<string, string?> answers => answers.Values.Any(string.IsNullOrEmpty),
+        IDictionary<string, List<string>> answers => answers.Values.Any(list => list.Count == 0),
         FgDateRange range => string.IsNullOrWhiteSpace(range.From) || string.IsNullOrWhiteSpace(range.To),
         System.Collections.ICollection list => list.Count == 0,
         _ => false,
@@ -4319,6 +4408,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         payload["stay"] = new Dictionary<string, object?> { ["from"] = Model.Stay.From, ["to"] = Model.Stay.To };
         payload["days"] = Model.Days;
         payload["rating"] = Model.Rating;
+        payload["usage"] = Model.Usage;
         payload["source"] = Model.Source;
         var list1 = new List<Dictionary<string, object?>>();
         for (var n1 = 0; n1 < Model.References.Count; n1++)
@@ -4410,6 +4500,8 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
 
         public Dictionary<string, string?> Rating { get; set; } = new() { ["speed"] = null, ["quality"] = null };
 
+        public Dictionary<string, List<string>> Usage { get; set; } = new() { ["forms"] = new(), ["reports"] = new() };
+
         public string Source { get; set; } = "kitchen-sink";
 
         public List<FgUpload> Attachments { get; set; } = new();
@@ -4485,6 +4577,15 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         </div>
         <div class="fg-cell fg-align-center" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <p class="fg-paragraph">Every implemented element appears in this form.</p>
+        </div>
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
+          <div class="fg-paragraph fg-rich-text">
+            <p>Fields marked * are <strong>required</strong>. See the <a class="fg-link" href="https://example.com/docs">docs</a>:</p>
+            <ul>
+              <li><em>one</em> answer per row in Rating</li>
+              <li>several in Usage</li>
+            </ul>
+          </div>
         </div>
         <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div class="fg-field">
@@ -4583,7 +4684,10 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
               <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                 <div class="fg-field">
                   <label class="fg-label" for="fg_account_avatar">Profile picture</label>
-                  <InputFile @key='fgFileKeys["AccountAvatar"]' @ref='fgFileInputs["AccountAvatar"]' id="fg_account_avatar" class="fg-file-input" accept="image/*" OnChange='@(e => FgPickFiles(Model.AccountAvatar, e, false, 2097152L, true, "AccountAvatar"))' />
+                  <div class="fg-file-drop" data-fg-dragging='@(fgDragging["AccountAvatar"] ? "" : null)'>
+                    <span class="fg-file-drop-text">Choose a file or drag it here</span>
+                    <InputFile @key='fgFileKeys["AccountAvatar"]' @ref='fgFileInputs["AccountAvatar"]' id="fg_account_avatar" class="fg-file-input" accept="image/*" OnChange='@(e => FgPickFiles(Model.AccountAvatar, e, false, 2097152L, true, "AccountAvatar"))' @ondragenter='() => fgDragging["AccountAvatar"] = true' @ondragleave='() => fgDragging["AccountAvatar"] = false' @ondrop='() => fgDragging["AccountAvatar"] = false' />
+                  </div>
                   @if (Model.AccountAvatar.Count > 0)
                   {
                       <ul class="fg-file-list">
@@ -4786,6 +4890,21 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
               </table>
             </div>
             <ValidationMessage For="@(() => Model.Rating)" class="fg-error" />
+          </fieldset>
+        </div>
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
+          <fieldset class="fg-field">
+            <legend class="fg-label">Where do you use each feature?</legend>
+            <div class="fg-matrix-scroll">
+              <table class="fg-matrix">
+                <thead><tr><td></td><th scope="col">Web</th><th scope="col">Mobile</th></tr></thead>
+                <tbody>
+                <tr><th scope="row">Forms</th><td><input id="fg_usage" type="checkbox" name="fg_usage_forms" value="web" checked='@(Model.Usage["forms"].Contains("web"))' aria-label="Forms: Web" @onchange='() => FgToggleCell(Model.Usage, "forms", "web", new[] { "web", "mobile" }, "Usage")' /></td><td><input id="fg_usage_0_1" type="checkbox" name="fg_usage_forms" value="mobile" checked='@(Model.Usage["forms"].Contains("mobile"))' aria-label="Forms: Mobile" @onchange='() => FgToggleCell(Model.Usage, "forms", "mobile", new[] { "web", "mobile" }, "Usage")' /></td></tr>
+                <tr><th scope="row">Reports</th><td><input id="fg_usage_1_0" type="checkbox" name="fg_usage_reports" value="web" checked='@(Model.Usage["reports"].Contains("web"))' aria-label="Reports: Web" @onchange='() => FgToggleCell(Model.Usage, "reports", "web", new[] { "web", "mobile" }, "Usage")' /></td><td><input id="fg_usage_1_1" type="checkbox" name="fg_usage_reports" value="mobile" checked='@(Model.Usage["reports"].Contains("mobile"))' aria-label="Reports: Mobile" @onchange='() => FgToggleCell(Model.Usage, "reports", "mobile", new[] { "web", "mobile" }, "Usage")' /></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <ValidationMessage For="@(() => Model.Usage)" class="fg-error" />
           </fieldset>
         </div>
         <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
@@ -5104,7 +5223,10 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div class="fg-field">
             <label class="fg-label" for="fg_attachments">Attachments<span class="fg-required" aria-hidden="true">*</span></label>
-            <InputFile @key='fgFileKeys["Attachments"]' @ref='fgFileInputs["Attachments"]' id="fg_attachments" class="fg-file-input" accept=".pdf,.doc,.docx" multiple OnChange='@(e => FgPickFiles(Model.Attachments, e, true, 5242880L, false, "Attachments"))' />
+            <div class="fg-file-drop" data-fg-dragging='@(fgDragging["Attachments"] ? "" : null)'>
+              <span class="fg-file-drop-text">Choose files or drag them here</span>
+              <InputFile @key='fgFileKeys["Attachments"]' @ref='fgFileInputs["Attachments"]' id="fg_attachments" class="fg-file-input" accept=".pdf,.doc,.docx" multiple OnChange='@(e => FgPickFiles(Model.Attachments, e, true, 5242880L, false, "Attachments"))' @ondragenter='() => fgDragging["Attachments"] = true' @ondragleave='() => fgDragging["Attachments"] = false' @ondrop='() => fgDragging["Attachments"] = false' />
+            </div>
             @if (Model.Attachments.Count > 0)
             {
                 <ul class="fg-file-list">
@@ -5624,6 +5746,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             "Stay" => Model.Stay,
             "Days" => Model.Days,
             "Rating" => Model.Rating,
+            "Usage" => Model.Usage,
             "Source" => Model.Source,
             "Attachments" => Model.Attachments,
             "AttachmentsNote" => Model.AttachmentsNote,
@@ -5727,6 +5850,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         "Stay",
         "Days",
         "Rating",
+        "Usage",
         "Source",
         "Attachments",
         "AttachmentsNote",
@@ -6004,6 +6128,8 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
     public sealed record FgUpload(string Name, long Size, string ContentType, byte[]? Data, string? Thumb);
 
     private readonly FgStore<int> fgFileKeys = new(_ => 0);
+    // Drop zones with files dragged over them.
+    private readonly FgStore<bool> fgDragging = new(_ => false);
     private readonly Dictionary<string, InputFile> fgFileInputs = new();
     private string? fgFocusFile;
 
@@ -6183,6 +6309,14 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
     private void FgSetCell(Dictionary<string, string?> answers, string row, string column, string member)
     {
         answers[row] = column;
+        FgChanged(member);
+    }
+
+    // Ticks or unticks one answer of a row; answers stay in column order.
+    private void FgToggleCell(Dictionary<string, List<string>> answers, string row, string column, string[] columns, string member)
+    {
+        var current = answers[row];
+        answers[row] = columns.Where(c => (c == column) != current.Contains(c)).ToList();
         FgChanged(member);
     }
 
@@ -6506,6 +6640,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         string text => string.IsNullOrWhiteSpace(text),
         bool on => !on,
         IDictionary<string, string?> answers => answers.Values.Any(string.IsNullOrEmpty),
+        IDictionary<string, List<string>> answers => answers.Values.Any(list => list.Count == 0),
         FgDateRange range => string.IsNullOrWhiteSpace(range.From) || string.IsNullOrWhiteSpace(range.To),
         System.Collections.ICollection list => list.Count == 0,
         _ => false,
@@ -6558,6 +6693,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         payload["stay"] = new Dictionary<string, object?> { ["from"] = Model.Stay.From, ["to"] = Model.Stay.To };
         payload["days"] = Model.Days;
         payload["rating"] = Model.Rating;
+        payload["usage"] = Model.Usage;
         payload["source"] = Model.Source;
         var list1 = new List<Dictionary<string, object?>>();
         for (var n1 = 0; n1 < Model.References.Count; n1++)
@@ -6648,6 +6784,8 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         public List<string> Days { get; set; } = new();
 
         public Dictionary<string, string?> Rating { get; set; } = new() { ["speed"] = null, ["quality"] = null };
+
+        public Dictionary<string, List<string>> Usage { get; set; } = new() { ["forms"] = new(), ["reports"] = new() };
 
         public string Source { get; set; } = "kitchen-sink";
 
@@ -6743,6 +6881,12 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
   .fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); inset-inline-start: 0; z-index: 20; inline-size: max-content; max-inline-size: min(16rem, calc(100vw - 2rem)); padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
   .fg-tip:hover .fg-tip-text, .fg-tip-button:focus + .fg-tip-text { visibility: visible; opacity: 1; }
 
+  /* Upload drop zones */
+  .fg-file-drop { min-block-size: 4.5rem; border-style: dashed !important; }
+  .fg-file-drop:hover, .fg-file-drop[data-fg-dragging] { color: var(--bs-body-color) !important; border-color: var(--bs-primary) !important; }
+  .fg-file-drop:has(:focus-visible) { box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25); }
+  .fg-file-drop > input { cursor: pointer; }
+
   [hidden] { display: none !important; }
   </style>
 </head>
@@ -6754,6 +6898,15 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       </div>
       <div class="col-12 col-md-12 text-center">
         <p class="text-secondary">Every implemented element appears in this form.</p>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="text-secondary">
+          <p class="mb-2">Fields marked * are <strong>required</strong>. See the <a class="link-primary" href="https://example.com/docs">docs</a>:</p>
+          <ul class="mb-2">
+            <li><em>one</em> answer per row in Rating</li>
+            <li>several in Usage</li>
+          </ul>
+        </div>
       </div>
       <div class="col-12 col-md-12">
         <div class="d-flex flex-column gap-1">
@@ -6852,7 +7005,10 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
             <div class="col-12 col-md-12">
               <div class="d-flex flex-column gap-1">
                 <label class="form-label fw-semibold fs-6 mb-0" for="fg_account_avatar">Profile picture</label>
-                <input id="fg_account_avatar" type="file" class="form-control" accept="image/*" data-fg-path="account.avatar" data-fg-kind="files" data-fg-thumbs>
+                <div class="fg-file-drop position-relative d-flex align-items-center justify-content-center border border-2 rounded-3 p-4 text-center small text-body-secondary bg-body-tertiary">
+                  <span class="fw-medium">Choose a file or drag it here</span>
+                  <input id="fg_account_avatar" type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept="image/*" data-fg-path="account.avatar" data-fg-kind="files" data-fg-thumbs>
+                </div>
                 <ul class="list-group mt-2" data-fg-file-list="account.avatar" hidden></ul>
                 <p id="fg_err_account_avatar" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
               </div>
@@ -7015,6 +7171,21 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
             </table>
           </div>
           <p id="fg_err_rating" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+        </fieldset>
+      </div>
+      <div class="col-12 col-md-12">
+        <fieldset class="d-flex flex-column gap-1">
+          <legend class="form-label fw-semibold fs-6 mb-0">Where do you use each feature?</legend>
+          <div class="table-responsive">
+            <table class="table table-sm table-striped align-middle mb-0">
+              <thead><tr><td></td><th scope="col" class="text-center fw-semibold text-body-secondary">Web</th><th scope="col" class="text-center fw-semibold text-body-secondary">Mobile</th></tr></thead>
+              <tbody>
+              <tr><th scope="row" class="text-start fw-medium">Forms</th><td class="text-center"><input id="fg_usage" type="checkbox" class="form-check-input" name="fg_usage_forms" value="web" data-fg-path="usage" data-fg-kind="matrix" data-fg-row="forms" aria-label="Forms: Web"></td><td class="text-center"><input id="fg_usage_0_1" type="checkbox" class="form-check-input" name="fg_usage_forms" value="mobile" data-fg-path="usage" data-fg-kind="matrix" data-fg-row="forms" aria-label="Forms: Mobile"></td></tr>
+              <tr><th scope="row" class="text-start fw-medium">Reports</th><td class="text-center"><input id="fg_usage_1_0" type="checkbox" class="form-check-input" name="fg_usage_reports" value="web" data-fg-path="usage" data-fg-kind="matrix" data-fg-row="reports" aria-label="Reports: Web"></td><td class="text-center"><input id="fg_usage_1_1" type="checkbox" class="form-check-input" name="fg_usage_reports" value="mobile" data-fg-path="usage" data-fg-kind="matrix" data-fg-row="reports" aria-label="Reports: Mobile"></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p id="fg_err_usage" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
         </fieldset>
       </div>
       <input id="fg_source" type="hidden" value="kitchen-sink" data-fg-path="source" data-fg-kind="text">
@@ -7317,7 +7488,10 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       <div class="col-12 col-md-12">
         <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold fs-6 mb-0" for="fg_attachments">Attachments<span class="text-danger ms-1" aria-hidden="true">*</span></label>
-          <input id="fg_attachments" type="file" class="form-control" accept=".pdf,.doc,.docx" multiple data-fg-path="attachments" data-fg-kind="files">
+          <div class="fg-file-drop position-relative d-flex align-items-center justify-content-center border border-2 rounded-3 p-4 text-center small text-body-secondary bg-body-tertiary">
+            <span class="fw-medium">Choose files or drag them here</span>
+            <input id="fg_attachments" type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept=".pdf,.doc,.docx" multiple data-fg-path="attachments" data-fg-kind="files">
+          </div>
           <ul class="list-group mt-2" data-fg-file-list="attachments" hidden></ul>
           <p class="form-text mt-0">Up to 3 PDF or Word files, 5 MB each</p>
           <p id="fg_err_attachments" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
@@ -7782,6 +7956,17 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       for (const part of files) body.append(part.path, part.file, part.file.name)
       return body
     }
+    // Sends with XMLHttpRequest, which (unlike fetch) reports upload progress.
+    function fgSend(url, method, body, onProgress, onDone) {
+      const request = new XMLHttpRequest()
+      request.open(method, url)
+      request.upload.onprogress = (event) => {
+        if (event.lengthComputable && event.total > 0) onProgress(Math.round((event.loaded / event.total) * 100))
+      }
+      request.onload = () => onDone(request.status >= 200 && request.status < 300)
+      request.onerror = request.onabort = () => onDone(false)
+      request.send(body)
+    }
 
     var fgTags = {}
     /** Each element under root (root included) matching selector. */
@@ -7816,10 +8001,15 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       if (kind === 'dates') return (fgDates[path] || []).slice()
       if (kind === 'matrix') {
         var answers = {}
-        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-path="' + path + '"]'), function (radio) {
-          var row = radio.getAttribute('data-fg-row')
-          if (!(row in answers)) answers[row] = null
-          if (radio.checked) answers[row] = radio.value
+        // Radios: the chosen column per row; checkboxes: the chosen columns.
+        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-path="' + path + '"]'), function (cell) {
+          var row = cell.getAttribute('data-fg-row')
+          var several = cell.type === 'checkbox'
+          if (!(row in answers)) answers[row] = several ? [] : null
+          if (cell.checked) {
+            if (several) answers[row].push(cell.value)
+            else answers[row] = cell.value
+          }
         })
         return answers
       }
@@ -8326,6 +8516,13 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
     function fgWireFiles(root) {
       fgEach(root, '[data-fg-kind="files"]', function (input) {
         fgFiles[input.getAttribute('data-fg-path')] = []
+        // The input covers its drop zone; mark the zone while files are over it.
+        var drag = function (on) {
+          return function () { input.parentElement.toggleAttribute('data-fg-dragging', on) }
+        }
+        input.addEventListener('dragenter', drag(true))
+        input.addEventListener('dragleave', drag(false))
+        input.addEventListener('drop', drag(false))
         input.addEventListener('change', function () {
           var path = input.getAttribute('data-fg-path')
           var picked = Array.prototype.slice.call(input.files || [])
@@ -8560,6 +8757,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         "stay": fgGet("stay"),
         "days": fgGet("days"),
         "rating": fgGet("rating"),
+        "usage": fgGet("usage"),
         "source": fgGet("source"),
         "references": fgItemIndexes("references").map(function (i) { return ({ "name": fgGet("references." + i + ".name"), "may_contact": fgGet("references." + i + ".may_contact"), ...((fgGet("references." + i + ".may_contact") === true) ? { "email": fgGet("references." + i + ".email") } : {}), ...((fgGet("references." + i + ".may_contact") === true) ? { "phone": fgGet("references." + i + ".phone") } : {}) }) }),
         "attachments": fgGet("attachments"),
@@ -8727,6 +8925,15 @@ exports[`html target > snapshot (tailwind) 1`] = `
         <p class="text-sm text-gray-600 dark:text-gray-300">Every implemented element appears in this form.</p>
       </div>
       <div class="col-span-12 md:col-span-12">
+        <div class="text-sm text-gray-600 dark:text-gray-300 space-y-2">
+          <p>Fields marked * are <strong>required</strong>. See the <a class="font-medium text-indigo-600 underline underline-offset-2 dark:text-indigo-400" href="https://example.com/docs">docs</a>:</p>
+          <ul class="list-disc ps-5">
+            <li><em>one</em> answer per row in Rating</li>
+            <li>several in Usage</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_full_name">Full name<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
           <input id="fg_full_name" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="full_name" data-fg-kind="text" placeholder="Jane Doe">
@@ -8823,7 +9030,10 @@ exports[`html target > snapshot (tailwind) 1`] = `
             <div class="col-span-12 md:col-span-12">
               <div class="flex flex-col gap-1.5">
                 <label class="text-sm font-semibold" for="fg_account_avatar">Profile picture</label>
-                <input id="fg_account_avatar" type="file" class="block w-full text-sm file:me-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-indigo-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" accept="image/*" data-fg-path="account.avatar" data-fg-kind="files" data-fg-thumbs>
+                <div class="relative flex min-h-[4.5rem] items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center text-sm text-gray-500 hover:border-indigo-500 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-300 data-[fg-dragging]:border-indigo-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">
+                  <span class="font-medium">Choose a file or drag it here</span>
+                  <input id="fg_account_avatar" type="file" class="absolute inset-0 h-full w-full cursor-pointer opacity-0" accept="image/*" data-fg-path="account.avatar" data-fg-kind="files" data-fg-thumbs>
+                </div>
                 <ul class="flex flex-col gap-1.5" data-fg-file-list="account.avatar" hidden></ul>
                 <p id="fg_err_account_avatar" class="text-xs text-red-600" role="alert" hidden></p>
               </div>
@@ -8994,6 +9204,21 @@ exports[`html target > snapshot (tailwind) 1`] = `
             </table>
           </div>
           <p id="fg_err_rating" class="text-xs text-red-600" role="alert" hidden></p>
+        </fieldset>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <fieldset class="flex flex-col gap-1.5">
+          <legend class="text-sm font-semibold">Where do you use each feature?</legend>
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse text-sm">
+              <thead><tr><td></td><th scope="col" class="px-2 py-2 text-center font-semibold text-gray-500 dark:text-gray-400">Web</th><th scope="col" class="px-2 py-2 text-center font-semibold text-gray-500 dark:text-gray-400">Mobile</th></tr></thead>
+              <tbody>
+              <tr class="border-t border-gray-200 dark:border-gray-700"><th scope="row" class="px-2 py-2 text-start font-medium">Forms</th><td class="px-2 py-2 text-center"><input id="fg_usage" type="checkbox" class="h-4 w-4 accent-indigo-600" name="fg_usage_forms" value="web" data-fg-path="usage" data-fg-kind="matrix" data-fg-row="forms" aria-label="Forms: Web"></td><td class="px-2 py-2 text-center"><input id="fg_usage_0_1" type="checkbox" class="h-4 w-4 accent-indigo-600" name="fg_usage_forms" value="mobile" data-fg-path="usage" data-fg-kind="matrix" data-fg-row="forms" aria-label="Forms: Mobile"></td></tr>
+              <tr class="border-t border-gray-200 dark:border-gray-700"><th scope="row" class="px-2 py-2 text-start font-medium">Reports</th><td class="px-2 py-2 text-center"><input id="fg_usage_1_0" type="checkbox" class="h-4 w-4 accent-indigo-600" name="fg_usage_reports" value="web" data-fg-path="usage" data-fg-kind="matrix" data-fg-row="reports" aria-label="Reports: Web"></td><td class="px-2 py-2 text-center"><input id="fg_usage_1_1" type="checkbox" class="h-4 w-4 accent-indigo-600" name="fg_usage_reports" value="mobile" data-fg-path="usage" data-fg-kind="matrix" data-fg-row="reports" aria-label="Reports: Mobile"></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p id="fg_err_usage" class="text-xs text-red-600" role="alert" hidden></p>
         </fieldset>
       </div>
       <input id="fg_source" type="hidden" value="kitchen-sink" data-fg-path="source" data-fg-kind="text">
@@ -9296,7 +9521,10 @@ exports[`html target > snapshot (tailwind) 1`] = `
       <div class="col-span-12 md:col-span-12">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_attachments">Attachments<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-          <input id="fg_attachments" type="file" class="block w-full text-sm file:me-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-indigo-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" accept=".pdf,.doc,.docx" multiple data-fg-path="attachments" data-fg-kind="files">
+          <div class="relative flex min-h-[4.5rem] items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center text-sm text-gray-500 hover:border-indigo-500 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-300 data-[fg-dragging]:border-indigo-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">
+            <span class="font-medium">Choose files or drag them here</span>
+            <input id="fg_attachments" type="file" class="absolute inset-0 h-full w-full cursor-pointer opacity-0" accept=".pdf,.doc,.docx" multiple data-fg-path="attachments" data-fg-kind="files">
+          </div>
           <ul class="flex flex-col gap-1.5" data-fg-file-list="attachments" hidden></ul>
           <p class="text-xs text-gray-500 dark:text-gray-400">Up to 3 PDF or Word files, 5 MB each</p>
           <p id="fg_err_attachments" class="text-xs text-red-600" role="alert" hidden></p>
@@ -9653,8 +9881,8 @@ exports[`html target > snapshot (tailwind) 1`] = `
           </div>
           <div class="mt-4 flex justify-between gap-2">
             <button type="button" class="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-step-back="ks_wizard" hidden>Back</button>
-            <button type="button" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" data-fg-step-next="ks_wizard">Next</button>
-            <button type="submit" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" data-fg-submit hidden>Submit</button>
+            <button type="button" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60" data-fg-step-next="ks_wizard">Next</button>
+            <button type="submit" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60" data-fg-submit hidden>Submit</button>
           </div>
         </div>
       </div>
@@ -9761,6 +9989,17 @@ exports[`html target > snapshot (tailwind) 1`] = `
       for (const part of files) body.append(part.path, part.file, part.file.name)
       return body
     }
+    // Sends with XMLHttpRequest, which (unlike fetch) reports upload progress.
+    function fgSend(url, method, body, onProgress, onDone) {
+      const request = new XMLHttpRequest()
+      request.open(method, url)
+      request.upload.onprogress = (event) => {
+        if (event.lengthComputable && event.total > 0) onProgress(Math.round((event.loaded / event.total) * 100))
+      }
+      request.onload = () => onDone(request.status >= 200 && request.status < 300)
+      request.onerror = request.onabort = () => onDone(false)
+      request.send(body)
+    }
 
     var fgTags = {}
     /** Each element under root (root included) matching selector. */
@@ -9795,10 +10034,15 @@ exports[`html target > snapshot (tailwind) 1`] = `
       if (kind === 'dates') return (fgDates[path] || []).slice()
       if (kind === 'matrix') {
         var answers = {}
-        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-path="' + path + '"]'), function (radio) {
-          var row = radio.getAttribute('data-fg-row')
-          if (!(row in answers)) answers[row] = null
-          if (radio.checked) answers[row] = radio.value
+        // Radios: the chosen column per row; checkboxes: the chosen columns.
+        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-path="' + path + '"]'), function (cell) {
+          var row = cell.getAttribute('data-fg-row')
+          var several = cell.type === 'checkbox'
+          if (!(row in answers)) answers[row] = several ? [] : null
+          if (cell.checked) {
+            if (several) answers[row].push(cell.value)
+            else answers[row] = cell.value
+          }
         })
         return answers
       }
@@ -10305,6 +10549,13 @@ exports[`html target > snapshot (tailwind) 1`] = `
     function fgWireFiles(root) {
       fgEach(root, '[data-fg-kind="files"]', function (input) {
         fgFiles[input.getAttribute('data-fg-path')] = []
+        // The input covers its drop zone; mark the zone while files are over it.
+        var drag = function (on) {
+          return function () { input.parentElement.toggleAttribute('data-fg-dragging', on) }
+        }
+        input.addEventListener('dragenter', drag(true))
+        input.addEventListener('dragleave', drag(false))
+        input.addEventListener('drop', drag(false))
         input.addEventListener('change', function () {
           var path = input.getAttribute('data-fg-path')
           var picked = Array.prototype.slice.call(input.files || [])
@@ -10539,6 +10790,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
         "stay": fgGet("stay"),
         "days": fgGet("days"),
         "rating": fgGet("rating"),
+        "usage": fgGet("usage"),
         "source": fgGet("source"),
         "references": fgItemIndexes("references").map(function (i) { return ({ "name": fgGet("references." + i + ".name"), "may_contact": fgGet("references." + i + ".may_contact"), ...((fgGet("references." + i + ".may_contact") === true) ? { "email": fgGet("references." + i + ".email") } : {}), ...((fgGet("references." + i + ".may_contact") === true) ? { "phone": fgGet("references." + i + ".phone") } : {}) }) }),
         "attachments": fgGet("attachments"),
@@ -10711,6 +10963,11 @@ exports[`html target > snapshot (vanilla) 1`] = `
   .fg-range { inline-size: 100%; accent-color: var(--fg-color-primary); }
   .fg-heading { margin: 0; }
   .fg-paragraph { margin: 0; color: var(--fg-color-muted); }
+  .fg-rich-text > * { margin: 0; }
+  .fg-rich-text > * + * { margin-block-start: 0.5em; }
+  .fg-rich-text ul, .fg-rich-text ol { padding-inline-start: 1.25em; }
+  .fg-rich-text ul { list-style: disc; }
+  .fg-rich-text ol { list-style: decimal; }
   .fg-divider { border: none; border-block-start: 1px solid var(--fg-color-border); margin-block: 0.25rem; }
   .fg-tab-list { display: flex; flex-wrap: wrap; gap: 0.25rem; border-block-end: 1px solid var(--fg-color-border); margin-block-end: var(--fg-space); }
   .fg-tab-button { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.5rem 0.875rem; font: inherit; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); background: none; border: none; border-block-end: 2px solid transparent; cursor: pointer; }
@@ -10742,6 +10999,11 @@ exports[`html target > snapshot (vanilla) 1`] = `
   .fg-group { margin: 0; padding: var(--fg-space); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
   .fg-group-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); }
   .fg-actions { margin-block-start: var(--fg-space); }
+  .fg-upload { display: flex; flex-direction: column; gap: 0.375rem; margin-block-start: var(--fg-space); }
+  .fg-progress { block-size: 0.5rem; overflow: hidden; background: var(--fg-color-border); border-radius: 999px; }
+  .fg-progress-bar { block-size: 100%; background: var(--fg-color-primary); border-radius: inherit; transition: inline-size 0.2s ease; }
+  .fg-progress-text { margin: 0; font-size: 0.875rem; color: var(--fg-color-muted); }
+  .fg-button:disabled { opacity: 0.6; cursor: not-allowed; }
   .fg-button { padding: 0.5rem 1.25rem; font: inherit; font-weight: 600; border: 1px solid transparent; border-radius: var(--fg-radius); cursor: pointer; }
   .fg-button--primary { background: var(--fg-color-primary); color: var(--fg-color-primary-contrast); }
   .fg-payload { margin-block-start: var(--fg-space); padding: var(--fg-space); background: #0f172a; color: #86efac; border-radius: var(--fg-radius); font-size: 0.8125rem; overflow-x: auto; }
@@ -10781,9 +11043,11 @@ exports[`html target > snapshot (vanilla) 1`] = `
   .fg-repeater-remove { margin-inline-start: auto; padding: 0; font: inherit; font-size: 0.875rem; color: var(--fg-color-error); background: none; border: none; text-decoration: underline; cursor: pointer; }
   .fg-repeater-add { margin-block-start: var(--fg-space); }
   /* File uploads */
-  .fg-file-input { font: inherit; font-size: 0.875rem; }
-  .fg-file-input::file-selector-button { margin-inline-end: 0.75rem; padding: 0.375rem 0.75rem; font: inherit; font-weight: 600; color: var(--fg-color-primary-contrast); background: var(--fg-color-primary); border: none; border-radius: var(--fg-radius); cursor: pointer; }
-  .fg-file-input::file-selector-button:hover { opacity: 0.9; }
+  .fg-file-drop { position: relative; display: flex; align-items: center; justify-content: center; min-block-size: 4.5rem; padding: 1rem; text-align: center; font-size: 0.875rem; color: var(--fg-color-muted); background: var(--fg-color-surface); border: 2px dashed var(--fg-color-border); border-radius: var(--fg-radius); }
+  .fg-file-drop:hover, .fg-file-drop[data-fg-dragging] { border-color: var(--fg-color-primary); color: var(--fg-color-text); }
+  .fg-file-drop:has(:focus-visible) { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; }
+  .fg-file-input { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; opacity: 0; cursor: pointer; }
+  .fg-file-drop-text { font-weight: 500; }
   .fg-file-list { display: flex; flex-direction: column; gap: 0.375rem; margin: 0; padding: 0; list-style: none; }
   .fg-file-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.5rem; font-size: 0.875rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
   .fg-file-thumb { inline-size: 2.5rem; block-size: 2.5rem; object-fit: cover; border-radius: calc(var(--fg-radius) / 2); }
@@ -10862,6 +11126,15 @@ exports[`html target > snapshot (vanilla) 1`] = `
       </div>
       <div class="fg-cell fg-align-center" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <p class="fg-paragraph">Every implemented element appears in this form.</p>
+      </div>
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
+        <div class="fg-paragraph fg-rich-text">
+          <p>Fields marked * are <strong>required</strong>. See the <a class="fg-link" href="https://example.com/docs">docs</a>:</p>
+          <ul>
+            <li><em>one</em> answer per row in Rating</li>
+            <li>several in Usage</li>
+          </ul>
+        </div>
       </div>
       <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
@@ -10960,7 +11233,10 @@ exports[`html target > snapshot (vanilla) 1`] = `
             <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_account_avatar">Profile picture</label>
-                <input id="fg_account_avatar" type="file" class="fg-file-input" accept="image/*" data-fg-path="account.avatar" data-fg-kind="files" data-fg-thumbs>
+                <div class="fg-file-drop">
+                  <span class="fg-file-drop-text">Choose a file or drag it here</span>
+                  <input id="fg_account_avatar" type="file" class="fg-file-input" accept="image/*" data-fg-path="account.avatar" data-fg-kind="files" data-fg-thumbs>
+                </div>
                 <ul class="fg-file-list" data-fg-file-list="account.avatar" hidden></ul>
                 <p id="fg_err_account_avatar" class="fg-error" role="alert" hidden></p>
               </div>
@@ -11131,6 +11407,21 @@ exports[`html target > snapshot (vanilla) 1`] = `
             </table>
           </div>
           <p id="fg_err_rating" class="fg-error" role="alert" hidden></p>
+        </fieldset>
+      </div>
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
+        <fieldset class="fg-field">
+          <legend class="fg-label">Where do you use each feature?</legend>
+          <div class="fg-matrix-scroll">
+            <table class="fg-matrix">
+              <thead><tr><td></td><th scope="col">Web</th><th scope="col">Mobile</th></tr></thead>
+              <tbody>
+              <tr><th scope="row">Forms</th><td><input id="fg_usage" type="checkbox" name="fg_usage_forms" value="web" data-fg-path="usage" data-fg-kind="matrix" data-fg-row="forms" aria-label="Forms: Web"></td><td><input id="fg_usage_0_1" type="checkbox" name="fg_usage_forms" value="mobile" data-fg-path="usage" data-fg-kind="matrix" data-fg-row="forms" aria-label="Forms: Mobile"></td></tr>
+              <tr><th scope="row">Reports</th><td><input id="fg_usage_1_0" type="checkbox" name="fg_usage_reports" value="web" data-fg-path="usage" data-fg-kind="matrix" data-fg-row="reports" aria-label="Reports: Web"></td><td><input id="fg_usage_1_1" type="checkbox" name="fg_usage_reports" value="mobile" data-fg-path="usage" data-fg-kind="matrix" data-fg-row="reports" aria-label="Reports: Mobile"></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p id="fg_err_usage" class="fg-error" role="alert" hidden></p>
         </fieldset>
       </div>
       <input id="fg_source" type="hidden" value="kitchen-sink" data-fg-path="source" data-fg-kind="text">
@@ -11433,7 +11724,10 @@ exports[`html target > snapshot (vanilla) 1`] = `
       <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_attachments">Attachments<span class="fg-required" aria-hidden="true">*</span></label>
-          <input id="fg_attachments" type="file" class="fg-file-input" accept=".pdf,.doc,.docx" multiple data-fg-path="attachments" data-fg-kind="files">
+          <div class="fg-file-drop">
+            <span class="fg-file-drop-text">Choose files or drag them here</span>
+            <input id="fg_attachments" type="file" class="fg-file-input" accept=".pdf,.doc,.docx" multiple data-fg-path="attachments" data-fg-kind="files">
+          </div>
           <ul class="fg-file-list" data-fg-file-list="attachments" hidden></ul>
           <p class="fg-description">Up to 3 PDF or Word files, 5 MB each</p>
           <p id="fg_err_attachments" class="fg-error" role="alert" hidden></p>
@@ -11898,6 +12192,17 @@ exports[`html target > snapshot (vanilla) 1`] = `
       for (const part of files) body.append(part.path, part.file, part.file.name)
       return body
     }
+    // Sends with XMLHttpRequest, which (unlike fetch) reports upload progress.
+    function fgSend(url, method, body, onProgress, onDone) {
+      const request = new XMLHttpRequest()
+      request.open(method, url)
+      request.upload.onprogress = (event) => {
+        if (event.lengthComputable && event.total > 0) onProgress(Math.round((event.loaded / event.total) * 100))
+      }
+      request.onload = () => onDone(request.status >= 200 && request.status < 300)
+      request.onerror = request.onabort = () => onDone(false)
+      request.send(body)
+    }
 
     var fgTags = {}
     /** Each element under root (root included) matching selector. */
@@ -11932,10 +12237,15 @@ exports[`html target > snapshot (vanilla) 1`] = `
       if (kind === 'dates') return (fgDates[path] || []).slice()
       if (kind === 'matrix') {
         var answers = {}
-        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-path="' + path + '"]'), function (radio) {
-          var row = radio.getAttribute('data-fg-row')
-          if (!(row in answers)) answers[row] = null
-          if (radio.checked) answers[row] = radio.value
+        // Radios: the chosen column per row; checkboxes: the chosen columns.
+        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-path="' + path + '"]'), function (cell) {
+          var row = cell.getAttribute('data-fg-row')
+          var several = cell.type === 'checkbox'
+          if (!(row in answers)) answers[row] = several ? [] : null
+          if (cell.checked) {
+            if (several) answers[row].push(cell.value)
+            else answers[row] = cell.value
+          }
         })
         return answers
       }
@@ -12442,6 +12752,13 @@ exports[`html target > snapshot (vanilla) 1`] = `
     function fgWireFiles(root) {
       fgEach(root, '[data-fg-kind="files"]', function (input) {
         fgFiles[input.getAttribute('data-fg-path')] = []
+        // The input covers its drop zone; mark the zone while files are over it.
+        var drag = function (on) {
+          return function () { input.parentElement.toggleAttribute('data-fg-dragging', on) }
+        }
+        input.addEventListener('dragenter', drag(true))
+        input.addEventListener('dragleave', drag(false))
+        input.addEventListener('drop', drag(false))
         input.addEventListener('change', function () {
           var path = input.getAttribute('data-fg-path')
           var picked = Array.prototype.slice.call(input.files || [])
@@ -12676,6 +12993,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
         "stay": fgGet("stay"),
         "days": fgGet("days"),
         "rating": fgGet("rating"),
+        "usage": fgGet("usage"),
         "source": fgGet("source"),
         "references": fgItemIndexes("references").map(function (i) { return ({ "name": fgGet("references." + i + ".name"), "may_contact": fgGet("references." + i + ".may_contact"), ...((fgGet("references." + i + ".may_contact") === true) ? { "email": fgGet("references." + i + ".email") } : {}), ...((fgGet("references." + i + ".may_contact") === true) ? { "phone": fgGet("references." + i + ".phone") } : {}) }) }),
         "attachments": fgGet("attachments"),
@@ -12827,6 +13145,10 @@ function fgDateOrder(v: unknown): boolean {
   const r = (v ?? {}) as { from?: unknown; to?: unknown }
   return typeof r.from === 'string' && typeof r.to === 'string' && r.from !== '' && r.to !== '' && r.to < r.from
 }
+// A matrix row's answers with one column ticked or unticked, in column order.
+function fgToggleCell(columns: string[], current: string[], column: string): string[] {
+  return columns.filter((c) => (c === column) !== current.includes(c))
+}
 function fgAccepts(file: File, accept: string): boolean {
   if (accept.trim() === '') return true
   const name = file.name.toLowerCase()
@@ -12877,6 +13199,7 @@ type FormData = {
   stay: { from: string; to: string }
   days: string[]
   rating: { speed: string | null; quality: string | null }
+  usage: { forms: string[]; reports: string[] }
   source: string
   attachments: File[]
   attachments_note: string
@@ -12934,6 +13257,10 @@ const INITIAL: FormData = {
   rating: {
     speed: null,
     quality: null
+  },
+  usage: {
+    forms: [],
+    reports: []
   },
   source: "kitchen-sink",
   attachments: [],
@@ -13089,6 +13416,7 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "stay": data.stay,
     "days": data.days,
     "rating": data.rating,
+    "usage": data.usage,
     "source": data.source,
     "references": data.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}), ...((item.may_contact === true) ? { "phone": item.phone } : {}) })),
     "attachments": data.attachments,
@@ -13264,6 +13592,10 @@ function fgFileSize(bytes: number): string {
 }
 function fgRemoveFileLabel(name: string): string {
   return "Remove {name}".split('{name}').join(name)
+}
+// Marks the drop zone (the input's parent) while files are dragged over it.
+function fgDrag(input: EventTarget | null, on: boolean): void {
+  ;(input as HTMLElement | null)?.parentElement?.toggleAttribute('data-fg-dragging', on)
 }
 
 const FG_FILE_MULTIPLE: Record<string, boolean> = { 'account.avatar': false, 'attachments': true }
@@ -13579,6 +13911,15 @@ export default function KitchenSinkForm({
           <p className="text-secondary">Every implemented element appears in this form.</p>
         </div>
         <div className="col-12 col-md-12">
+          <div className="text-secondary">
+            <p className="mb-2">Fields marked * are <strong>required</strong>. See the <a className="link-primary" href="https://example.com/docs">docs</a>:</p>
+            <ul className="mb-2">
+              <li><em>one</em> answer per row in Rating</li>
+              <li>several in Usage</li>
+            </ul>
+          </div>
+        </div>
+        <div className="col-12 col-md-12">
           <div className="d-flex flex-column gap-1">
             <label className="form-label fw-semibold fs-6 mb-0" htmlFor="fg_full_name">Full name<span className="text-danger ms-1" aria-hidden="true">*</span></label>
             <input id="fg_full_name" type="text" value={form.full_name} className={errors['full_name'] ? "form-control is-invalid" : "form-control"} placeholder="Jane Doe" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('full_name', e.target.value)} onBlur={() => touch('full_name')} />
@@ -13676,7 +14017,10 @@ export default function KitchenSinkForm({
               <div className="col-12 col-md-12">
                 <div className="d-flex flex-column gap-1">
                   <label className="form-label fw-semibold fs-6 mb-0" htmlFor="fg_account_avatar">Profile picture</label>
-                  <input id="fg_account_avatar" type="file" className="form-control" accept="image/*" aria-invalid={errors['account.avatar'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('account.avatar', e.target)} />
+                  <div className="fg-file-drop position-relative d-flex align-items-center justify-content-center border border-2 rounded-3 p-4 text-center small text-body-secondary bg-body-tertiary">
+                    <span className="fw-medium">Choose a file or drag it here</span>
+                    <input id="fg_account_avatar" type="file" className="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept="image/*" aria-invalid={errors['account.avatar'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('account.avatar', e.target)} onDragEnter={(e) => fgDrag(e.currentTarget, true)} onDragLeave={(e) => fgDrag(e.currentTarget, false)} onDrop={(e) => fgDrag(e.currentTarget, false)} />
+                  </div>
                   {form.account.avatar.length > 0 && (
                     <ul className="list-group mt-2">
                       {form.account.avatar.map((file, fi) => (
@@ -13867,6 +14211,21 @@ export default function KitchenSinkForm({
               </table>
             </div>
             {errors['rating'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['rating']}</p>}
+          </fieldset>
+        </div>
+        <div className="col-12 col-md-12">
+          <fieldset className="d-flex flex-column gap-1">
+            <legend className="form-label fw-semibold fs-6 mb-0">Where do you use each feature?</legend>
+            <div className="table-responsive">
+              <table className="table table-sm table-striped align-middle mb-0">
+                <thead><tr><td></td><th scope="col" className="text-center fw-semibold text-body-secondary">Web</th><th scope="col" className="text-center fw-semibold text-body-secondary">Mobile</th></tr></thead>
+                <tbody>
+                <tr><th scope="row" className="text-start fw-medium">Forms</th><td className="text-center"><input id="fg_usage" type="checkbox" className="form-check-input" name="fg_usage_forms" value="web" checked={form.usage["forms"].includes("web")} aria-label="Forms: Web" onChange={() => setField('usage', { ...form.usage, ["forms"]: fgToggleCell(['web', 'mobile'], form.usage["forms"], 'web') })} onBlur={() => touch('usage')} /></td><td className="text-center"><input id="fg_usage_0_1" type="checkbox" className="form-check-input" name="fg_usage_forms" value="mobile" checked={form.usage["forms"].includes("mobile")} aria-label="Forms: Mobile" onChange={() => setField('usage', { ...form.usage, ["forms"]: fgToggleCell(['web', 'mobile'], form.usage["forms"], 'mobile') })} onBlur={() => touch('usage')} /></td></tr>
+                <tr><th scope="row" className="text-start fw-medium">Reports</th><td className="text-center"><input id="fg_usage_1_0" type="checkbox" className="form-check-input" name="fg_usage_reports" value="web" checked={form.usage["reports"].includes("web")} aria-label="Reports: Web" onChange={() => setField('usage', { ...form.usage, ["reports"]: fgToggleCell(['web', 'mobile'], form.usage["reports"], 'web') })} onBlur={() => touch('usage')} /></td><td className="text-center"><input id="fg_usage_1_1" type="checkbox" className="form-check-input" name="fg_usage_reports" value="mobile" checked={form.usage["reports"].includes("mobile")} aria-label="Reports: Mobile" onChange={() => setField('usage', { ...form.usage, ["reports"]: fgToggleCell(['web', 'mobile'], form.usage["reports"], 'mobile') })} onBlur={() => touch('usage')} /></td></tr>
+                </tbody>
+              </table>
+            </div>
+            {errors['usage'] && <p className="invalid-feedback d-block mt-0" role="alert">{errors['usage']}</p>}
           </fieldset>
         </div>
         <div className="col-12 col-md-12">
@@ -14173,7 +14532,10 @@ export default function KitchenSinkForm({
         <div className="col-12 col-md-12">
           <div className="d-flex flex-column gap-1">
             <label className="form-label fw-semibold fs-6 mb-0" htmlFor="fg_attachments">Attachments<span className="text-danger ms-1" aria-hidden="true">*</span></label>
-            <input id="fg_attachments" type="file" className="form-control" accept=".pdf,.doc,.docx" multiple aria-invalid={errors['attachments'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('attachments', e.target)} />
+            <div className="fg-file-drop position-relative d-flex align-items-center justify-content-center border border-2 rounded-3 p-4 text-center small text-body-secondary bg-body-tertiary">
+              <span className="fw-medium">Choose files or drag them here</span>
+              <input id="fg_attachments" type="file" className="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept=".pdf,.doc,.docx" multiple aria-invalid={errors['attachments'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('attachments', e.target)} onDragEnter={(e) => fgDrag(e.currentTarget, true)} onDragLeave={(e) => fgDrag(e.currentTarget, false)} onDrop={(e) => fgDrag(e.currentTarget, false)} />
+            </div>
             {form.attachments.length > 0 && (
               <ul className="list-group mt-2">
                 {form.attachments.map((file, fi) => (
@@ -14612,6 +14974,10 @@ function fgDateOrder(v: unknown): boolean {
   const r = (v ?? {}) as { from?: unknown; to?: unknown }
   return typeof r.from === 'string' && typeof r.to === 'string' && r.from !== '' && r.to !== '' && r.to < r.from
 }
+// A matrix row's answers with one column ticked or unticked, in column order.
+function fgToggleCell(columns: string[], current: string[], column: string): string[] {
+  return columns.filter((c) => (c === column) !== current.includes(c))
+}
 function fgAccepts(file: File, accept: string): boolean {
   if (accept.trim() === '') return true
   const name = file.name.toLowerCase()
@@ -14662,6 +15028,7 @@ type FormData = {
   stay: { from: string; to: string }
   days: string[]
   rating: { speed: string | null; quality: string | null }
+  usage: { forms: string[]; reports: string[] }
   source: string
   attachments: File[]
   attachments_note: string
@@ -14719,6 +15086,10 @@ const INITIAL: FormData = {
   rating: {
     speed: null,
     quality: null
+  },
+  usage: {
+    forms: [],
+    reports: []
   },
   source: "kitchen-sink",
   attachments: [],
@@ -14874,6 +15245,7 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "stay": data.stay,
     "days": data.days,
     "rating": data.rating,
+    "usage": data.usage,
     "source": data.source,
     "references": data.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}), ...((item.may_contact === true) ? { "phone": item.phone } : {}) })),
     "attachments": data.attachments,
@@ -15049,6 +15421,10 @@ function fgFileSize(bytes: number): string {
 }
 function fgRemoveFileLabel(name: string): string {
   return "Remove {name}".split('{name}').join(name)
+}
+// Marks the drop zone (the input's parent) while files are dragged over it.
+function fgDrag(input: EventTarget | null, on: boolean): void {
+  ;(input as HTMLElement | null)?.parentElement?.toggleAttribute('data-fg-dragging', on)
 }
 
 const FG_FILE_MULTIPLE: Record<string, boolean> = { 'account.avatar': false, 'attachments': true }
@@ -15364,6 +15740,15 @@ export default function KitchenSinkForm({
           <p className="text-sm text-gray-600 dark:text-gray-300">Every implemented element appears in this form.</p>
         </div>
         <div className="col-span-12 md:col-span-12">
+          <div className="text-sm text-gray-600 dark:text-gray-300 space-y-2">
+            <p>Fields marked * are <strong>required</strong>. See the <a className="font-medium text-indigo-600 underline underline-offset-2 dark:text-indigo-400" href="https://example.com/docs">docs</a>:</p>
+            <ul className="list-disc ps-5">
+              <li><em>one</em> answer per row in Rating</li>
+              <li>several in Usage</li>
+            </ul>
+          </div>
+        </div>
+        <div className="col-span-12 md:col-span-12">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold" htmlFor="fg_full_name">Full name<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
             <input id="fg_full_name" type="text" value={form.full_name} className={errors['full_name'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} placeholder="Jane Doe" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('full_name', e.target.value)} onBlur={() => touch('full_name')} />
@@ -15461,7 +15846,10 @@ export default function KitchenSinkForm({
               <div className="col-span-12 md:col-span-12">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-sm font-semibold" htmlFor="fg_account_avatar">Profile picture</label>
-                  <input id="fg_account_avatar" type="file" className="block w-full text-sm file:me-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-indigo-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" accept="image/*" aria-invalid={errors['account.avatar'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('account.avatar', e.target)} />
+                  <div className="relative flex min-h-[4.5rem] items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center text-sm text-gray-500 hover:border-indigo-500 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-300 data-[fg-dragging]:border-indigo-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">
+                    <span className="font-medium">Choose a file or drag it here</span>
+                    <input id="fg_account_avatar" type="file" className="absolute inset-0 h-full w-full cursor-pointer opacity-0" accept="image/*" aria-invalid={errors['account.avatar'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('account.avatar', e.target)} onDragEnter={(e) => fgDrag(e.currentTarget, true)} onDragLeave={(e) => fgDrag(e.currentTarget, false)} onDrop={(e) => fgDrag(e.currentTarget, false)} />
+                  </div>
                   {form.account.avatar.length > 0 && (
                     <ul className="flex flex-col gap-1.5">
                       {form.account.avatar.map((file, fi) => (
@@ -15660,6 +16048,21 @@ export default function KitchenSinkForm({
               </table>
             </div>
             {errors['rating'] && <p className="text-xs text-red-600" role="alert">{errors['rating']}</p>}
+          </fieldset>
+        </div>
+        <div className="col-span-12 md:col-span-12">
+          <fieldset className="flex flex-col gap-1.5">
+            <legend className="text-sm font-semibold">Where do you use each feature?</legend>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-sm">
+                <thead><tr><td></td><th scope="col" className="px-2 py-2 text-center font-semibold text-gray-500 dark:text-gray-400">Web</th><th scope="col" className="px-2 py-2 text-center font-semibold text-gray-500 dark:text-gray-400">Mobile</th></tr></thead>
+                <tbody>
+                <tr className="border-t border-gray-200 dark:border-gray-700"><th scope="row" className="px-2 py-2 text-start font-medium">Forms</th><td className="px-2 py-2 text-center"><input id="fg_usage" type="checkbox" className="h-4 w-4 accent-indigo-600" name="fg_usage_forms" value="web" checked={form.usage["forms"].includes("web")} aria-label="Forms: Web" onChange={() => setField('usage', { ...form.usage, ["forms"]: fgToggleCell(['web', 'mobile'], form.usage["forms"], 'web') })} onBlur={() => touch('usage')} /></td><td className="px-2 py-2 text-center"><input id="fg_usage_0_1" type="checkbox" className="h-4 w-4 accent-indigo-600" name="fg_usage_forms" value="mobile" checked={form.usage["forms"].includes("mobile")} aria-label="Forms: Mobile" onChange={() => setField('usage', { ...form.usage, ["forms"]: fgToggleCell(['web', 'mobile'], form.usage["forms"], 'mobile') })} onBlur={() => touch('usage')} /></td></tr>
+                <tr className="border-t border-gray-200 dark:border-gray-700"><th scope="row" className="px-2 py-2 text-start font-medium">Reports</th><td className="px-2 py-2 text-center"><input id="fg_usage_1_0" type="checkbox" className="h-4 w-4 accent-indigo-600" name="fg_usage_reports" value="web" checked={form.usage["reports"].includes("web")} aria-label="Reports: Web" onChange={() => setField('usage', { ...form.usage, ["reports"]: fgToggleCell(['web', 'mobile'], form.usage["reports"], 'web') })} onBlur={() => touch('usage')} /></td><td className="px-2 py-2 text-center"><input id="fg_usage_1_1" type="checkbox" className="h-4 w-4 accent-indigo-600" name="fg_usage_reports" value="mobile" checked={form.usage["reports"].includes("mobile")} aria-label="Reports: Mobile" onChange={() => setField('usage', { ...form.usage, ["reports"]: fgToggleCell(['web', 'mobile'], form.usage["reports"], 'mobile') })} onBlur={() => touch('usage')} /></td></tr>
+                </tbody>
+              </table>
+            </div>
+            {errors['usage'] && <p className="text-xs text-red-600" role="alert">{errors['usage']}</p>}
           </fieldset>
         </div>
         <div className="col-span-12 md:col-span-12">
@@ -15966,7 +16369,10 @@ export default function KitchenSinkForm({
         <div className="col-span-12 md:col-span-12">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold" htmlFor="fg_attachments">Attachments<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-            <input id="fg_attachments" type="file" className="block w-full text-sm file:me-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-indigo-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" accept=".pdf,.doc,.docx" multiple aria-invalid={errors['attachments'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('attachments', e.target)} />
+            <div className="relative flex min-h-[4.5rem] items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center text-sm text-gray-500 hover:border-indigo-500 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-300 data-[fg-dragging]:border-indigo-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">
+              <span className="font-medium">Choose files or drag them here</span>
+              <input id="fg_attachments" type="file" className="absolute inset-0 h-full w-full cursor-pointer opacity-0" accept=".pdf,.doc,.docx" multiple aria-invalid={errors['attachments'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('attachments', e.target)} onDragEnter={(e) => fgDrag(e.currentTarget, true)} onDragLeave={(e) => fgDrag(e.currentTarget, false)} onDrop={(e) => fgDrag(e.currentTarget, false)} />
+            </div>
             {form.attachments.length > 0 && (
               <ul className="flex flex-col gap-1.5">
                 {form.attachments.map((file, fi) => (
@@ -16339,8 +16745,8 @@ export default function KitchenSinkForm({
             </div>
             <div className="mt-4 flex justify-between gap-2">
               {fgSec_ks_wizard > 0 && <button type="button" className="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" onClick={() => fgGo_ks_wizard(fgSec_ks_wizard - 1)}>Back</button>}
-              {fgSec_ks_wizard < 1 && <button type="button" className="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" onClick={fgNext_ks_wizard}>Next</button>}
-              {fgSec_ks_wizard === 1 && <button type="submit" className="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300">Submit</button>}
+              {fgSec_ks_wizard < 1 && <button type="button" className="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60" onClick={fgNext_ks_wizard}>Next</button>}
+              {fgSec_ks_wizard === 1 && <button type="submit" className="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60">Submit</button>}
             </div>
           </div>
         </div>
@@ -16405,6 +16811,10 @@ function fgDateOrder(v: unknown): boolean {
   const r = (v ?? {}) as { from?: unknown; to?: unknown }
   return typeof r.from === 'string' && typeof r.to === 'string' && r.from !== '' && r.to !== '' && r.to < r.from
 }
+// A matrix row's answers with one column ticked or unticked, in column order.
+function fgToggleCell(columns: string[], current: string[], column: string): string[] {
+  return columns.filter((c) => (c === column) !== current.includes(c))
+}
 function fgAccepts(file: File, accept: string): boolean {
   if (accept.trim() === '') return true
   const name = file.name.toLowerCase()
@@ -16455,6 +16865,7 @@ type FormData = {
   stay: { from: string; to: string }
   days: string[]
   rating: { speed: string | null; quality: string | null }
+  usage: { forms: string[]; reports: string[] }
   source: string
   attachments: File[]
   attachments_note: string
@@ -16512,6 +16923,10 @@ const INITIAL: FormData = {
   rating: {
     speed: null,
     quality: null
+  },
+  usage: {
+    forms: [],
+    reports: []
   },
   source: "kitchen-sink",
   attachments: [],
@@ -16667,6 +17082,7 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "stay": data.stay,
     "days": data.days,
     "rating": data.rating,
+    "usage": data.usage,
     "source": data.source,
     "references": data.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}), ...((item.may_contact === true) ? { "phone": item.phone } : {}) })),
     "attachments": data.attachments,
@@ -16842,6 +17258,10 @@ function fgFileSize(bytes: number): string {
 }
 function fgRemoveFileLabel(name: string): string {
   return "Remove {name}".split('{name}').join(name)
+}
+// Marks the drop zone (the input's parent) while files are dragged over it.
+function fgDrag(input: EventTarget | null, on: boolean): void {
+  ;(input as HTMLElement | null)?.parentElement?.toggleAttribute('data-fg-dragging', on)
 }
 
 const FG_FILE_MULTIPLE: Record<string, boolean> = { 'account.avatar': false, 'attachments': true }
@@ -17157,6 +17577,15 @@ export default function KitchenSinkForm({
           <p className="fg-paragraph">Every implemented element appears in this form.</p>
         </div>
         <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
+          <div className="fg-paragraph fg-rich-text">
+            <p>Fields marked * are <strong>required</strong>. See the <a className="fg-link" href="https://example.com/docs">docs</a>:</p>
+            <ul>
+              <li><em>one</em> answer per row in Rating</li>
+              <li>several in Usage</li>
+            </ul>
+          </div>
+        </div>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <label className="fg-label" htmlFor="fg_full_name">Full name<span className="fg-required" aria-hidden="true">*</span></label>
             <input id="fg_full_name" type="text" value={form.full_name} className={errors['full_name'] ? "fg-input fg-invalid" : "fg-input"} placeholder="Jane Doe" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('full_name', e.target.value)} onBlur={() => touch('full_name')} />
@@ -17254,7 +17683,10 @@ export default function KitchenSinkForm({
               <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
                 <div className="fg-field">
                   <label className="fg-label" htmlFor="fg_account_avatar">Profile picture</label>
-                  <input id="fg_account_avatar" type="file" className="fg-file-input" accept="image/*" aria-invalid={errors['account.avatar'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('account.avatar', e.target)} />
+                  <div className="fg-file-drop">
+                    <span className="fg-file-drop-text">Choose a file or drag it here</span>
+                    <input id="fg_account_avatar" type="file" className="fg-file-input" accept="image/*" aria-invalid={errors['account.avatar'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('account.avatar', e.target)} onDragEnter={(e) => fgDrag(e.currentTarget, true)} onDragLeave={(e) => fgDrag(e.currentTarget, false)} onDrop={(e) => fgDrag(e.currentTarget, false)} />
+                  </div>
                   {form.account.avatar.length > 0 && (
                     <ul className="fg-file-list">
                       {form.account.avatar.map((file, fi) => (
@@ -17453,6 +17885,21 @@ export default function KitchenSinkForm({
               </table>
             </div>
             {errors['rating'] && <p className="fg-error" role="alert">{errors['rating']}</p>}
+          </fieldset>
+        </div>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
+          <fieldset className="fg-field">
+            <legend className="fg-label">Where do you use each feature?</legend>
+            <div className="fg-matrix-scroll">
+              <table className="fg-matrix">
+                <thead><tr><td></td><th scope="col">Web</th><th scope="col">Mobile</th></tr></thead>
+                <tbody>
+                <tr><th scope="row">Forms</th><td><input id="fg_usage" type="checkbox" name="fg_usage_forms" value="web" checked={form.usage["forms"].includes("web")} aria-label="Forms: Web" onChange={() => setField('usage', { ...form.usage, ["forms"]: fgToggleCell(['web', 'mobile'], form.usage["forms"], 'web') })} onBlur={() => touch('usage')} /></td><td><input id="fg_usage_0_1" type="checkbox" name="fg_usage_forms" value="mobile" checked={form.usage["forms"].includes("mobile")} aria-label="Forms: Mobile" onChange={() => setField('usage', { ...form.usage, ["forms"]: fgToggleCell(['web', 'mobile'], form.usage["forms"], 'mobile') })} onBlur={() => touch('usage')} /></td></tr>
+                <tr><th scope="row">Reports</th><td><input id="fg_usage_1_0" type="checkbox" name="fg_usage_reports" value="web" checked={form.usage["reports"].includes("web")} aria-label="Reports: Web" onChange={() => setField('usage', { ...form.usage, ["reports"]: fgToggleCell(['web', 'mobile'], form.usage["reports"], 'web') })} onBlur={() => touch('usage')} /></td><td><input id="fg_usage_1_1" type="checkbox" name="fg_usage_reports" value="mobile" checked={form.usage["reports"].includes("mobile")} aria-label="Reports: Mobile" onChange={() => setField('usage', { ...form.usage, ["reports"]: fgToggleCell(['web', 'mobile'], form.usage["reports"], 'mobile') })} onBlur={() => touch('usage')} /></td></tr>
+                </tbody>
+              </table>
+            </div>
+            {errors['usage'] && <p className="fg-error" role="alert">{errors['usage']}</p>}
           </fieldset>
         </div>
         <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
@@ -17759,7 +18206,10 @@ export default function KitchenSinkForm({
         <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div className="fg-field">
             <label className="fg-label" htmlFor="fg_attachments">Attachments<span className="fg-required" aria-hidden="true">*</span></label>
-            <input id="fg_attachments" type="file" className="fg-file-input" accept=".pdf,.doc,.docx" multiple aria-invalid={errors['attachments'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('attachments', e.target)} />
+            <div className="fg-file-drop">
+              <span className="fg-file-drop-text">Choose files or drag them here</span>
+              <input id="fg_attachments" type="file" className="fg-file-input" accept=".pdf,.doc,.docx" multiple aria-invalid={errors['attachments'] ? true : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgPickFiles('attachments', e.target)} onDragEnter={(e) => fgDrag(e.currentTarget, true)} onDragLeave={(e) => fgDrag(e.currentTarget, false)} onDrop={(e) => fgDrag(e.currentTarget, false)} />
+            </div>
             {form.attachments.length > 0 && (
               <ul className="fg-file-list">
                 {form.attachments.map((file, fi) => (
@@ -18203,6 +18653,7 @@ type FormData = {
   stay: { from: string; to: string }
   days: string[]
   rating: { speed: string | null; quality: string | null }
+  usage: { forms: string[]; reports: string[] }
   source: string
   attachments: File[]
   attachments_note: string
@@ -18260,6 +18711,10 @@ const form = reactive<FormData>({
   rating: {
     speed: null,
     quality: null
+  },
+  usage: {
+    forms: [],
+    reports: []
   },
   source: "kitchen-sink",
   attachments: [],
@@ -18325,6 +18780,10 @@ function fgDateOrder(v: unknown): boolean {
   const r = (v ?? {}) as { from?: unknown; to?: unknown }
   return typeof r.from === 'string' && typeof r.to === 'string' && r.from !== '' && r.to !== '' && r.to < r.from
 }
+// A matrix row's answers with one column ticked or unticked, in column order.
+function fgToggleCell(columns: string[], current: string[], column: string): string[] {
+  return columns.filter((c) => (c === column) !== current.includes(c))
+}
 function fgTpl(path: string): string {
   return path.replace(/\\.\\d+(?=\\.|$)/g, '')
 }
@@ -18376,6 +18835,10 @@ function fgFileSize(bytes: number): string {
 }
 function fgRemoveFileLabel(name: string): string {
   return "Remove {name}".split('{name}').join(name)
+}
+// Marks the drop zone (the input's parent) while files are dragged over it.
+function fgDrag(input: EventTarget | null, on: boolean): void {
+  ;(input as HTMLElement | null)?.parentElement?.toggleAttribute('data-fg-dragging', on)
 }
 const fgFileMultiple: Record<string, boolean> = { 'account.avatar': false, 'attachments': true }
 function fgFileList(path: string): File[] {
@@ -18855,6 +19318,10 @@ function fgReset(): void {
       speed: null,
       quality: null
     },
+    usage: {
+      forms: [],
+      reports: []
+    },
     source: "kitchen-sink",
     attachments: [],
     attachments_note: "",
@@ -18913,6 +19380,7 @@ function buildPayload(): Record<string, unknown> {
     "stay": form.stay,
     "days": form.days,
     "rating": form.rating,
+    "usage": form.usage,
     "source": form.source,
     "references": form.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}), ...((item.may_contact === true) ? { "phone": item.phone } : {}) })),
     "attachments": form.attachments,
@@ -18957,6 +19425,15 @@ async function onSubmit(): Promise<void> {
       </div>
       <div class="col-12 col-md-12 text-center">
         <p class="text-secondary">Every implemented element appears in this form.</p>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="text-secondary" v-pre>
+          <p class="mb-2">Fields marked * are <strong>required</strong>. See the <a class="link-primary" href="https://example.com/docs">docs</a>:</p>
+          <ul class="mb-2">
+            <li><em>one</em> answer per row in Rating</li>
+            <li>several in Usage</li>
+          </ul>
+        </div>
       </div>
       <div class="col-12 col-md-12">
         <div class="d-flex flex-column gap-1">
@@ -19056,7 +19533,10 @@ async function onSubmit(): Promise<void> {
             <div class="col-12 col-md-12">
               <div class="d-flex flex-column gap-1">
                 <label class="form-label fw-semibold fs-6 mb-0" for="fg_account_avatar">Profile picture</label>
-                <input id="fg_account_avatar" type="file" class="form-control" accept="image/*" :aria-invalid="errors['account.avatar'] ? 'true' : undefined" @change="fgPickFiles('account.avatar', $event)">
+                <div class="fg-file-drop position-relative d-flex align-items-center justify-content-center border border-2 rounded-3 p-4 text-center small text-body-secondary bg-body-tertiary">
+                  <span class="fw-medium">Choose a file or drag it here</span>
+                  <input id="fg_account_avatar" type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept="image/*" :aria-invalid="errors['account.avatar'] ? 'true' : undefined" @change="fgPickFiles('account.avatar', $event)" @dragenter="fgDrag($event.currentTarget, true)" @dragleave="fgDrag($event.currentTarget, false)" @drop="fgDrag($event.currentTarget, false)">
+                </div>
                 <ul v-if="form.account.avatar.length" class="list-group mt-2">
                   <li v-for="(file, fi) in form.account.avatar" :key="fi" class="list-group-item d-flex align-items-center gap-2">
                     <img v-if="file.type.startsWith('image/')" class="rounded object-fit-cover" :src="fgThumb(file)" alt="" width="40" height="40">
@@ -19229,6 +19709,21 @@ async function onSubmit(): Promise<void> {
             </table>
           </div>
           <p v-if="errors['rating']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['rating'] }}</p>
+        </fieldset>
+      </div>
+      <div class="col-12 col-md-12">
+        <fieldset class="d-flex flex-column gap-1">
+          <legend class="form-label fw-semibold fs-6 mb-0">Where do you use each feature?</legend>
+          <div class="table-responsive">
+            <table class="table table-sm table-striped align-middle mb-0">
+              <thead><tr><td></td><th scope="col" class="text-center fw-semibold text-body-secondary">Web</th><th scope="col" class="text-center fw-semibold text-body-secondary">Mobile</th></tr></thead>
+              <tbody>
+              <tr><th scope="row" class="text-start fw-medium">Forms</th><td class="text-center"><input id="fg_usage" type="checkbox" class="form-check-input" name="fg_usage_forms" value="web" :checked="form.usage['forms'].includes('web')" aria-label="Forms: Web" @change="form.usage['forms'] = fgToggleCell(['web', 'mobile'], form.usage['forms'], 'web'); revalidate('usage')" @blur="touch('usage')"></td><td class="text-center"><input id="fg_usage_0_1" type="checkbox" class="form-check-input" name="fg_usage_forms" value="mobile" :checked="form.usage['forms'].includes('mobile')" aria-label="Forms: Mobile" @change="form.usage['forms'] = fgToggleCell(['web', 'mobile'], form.usage['forms'], 'mobile'); revalidate('usage')" @blur="touch('usage')"></td></tr>
+              <tr><th scope="row" class="text-start fw-medium">Reports</th><td class="text-center"><input id="fg_usage_1_0" type="checkbox" class="form-check-input" name="fg_usage_reports" value="web" :checked="form.usage['reports'].includes('web')" aria-label="Reports: Web" @change="form.usage['reports'] = fgToggleCell(['web', 'mobile'], form.usage['reports'], 'web'); revalidate('usage')" @blur="touch('usage')"></td><td class="text-center"><input id="fg_usage_1_1" type="checkbox" class="form-check-input" name="fg_usage_reports" value="mobile" :checked="form.usage['reports'].includes('mobile')" aria-label="Reports: Mobile" @change="form.usage['reports'] = fgToggleCell(['web', 'mobile'], form.usage['reports'], 'mobile'); revalidate('usage')" @blur="touch('usage')"></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p v-if="errors['usage']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['usage'] }}</p>
         </fieldset>
       </div>
       <div class="col-12 col-md-12">
@@ -19529,7 +20024,10 @@ async function onSubmit(): Promise<void> {
       <div class="col-12 col-md-12">
         <div class="d-flex flex-column gap-1">
           <label class="form-label fw-semibold fs-6 mb-0" for="fg_attachments">Attachments<span class="text-danger ms-1" aria-hidden="true">*</span></label>
-          <input id="fg_attachments" type="file" class="form-control" accept=".pdf,.doc,.docx" multiple :aria-invalid="errors['attachments'] ? 'true' : undefined" @change="fgPickFiles('attachments', $event)">
+          <div class="fg-file-drop position-relative d-flex align-items-center justify-content-center border border-2 rounded-3 p-4 text-center small text-body-secondary bg-body-tertiary">
+            <span class="fw-medium">Choose files or drag them here</span>
+            <input id="fg_attachments" type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept=".pdf,.doc,.docx" multiple :aria-invalid="errors['attachments'] ? 'true' : undefined" @change="fgPickFiles('attachments', $event)" @dragenter="fgDrag($event.currentTarget, true)" @dragleave="fgDrag($event.currentTarget, false)" @drop="fgDrag($event.currentTarget, false)">
+          </div>
           <ul v-if="form.attachments.length" class="list-group mt-2">
             <li v-for="(file, fi) in form.attachments" :key="fi" class="list-group-item d-flex align-items-center gap-2">
               <span class="flex-grow-1 text-truncate">{{ file.name }}</span>
@@ -19949,6 +20447,12 @@ async function onSubmit(): Promise<void> {
 .fg-tip-button:focus-visible { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
 .fg-tip-text { position: absolute; inset-block-end: calc(100% + 0.375rem); inset-inline-start: 0; z-index: 20; inline-size: max-content; max-inline-size: min(16rem, calc(100vw - 2rem)); padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 400; line-height: 1.4; text-align: start; color: #ffffff; background: #111827; border-radius: 0.375rem; visibility: hidden; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
 .fg-tip:hover .fg-tip-text, .fg-tip-button:focus + .fg-tip-text { visibility: visible; opacity: 1; }
+
+/* Upload drop zones */
+.fg-file-drop { min-block-size: 4.5rem; border-style: dashed !important; }
+.fg-file-drop:hover, .fg-file-drop[data-fg-dragging] { color: var(--bs-body-color) !important; border-color: var(--bs-primary) !important; }
+.fg-file-drop:has(:focus-visible) { box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25); }
+.fg-file-drop > input { cursor: pointer; }
 </style>
 "
 `;
@@ -19989,6 +20493,7 @@ type FormData = {
   stay: { from: string; to: string }
   days: string[]
   rating: { speed: string | null; quality: string | null }
+  usage: { forms: string[]; reports: string[] }
   source: string
   attachments: File[]
   attachments_note: string
@@ -20046,6 +20551,10 @@ const form = reactive<FormData>({
   rating: {
     speed: null,
     quality: null
+  },
+  usage: {
+    forms: [],
+    reports: []
   },
   source: "kitchen-sink",
   attachments: [],
@@ -20111,6 +20620,10 @@ function fgDateOrder(v: unknown): boolean {
   const r = (v ?? {}) as { from?: unknown; to?: unknown }
   return typeof r.from === 'string' && typeof r.to === 'string' && r.from !== '' && r.to !== '' && r.to < r.from
 }
+// A matrix row's answers with one column ticked or unticked, in column order.
+function fgToggleCell(columns: string[], current: string[], column: string): string[] {
+  return columns.filter((c) => (c === column) !== current.includes(c))
+}
 function fgTpl(path: string): string {
   return path.replace(/\\.\\d+(?=\\.|$)/g, '')
 }
@@ -20162,6 +20675,10 @@ function fgFileSize(bytes: number): string {
 }
 function fgRemoveFileLabel(name: string): string {
   return "Remove {name}".split('{name}').join(name)
+}
+// Marks the drop zone (the input's parent) while files are dragged over it.
+function fgDrag(input: EventTarget | null, on: boolean): void {
+  ;(input as HTMLElement | null)?.parentElement?.toggleAttribute('data-fg-dragging', on)
 }
 const fgFileMultiple: Record<string, boolean> = { 'account.avatar': false, 'attachments': true }
 function fgFileList(path: string): File[] {
@@ -20641,6 +21158,10 @@ function fgReset(): void {
       speed: null,
       quality: null
     },
+    usage: {
+      forms: [],
+      reports: []
+    },
     source: "kitchen-sink",
     attachments: [],
     attachments_note: "",
@@ -20699,6 +21220,7 @@ function buildPayload(): Record<string, unknown> {
     "stay": form.stay,
     "days": form.days,
     "rating": form.rating,
+    "usage": form.usage,
     "source": form.source,
     "references": form.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}), ...((item.may_contact === true) ? { "phone": item.phone } : {}) })),
     "attachments": form.attachments,
@@ -20743,6 +21265,15 @@ async function onSubmit(): Promise<void> {
       </div>
       <div class="col-span-12 md:col-span-12 text-center">
         <p class="text-sm text-gray-600 dark:text-gray-300">Every implemented element appears in this form.</p>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="text-sm text-gray-600 dark:text-gray-300 space-y-2" v-pre>
+          <p>Fields marked * are <strong>required</strong>. See the <a class="font-medium text-indigo-600 underline underline-offset-2 dark:text-indigo-400" href="https://example.com/docs">docs</a>:</p>
+          <ul class="list-disc ps-5">
+            <li><em>one</em> answer per row in Rating</li>
+            <li>several in Usage</li>
+          </ul>
+        </div>
       </div>
       <div class="col-span-12 md:col-span-12">
         <div class="flex flex-col gap-1.5">
@@ -20842,7 +21373,10 @@ async function onSubmit(): Promise<void> {
             <div class="col-span-12 md:col-span-12">
               <div class="flex flex-col gap-1.5">
                 <label class="text-sm font-semibold" for="fg_account_avatar">Profile picture</label>
-                <input id="fg_account_avatar" type="file" class="block w-full text-sm file:me-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-indigo-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" accept="image/*" :aria-invalid="errors['account.avatar'] ? 'true' : undefined" @change="fgPickFiles('account.avatar', $event)">
+                <div class="relative flex min-h-[4.5rem] items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center text-sm text-gray-500 hover:border-indigo-500 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-300 data-[fg-dragging]:border-indigo-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">
+                  <span class="font-medium">Choose a file or drag it here</span>
+                  <input id="fg_account_avatar" type="file" class="absolute inset-0 h-full w-full cursor-pointer opacity-0" accept="image/*" :aria-invalid="errors['account.avatar'] ? 'true' : undefined" @change="fgPickFiles('account.avatar', $event)" @dragenter="fgDrag($event.currentTarget, true)" @dragleave="fgDrag($event.currentTarget, false)" @drop="fgDrag($event.currentTarget, false)">
+                </div>
                 <ul v-if="form.account.avatar.length" class="flex flex-col gap-1.5">
                   <li v-for="(file, fi) in form.account.avatar" :key="fi" class="flex items-center gap-2 rounded-md border border-gray-300 bg-gray-50 px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800/50">
                     <img v-if="file.type.startsWith('image/')" class="h-10 w-10 rounded object-cover" :src="fgThumb(file)" alt="" width="40" height="40">
@@ -21023,6 +21557,21 @@ async function onSubmit(): Promise<void> {
             </table>
           </div>
           <p v-if="errors['rating']" class="text-xs text-red-600" role="alert">{{ errors['rating'] }}</p>
+        </fieldset>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <fieldset class="flex flex-col gap-1.5">
+          <legend class="text-sm font-semibold">Where do you use each feature?</legend>
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse text-sm">
+              <thead><tr><td></td><th scope="col" class="px-2 py-2 text-center font-semibold text-gray-500 dark:text-gray-400">Web</th><th scope="col" class="px-2 py-2 text-center font-semibold text-gray-500 dark:text-gray-400">Mobile</th></tr></thead>
+              <tbody>
+              <tr class="border-t border-gray-200 dark:border-gray-700"><th scope="row" class="px-2 py-2 text-start font-medium">Forms</th><td class="px-2 py-2 text-center"><input id="fg_usage" type="checkbox" class="h-4 w-4 accent-indigo-600" name="fg_usage_forms" value="web" :checked="form.usage['forms'].includes('web')" aria-label="Forms: Web" @change="form.usage['forms'] = fgToggleCell(['web', 'mobile'], form.usage['forms'], 'web'); revalidate('usage')" @blur="touch('usage')"></td><td class="px-2 py-2 text-center"><input id="fg_usage_0_1" type="checkbox" class="h-4 w-4 accent-indigo-600" name="fg_usage_forms" value="mobile" :checked="form.usage['forms'].includes('mobile')" aria-label="Forms: Mobile" @change="form.usage['forms'] = fgToggleCell(['web', 'mobile'], form.usage['forms'], 'mobile'); revalidate('usage')" @blur="touch('usage')"></td></tr>
+              <tr class="border-t border-gray-200 dark:border-gray-700"><th scope="row" class="px-2 py-2 text-start font-medium">Reports</th><td class="px-2 py-2 text-center"><input id="fg_usage_1_0" type="checkbox" class="h-4 w-4 accent-indigo-600" name="fg_usage_reports" value="web" :checked="form.usage['reports'].includes('web')" aria-label="Reports: Web" @change="form.usage['reports'] = fgToggleCell(['web', 'mobile'], form.usage['reports'], 'web'); revalidate('usage')" @blur="touch('usage')"></td><td class="px-2 py-2 text-center"><input id="fg_usage_1_1" type="checkbox" class="h-4 w-4 accent-indigo-600" name="fg_usage_reports" value="mobile" :checked="form.usage['reports'].includes('mobile')" aria-label="Reports: Mobile" @change="form.usage['reports'] = fgToggleCell(['web', 'mobile'], form.usage['reports'], 'mobile'); revalidate('usage')" @blur="touch('usage')"></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p v-if="errors['usage']" class="text-xs text-red-600" role="alert">{{ errors['usage'] }}</p>
         </fieldset>
       </div>
       <div class="col-span-12 md:col-span-12">
@@ -21323,7 +21872,10 @@ async function onSubmit(): Promise<void> {
       <div class="col-span-12 md:col-span-12">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-semibold" for="fg_attachments">Attachments<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-          <input id="fg_attachments" type="file" class="block w-full text-sm file:me-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-indigo-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" accept=".pdf,.doc,.docx" multiple :aria-invalid="errors['attachments'] ? 'true' : undefined" @change="fgPickFiles('attachments', $event)">
+          <div class="relative flex min-h-[4.5rem] items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center text-sm text-gray-500 hover:border-indigo-500 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-300 data-[fg-dragging]:border-indigo-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">
+            <span class="font-medium">Choose files or drag them here</span>
+            <input id="fg_attachments" type="file" class="absolute inset-0 h-full w-full cursor-pointer opacity-0" accept=".pdf,.doc,.docx" multiple :aria-invalid="errors['attachments'] ? 'true' : undefined" @change="fgPickFiles('attachments', $event)" @dragenter="fgDrag($event.currentTarget, true)" @dragleave="fgDrag($event.currentTarget, false)" @drop="fgDrag($event.currentTarget, false)">
+          </div>
           <ul v-if="form.attachments.length" class="flex flex-col gap-1.5">
             <li v-for="(file, fi) in form.attachments" :key="fi" class="flex items-center gap-2 rounded-md border border-gray-300 bg-gray-50 px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800/50">
               <span class="min-w-0 flex-1 truncate">{{ file.name }}</span>
@@ -21686,8 +22238,8 @@ async function onSubmit(): Promise<void> {
           </div>
           <div class="mt-4 flex justify-between gap-2">
             <button v-if="fgSec_ks_wizard > 0" type="button" class="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" @click="fgGo_ks_wizard(fgSec_ks_wizard - 1)">Back</button>
-            <button v-if="fgSec_ks_wizard < 1" type="button" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300" @click="fgNext_ks_wizard()">Next</button>
-            <button v-if="fgSec_ks_wizard === 1" type="submit" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300">Submit</button>
+            <button v-if="fgSec_ks_wizard < 1" type="button" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60" @click="fgNext_ks_wizard()">Next</button>
+            <button v-if="fgSec_ks_wizard === 1" type="submit" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60">Submit</button>
           </div>
         </div>
       </div>
@@ -21783,6 +22335,7 @@ type FormData = {
   stay: { from: string; to: string }
   days: string[]
   rating: { speed: string | null; quality: string | null }
+  usage: { forms: string[]; reports: string[] }
   source: string
   attachments: File[]
   attachments_note: string
@@ -21840,6 +22393,10 @@ const form = reactive<FormData>({
   rating: {
     speed: null,
     quality: null
+  },
+  usage: {
+    forms: [],
+    reports: []
   },
   source: "kitchen-sink",
   attachments: [],
@@ -21905,6 +22462,10 @@ function fgDateOrder(v: unknown): boolean {
   const r = (v ?? {}) as { from?: unknown; to?: unknown }
   return typeof r.from === 'string' && typeof r.to === 'string' && r.from !== '' && r.to !== '' && r.to < r.from
 }
+// A matrix row's answers with one column ticked or unticked, in column order.
+function fgToggleCell(columns: string[], current: string[], column: string): string[] {
+  return columns.filter((c) => (c === column) !== current.includes(c))
+}
 function fgTpl(path: string): string {
   return path.replace(/\\.\\d+(?=\\.|$)/g, '')
 }
@@ -21956,6 +22517,10 @@ function fgFileSize(bytes: number): string {
 }
 function fgRemoveFileLabel(name: string): string {
   return "Remove {name}".split('{name}').join(name)
+}
+// Marks the drop zone (the input's parent) while files are dragged over it.
+function fgDrag(input: EventTarget | null, on: boolean): void {
+  ;(input as HTMLElement | null)?.parentElement?.toggleAttribute('data-fg-dragging', on)
 }
 const fgFileMultiple: Record<string, boolean> = { 'account.avatar': false, 'attachments': true }
 function fgFileList(path: string): File[] {
@@ -22435,6 +23000,10 @@ function fgReset(): void {
       speed: null,
       quality: null
     },
+    usage: {
+      forms: [],
+      reports: []
+    },
     source: "kitchen-sink",
     attachments: [],
     attachments_note: "",
@@ -22493,6 +23062,7 @@ function buildPayload(): Record<string, unknown> {
     "stay": form.stay,
     "days": form.days,
     "rating": form.rating,
+    "usage": form.usage,
     "source": form.source,
     "references": form.references.map((item) => ({ "name": item.name, "may_contact": item.may_contact, ...((item.may_contact === true) ? { "email": item.email } : {}), ...((item.may_contact === true) ? { "phone": item.phone } : {}) })),
     "attachments": form.attachments,
@@ -22537,6 +23107,15 @@ async function onSubmit(): Promise<void> {
       </div>
       <div class="fg-cell fg-align-center" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <p class="fg-paragraph">Every implemented element appears in this form.</p>
+      </div>
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
+        <div class="fg-paragraph fg-rich-text" v-pre>
+          <p>Fields marked * are <strong>required</strong>. See the <a class="fg-link" href="https://example.com/docs">docs</a>:</p>
+          <ul>
+            <li><em>one</em> answer per row in Rating</li>
+            <li>several in Usage</li>
+          </ul>
+        </div>
       </div>
       <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
@@ -22636,7 +23215,10 @@ async function onSubmit(): Promise<void> {
             <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
               <div class="fg-field">
                 <label class="fg-label" for="fg_account_avatar">Profile picture</label>
-                <input id="fg_account_avatar" type="file" class="fg-file-input" accept="image/*" :aria-invalid="errors['account.avatar'] ? 'true' : undefined" @change="fgPickFiles('account.avatar', $event)">
+                <div class="fg-file-drop">
+                  <span class="fg-file-drop-text">Choose a file or drag it here</span>
+                  <input id="fg_account_avatar" type="file" class="fg-file-input" accept="image/*" :aria-invalid="errors['account.avatar'] ? 'true' : undefined" @change="fgPickFiles('account.avatar', $event)" @dragenter="fgDrag($event.currentTarget, true)" @dragleave="fgDrag($event.currentTarget, false)" @drop="fgDrag($event.currentTarget, false)">
+                </div>
                 <ul v-if="form.account.avatar.length" class="fg-file-list">
                   <li v-for="(file, fi) in form.account.avatar" :key="fi" class="fg-file-item">
                     <img v-if="file.type.startsWith('image/')" class="fg-file-thumb" :src="fgThumb(file)" alt="" width="40" height="40">
@@ -22817,6 +23399,21 @@ async function onSubmit(): Promise<void> {
             </table>
           </div>
           <p v-if="errors['rating']" class="fg-error" role="alert">{{ errors['rating'] }}</p>
+        </fieldset>
+      </div>
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
+        <fieldset class="fg-field">
+          <legend class="fg-label">Where do you use each feature?</legend>
+          <div class="fg-matrix-scroll">
+            <table class="fg-matrix">
+              <thead><tr><td></td><th scope="col">Web</th><th scope="col">Mobile</th></tr></thead>
+              <tbody>
+              <tr><th scope="row">Forms</th><td><input id="fg_usage" type="checkbox" name="fg_usage_forms" value="web" :checked="form.usage['forms'].includes('web')" aria-label="Forms: Web" @change="form.usage['forms'] = fgToggleCell(['web', 'mobile'], form.usage['forms'], 'web'); revalidate('usage')" @blur="touch('usage')"></td><td><input id="fg_usage_0_1" type="checkbox" name="fg_usage_forms" value="mobile" :checked="form.usage['forms'].includes('mobile')" aria-label="Forms: Mobile" @change="form.usage['forms'] = fgToggleCell(['web', 'mobile'], form.usage['forms'], 'mobile'); revalidate('usage')" @blur="touch('usage')"></td></tr>
+              <tr><th scope="row">Reports</th><td><input id="fg_usage_1_0" type="checkbox" name="fg_usage_reports" value="web" :checked="form.usage['reports'].includes('web')" aria-label="Reports: Web" @change="form.usage['reports'] = fgToggleCell(['web', 'mobile'], form.usage['reports'], 'web'); revalidate('usage')" @blur="touch('usage')"></td><td><input id="fg_usage_1_1" type="checkbox" name="fg_usage_reports" value="mobile" :checked="form.usage['reports'].includes('mobile')" aria-label="Reports: Mobile" @change="form.usage['reports'] = fgToggleCell(['web', 'mobile'], form.usage['reports'], 'mobile'); revalidate('usage')" @blur="touch('usage')"></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p v-if="errors['usage']" class="fg-error" role="alert">{{ errors['usage'] }}</p>
         </fieldset>
       </div>
       <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
@@ -23117,7 +23714,10 @@ async function onSubmit(): Promise<void> {
       <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div class="fg-field">
           <label class="fg-label" for="fg_attachments">Attachments<span class="fg-required" aria-hidden="true">*</span></label>
-          <input id="fg_attachments" type="file" class="fg-file-input" accept=".pdf,.doc,.docx" multiple :aria-invalid="errors['attachments'] ? 'true' : undefined" @change="fgPickFiles('attachments', $event)">
+          <div class="fg-file-drop">
+            <span class="fg-file-drop-text">Choose files or drag them here</span>
+            <input id="fg_attachments" type="file" class="fg-file-input" accept=".pdf,.doc,.docx" multiple :aria-invalid="errors['attachments'] ? 'true' : undefined" @change="fgPickFiles('attachments', $event)" @dragenter="fgDrag($event.currentTarget, true)" @dragleave="fgDrag($event.currentTarget, false)" @drop="fgDrag($event.currentTarget, false)">
+          </div>
           <ul v-if="form.attachments.length" class="fg-file-list">
             <li v-for="(file, fi) in form.attachments" :key="fi" class="fg-file-item">
               <span class="fg-file-name">{{ file.name }}</span>
@@ -23557,6 +24157,11 @@ async function onSubmit(): Promise<void> {
 .fg-range { inline-size: 100%; accent-color: var(--fg-color-primary); }
 .fg-heading { margin: 0; }
 .fg-paragraph { margin: 0; color: var(--fg-color-muted); }
+.fg-rich-text > * { margin: 0; }
+.fg-rich-text > * + * { margin-block-start: 0.5em; }
+.fg-rich-text ul, .fg-rich-text ol { padding-inline-start: 1.25em; }
+.fg-rich-text ul { list-style: disc; }
+.fg-rich-text ol { list-style: decimal; }
 .fg-divider { border: none; border-block-start: 1px solid var(--fg-color-border); margin-block: 0.25rem; }
 .fg-tab-list { display: flex; flex-wrap: wrap; gap: 0.25rem; border-block-end: 1px solid var(--fg-color-border); margin-block-end: var(--fg-space); }
 .fg-tab-button { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.5rem 0.875rem; font: inherit; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); background: none; border: none; border-block-end: 2px solid transparent; cursor: pointer; }
@@ -23588,6 +24193,11 @@ async function onSubmit(): Promise<void> {
 .fg-group { margin: 0; padding: var(--fg-space); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
 .fg-group-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); }
 .fg-actions { margin-block-start: var(--fg-space); }
+.fg-upload { display: flex; flex-direction: column; gap: 0.375rem; margin-block-start: var(--fg-space); }
+.fg-progress { block-size: 0.5rem; overflow: hidden; background: var(--fg-color-border); border-radius: 999px; }
+.fg-progress-bar { block-size: 100%; background: var(--fg-color-primary); border-radius: inherit; transition: inline-size 0.2s ease; }
+.fg-progress-text { margin: 0; font-size: 0.875rem; color: var(--fg-color-muted); }
+.fg-button:disabled { opacity: 0.6; cursor: not-allowed; }
 .fg-button { padding: 0.5rem 1.25rem; font: inherit; font-weight: 600; border: 1px solid transparent; border-radius: var(--fg-radius); cursor: pointer; }
 .fg-button--primary { background: var(--fg-color-primary); color: var(--fg-color-primary-contrast); }
 .fg-payload { margin-block-start: var(--fg-space); padding: var(--fg-space); background: #0f172a; color: #86efac; border-radius: var(--fg-radius); font-size: 0.8125rem; overflow-x: auto; }
@@ -23627,9 +24237,11 @@ fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
 .fg-repeater-remove { margin-inline-start: auto; padding: 0; font: inherit; font-size: 0.875rem; color: var(--fg-color-error); background: none; border: none; text-decoration: underline; cursor: pointer; }
 .fg-repeater-add { margin-block-start: var(--fg-space); }
 /* File uploads */
-.fg-file-input { font: inherit; font-size: 0.875rem; }
-.fg-file-input::file-selector-button { margin-inline-end: 0.75rem; padding: 0.375rem 0.75rem; font: inherit; font-weight: 600; color: var(--fg-color-primary-contrast); background: var(--fg-color-primary); border: none; border-radius: var(--fg-radius); cursor: pointer; }
-.fg-file-input::file-selector-button:hover { opacity: 0.9; }
+.fg-file-drop { position: relative; display: flex; align-items: center; justify-content: center; min-block-size: 4.5rem; padding: 1rem; text-align: center; font-size: 0.875rem; color: var(--fg-color-muted); background: var(--fg-color-surface); border: 2px dashed var(--fg-color-border); border-radius: var(--fg-radius); }
+.fg-file-drop:hover, .fg-file-drop[data-fg-dragging] { border-color: var(--fg-color-primary); color: var(--fg-color-text); }
+.fg-file-drop:has(:focus-visible) { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; }
+.fg-file-input { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; opacity: 0; cursor: pointer; }
+.fg-file-drop-text { font-weight: 500; }
 .fg-file-list { display: flex; flex-direction: column; gap: 0.375rem; margin: 0; padding: 0; list-style: none; }
 .fg-file-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.5rem; font-size: 0.875rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
 .fg-file-thumb { inline-size: 2.5rem; block-size: 2.5rem; object-fit: cover; border-radius: calc(var(--fg-radius) / 2); }

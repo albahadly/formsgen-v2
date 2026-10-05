@@ -2,8 +2,10 @@
 import { computed, inject } from 'vue'
 import { FORM_CONTEXT } from '../../context'
 import { isSafeUrl } from '../../elements'
+import { isMarkdownParagraph, parseMarkdown } from '../../markdown'
 import { MESSAGES } from '../../messages'
 import type { ElementNode } from '../../schema'
+import FgRichText from './FgRichText'
 
 const props = defineProps<{ node: ElementNode }>()
 const ctx = inject(FORM_CONTEXT, null)
@@ -14,6 +16,8 @@ const prop = (key: string): string => {
   return typeof value === 'string' ? value : ''
 }
 const text = computed(() => prop('text'))
+/** Simple formatting (props.format = 'markdown'): bold, italics, links, lists. */
+const blocks = computed(() => (isMarkdownParagraph(props.node) ? parseMarkdown(text.value) : null))
 /** style.tone: text color (line color for a divider). */
 const toneClass = computed(() => (props.node.style?.tone ? `fg-tone-${props.node.style.tone}` : undefined))
 const level = computed(() => {
@@ -37,6 +41,11 @@ const cite = computed(() => prop('cite'))
     class="fg-divider"
     :class="toneClass"
   >
+  <FgRichText
+    v-else-if="blocks"
+    :class="toneClass"
+    :blocks="blocks"
+  />
   <p
     v-else-if="node.type === 'paragraph'"
     class="fg-paragraph"

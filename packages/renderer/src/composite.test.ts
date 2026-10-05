@@ -6,6 +6,7 @@ import { composePhone, countryName, defaultPhoneCountry, phoneCountries, splitPh
 import { MESSAGES } from './messages'
 import { isEmptyValue } from './rules'
 import type { ElementNode, FormSchema } from './schema'
+import { matrixDefault, toggleMatrixCell } from './matrix'
 
 const node = (type: string, props: Record<string, unknown> = {}, extra: Partial<ElementNode> = {}): ElementNode => ({
   id: type,
@@ -147,6 +148,27 @@ describe('matrix and phone country', () => {
       rating: { speed: '3', quality: '2' },
       phone: '+971 50 123 4567',
     })
+    wrapper.unmount()
+  })
+
+  it('takes several answers per row with props.multiple (checkboxes, column order)', async () => {
+    const multi: ElementNode = { ...matrix, props: { ...matrix.props, multiple: true } }
+    const form = { $schema: 'formsgen/v2', meta: { name: 'm', locale: 'en', dir: 'ltr' }, tree: [multi] } as FormSchema
+    const wrapper = mount(FormsGenForm, { props: { schema: form }, attachTo: document.body })
+    expect(wrapper.findAll('table.fg-matrix input[type=radio]')).toHaveLength(0)
+    const boxes = wrapper.findAll('table.fg-matrix input[type=checkbox]')
+    expect(boxes).toHaveLength(6)
+    expect(boxes[1]!.attributes('aria-label')).toBe('Speed: OK')
+    await boxes[2]!.setValue(true) // Speed: Great
+    await boxes[0]!.setValue(true) // Speed: Poor
+    await wrapper.get('form').trigger('submit')
+    expect(wrapper.text()).toContain('This field is required') // Quality has none
+    await boxes[4]!.setValue(true)
+    await boxes[2]!.setValue(false)
+    await wrapper.get('form').trigger('submit')
+    expect(wrapper.emitted('submit')?.[0]?.[0]).toEqual({ rating: { speed: ['1'], quality: ['2'] } })
+    expect(toggleMatrixCell(multi, ['3'], '1')).toEqual(['1', '3'])
+    expect(matrixDefault(multi)).toEqual({ speed: [], quality: [] })
     wrapper.unmount()
   })
 

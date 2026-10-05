@@ -30,6 +30,11 @@ export type Slot =
   | 'range'
   | 'heading'
   | 'paragraph'
+  /** Formatted paragraph: container (beside 'paragraph'), its paragraphs, bullet and numbered lists. */
+  | 'richText'
+  | 'richBlock'
+  | 'richList'
+  | 'richListOrdered'
   | 'divider'
   | 'tabList'
   | 'tabButton'
@@ -67,6 +72,9 @@ export type Slot =
   /** An item's move up / move down buttons (sortable repeaters). */
   | 'repeaterMove'
   | 'repeaterAdd'
+  /** Upload drop zone (the file input covers it) and its text. */
+  | 'fileDrop'
+  | 'fileDropText'
   | 'fileInput'
   | 'fileList'
   | 'fileItem'
@@ -74,6 +82,11 @@ export type Slot =
   | 'fileName'
   | 'fileSize'
   | 'fileRemove'
+  /** Upload progress while a submission with files is sent: wrapper, track, fill, text. */
+  | 'upload'
+  | 'progress'
+  | 'progressBar'
+  | 'progressText'
   /** Row of two controls (date range, add-a-date). */
   | 'pair'
   /** Wrapping list of chips under a field (multiple dates). */

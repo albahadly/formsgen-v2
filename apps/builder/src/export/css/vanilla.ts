@@ -26,6 +26,10 @@ const CLASSES: Record<Slot, string> = {
   range: 'fg-range',
   heading: 'fg-heading',
   paragraph: 'fg-paragraph',
+  richText: 'fg-rich-text',
+  richBlock: '',
+  richList: '',
+  richListOrdered: '',
   divider: 'fg-divider',
   tabList: 'fg-tab-list',
   tabButton: 'fg-tab-button',
@@ -62,6 +66,8 @@ const CLASSES: Record<Slot, string> = {
   repeaterRemove: 'fg-repeater-remove',
   repeaterMove: 'fg-repeater-move',
   repeaterAdd: 'fg-button fg-button--secondary fg-repeater-add',
+  fileDrop: 'fg-file-drop',
+  fileDropText: 'fg-file-drop-text',
   fileInput: 'fg-file-input',
   fileList: 'fg-file-list',
   fileItem: 'fg-file-item',
@@ -69,6 +75,10 @@ const CLASSES: Record<Slot, string> = {
   fileName: 'fg-file-name',
   fileSize: 'fg-file-size',
   fileRemove: 'fg-file-remove',
+  upload: 'fg-upload',
+  progress: 'fg-progress',
+  progressBar: 'fg-progress-bar',
+  progressText: 'fg-progress-text',
   pair: 'fg-pair',
   chipList: 'fg-chips',
   pairButton: 'fg-button fg-button--secondary fg-pair-button',
@@ -142,6 +152,11 @@ function baseStylesheet(theme: ThemeTokens | undefined): string {
 .fg-range { inline-size: 100%; accent-color: var(--fg-color-primary); }
 .fg-heading { margin: 0; }
 .fg-paragraph { margin: 0; color: var(--fg-color-muted); }
+.fg-rich-text > * { margin: 0; }
+.fg-rich-text > * + * { margin-block-start: 0.5em; }
+.fg-rich-text ul, .fg-rich-text ol { padding-inline-start: 1.25em; }
+.fg-rich-text ul { list-style: disc; }
+.fg-rich-text ol { list-style: decimal; }
 .fg-divider { border: none; border-block-start: 1px solid var(--fg-color-border); margin-block: 0.25rem; }
 .fg-tab-list { display: flex; flex-wrap: wrap; gap: 0.25rem; border-block-end: 1px solid var(--fg-color-border); margin-block-end: var(--fg-space); }
 .fg-tab-button { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.5rem 0.875rem; font: inherit; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); background: none; border: none; border-block-end: 2px solid transparent; cursor: pointer; }
@@ -173,6 +188,11 @@ function baseStylesheet(theme: ThemeTokens | undefined): string {
 .fg-group { margin: 0; padding: var(--fg-space); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
 .fg-group-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); }
 .fg-actions { margin-block-start: var(--fg-space); }
+.fg-upload { display: flex; flex-direction: column; gap: 0.375rem; margin-block-start: var(--fg-space); }
+.fg-progress { block-size: 0.5rem; overflow: hidden; background: var(--fg-color-border); border-radius: 999px; }
+.fg-progress-bar { block-size: 100%; background: var(--fg-color-primary); border-radius: inherit; transition: inline-size 0.2s ease; }
+.fg-progress-text { margin: 0; font-size: 0.875rem; color: var(--fg-color-muted); }
+.fg-button:disabled { opacity: 0.6; cursor: not-allowed; }
 .fg-button { padding: 0.5rem 1.25rem; font: inherit; font-weight: 600; border: 1px solid transparent; border-radius: var(--fg-radius); cursor: pointer; }
 .fg-button--primary { background: var(--fg-color-primary); color: var(--fg-color-primary-contrast); }
 .fg-payload { margin-block-start: var(--fg-space); padding: var(--fg-space); background: #0f172a; color: #86efac; border-radius: var(--fg-radius); font-size: 0.8125rem; overflow-x: auto; }
@@ -212,9 +232,11 @@ fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
 .fg-repeater-remove { margin-inline-start: auto; padding: 0; font: inherit; font-size: 0.875rem; color: var(--fg-color-error); background: none; border: none; text-decoration: underline; cursor: pointer; }
 .fg-repeater-add { margin-block-start: var(--fg-space); }
 /* File uploads */
-.fg-file-input { font: inherit; font-size: 0.875rem; }
-.fg-file-input::file-selector-button { margin-inline-end: 0.75rem; padding: 0.375rem 0.75rem; font: inherit; font-weight: 600; color: var(--fg-color-primary-contrast); background: var(--fg-color-primary); border: none; border-radius: var(--fg-radius); cursor: pointer; }
-.fg-file-input::file-selector-button:hover { opacity: 0.9; }
+.fg-file-drop { position: relative; display: flex; align-items: center; justify-content: center; min-block-size: 4.5rem; padding: 1rem; text-align: center; font-size: 0.875rem; color: var(--fg-color-muted); background: var(--fg-color-surface); border: 2px dashed var(--fg-color-border); border-radius: var(--fg-radius); }
+.fg-file-drop:hover, .fg-file-drop[data-fg-dragging] { border-color: var(--fg-color-primary); color: var(--fg-color-text); }
+.fg-file-drop:has(:focus-visible) { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; }
+.fg-file-input { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; opacity: 0; cursor: pointer; }
+.fg-file-drop-text { font-weight: 500; }
 .fg-file-list { display: flex; flex-direction: column; gap: 0.375rem; margin: 0; padding: 0; list-style: none; }
 .fg-file-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.5rem; font-size: 0.875rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
 .fg-file-thumb { inline-size: 2.5rem; block-size: 2.5rem; object-fit: cover; border-radius: calc(var(--fg-radius) / 2); }

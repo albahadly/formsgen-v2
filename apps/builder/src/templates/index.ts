@@ -9,7 +9,7 @@ import { SCHEMA_ID, type ElementNode, type FormSchema } from '@formsgen/renderer
 export type TemplateLocale = 'en' | 'ar'
 
 export interface FormTemplate {
-  id: 'contact' | 'registration' | 'feedback' | 'job' | 'booking' | 'settings'
+  id: 'contact' | 'registration' | 'feedback' | 'job' | 'booking' | 'trip' | 'settings'
   title: string
   description: string
   schema: FormSchema
@@ -235,6 +235,26 @@ function feedback(lang: TemplateLocale): FormSchema {
       validation: [{ rule: 'required' }],
     },
     {
+      id: 'tpl-fb-channels',
+      type: 'matrix',
+      name: 'channels',
+      props: {
+        label: L(tx('How did you reach us for each step?', 'كيف تواصلت معنا في كل مرحلة؟')),
+        description: L(tx('Tick all that apply.', 'اختر كل ما ينطبق.')),
+        multiple: true,
+        rows: [
+          { value: 'order', label: L(tx('Ordering', 'الطلب')) },
+          { value: 'delivery', label: L(tx('Delivery', 'التوصيل')) },
+          { value: 'returns', label: L(tx('Returns', 'الإرجاع')) },
+        ],
+        columns: [
+          { value: 'web', label: L(tx('Website', 'الموقع')) },
+          { value: 'app', label: L(tx('App', 'التطبيق')) },
+          { value: 'phone', label: L(tx('Phone', 'الهاتف')) },
+        ],
+      },
+    },
+    {
       id: 'tpl-fb-recommend',
       type: 'range',
       name: 'recommend',
@@ -291,7 +311,15 @@ function job(lang: TemplateLocale): FormSchema {
     {
       id: 'tpl-job-intro',
       type: 'paragraph',
-      props: { text: L(tx('Tell us about yourself. It takes about five minutes.', 'حدّثنا عن نفسك. يستغرق ذلك نحو خمس دقائق.')) },
+      props: {
+        format: 'markdown',
+        text: L(
+          tx(
+            'Tell us about yourself. It takes about **five minutes**. Have these ready:\n- your *work history*, newest first\n- your CV (PDF or Word)',
+            'حدّثنا عن نفسك. يستغرق ذلك نحو **خمس دقائق**. جهّز ما يلي:\n- *خبراتك السابقة*، الأحدث أولًا\n- سيرتك الذاتية (PDF أو Word)',
+          ),
+        ),
+      },
     },
     {
       id: 'tpl-job-names',
@@ -380,6 +408,7 @@ function job(lang: TemplateLocale): FormSchema {
         minItems: 0,
         maxItems: 5,
         initialItems: 1,
+        sortable: true,
       },
       children: [
         { id: 'tpl-job-company', type: 'text', name: 'company', props: { label: L(tx('Company', 'الشركة')) } },
@@ -550,6 +579,100 @@ function booking(lang: TemplateLocale): FormSchema {
   return { $schema: SCHEMA_ID, meta: meta('hotel_booking', tx('Hotel booking', 'حجز فندق'), lang, tx('Book now', 'احجز الآن')), tree }
 }
 
+function trip(lang: TemplateLocale): FormSchema {
+  const L = (t: Text): string => t[lang]
+  const tree: ElementNode[] = [
+    { id: 'tpl-trip-heading', type: 'heading', props: { text: L(tx('Plan your trip', 'خطّط لرحلتك')), level: 2 } },
+    {
+      id: 'tpl-trip-intro',
+      type: 'paragraph',
+      props: {
+        format: 'markdown',
+        text: L(
+          tx(
+            'Add **everyone travelling** and their checked bags. Each bag may weigh up to *32 kg*; see the [baggage rules](https://example.com/baggage).',
+            'أضف **جميع المسافرين** وحقائبهم المشحونة. يصل وزن الحقيبة إلى *32 كغ*؛ راجع [قواعد الأمتعة](https://example.com/baggage).',
+          ),
+        ),
+      },
+    },
+    {
+      id: 'tpl-trip-travellers',
+      type: 'repeater',
+      name: 'travellers',
+      props: {
+        label: L(tx('Travellers', 'المسافرون')),
+        itemLabel: L(tx('Traveller {n}', 'المسافر {n}')),
+        addText: L(tx('Add a traveller', 'إضافة مسافر')),
+        minItems: 1,
+        maxItems: 4,
+        initialItems: 1,
+        sortable: true,
+      },
+      children: [
+        {
+          id: 'tpl-trip-row',
+          type: 'columns',
+          props: { count: 2 },
+          children: [
+            {
+              id: 'tpl-trip-name',
+              type: 'text',
+              name: 'name',
+              props: { label: L(tx('Full name', 'الاسم الكامل')) },
+              validation: [{ rule: 'required' }],
+            },
+            {
+              id: 'tpl-trip-has-bags',
+              type: 'toggle',
+              name: 'has_bags',
+              props: { label: L(tx('Checks in bags', 'لديه حقائب مشحونة')) },
+            },
+          ],
+        },
+        {
+          id: 'tpl-trip-bags',
+          type: 'repeater',
+          name: 'bags',
+          props: {
+            label: L(tx('Bags', 'الحقائب')),
+            itemLabel: L(tx('Bag {n}', 'الحقيبة {n}')),
+            addText: L(tx('Add a bag', 'إضافة حقيبة')),
+            minItems: 1,
+            maxItems: 3,
+            initialItems: 1,
+            sortable: true,
+          },
+          conditions: [[{ field: 'travellers.has_bags', operator: 'equals', value: true }]],
+          children: [
+            {
+              id: 'tpl-trip-weight',
+              type: 'number',
+              name: 'weight',
+              props: { label: L(tx('Weight', 'الوزن')), suffix: L(tx('kg', 'كغ')) },
+              validation: [{ rule: 'required' }, { rule: 'max', value: 32 }],
+            },
+            {
+              id: 'tpl-trip-fragile',
+              type: 'checkbox',
+              name: 'fragile',
+              props: { label: L(tx('Fragile', 'قابلة للكسر')) },
+            },
+            {
+              id: 'tpl-trip-note',
+              type: 'text',
+              name: 'note',
+              props: { label: L(tx('Handling note', 'ملاحظة للتعامل')) },
+              conditions: [[{ field: 'travellers.bags.fragile', operator: 'equals', value: true }]],
+            },
+          ],
+        },
+      ],
+    },
+  ]
+  return { $schema: SCHEMA_ID, meta: meta('trip_plan', tx('Trip', 'رحلة'), lang, tx('Book trip', 'احجز الرحلة')), tree }
+}
+
 function settings(lang: TemplateLocale): FormSchema {
   const L = (t: Text): string => t[lang]
   const tree: ElementNode[] = [
@@ -681,13 +804,23 @@ export function listTemplates(lang: TemplateLocale): FormTemplate[] {
     {
       id: 'feedback',
       title: pick(tx('Feedback survey', 'استبيان رأي')),
-      description: pick(tx('Ratings matrix, recommendation score and comments.', 'مصفوفة تقييم ومقياس توصية وملاحظات.')),
+      description: pick(
+        tx(
+          'Ratings matrix, a matrix with several answers per row, recommendation score and comments.',
+          'مصفوفة تقييم ومصفوفة بعدة إجابات لكل صف ومقياس توصية وملاحظات.',
+        ),
+      ),
       schema: feedback(lang),
     },
     {
       id: 'job',
       title: pick(tx('Job application', 'طلب توظيف')),
-      description: pick(tx('Work history, skills, CV upload and interview days.', 'الخبرات والمهارات ورفع السيرة الذاتية وأيام المقابلة.')),
+      description: pick(
+        tx(
+          'Formatted intro, reorderable work history, skills, CV upload (drag and drop) and interview days.',
+          'مقدمة منسّقة وخبرات قابلة لإعادة الترتيب والمهارات ورفع السيرة الذاتية (بالسحب والإفلات) وأيام المقابلة.',
+        ),
+      ),
       schema: job(lang),
     },
     {
@@ -695,6 +828,17 @@ export function listTemplates(lang: TemplateLocale): FormTemplate[] {
       title: pick(tx('Hotel booking', 'حجز فندق')),
       description: pick(tx('Stay dates, room choice, budget range and extras.', 'تواريخ الإقامة واختيار الغرفة ونطاق الميزانية والإضافات.')),
       schema: booking(lang),
+    },
+    {
+      id: 'trip',
+      title: pick(tx('Trip with luggage', 'رحلة مع الأمتعة')),
+      description: pick(
+        tx(
+          'Travellers, each with their own bags (a repeating section inside another), both reorderable.',
+          'مسافرون لكل منهم حقائبه (قسم متكرر داخل آخر)، ويمكن إعادة ترتيب الاثنين.',
+        ),
+      ),
+      schema: trip(lang),
     },
     {
       id: 'settings',

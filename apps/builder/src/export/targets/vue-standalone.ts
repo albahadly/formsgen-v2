@@ -5,8 +5,8 @@
 import { resolveMessages } from '@formsgen/renderer'
 import { errorsTextFunction, stepAnnouncementsLiteral, submittedText } from '../announce'
 import { FILE_HELPERS_TS, RUNTIME_HELPERS_TS, pruneUnusedHelpers } from '../compile'
-import { uploadFields, vueUploadRuntime } from '../uploadRuntime'
-import { ADD_DATE_TS, DUAL_RANGE_HELPERS_TS, exportStylesheet, hasRangeSlider, phoneCountryFields, phoneDefaults, phoneHelpers } from '../composite'
+import { postsUploads, uploadFields, uploadStatusMarkup, uploadTextHelper, vueUploadRuntime } from '../uploadRuntime'
+import { ADD_DATE_TS, DUAL_RANGE_HELPERS_TS, MATRIX_TOGGLE_TS, exportStylesheet, hasMultiMatrix, hasRangeSlider, phoneCountryFields, phoneDefaults, phoneHelpers } from '../composite'
 import { compileConditions } from '../compile'
 import {
   collectExportFields,
@@ -78,6 +78,9 @@ export const vueStandaloneTarget: ExportTarget = {
     const sb = resolveSubmitButton(schema, hosts)
     const embeddedHost = sb.gatingHosts.length === 1 ? sb.gatingHosts[0]! : null
     const submitClass = css.classes(sb.secondary ? 'buttonSecondary' : 'submitButton')
+    // Upload forms that post show progress; submit waits for the upload.
+    const progress = postsUploads(schema, typedFields)
+    const submitDisabled = progress ? ` :disabled="fgUpload.state === 'uploading'"` : ''
 
     const renderSections = (host: RenderedSectionHost): string => {
       const state = `fgSec_${host.key}`
@@ -106,7 +109,7 @@ export const vueStandaloneTarget: ExportTarget = {
       const labels = stepButtonLabels(host)
       const embeddedSubmit =
         embeddedHost?.key === host.key
-          ? `\n    <button v-if="${state} === ${last}" type="submit" class="${submitClass}">${sb.text}</button>`
+          ? `\n    <button v-if="${state} === ${last}" type="submit" class="${submitClass}"${submitDisabled}>${sb.text}</button>`
           : ''
       return `<div>\n  <ol class="${css.classes('stepList')}">\n${items}\n  </ol>\n${panels}\n  <div class="${css.classes('stepActions')}">\n    <button v-if="${state} > 0" type="button" class="${css.classes('buttonSecondary')}" @click="fgGo_${host.key}(${state} - 1)">${labels.back}</button>\n    <button v-if="${state} < ${last}" type="button" class="${css.classes('submitButton')}" @click="fgNext_${host.key}()">${labels.next}</button>${embeddedSubmit}\n  </div>\n</div>`
     }
@@ -469,7 +472,24 @@ function fgSet(path: string, value: unknown): void {
 `
         : ''
     const submitUrl = schema.meta.submit?.url
-    const submitBlock = submitUrl
+    const submitBlock = progress
+      ? `    fgUpload.state = 'uploading'
+    fgUpload.percent = 0
+    // multipart: a JSON "data" part + one part per file; XMLHttpRequest reports upload progress
+    fgSend(
+      ${JSON.stringify(submitUrl)},
+      ${JSON.stringify(schema.meta.submit?.method ?? 'POST')},
+      fgMultipart(data),
+      (percent) => {
+        fgUpload.percent = percent
+      },
+      (ok) => {
+        fgUpload.state = ok ? 'done' : 'failed'
+        if (ok) fgUpload.percent = 100
+        fgAnnounce(ok ? ${submittedText(messages)} : ${JSON.stringify(messages.uploadFailed)})
+      },
+    )\n`
+      : submitUrl
       ? `    try {
       await fetch(${JSON.stringify(submitUrl)}, {
         method: ${JSON.stringify(schema.meta.submit?.method ?? 'POST')},
@@ -492,7 +512,10 @@ const form = reactive<FormData>(${toJsLiteral(defaultsObject(schema))})
 
 const errors = reactive<Record<string, string>>({})
 const touched = new Set<string>()
-const result = ref<Record<string, unknown> | null>(null)
+const result = ref<Record<string, unknown> | null>(null)${progress ? `
+// Upload progress of the submission being sent.
+const fgUpload = reactive<{ state: '' | 'uploading' | 'done' | 'failed'; percent: number }>({ state: '', percent: 0 })
+${uploadTextHelper(messages, true)}` : ''}
 
 // Polite aria-live region; cleared first so repeated text re-announces.
 const fgAnnouncement = ref('')
@@ -504,7 +527,7 @@ function fgAnnounce(message: string): void {
 }
 ${errorsTextFunction(messages, true)}
 
-${RUNTIME_HELPERS_TS}
+${RUNTIME_HELPERS_TS}${hasMultiMatrix(schema) ? `\n${MATRIX_TOGGLE_TS}` : ''}
 ${pathHelpers}${hasUploads ? `${FILE_HELPERS_TS}\n${vueUploadRuntime(typedFields, messages)}\n` : ''}
 ${visibilityFunctions(fields, accessor)}
 
@@ -572,14 +595,14 @@ function buildPayload(): Record<string, unknown> {
   return ${indentBlock(payloadExpr(schema, accessor, undefined, items), 1).trimStart()}
 }
 
-async function onSubmit(): Promise<void> {
+async function onSubmit(): Promise<void> {${progress ? "\n  if (fgUpload.state === 'uploading') return" : ''}
   if (!validateAll()) {${hosts.length > 0 ? '\n    fgJumpToError()' : ''}
     fgAnnounce(fgErrorsText(Object.keys(errors).length))
     return
   }
   const data = buildPayload()
   result.value = data
-  fgAnnounce(${submittedText(messages)})
+  fgAnnounce(${progress ? JSON.stringify(messages.uploadStarted) : submittedText(messages)})
   emit('submit', data)
 ${submitBlock}}
 </script>`
@@ -595,7 +618,7 @@ ${submitBlock}}
     const actionsBlock = embeddedHost
       ? ''
       : `\n    <div class="${css.classes('actions')}"${sb.actionsStyle ? ` style="${sb.actionsStyle}"` : ''}>
-      <button${submitGate} class="${submitClass}"${sb.buttonStyle ? ` style="${sb.buttonStyle}"` : ''} type="submit">${sb.text}</button>
+      <button${submitGate} class="${submitClass}"${sb.buttonStyle ? ` style="${sb.buttonStyle}"` : ''} type="submit"${submitDisabled}>${sb.text}</button>
     </div>`
 
     const template = `<template>
@@ -608,7 +631,8 @@ ${submitBlock}}
   >
     <div class="${css.classes('grid')}">
 ${indentBlock(markup, 3)}
-    </div>
+    </div>${progress ? `
+    ${uploadStatusMarkup('vue', css, messages)}` : ''}
     <div class="${css.classes('srOnly')}" role="status" aria-live="polite" aria-atomic="true">{{ fgAnnouncement }}</div>${actionsBlock}
     <pre v-if="result" class="${css.classes('payload')}">{{ JSON.stringify(result, ${hasUploads ? 'fgFileJson' : 'null'}, 2) }}</pre>
   </form>

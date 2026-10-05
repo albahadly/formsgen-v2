@@ -6,7 +6,7 @@
 import { fileLimits, resolveMessages, type ElementNode } from '@formsgen/renderer'
 import { errorsTextFunction, jsTemplate, stepAnnouncements, submittedText } from '../announce'
 import { FILE_HELPERS, RUNTIME_HELPERS, compileConditions } from '../compile'
-import { uploadFields } from '../uploadRuntime'
+import { postsUploads, uploadFields, uploadStatusMarkup, uploadTextHelper } from '../uploadRuntime'
 import { exportStylesheet, hasDateRange, hasDates, hasMatrix, hasRangeSlider, phoneCountryFields } from '../composite'
 import {
   collectExportFields,
@@ -186,7 +186,18 @@ ${indentBlock(r.itemHtml, 3)}
     const typedFields = collectTemplateFields(schema)
     const hasUploads = uploadFields(typedFields).length > 0
     const submitUrl = schema.meta.submit?.url
-    const submitBlock = submitUrl
+    // Upload forms that post show progress; submit waits for the upload.
+    const progress = postsUploads(schema, typedFields)
+    const submitBlock = progress
+      ? `      fgUploadPaint('uploading', 0)
+      // multipart: a JSON "data" part + one part per file; XMLHttpRequest reports upload progress
+      fgSend(${JSON.stringify(submitUrl)}, ${JSON.stringify(schema.meta.submit?.method ?? 'POST')}, fgMultipart(data), function (percent) {
+        fgUploadPaint('uploading', percent)
+      }, function (ok) {
+        fgUploadPaint(ok ? 'done' : 'failed', ok ? 100 : 0)
+        fgAnnounce(ok ? ${submittedText(messages)} : ${JSON.stringify(messages.uploadFailed)})
+      })\n`
+      : submitUrl
       ? `      fetch(${JSON.stringify(submitUrl)}, {
         method: ${JSON.stringify(schema.meta.submit?.method ?? 'POST')},
         ${hasUploads ? '// multipart: a JSON "data" part + one part per file\n        body: fgMultipart(data),' : "headers: { 'Content-Type': 'application/json' },\n        body: JSON.stringify(data),"}
@@ -354,6 +365,27 @@ function fgWirePhone(root) {
 `
       : ''
 
+    // Upload progress: bar and text while sending, then done / failed.
+    function uploadProgressScript(): string {
+      return `    var fgUploadState = ''
+    ${uploadTextHelper(messages, false).split('\n').join('\n    ')}
+    function fgUploadPaint(state, percent) {
+      fgUploadState = state
+      var box = form.querySelector('[data-fg-upload]')
+      var track = box.querySelector('[data-fg-upload-track]')
+      var text = box.querySelector('[data-fg-upload-text]')
+      box.hidden = false
+      track.hidden = text.hidden = state === 'failed'
+      box.querySelector('[data-fg-upload-failed]').hidden = state !== 'failed'
+      track.setAttribute('aria-valuenow', String(percent))
+      box.querySelector('[data-fg-upload-bar]').style.width = percent + '%'
+      text.textContent = fgUploadText(state, percent)
+      Array.prototype.forEach.call(form.querySelectorAll('[data-fg-submit]'), function (button) {
+        button.disabled = state === 'uploading'
+      })
+    }`
+    }
+
     // Upload fields: chosen files live in fgFiles (the input is cleared
     // after each pick so the same file can be chosen again).
     function htmlUploadRuntime(): string {
@@ -412,6 +444,13 @@ function fgPaintFiles(path) {
 function fgWireFiles(root) {
   fgEach(root, '[data-fg-kind="files"]', function (input) {
     fgFiles[input.getAttribute('data-fg-path')] = []
+    // The input covers its drop zone; mark the zone while files are over it.
+    var drag = function (on) {
+      return function () { input.parentElement.toggleAttribute('data-fg-dragging', on) }
+    }
+    input.addEventListener('dragenter', drag(true))
+    input.addEventListener('dragleave', drag(false))
+    input.addEventListener('drop', drag(false))
     input.addEventListener('change', function () {
       var path = input.getAttribute('data-fg-path')
       var picked = Array.prototype.slice.call(input.files || [])
@@ -711,10 +750,15 @@ function fgMoveItem(path, index, delta) {
       if (kind === 'dates') return (fgDates[path] || []).slice()${hasGrid ? `
       if (kind === 'matrix') {
         var answers = {}
-        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-path="' + path + '"]'), function (radio) {
-          var row = radio.getAttribute('data-fg-row')
-          if (!(row in answers)) answers[row] = null
-          if (radio.checked) answers[row] = radio.value
+        // Radios: the chosen column per row; checkboxes: the chosen columns.
+        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-path="' + path + '"]'), function (cell) {
+          var row = cell.getAttribute('data-fg-row')
+          var several = cell.type === 'checkbox'
+          if (!(row in answers)) answers[row] = several ? [] : null
+          if (cell.checked) {
+            if (several) answers[row].push(cell.value)
+            else answers[row] = cell.value
+          }
         })
         return answers
       }` : ''}${hasPhone ? `
@@ -974,8 +1018,8 @@ ${wires.map((w) => `      ${w}(root)`).join('\n')}
       if (path && touched[path]) validateField(path)
     }
 
-${resetScript}    form.addEventListener('submit', function (event) {
-      event.preventDefault()
+${progress ? `${uploadProgressScript()}\n` : ''}${resetScript}    form.addEventListener('submit', function (event) {
+      event.preventDefault()${progress ? "\n      if (fgUploadState === 'uploading') return" : ''}
       var failed = 0
       ${hasRepeaters ? 'fgAllPaths()' : 'Object.keys(FG_VALIDATORS)'}.forEach(function (path) {
         touched[path] = true
@@ -998,7 +1042,7 @@ ${resetScript}    form.addEventListener('submit', function (event) {
       var out = document.getElementById('fg-result')
       out.textContent = JSON.stringify(data, ${hasUploads ? 'fgFileJson' : 'null'}, 2)
       out.hidden = false
-      fgAnnounce(${submittedText(messages)})
+      fgAnnounce(${progress ? JSON.stringify(messages.uploadStarted) : submittedText(messages)})
       console.log('Form submitted', data)
 ${submitBlock}    })
 
@@ -1019,7 +1063,7 @@ ${headAssets}${headAssets && styleTag ? '\n' : ''}${styleTag}
     <div class="${css.classes('grid')}">
 ${indentBlock(markup, 3)}
     </div>
-    <div id="fg-live" class="${css.classes('srOnly')}" role="status" aria-live="polite" aria-atomic="true"></div>${actionsBlock}
+${progress ? `    ${uploadStatusMarkup('html', css, messages)}\n` : ''}    <div id="fg-live" class="${css.classes('srOnly')}" role="status" aria-live="polite" aria-atomic="true"></div>${actionsBlock}
     <pre id="fg-result" class="${css.classes('payload')}" hidden></pre>
   </form>
 ${script}

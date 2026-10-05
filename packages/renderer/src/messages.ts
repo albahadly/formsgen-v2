@@ -78,6 +78,19 @@ export interface MessageCatalog {
   tooManyFiles: string
   /** {name} — accessible name of a chosen file's remove button */
   removeFile: string
+  /** Text inside an upload's drop zone (one file / several files). */
+  dropFile: string
+  dropFiles: string
+  /** Accessible name of the upload progress bar. */
+  uploadProgress: string
+  /** {n} — visible text while files upload (n = percent sent) */
+  uploading: string
+  /** Announced when a submission with files starts uploading. */
+  uploadStarted: string
+  /** Shown once the upload finished and the server accepted it. */
+  uploadDone: string
+  /** Shown and announced when the upload failed. */
+  uploadFailed: string
   /** Accessible names of a range slider's two handles. */
   rangeFrom: string
   rangeTo: string
@@ -135,6 +148,13 @@ const en: MessageCatalog = {
   fileType: '{name} is not an accepted file type',
   tooManyFiles: 'Choose at most {n} files',
   removeFile: 'Remove {name}',
+  dropFile: 'Choose a file or drag it here',
+  dropFiles: 'Choose files or drag them here',
+  uploadProgress: 'Upload progress',
+  uploading: 'Uploading… {n}%',
+  uploadStarted: 'Uploading files…',
+  uploadDone: 'Upload complete.',
+  uploadFailed: 'Upload failed. Please try again.',
   rangeFrom: 'Minimum',
   rangeTo: 'Maximum',
   dateFrom: 'Start date',
@@ -188,6 +208,13 @@ const ar: MessageCatalog = {
   fileType: '{name} ليس من أنواع الملفات المقبولة',
   tooManyFiles: 'اختر {n} ملفات على الأكثر',
   removeFile: 'إزالة {name}',
+  dropFile: 'اختر ملفًا أو اسحبه إلى هنا',
+  dropFiles: 'اختر ملفات أو اسحبها إلى هنا',
+  uploadProgress: 'تقدّم الرفع',
+  uploading: 'جارٍ الرفع… {n}%',
+  uploadStarted: 'جارٍ رفع الملفات…',
+  uploadDone: 'اكتمل الرفع.',
+  uploadFailed: 'تعذّر الرفع. حاول مرة أخرى.',
   rangeFrom: 'الحد الأدنى',
   rangeTo: 'الحد الأقصى',
   dateFrom: 'تاريخ البداية',

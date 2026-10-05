@@ -107,6 +107,7 @@ describe('FormsGenForm', () => {
       stay: { from: '2026-11-01', to: '2026-11-04' },
       days: [],
       rating: { speed: '1', quality: '3' },
+      usage: { forms: [], reports: [] },
       source: 'kitchen-sink',
       references: [{ name: 'Dana', may_contact: false }],
       attachments: [attachment],

@@ -189,6 +189,7 @@ const VARIANT_PSEUDO: Record<string, string> = {
   checked: ':checked',
   'has-[:checked]': ':has(:checked)',
   'has-[:focus-visible]': ':has(:focus-visible)',
+  'data-[fg-dragging]': '[data-fg-dragging]',
   file: '::file-selector-button',
 }
 
@@ -232,6 +233,8 @@ export const TAILWIND_THEMED: Record<string, Record<string, string[]>> = {
       'border-indigo-600',
       'focus:border-indigo-500',
       'has-[:checked]:border-indigo-600',
+      'hover:border-indigo-500',
+      'data-[fg-dragging]:border-indigo-500',
     ],
     'accent-color': ['accent-indigo-600'],
   },

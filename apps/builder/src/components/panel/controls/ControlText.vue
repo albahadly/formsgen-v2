@@ -9,6 +9,8 @@ const props = defineProps<{
   prop: string
   label: string
   placeholder?: string | undefined
+  /** A textarea (e.g. paragraph text). */
+  multiline?: boolean | undefined
 }>()
 
 const store = useBuilderStore()
@@ -21,7 +23,16 @@ const value = computed({
 <template>
   <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
     {{ tText(label) }}
+    <textarea
+      v-if="multiline"
+      v-model="value"
+      rows="4"
+      class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal text-gray-900"
+      :placeholder="placeholder ? tText(placeholder) : undefined"
+      :data-testid="`control-${prop}`"
+    />
     <input
+      v-else
       v-model="value"
       type="text"
       class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal text-gray-900"

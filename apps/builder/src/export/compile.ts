@@ -98,6 +98,17 @@ function fgMultipart(payload${t(': Record<string, unknown>')}) {
   body.append('data', JSON.stringify(data))
   for (const part of files) body.append(part.path, part.file, part.file.name)
   return body
+}
+// Sends with XMLHttpRequest, which (unlike fetch) reports upload progress.
+function fgSend(url${t(': string')}, method${t(': string')}, body${t(': globalThis.FormData')}, onProgress${t(': (percent: number) => void')}, onDone${t(': (ok: boolean) => void')})${t(': void')} {
+  const request = new XMLHttpRequest()
+  request.open(method, url)
+  request.upload.onprogress = (event) => {
+    if (event.lengthComputable && event.total > 0) onProgress(Math.round((event.loaded / event.total) * 100))
+  }
+  request.onload = () => onDone(request.status >= 200 && request.status < 300)
+  request.onerror = request.onabort = () => onDone(false)
+  request.send(body)
 }`
 }
 

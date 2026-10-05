@@ -1,8 +1,9 @@
 <script setup lang="ts">
 // Matrix: a table with one radio group per row (each radio is named
 // "<row>: <column>"; the table headers give the same context visually).
+// With props.multiple, each row is a set of checkboxes.
 import { computed } from 'vue'
-import { matrixColumns, matrixRows } from '../../matrix'
+import { matrixColumns, matrixMultiple, matrixRows, toggleMatrixCell } from '../../matrix'
 import type { ElementNode } from '../../schema'
 import { useField } from '../useField'
 import FgTip from './FgTip.vue'
@@ -15,8 +16,16 @@ const rows = computed(() => matrixRows(props.node))
 const columns = computed(() => matrixColumns(props.node))
 const answers = computed(() => (value.value && typeof value.value === 'object' ? (value.value as Record<string, unknown>) : {}))
 
+const multiple = computed(() => matrixMultiple(props.node))
+
 function choose(row: string, column: string): void {
-  value.value = { ...Object.fromEntries(rows.value.map((r) => [r.value, answers.value[r.value] ?? null])), [row]: column }
+  const empty = multiple.value ? [] : null
+  const next = multiple.value ? toggleMatrixCell(props.node, answers.value[row], column) : column
+  value.value = { ...Object.fromEntries(rows.value.map((r) => [r.value, answers.value[r.value] ?? empty])), [row]: next }
+}
+function isChosen(row: string, column: string): boolean {
+  const answer = answers.value[row]
+  return Array.isArray(answer) ? answer.includes(column) : answer === column
 }
 
 const radioId = (ri: number, ci: number): string => (ri === 0 && ci === 0 ? fieldId.value : `${fieldId.value}-${ri}-${ci}`)
@@ -68,10 +77,10 @@ const radioId = (ri: number, ci: number): string => (ri === 0 && ci === 0 ? fiel
             >
               <input
                 :id="radioId(ri, ci)"
-                type="radio"
+                :type="multiple ? 'checkbox' : 'radio'"
                 :name="`${groupName}-${row.value}`"
                 :value="column.value"
-                :checked="answers[row.value] === column.value"
+                :checked="isChosen(row.value, column.value)"
                 :aria-label="`${row.label}: ${column.label}`"
                 :aria-describedby="describedBy"
                 @change="choose(row.value, column.value)"
