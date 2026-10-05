@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { parseFormSchema } from '@formsgen/renderer'
 import { ref } from 'vue'
+import { openProjectFile } from '@/composables/openProject'
 import { t } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'
 import { useHistoryStore } from '@/stores/history'
@@ -32,17 +32,19 @@ async function onFileChosen(event: Event): Promise<void> {
   const file = input.files?.[0]
   input.value = ''
   if (!file) return
-  try {
-    const result = parseFormSchema(JSON.parse(await file.text()))
-    if (!result.ok) {
-      emit('notice', `${t('toolbar.open.invalid')} ${result.errors[0] ?? ''}`)
-      return
-    }
-    builder.loadSchema(result.schema)
-    history.reset()
-  } catch {
-    emit('notice', t('toolbar.open.unreadable'))
+  // A project file, an export ZIP or an exported code file carrying the project.
+  const result = await openProjectFile(file)
+  if (!result.ok) {
+    emit(
+      'notice',
+      result.reason === 'invalid'
+        ? `${t('toolbar.open.invalid')} ${result.detail ?? ''}`
+        : t(result.reason === 'no-project' ? 'toolbar.open.noProject' : 'toolbar.open.unreadable'),
+    )
+    return
   }
+  builder.loadSchema(result.schema)
+  history.reset()
 }
 </script>
 
@@ -104,7 +106,7 @@ async function onFileChosen(event: Event): Promise<void> {
     <input
       ref="fileInput"
       type="file"
-      accept=".json,application/json"
+      accept=".json,.zip,.html,.vue,.tsx,.razor,application/json,application/zip"
       class="hidden"
       data-testid="toolbar-file-input"
       @change="onFileChosen"

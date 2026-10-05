@@ -4,6 +4,7 @@ import { computed, ref, watch } from 'vue'
 import CodeBlock from '@/components/ui/CodeBlock.vue'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { getCssAdapter, listCssAdapters, type CssFrameworkId } from '@/export/css'
+import { withProject } from '@/export/project'
 import { getTarget, listTargets, type ExportedFile } from '@/export/targets'
 import { t, tText } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'
@@ -25,13 +26,23 @@ const copied = ref(false)
 
 const target = computed(() => getTarget(targetId.value)!)
 
-const files = computed<ExportedFile[]>(() =>
-  target.value.generate({ schema: builder.schema, css: getCssAdapter(framework.value) }),
-)
+/** Code exports carry the project (so Open can read them back) unless turned off. */
+const includeProject = ref(true)
+const isCode = computed(() => targetId.value !== 'json')
 
-const readme = computed(() =>
-  target.value.readme({ schema: builder.schema, css: getCssAdapter(framework.value) }),
-)
+const files = computed<ExportedFile[]>(() => {
+  const generated = target.value.generate({ schema: builder.schema, css: getCssAdapter(framework.value) })
+  return isCode.value && includeProject.value ? withProject(generated, builder.schema) : generated
+})
+
+const projectFile = computed(() => `${builder.schema.meta.name}.formsgen.json`)
+
+const readme = computed(() => {
+  const base = target.value.readme({ schema: builder.schema, css: getCssAdapter(framework.value) })
+  return isCode.value
+    ? `${base.trimEnd()}\n\n## Change this form later\n\nOpen \`${projectFile.value}\` (or this ZIP${includeProject.value ? ', or the generated file' : ''}) in the FormsGen builder with *Open*, edit it, and export again. Exporting again replaces the generated files, so keep your own code outside them.\n`
+    : base
+})
 
 /** Generated files plus the README as a viewable tab. */
 const viewFiles = computed<ExportedFile[]>(() => [
@@ -75,6 +86,8 @@ function downloadFile(): void {
 async function downloadZip(): Promise<void> {
   const zip = new JSZip()
   for (const file of files.value) zip.file(file.path, file.content)
+  // The project file, so the ZIP can be reopened and edited.
+  if (isCode.value) zip.file(projectFile.value, `${JSON.stringify(builder.schema, null, 2)}\n`)
   zip.file('README.md', readme.value)
   const blob = await zip.generateAsync({ type: 'blob' })
   downloadBlob(blob, `${builder.schema.meta.name}-${target.value.id}.zip`)
@@ -147,6 +160,20 @@ async function downloadZip(): Promise<void> {
             {{ tText(adapter.label) }}
           </option>
         </select>
+
+        <label
+          v-if="isCode"
+          class="flex items-center gap-1.5 text-xs text-gray-600"
+          :title="t('export.includeProject.hint')"
+        >
+          <input
+            v-model="includeProject"
+            type="checkbox"
+            class="h-3.5 w-3.5 accent-indigo-600"
+            data-testid="export-include-project"
+          >
+          {{ t('export.includeProject') }}
+        </label>
 
         <span class="flex-1" />
 

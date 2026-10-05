@@ -35,5 +35,6 @@ Read the latest handoff before starting any phase (Phase Standard, REBUILD_PROMP
 | 28 | Finish repeaters: every field type inside items and move up/down reordering (28a); nested repeaters, groups/columns in items (28b) | ✅ Complete | [phase-28-repeaters.md](./phase-28-repeaters.md) |
 | 29 | Drag-and-drop uploads and an upload progress bar (29a); matrix with several answers per row, formatted text, examples showing repeaters (29b) | ✅ Complete | [phase-29-uploads-matrix-text.md](./phase-29-uploads-matrix-text.md) |
 | 30 | HTML block: a static element holding the author's own HTML, reduced to safe tags and attributes in the renderer and every export | ✅ Complete | [phase-30-html-block.md](./phase-30-html-block.md) |
+| 31 | Reopen exported forms: code exports carry the project, ZIPs include the `.formsgen.json`, and Open reads JSON, export ZIPs and exported files | ✅ Complete | [phase-31-reopen-exports.md](./phase-31-reopen-exports.md) |
 
-**All 11 planned phases are complete**, plus 10b and 12–30 from the backlog. Remaining backlog: npm publish of `@formsgen/renderer` (parked by user); see the "Not done" list in [phase-16-arabic-messages.md](./phase-16-arabic-messages.md).
+**All 11 planned phases are complete**, plus 10b and 12–31 from the backlog. Remaining backlog: npm publish of `@formsgen/renderer` (parked by user); see the "Not done" list in [phase-16-arabic-messages.md](./phase-16-arabic-messages.md).
