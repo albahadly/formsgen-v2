@@ -713,11 +713,11 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
             <div class="form-label fw-semibold fs-6 mb-0"><span id="fg_about_label">About you</span></div>
             <div class="border rounded bg-body" data-fg-rich>
               <div class="d-flex flex-wrap gap-1 border-bottom p-1" role="toolbar" aria-label="Formatting" aria-controls="fg_about">
-                <button type="button" class="btn btn-sm btn-light" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
-                <button type="button" class="btn btn-sm btn-light" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
-                <button type="button" class="btn btn-sm btn-light" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-                <button type="button" class="btn btn-sm btn-light" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
-                <button type="button" class="btn btn-sm btn-light" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
+                <button type="button" class="btn btn-sm btn-light" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold" tabindex="0"><b>B</b></button>
+                <button type="button" class="btn btn-sm btn-light" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic" tabindex="-1"><i>I</i></button>
+                <button type="button" class="btn btn-sm btn-light" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList" tabindex="-1">•</button>
+                <button type="button" class="btn btn-sm btn-light" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList" tabindex="-1"><span dir="ltr">1.</span></button>
+                <button type="button" class="btn btn-sm btn-light" aria-label="Link" title="Link" data-fg-rt-cmd="link" tabindex="-1">🔗</button>
               </div>
               <div id="fg_about" class="fg-richtext-editor px-3 py-2" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext='@FgRichKey("About", v => Model.About = v, Model.About)'></div>
             </div>
@@ -2758,6 +2758,32 @@ function fgWireRichText(root, onChange) {
     }
     onChange(editor, fgRichClean(editor.innerHTML))
   })
+  // One tab stop per toolbar: the last used button; arrows, Home and End
+  // move between the buttons (arrows follow the writing direction).
+  var toolbarButtons = function (button) {
+    return Array.prototype.slice.call(button.closest('[role=""toolbar""]').querySelectorAll('[data-fg-rt-cmd]'))
+  }
+  root.addEventListener('focusin', function (event) {
+    var button = event.target.closest && event.target.closest('[data-fg-rich] [role=""toolbar""] [data-fg-rt-cmd]')
+    if (!button) return
+    toolbarButtons(button).forEach(function (other) { other.setAttribute('tabindex', other === button ? '0' : '-1') })
+  })
+  root.addEventListener('keydown', function (event) {
+    var button = event.target.closest && event.target.closest('[data-fg-rich] [role=""toolbar""] [data-fg-rt-cmd]')
+    if (!button) return
+    var toolbar = button.closest('[role=""toolbar""]')
+    var buttons = toolbarButtons(button)
+    var index = buttons.indexOf(button)
+    var dirHost = toolbar.closest('[dir]')
+    var rtl = (dirHost ? dirHost.getAttribute('dir') : getComputedStyle(toolbar).direction) === 'rtl'
+    var next = -1
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') next = (index + ((event.key === 'ArrowRight') !== rtl ? 1 : -1) + buttons.length) % buttons.length
+    else if (event.key === 'Home') next = 0
+    else if (event.key === 'End') next = buttons.length - 1
+    if (next < 0) return
+    event.preventDefault()
+    buttons[next].focus()
+  })
   root.addEventListener('input', function (event) {
     if (event.target.matches && event.target.matches('[data-fg-richtext]')) onChange(event.target, fgRichClean(event.target.innerHTML))
   })
@@ -4085,11 +4111,11 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
             <div class="text-sm font-semibold"><span id="fg_about_label">About you</span></div>
             <div class="rounded-md border border-gray-300 bg-white shadow-sm focus-within:ring-2 focus-within:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-rich>
               <div class="flex flex-wrap gap-1 border-b border-gray-200 p-1 dark:border-gray-700" role="toolbar" aria-label="Formatting" aria-controls="fg_about">
-                <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
-                <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
-                <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-                <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
-                <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
+                <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold" tabindex="0"><b>B</b></button>
+                <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic" tabindex="-1"><i>I</i></button>
+                <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList" tabindex="-1">•</button>
+                <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList" tabindex="-1"><span dir="ltr">1.</span></button>
+                <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Link" title="Link" data-fg-rt-cmd="link" tabindex="-1">🔗</button>
               </div>
               <div id="fg_about" class="min-h-24 px-3 py-2 text-sm outline-none [overflow-wrap:anywhere] [&_ol]:list-decimal [&_ol]:ps-6 [&_ul]:list-disc [&_ul]:ps-6 [&_a]:text-indigo-600 [&_a]:underline [&_p]:mb-2" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext='@FgRichKey("About", v => Model.About = v, Model.About)'></div>
             </div>
@@ -6130,6 +6156,32 @@ function fgWireRichText(root, onChange) {
     }
     onChange(editor, fgRichClean(editor.innerHTML))
   })
+  // One tab stop per toolbar: the last used button; arrows, Home and End
+  // move between the buttons (arrows follow the writing direction).
+  var toolbarButtons = function (button) {
+    return Array.prototype.slice.call(button.closest('[role=""toolbar""]').querySelectorAll('[data-fg-rt-cmd]'))
+  }
+  root.addEventListener('focusin', function (event) {
+    var button = event.target.closest && event.target.closest('[data-fg-rich] [role=""toolbar""] [data-fg-rt-cmd]')
+    if (!button) return
+    toolbarButtons(button).forEach(function (other) { other.setAttribute('tabindex', other === button ? '0' : '-1') })
+  })
+  root.addEventListener('keydown', function (event) {
+    var button = event.target.closest && event.target.closest('[data-fg-rich] [role=""toolbar""] [data-fg-rt-cmd]')
+    if (!button) return
+    var toolbar = button.closest('[role=""toolbar""]')
+    var buttons = toolbarButtons(button)
+    var index = buttons.indexOf(button)
+    var dirHost = toolbar.closest('[dir]')
+    var rtl = (dirHost ? dirHost.getAttribute('dir') : getComputedStyle(toolbar).direction) === 'rtl'
+    var next = -1
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') next = (index + ((event.key === 'ArrowRight') !== rtl ? 1 : -1) + buttons.length) % buttons.length
+    else if (event.key === 'Home') next = 0
+    else if (event.key === 'End') next = buttons.length - 1
+    if (next < 0) return
+    event.preventDefault()
+    buttons[next].focus()
+  })
   root.addEventListener('input', function (event) {
     if (event.target.matches && event.target.matches('[data-fg-richtext]')) onChange(event.target, fgRichClean(event.target.innerHTML))
   })
@@ -7457,11 +7509,11 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             <div class="fg-label"><span id="fg_about_label">About you</span></div>
             <div class="fg-richtext" data-fg-rich>
               <div class="fg-richtext-toolbar" role="toolbar" aria-label="Formatting" aria-controls="fg_about">
-                <button type="button" class="fg-richtext-button" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
-                <button type="button" class="fg-richtext-button" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
-                <button type="button" class="fg-richtext-button" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-                <button type="button" class="fg-richtext-button" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
-                <button type="button" class="fg-richtext-button" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
+                <button type="button" class="fg-richtext-button" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold" tabindex="0"><b>B</b></button>
+                <button type="button" class="fg-richtext-button" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic" tabindex="-1"><i>I</i></button>
+                <button type="button" class="fg-richtext-button" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList" tabindex="-1">•</button>
+                <button type="button" class="fg-richtext-button" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList" tabindex="-1"><span dir="ltr">1.</span></button>
+                <button type="button" class="fg-richtext-button" aria-label="Link" title="Link" data-fg-rt-cmd="link" tabindex="-1">🔗</button>
               </div>
               <div id="fg_about" class="fg-richtext-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext='@FgRichKey("About", v => Model.About = v, Model.About)'></div>
             </div>
@@ -9502,6 +9554,32 @@ function fgWireRichText(root, onChange) {
     }
     onChange(editor, fgRichClean(editor.innerHTML))
   })
+  // One tab stop per toolbar: the last used button; arrows, Home and End
+  // move between the buttons (arrows follow the writing direction).
+  var toolbarButtons = function (button) {
+    return Array.prototype.slice.call(button.closest('[role=""toolbar""]').querySelectorAll('[data-fg-rt-cmd]'))
+  }
+  root.addEventListener('focusin', function (event) {
+    var button = event.target.closest && event.target.closest('[data-fg-rich] [role=""toolbar""] [data-fg-rt-cmd]')
+    if (!button) return
+    toolbarButtons(button).forEach(function (other) { other.setAttribute('tabindex', other === button ? '0' : '-1') })
+  })
+  root.addEventListener('keydown', function (event) {
+    var button = event.target.closest && event.target.closest('[data-fg-rich] [role=""toolbar""] [data-fg-rt-cmd]')
+    if (!button) return
+    var toolbar = button.closest('[role=""toolbar""]')
+    var buttons = toolbarButtons(button)
+    var index = buttons.indexOf(button)
+    var dirHost = toolbar.closest('[dir]')
+    var rtl = (dirHost ? dirHost.getAttribute('dir') : getComputedStyle(toolbar).direction) === 'rtl'
+    var next = -1
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') next = (index + ((event.key === 'ArrowRight') !== rtl ? 1 : -1) + buttons.length) % buttons.length
+    else if (event.key === 'Home') next = 0
+    else if (event.key === 'End') next = buttons.length - 1
+    if (next < 0) return
+    event.preventDefault()
+    buttons[next].focus()
+  })
   root.addEventListener('input', function (event) {
     if (event.target.matches && event.target.matches('[data-fg-richtext]')) onChange(event.target, fgRichClean(event.target.innerHTML))
   })
@@ -10802,11 +10880,11 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
           <div class="form-label fw-semibold fs-6 mb-0"><span id="fg_about_label">About you</span></div>
           <div class="border rounded bg-body" data-fg-rich>
             <div class="d-flex flex-wrap gap-1 border-bottom p-1" role="toolbar" aria-label="Formatting" aria-controls="fg_about">
-              <button type="button" class="btn btn-sm btn-light" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
-              <button type="button" class="btn btn-sm btn-light" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
-              <button type="button" class="btn btn-sm btn-light" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-              <button type="button" class="btn btn-sm btn-light" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
-              <button type="button" class="btn btn-sm btn-light" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
+              <button type="button" class="btn btn-sm btn-light" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold" tabindex="0"><b>B</b></button>
+              <button type="button" class="btn btn-sm btn-light" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic" tabindex="-1"><i>I</i></button>
+              <button type="button" class="btn btn-sm btn-light" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList" tabindex="-1">•</button>
+              <button type="button" class="btn btn-sm btn-light" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList" tabindex="-1"><span dir="ltr">1.</span></button>
+              <button type="button" class="btn btn-sm btn-light" aria-label="Link" title="Link" data-fg-rt-cmd="link" tabindex="-1">🔗</button>
             </div>
             <div id="fg_about" class="fg-richtext-editor px-3 py-2" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext="about" data-fg-path="about" data-fg-kind="richtext"></div>
           </div>
@@ -12511,6 +12589,32 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         }
         onChange(editor, fgRichClean(editor.innerHTML))
       })
+      // One tab stop per toolbar: the last used button; arrows, Home and End
+      // move between the buttons (arrows follow the writing direction).
+      var toolbarButtons = function (button) {
+        return Array.prototype.slice.call(button.closest('[role="toolbar"]').querySelectorAll('[data-fg-rt-cmd]'))
+      }
+      root.addEventListener('focusin', function (event) {
+        var button = event.target.closest && event.target.closest('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
+        if (!button) return
+        toolbarButtons(button).forEach(function (other) { other.setAttribute('tabindex', other === button ? '0' : '-1') })
+      })
+      root.addEventListener('keydown', function (event) {
+        var button = event.target.closest && event.target.closest('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
+        if (!button) return
+        var toolbar = button.closest('[role="toolbar"]')
+        var buttons = toolbarButtons(button)
+        var index = buttons.indexOf(button)
+        var dirHost = toolbar.closest('[dir]')
+        var rtl = (dirHost ? dirHost.getAttribute('dir') : getComputedStyle(toolbar).direction) === 'rtl'
+        var next = -1
+        if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') next = (index + ((event.key === 'ArrowRight') !== rtl ? 1 : -1) + buttons.length) % buttons.length
+        else if (event.key === 'Home') next = 0
+        else if (event.key === 'End') next = buttons.length - 1
+        if (next < 0) return
+        event.preventDefault()
+        buttons[next].focus()
+      })
       root.addEventListener('input', function (event) {
         if (event.target.matches && event.target.matches('[data-fg-richtext]')) onChange(event.target, fgRichClean(event.target.innerHTML))
       })
@@ -13754,11 +13858,11 @@ exports[`html target > snapshot (tailwind) 1`] = `
           <div class="text-sm font-semibold"><span id="fg_about_label">About you</span></div>
           <div class="rounded-md border border-gray-300 bg-white shadow-sm focus-within:ring-2 focus-within:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-rich>
             <div class="flex flex-wrap gap-1 border-b border-gray-200 p-1 dark:border-gray-700" role="toolbar" aria-label="Formatting" aria-controls="fg_about">
-              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
-              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
-              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
-              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
+              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold" tabindex="0"><b>B</b></button>
+              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic" tabindex="-1"><i>I</i></button>
+              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList" tabindex="-1">•</button>
+              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList" tabindex="-1"><span dir="ltr">1.</span></button>
+              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Link" title="Link" data-fg-rt-cmd="link" tabindex="-1">🔗</button>
             </div>
             <div id="fg_about" class="min-h-24 px-3 py-2 text-sm outline-none [overflow-wrap:anywhere] [&_ol]:list-decimal [&_ol]:ps-6 [&_ul]:list-disc [&_ul]:ps-6 [&_a]:text-indigo-600 [&_a]:underline [&_p]:mb-2" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext="about" data-fg-path="about" data-fg-kind="richtext"></div>
           </div>
@@ -15463,6 +15567,32 @@ exports[`html target > snapshot (tailwind) 1`] = `
         }
         onChange(editor, fgRichClean(editor.innerHTML))
       })
+      // One tab stop per toolbar: the last used button; arrows, Home and End
+      // move between the buttons (arrows follow the writing direction).
+      var toolbarButtons = function (button) {
+        return Array.prototype.slice.call(button.closest('[role="toolbar"]').querySelectorAll('[data-fg-rt-cmd]'))
+      }
+      root.addEventListener('focusin', function (event) {
+        var button = event.target.closest && event.target.closest('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
+        if (!button) return
+        toolbarButtons(button).forEach(function (other) { other.setAttribute('tabindex', other === button ? '0' : '-1') })
+      })
+      root.addEventListener('keydown', function (event) {
+        var button = event.target.closest && event.target.closest('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
+        if (!button) return
+        var toolbar = button.closest('[role="toolbar"]')
+        var buttons = toolbarButtons(button)
+        var index = buttons.indexOf(button)
+        var dirHost = toolbar.closest('[dir]')
+        var rtl = (dirHost ? dirHost.getAttribute('dir') : getComputedStyle(toolbar).direction) === 'rtl'
+        var next = -1
+        if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') next = (index + ((event.key === 'ArrowRight') !== rtl ? 1 : -1) + buttons.length) % buttons.length
+        else if (event.key === 'Home') next = 0
+        else if (event.key === 'End') next = buttons.length - 1
+        if (next < 0) return
+        event.preventDefault()
+        buttons[next].focus()
+      })
       root.addEventListener('input', function (event) {
         if (event.target.matches && event.target.matches('[data-fg-richtext]')) onChange(event.target, fgRichClean(event.target.innerHTML))
       })
@@ -16926,11 +17056,11 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <div class="fg-label"><span id="fg_about_label">About you</span></div>
           <div class="fg-richtext" data-fg-rich>
             <div class="fg-richtext-toolbar" role="toolbar" aria-label="Formatting" aria-controls="fg_about">
-              <button type="button" class="fg-richtext-button" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
-              <button type="button" class="fg-richtext-button" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
-              <button type="button" class="fg-richtext-button" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-              <button type="button" class="fg-richtext-button" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
-              <button type="button" class="fg-richtext-button" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
+              <button type="button" class="fg-richtext-button" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold" tabindex="0"><b>B</b></button>
+              <button type="button" class="fg-richtext-button" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic" tabindex="-1"><i>I</i></button>
+              <button type="button" class="fg-richtext-button" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList" tabindex="-1">•</button>
+              <button type="button" class="fg-richtext-button" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList" tabindex="-1"><span dir="ltr">1.</span></button>
+              <button type="button" class="fg-richtext-button" aria-label="Link" title="Link" data-fg-rt-cmd="link" tabindex="-1">🔗</button>
             </div>
             <div id="fg_about" class="fg-richtext-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext="about" data-fg-path="about" data-fg-kind="richtext"></div>
           </div>
@@ -18635,6 +18765,32 @@ exports[`html target > snapshot (vanilla) 1`] = `
         }
         onChange(editor, fgRichClean(editor.innerHTML))
       })
+      // One tab stop per toolbar: the last used button; arrows, Home and End
+      // move between the buttons (arrows follow the writing direction).
+      var toolbarButtons = function (button) {
+        return Array.prototype.slice.call(button.closest('[role="toolbar"]').querySelectorAll('[data-fg-rt-cmd]'))
+      }
+      root.addEventListener('focusin', function (event) {
+        var button = event.target.closest && event.target.closest('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
+        if (!button) return
+        toolbarButtons(button).forEach(function (other) { other.setAttribute('tabindex', other === button ? '0' : '-1') })
+      })
+      root.addEventListener('keydown', function (event) {
+        var button = event.target.closest && event.target.closest('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
+        if (!button) return
+        var toolbar = button.closest('[role="toolbar"]')
+        var buttons = toolbarButtons(button)
+        var index = buttons.indexOf(button)
+        var dirHost = toolbar.closest('[dir]')
+        var rtl = (dirHost ? dirHost.getAttribute('dir') : getComputedStyle(toolbar).direction) === 'rtl'
+        var next = -1
+        if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') next = (index + ((event.key === 'ArrowRight') !== rtl ? 1 : -1) + buttons.length) % buttons.length
+        else if (event.key === 'Home') next = 0
+        else if (event.key === 'End') next = buttons.length - 1
+        if (next < 0) return
+        event.preventDefault()
+        buttons[next].focus()
+      })
       root.addEventListener('input', function (event) {
         if (event.target.matches && event.target.matches('[data-fg-richtext]')) onChange(event.target, fgRichClean(event.target.innerHTML))
       })
@@ -19587,6 +19743,32 @@ function fgWireRichText(root: any, onChange: (editor: HTMLElement, html: string)
       document.execCommand(command)
     }
     onChange(editor, fgRichClean(editor.innerHTML))
+  })
+  // One tab stop per toolbar: the last used button; arrows, Home and End
+  // move between the buttons (arrows follow the writing direction).
+  var toolbarButtons = function (button: any) {
+    return Array.prototype.slice.call(button.closest('[role="toolbar"]').querySelectorAll('[data-fg-rt-cmd]'))
+  }
+  root.addEventListener('focusin', function (event: any) {
+    var button = event.target.closest && event.target.closest('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
+    if (!button) return
+    toolbarButtons(button).forEach(function (other: any) { other.setAttribute('tabindex', other === button ? '0' : '-1') })
+  })
+  root.addEventListener('keydown', function (event: any) {
+    var button = event.target.closest && event.target.closest('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
+    if (!button) return
+    var toolbar = button.closest('[role="toolbar"]')
+    var buttons = toolbarButtons(button)
+    var index = buttons.indexOf(button)
+    var dirHost = toolbar.closest('[dir]')
+    var rtl = (dirHost ? dirHost.getAttribute('dir') : getComputedStyle(toolbar).direction) === 'rtl'
+    var next = -1
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') next = (index + ((event.key === 'ArrowRight') !== rtl ? 1 : -1) + buttons.length) % buttons.length
+    else if (event.key === 'Home') next = 0
+    else if (event.key === 'End') next = buttons.length - 1
+    if (next < 0) return
+    event.preventDefault()
+    buttons[next].focus()
   })
   root.addEventListener('input', function (event: any) {
     if (event.target.matches && event.target.matches('[data-fg-richtext]')) onChange(event.target, fgRichClean(event.target.innerHTML))
@@ -21451,11 +21633,11 @@ export default function KitchenSinkForm({
             <div className="form-label fw-semibold fs-6 mb-0"><span id="fg_about_label">About you</span></div>
             <div className="border rounded bg-body" data-fg-rich>
               <div className="d-flex flex-wrap gap-1 border-bottom p-1" role="toolbar" aria-label="Formatting" aria-controls="fg_about">
-                <button type="button" className="btn btn-sm btn-light" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
-                <button type="button" className="btn btn-sm btn-light" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
-                <button type="button" className="btn btn-sm btn-light" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-                <button type="button" className="btn btn-sm btn-light" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
-                <button type="button" className="btn btn-sm btn-light" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
+                <button type="button" className="btn btn-sm btn-light" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold" tabIndex="0"><b>B</b></button>
+                <button type="button" className="btn btn-sm btn-light" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic" tabIndex="-1"><i>I</i></button>
+                <button type="button" className="btn btn-sm btn-light" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList" tabIndex="-1">•</button>
+                <button type="button" className="btn btn-sm btn-light" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList" tabIndex="-1"><span dir="ltr">1.</span></button>
+                <button type="button" className="btn btn-sm btn-light" aria-label="Link" title="Link" data-fg-rt-cmd="link" tabIndex="-1">🔗</button>
               </div>
               <div id="fg_about" className="fg-richtext-editor px-3 py-2" contentEditable role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext="about" onBlur={() => touch('about')}></div>
             </div>
@@ -22274,6 +22456,32 @@ function fgWireRichText(root: any, onChange: (editor: HTMLElement, html: string)
       document.execCommand(command)
     }
     onChange(editor, fgRichClean(editor.innerHTML))
+  })
+  // One tab stop per toolbar: the last used button; arrows, Home and End
+  // move between the buttons (arrows follow the writing direction).
+  var toolbarButtons = function (button: any) {
+    return Array.prototype.slice.call(button.closest('[role="toolbar"]').querySelectorAll('[data-fg-rt-cmd]'))
+  }
+  root.addEventListener('focusin', function (event: any) {
+    var button = event.target.closest && event.target.closest('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
+    if (!button) return
+    toolbarButtons(button).forEach(function (other: any) { other.setAttribute('tabindex', other === button ? '0' : '-1') })
+  })
+  root.addEventListener('keydown', function (event: any) {
+    var button = event.target.closest && event.target.closest('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
+    if (!button) return
+    var toolbar = button.closest('[role="toolbar"]')
+    var buttons = toolbarButtons(button)
+    var index = buttons.indexOf(button)
+    var dirHost = toolbar.closest('[dir]')
+    var rtl = (dirHost ? dirHost.getAttribute('dir') : getComputedStyle(toolbar).direction) === 'rtl'
+    var next = -1
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') next = (index + ((event.key === 'ArrowRight') !== rtl ? 1 : -1) + buttons.length) % buttons.length
+    else if (event.key === 'Home') next = 0
+    else if (event.key === 'End') next = buttons.length - 1
+    if (next < 0) return
+    event.preventDefault()
+    buttons[next].focus()
   })
   root.addEventListener('input', function (event: any) {
     if (event.target.matches && event.target.matches('[data-fg-richtext]')) onChange(event.target, fgRichClean(event.target.innerHTML))
@@ -24146,11 +24354,11 @@ export default function KitchenSinkForm({
             <div className="text-sm font-semibold"><span id="fg_about_label">About you</span></div>
             <div className="rounded-md border border-gray-300 bg-white shadow-sm focus-within:ring-2 focus-within:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-rich>
               <div className="flex flex-wrap gap-1 border-b border-gray-200 p-1 dark:border-gray-700" role="toolbar" aria-label="Formatting" aria-controls="fg_about">
-                <button type="button" className="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
-                <button type="button" className="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
-                <button type="button" className="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-                <button type="button" className="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
-                <button type="button" className="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
+                <button type="button" className="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold" tabIndex="0"><b>B</b></button>
+                <button type="button" className="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic" tabIndex="-1"><i>I</i></button>
+                <button type="button" className="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList" tabIndex="-1">•</button>
+                <button type="button" className="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList" tabIndex="-1"><span dir="ltr">1.</span></button>
+                <button type="button" className="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Link" title="Link" data-fg-rt-cmd="link" tabIndex="-1">🔗</button>
               </div>
               <div id="fg_about" className="min-h-24 px-3 py-2 text-sm outline-none [overflow-wrap:anywhere] [&_ol]:list-decimal [&_ol]:ps-6 [&_ul]:list-disc [&_ul]:ps-6 [&_a]:text-indigo-600 [&_a]:underline [&_p]:mb-2" contentEditable role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext="about" onBlur={() => touch('about')}></div>
             </div>
@@ -24969,6 +25177,32 @@ function fgWireRichText(root: any, onChange: (editor: HTMLElement, html: string)
       document.execCommand(command)
     }
     onChange(editor, fgRichClean(editor.innerHTML))
+  })
+  // One tab stop per toolbar: the last used button; arrows, Home and End
+  // move between the buttons (arrows follow the writing direction).
+  var toolbarButtons = function (button: any) {
+    return Array.prototype.slice.call(button.closest('[role="toolbar"]').querySelectorAll('[data-fg-rt-cmd]'))
+  }
+  root.addEventListener('focusin', function (event: any) {
+    var button = event.target.closest && event.target.closest('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
+    if (!button) return
+    toolbarButtons(button).forEach(function (other: any) { other.setAttribute('tabindex', other === button ? '0' : '-1') })
+  })
+  root.addEventListener('keydown', function (event: any) {
+    var button = event.target.closest && event.target.closest('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
+    if (!button) return
+    var toolbar = button.closest('[role="toolbar"]')
+    var buttons = toolbarButtons(button)
+    var index = buttons.indexOf(button)
+    var dirHost = toolbar.closest('[dir]')
+    var rtl = (dirHost ? dirHost.getAttribute('dir') : getComputedStyle(toolbar).direction) === 'rtl'
+    var next = -1
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') next = (index + ((event.key === 'ArrowRight') !== rtl ? 1 : -1) + buttons.length) % buttons.length
+    else if (event.key === 'Home') next = 0
+    else if (event.key === 'End') next = buttons.length - 1
+    if (next < 0) return
+    event.preventDefault()
+    buttons[next].focus()
   })
   root.addEventListener('input', function (event: any) {
     if (event.target.matches && event.target.matches('[data-fg-richtext]')) onChange(event.target, fgRichClean(event.target.innerHTML))
@@ -26841,11 +27075,11 @@ export default function KitchenSinkForm({
             <div className="fg-label"><span id="fg_about_label">About you</span></div>
             <div className="fg-richtext" data-fg-rich>
               <div className="fg-richtext-toolbar" role="toolbar" aria-label="Formatting" aria-controls="fg_about">
-                <button type="button" className="fg-richtext-button" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
-                <button type="button" className="fg-richtext-button" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
-                <button type="button" className="fg-richtext-button" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-                <button type="button" className="fg-richtext-button" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
-                <button type="button" className="fg-richtext-button" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
+                <button type="button" className="fg-richtext-button" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold" tabIndex="0"><b>B</b></button>
+                <button type="button" className="fg-richtext-button" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic" tabIndex="-1"><i>I</i></button>
+                <button type="button" className="fg-richtext-button" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList" tabIndex="-1">•</button>
+                <button type="button" className="fg-richtext-button" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList" tabIndex="-1"><span dir="ltr">1.</span></button>
+                <button type="button" className="fg-richtext-button" aria-label="Link" title="Link" data-fg-rt-cmd="link" tabIndex="-1">🔗</button>
               </div>
               <div id="fg_about" className="fg-richtext-editor" contentEditable role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext="about" onBlur={() => touch('about')}></div>
             </div>
@@ -27892,6 +28126,32 @@ function fgWireRichText(root: any, onChange: (editor: HTMLElement, html: string)
       document.execCommand(command)
     }
     onChange(editor, fgRichClean(editor.innerHTML))
+  })
+  // One tab stop per toolbar: the last used button; arrows, Home and End
+  // move between the buttons (arrows follow the writing direction).
+  var toolbarButtons = function (button: any) {
+    return Array.prototype.slice.call(button.closest('[role="toolbar"]').querySelectorAll('[data-fg-rt-cmd]'))
+  }
+  root.addEventListener('focusin', function (event: any) {
+    var button = event.target.closest && event.target.closest('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
+    if (!button) return
+    toolbarButtons(button).forEach(function (other: any) { other.setAttribute('tabindex', other === button ? '0' : '-1') })
+  })
+  root.addEventListener('keydown', function (event: any) {
+    var button = event.target.closest && event.target.closest('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
+    if (!button) return
+    var toolbar = button.closest('[role="toolbar"]')
+    var buttons = toolbarButtons(button)
+    var index = buttons.indexOf(button)
+    var dirHost = toolbar.closest('[dir]')
+    var rtl = (dirHost ? dirHost.getAttribute('dir') : getComputedStyle(toolbar).direction) === 'rtl'
+    var next = -1
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') next = (index + ((event.key === 'ArrowRight') !== rtl ? 1 : -1) + buttons.length) % buttons.length
+    else if (event.key === 'Home') next = 0
+    else if (event.key === 'End') next = buttons.length - 1
+    if (next < 0) return
+    event.preventDefault()
+    buttons[next].focus()
   })
   root.addEventListener('input', function (event: any) {
     if (event.target.matches && event.target.matches('[data-fg-richtext]')) onChange(event.target, fgRichClean(event.target.innerHTML))
@@ -29464,11 +29724,11 @@ async function onSubmit(): Promise<void> {
           <div class="form-label fw-semibold fs-6 mb-0"><span id="fg_about_label">About you</span></div>
           <div class="border rounded bg-body" data-fg-rich>
             <div class="d-flex flex-wrap gap-1 border-bottom p-1" role="toolbar" aria-label="Formatting" aria-controls="fg_about">
-              <button type="button" class="btn btn-sm btn-light" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
-              <button type="button" class="btn btn-sm btn-light" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
-              <button type="button" class="btn btn-sm btn-light" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-              <button type="button" class="btn btn-sm btn-light" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
-              <button type="button" class="btn btn-sm btn-light" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
+              <button type="button" class="btn btn-sm btn-light" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold" tabindex="0"><b>B</b></button>
+              <button type="button" class="btn btn-sm btn-light" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic" tabindex="-1"><i>I</i></button>
+              <button type="button" class="btn btn-sm btn-light" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList" tabindex="-1">•</button>
+              <button type="button" class="btn btn-sm btn-light" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList" tabindex="-1"><span dir="ltr">1.</span></button>
+              <button type="button" class="btn btn-sm btn-light" aria-label="Link" title="Link" data-fg-rt-cmd="link" tabindex="-1">🔗</button>
             </div>
             <div id="fg_about" class="fg-richtext-editor px-3 py-2" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext="about" @blur="touch('about')"></div>
           </div>
@@ -30563,6 +30823,32 @@ function fgWireRichText(root: any, onChange: (editor: HTMLElement, html: string)
       document.execCommand(command)
     }
     onChange(editor, fgRichClean(editor.innerHTML))
+  })
+  // One tab stop per toolbar: the last used button; arrows, Home and End
+  // move between the buttons (arrows follow the writing direction).
+  var toolbarButtons = function (button: any) {
+    return Array.prototype.slice.call(button.closest('[role="toolbar"]').querySelectorAll('[data-fg-rt-cmd]'))
+  }
+  root.addEventListener('focusin', function (event: any) {
+    var button = event.target.closest && event.target.closest('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
+    if (!button) return
+    toolbarButtons(button).forEach(function (other: any) { other.setAttribute('tabindex', other === button ? '0' : '-1') })
+  })
+  root.addEventListener('keydown', function (event: any) {
+    var button = event.target.closest && event.target.closest('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
+    if (!button) return
+    var toolbar = button.closest('[role="toolbar"]')
+    var buttons = toolbarButtons(button)
+    var index = buttons.indexOf(button)
+    var dirHost = toolbar.closest('[dir]')
+    var rtl = (dirHost ? dirHost.getAttribute('dir') : getComputedStyle(toolbar).direction) === 'rtl'
+    var next = -1
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') next = (index + ((event.key === 'ArrowRight') !== rtl ? 1 : -1) + buttons.length) % buttons.length
+    else if (event.key === 'Home') next = 0
+    else if (event.key === 'End') next = buttons.length - 1
+    if (next < 0) return
+    event.preventDefault()
+    buttons[next].focus()
   })
   root.addEventListener('input', function (event: any) {
     if (event.target.matches && event.target.matches('[data-fg-richtext]')) onChange(event.target, fgRichClean(event.target.innerHTML))
@@ -32143,11 +32429,11 @@ async function onSubmit(): Promise<void> {
           <div class="text-sm font-semibold"><span id="fg_about_label">About you</span></div>
           <div class="rounded-md border border-gray-300 bg-white shadow-sm focus-within:ring-2 focus-within:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-rich>
             <div class="flex flex-wrap gap-1 border-b border-gray-200 p-1 dark:border-gray-700" role="toolbar" aria-label="Formatting" aria-controls="fg_about">
-              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
-              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
-              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
-              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
+              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold" tabindex="0"><b>B</b></button>
+              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic" tabindex="-1"><i>I</i></button>
+              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList" tabindex="-1">•</button>
+              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList" tabindex="-1"><span dir="ltr">1.</span></button>
+              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Link" title="Link" data-fg-rt-cmd="link" tabindex="-1">🔗</button>
             </div>
             <div id="fg_about" class="min-h-24 px-3 py-2 text-sm outline-none [overflow-wrap:anywhere] [&_ol]:list-decimal [&_ol]:ps-6 [&_ul]:list-disc [&_ul]:ps-6 [&_a]:text-indigo-600 [&_a]:underline [&_p]:mb-2" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext="about" @blur="touch('about')"></div>
           </div>
@@ -33217,6 +33503,32 @@ function fgWireRichText(root: any, onChange: (editor: HTMLElement, html: string)
       document.execCommand(command)
     }
     onChange(editor, fgRichClean(editor.innerHTML))
+  })
+  // One tab stop per toolbar: the last used button; arrows, Home and End
+  // move between the buttons (arrows follow the writing direction).
+  var toolbarButtons = function (button: any) {
+    return Array.prototype.slice.call(button.closest('[role="toolbar"]').querySelectorAll('[data-fg-rt-cmd]'))
+  }
+  root.addEventListener('focusin', function (event: any) {
+    var button = event.target.closest && event.target.closest('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
+    if (!button) return
+    toolbarButtons(button).forEach(function (other: any) { other.setAttribute('tabindex', other === button ? '0' : '-1') })
+  })
+  root.addEventListener('keydown', function (event: any) {
+    var button = event.target.closest && event.target.closest('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
+    if (!button) return
+    var toolbar = button.closest('[role="toolbar"]')
+    var buttons = toolbarButtons(button)
+    var index = buttons.indexOf(button)
+    var dirHost = toolbar.closest('[dir]')
+    var rtl = (dirHost ? dirHost.getAttribute('dir') : getComputedStyle(toolbar).direction) === 'rtl'
+    var next = -1
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') next = (index + ((event.key === 'ArrowRight') !== rtl ? 1 : -1) + buttons.length) % buttons.length
+    else if (event.key === 'Home') next = 0
+    else if (event.key === 'End') next = buttons.length - 1
+    if (next < 0) return
+    event.preventDefault()
+    buttons[next].focus()
   })
   root.addEventListener('input', function (event: any) {
     if (event.target.matches && event.target.matches('[data-fg-richtext]')) onChange(event.target, fgRichClean(event.target.innerHTML))
@@ -34797,11 +35109,11 @@ async function onSubmit(): Promise<void> {
           <div class="fg-label"><span id="fg_about_label">About you</span></div>
           <div class="fg-richtext" data-fg-rich>
             <div class="fg-richtext-toolbar" role="toolbar" aria-label="Formatting" aria-controls="fg_about">
-              <button type="button" class="fg-richtext-button" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
-              <button type="button" class="fg-richtext-button" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
-              <button type="button" class="fg-richtext-button" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-              <button type="button" class="fg-richtext-button" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
-              <button type="button" class="fg-richtext-button" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
+              <button type="button" class="fg-richtext-button" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold" tabindex="0"><b>B</b></button>
+              <button type="button" class="fg-richtext-button" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic" tabindex="-1"><i>I</i></button>
+              <button type="button" class="fg-richtext-button" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList" tabindex="-1">•</button>
+              <button type="button" class="fg-richtext-button" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList" tabindex="-1"><span dir="ltr">1.</span></button>
+              <button type="button" class="fg-richtext-button" aria-label="Link" title="Link" data-fg-rt-cmd="link" tabindex="-1">🔗</button>
             </div>
             <div id="fg_about" class="fg-richtext-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext="about" @blur="touch('about')"></div>
           </div>

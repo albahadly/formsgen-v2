@@ -66,6 +66,30 @@ describe('<FormsGenForm> with a rich-text field', () => {
     wrapper.unmount()
   })
 
+  it('the toolbar is one tab stop; arrows, Home and End move between its buttons, following the writing direction', async () => {
+    const wrapper = mount(FormsGenForm, { props: { schema }, attachTo: document.body })
+    const buttons = wrapper.findAll('[data-fg-rt-cmd]')
+    expect(buttons.map((b) => b.attributes('tabindex'))).toEqual(['0', '-1', '-1', '-1', '-1'])
+    ;(buttons[0]!.element as HTMLElement).focus()
+    await buttons[0]!.trigger('keydown', { key: 'ArrowRight' })
+    expect(document.activeElement).toBe(buttons[1]!.element)
+    expect(buttons.map((b) => b.attributes('tabindex'))).toEqual(['-1', '0', '-1', '-1', '-1'])
+    await buttons[1]!.trigger('keydown', { key: 'End' })
+    expect(document.activeElement).toBe(buttons[4]!.element)
+    await buttons[4]!.trigger('keydown', { key: 'ArrowRight' })
+    expect(document.activeElement).toBe(buttons[0]!.element)
+    await buttons[0]!.trigger('keydown', { key: 'Home' })
+    expect(document.activeElement).toBe(buttons[0]!.element)
+    wrapper.unmount()
+    // Right-to-left: ArrowLeft goes forward.
+    const rtl = mount(FormsGenForm, { props: { schema: { ...schema, meta: { ...schema.meta, locale: 'ar', dir: 'rtl' } } }, attachTo: document.body })
+    const rtlButtons = rtl.findAll('[data-fg-rt-cmd]')
+    ;(rtlButtons[0]!.element as HTMLElement).focus()
+    await rtlButtons[0]!.trigger('keydown', { key: 'ArrowLeft' })
+    expect(document.activeElement).toBe(rtlButtons[1]!.element)
+    rtl.unmount()
+  })
+
   it('a value set from outside shows in the editor', async () => {
     const wrapper = mount(FormsGenForm, { props: { schema, modelValue: { about: '<p>Saved <em>text</em></p><img src=x onerror=1>' } }, attachTo: document.body })
     await flushPromises()

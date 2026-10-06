@@ -18,9 +18,12 @@ const BUTTONS: [command: string, key: 'richBold' | 'richItalic' | 'richBullets' 
 function editor(node: ElementNode, ctx: EmitCtx, lang: EmitterLang): string {
   const c = lang === 'react' ? 'className' : 'class'
   const m = ctx.messages
+  // One tab stop for the toolbar (the first button to begin with); the
+  // script moves it with the arrow keys (export/richAnswer.ts).
+  const tabindex = lang === 'react' ? 'tabIndex' : 'tabindex'
   const buttons = BUTTONS.map(
-    ([command, key, face]) =>
-      `<button type="button" ${c}="${ctx.css.classes('richtextButton')}" aria-label="${esc(m[key])}" title="${esc(m[key])}" data-fg-rt-cmd="${command}">${face}</button>`,
+    ([command, key, face], i) =>
+      `<button type="button" ${c}="${ctx.css.classes('richtextButton')}" aria-label="${esc(m[key])}" title="${esc(m[key])}" data-fg-rt-cmd="${command}" ${tabindex}="${i === 0 ? 0 : -1}">${face}</button>`,
   ).join('\n    ')
   const member = pascalMember(ctx.key)
   const value =

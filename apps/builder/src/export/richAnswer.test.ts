@@ -54,6 +54,10 @@ describe('rich text in the exports', () => {
       expect(code, target).toContain('<span id="fg_about_label">About</span>')
       expect(code, target).toContain('data-fg-rt-cmd="insertOrderedList"')
       expect(code, target).toContain('function fgRichClean(')
+      // One tab stop per toolbar (React spells the attribute tabIndex).
+      const tabindex = target === 'react' ? 'tabIndex' : 'tabindex'
+      expect(code, target).toContain(`data-fg-rt-cmd="bold" ${tabindex}="0"`)
+      expect(code, target).toContain(`data-fg-rt-cmd="link" ${tabindex}="-1"`)
     }
     expect(out('react')).toContain('contentEditable role="textbox"')
     expect(out('html')).toContain('data-fg-path="about" data-fg-kind="richtext"')
@@ -62,6 +66,33 @@ describe('rich text in the exports', () => {
     expect(razor).toContain('public void FgRichChanged(string key, string html)')
     expect(razor).toContain('@(FgOr(FgRichPlain(Model.About), "nothing"))')
     expect(out('vue-standalone')).toContain(`{{ fgOr(fgRichPlain(form.about), 'nothing') }}`)
+  })
+
+  it('the script moves the toolbar tab stop with the arrow keys, following the writing direction', () => {
+    const wire = new Function(`${richTextRuntime('Link?', false)}\nreturn fgWireRichText`)() as (root: HTMLElement, onChange: () => void) => void
+    const root = document.createElement('form')
+    root.setAttribute('dir', 'rtl')
+    root.innerHTML = `<div data-fg-rich><div role="toolbar">${['bold', 'italic', 'insertUnorderedList', 'insertOrderedList', 'link']
+      .map((c, i) => `<button type="button" data-fg-rt-cmd="${c}" tabindex="${i === 0 ? 0 : -1}">${c}</button>`)
+      .join('')}</div><div data-fg-richtext contenteditable="true"></div></div>`
+    document.body.appendChild(root)
+    wire(root, () => {})
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-fg-rt-cmd]')]
+    const press = (button: HTMLElement, key: string): void => {
+      button.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }))
+    }
+    buttons[0]!.focus()
+    press(buttons[0]!, 'ArrowLeft') // rtl: forward
+    expect(document.activeElement).toBe(buttons[1])
+    expect(buttons.map((b) => b.getAttribute('tabindex'))).toEqual(['-1', '0', '-1', '-1', '-1'])
+    press(buttons[1]!, 'End')
+    expect(document.activeElement).toBe(buttons[4])
+    press(buttons[4]!, 'ArrowRight') // rtl: back
+    expect(document.activeElement).toBe(buttons[3])
+    press(buttons[3]!, 'Home')
+    expect(document.activeElement).toBe(buttons[0])
+    expect(buttons.map((b) => b.getAttribute('tabindex'))).toEqual(['0', '-1', '-1', '-1', '-1'])
+    root.remove()
   })
 
   it('length rules judge the visible text in every language', () => {

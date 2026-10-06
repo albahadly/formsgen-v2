@@ -113,6 +113,32 @@ function fgWireRichText(root${any}, onChange${t(': (editor: HTMLElement, html: s
     }
     onChange(editor, fgRichClean(editor.innerHTML))
   })
+  // One tab stop per toolbar: the last used button; arrows, Home and End
+  // move between the buttons (arrows follow the writing direction).
+  var toolbarButtons = function (button${any}) {
+    return Array.prototype.slice.call(button.closest('[role="toolbar"]').querySelectorAll('[data-fg-rt-cmd]'))
+  }
+  root.addEventListener('focusin', function (event${any}) {
+    var button = event.target.closest && event.target.closest('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
+    if (!button) return
+    toolbarButtons(button).forEach(function (other${any}) { other.setAttribute('tabindex', other === button ? '0' : '-1') })
+  })
+  root.addEventListener('keydown', function (event${any}) {
+    var button = event.target.closest && event.target.closest('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
+    if (!button) return
+    var toolbar = button.closest('[role="toolbar"]')
+    var buttons = toolbarButtons(button)
+    var index = buttons.indexOf(button)
+    var dirHost = toolbar.closest('[dir]')
+    var rtl = (dirHost ? dirHost.getAttribute('dir') : getComputedStyle(toolbar).direction) === 'rtl'
+    var next = -1
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') next = (index + ((event.key === 'ArrowRight') !== rtl ? 1 : -1) + buttons.length) % buttons.length
+    else if (event.key === 'Home') next = 0
+    else if (event.key === 'End') next = buttons.length - 1
+    if (next < 0) return
+    event.preventDefault()
+    buttons[next].focus()
+  })
   root.addEventListener('input', function (event${any}) {
     if (event.target.matches && event.target.matches('[data-fg-richtext]')) onChange(event.target, fgRichClean(event.target.innerHTML))
   })

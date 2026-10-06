@@ -33,6 +33,14 @@ r.a11y = await page.evaluate(() => {
     toolbar: [bar.getAttribute('aria-label'), bar.getAttribute('aria-controls'), [...bar.querySelectorAll('button')].map((b) => b.getAttribute('aria-label'))],
   }
 })
+// One tab stop per toolbar: arrows, Home and End move between its buttons.
+await button('fg_about', 'bold').focus()
+const activeCmd = () => page.evaluate(() => document.activeElement && document.activeElement.getAttribute('data-fg-rt-cmd'))
+await page.keyboard.press('ArrowRight')
+r.toolbarKeys = { afterRight: await activeCmd() }
+await page.keyboard.press('End'); r.toolbarKeys.afterEnd = await activeCmd()
+await page.keyboard.press('Home'); r.toolbarKeys.afterHome = await activeCmd()
+r.toolbarKeys.tabindex = await page.evaluate(() => [...document.getElementById('fg_about').closest('[data-fg-rich]').querySelectorAll('[data-fg-rt-cmd]')].map((b) => b.getAttribute('tabindex')))
 r.iframes = await page.evaluate(() => [...document.querySelectorAll('iframe')].map((f) => ['src', 'sandbox', 'referrerpolicy', 'loading', 'allow', 'allowfullscreen', 'onload', 'title'].map((a) => f.getAttribute(a))))
 await page.locator('button[type=submit]').click(); await wait()
 r.required = (await page.locator('#fg_about').locator('xpath=ancestor::div[.//*[@data-fg-rich]][1]').textContent()).includes('This field is required')

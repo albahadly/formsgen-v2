@@ -15,6 +15,26 @@ const { ctx, value, error, label, description, required, fieldId, tooltip, error
   useField(props)
 const messages = computed(() => ctx.messages?.() ?? MESSAGES.en)
 const editor = ref<HTMLElement | null>(null)
+const toolbar = ref<HTMLElement | null>(null)
+// One tab stop for the toolbar: the last used button; arrows, Home and End
+// move between the buttons (arrows follow the writing direction).
+const active = ref(0)
+function onToolbarKey(event: KeyboardEvent): void {
+  const bar = toolbar.value
+  if (!bar) return
+  const buttons = [...bar.querySelectorAll<HTMLButtonElement>('[data-fg-rt-cmd]')]
+  const index = buttons.indexOf(event.target as HTMLButtonElement)
+  if (index < 0) return
+  const rtl = (bar.closest('[dir]')?.getAttribute('dir') ?? getComputedStyle(bar).direction) === 'rtl'
+  let next = -1
+  if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') next = (index + ((event.key === 'ArrowRight') !== rtl ? 1 : -1) + buttons.length) % buttons.length
+  else if (event.key === 'Home') next = 0
+  else if (event.key === 'End') next = buttons.length - 1
+  if (next < 0) return
+  event.preventDefault()
+  active.value = next
+  buttons[next]?.focus()
+}
 
 const current = computed(() => cleanRichText(value.value))
 function show(): void {
@@ -66,10 +86,12 @@ function onPaste(event: ClipboardEvent): void {
     </div>
     <div class="fg-richtext">
       <div
+        ref="toolbar"
         class="fg-richtext-toolbar"
         role="toolbar"
         :aria-label="messages.richToolbar"
         :aria-controls="fieldId"
+        @keydown="onToolbarKey"
       >
         <button
           type="button"
@@ -77,7 +99,9 @@ function onPaste(event: ClipboardEvent): void {
           :aria-label="messages.richBold"
           :title="messages.richBold"
           data-fg-rt-cmd="bold"
+          :tabindex="active === 0 ? 0 : -1"
           @mousedown.prevent
+          @focus="active = 0"
           @click="run('bold')"
         >
           <b>B</b>
@@ -88,7 +112,9 @@ function onPaste(event: ClipboardEvent): void {
           :aria-label="messages.richItalic"
           :title="messages.richItalic"
           data-fg-rt-cmd="italic"
+          :tabindex="active === 1 ? 0 : -1"
           @mousedown.prevent
+          @focus="active = 1"
           @click="run('italic')"
         >
           <i>I</i>
@@ -99,7 +125,9 @@ function onPaste(event: ClipboardEvent): void {
           :aria-label="messages.richBullets"
           :title="messages.richBullets"
           data-fg-rt-cmd="insertUnorderedList"
+          :tabindex="active === 2 ? 0 : -1"
           @mousedown.prevent
+          @focus="active = 2"
           @click="run('insertUnorderedList')"
         >
           •
@@ -110,7 +138,9 @@ function onPaste(event: ClipboardEvent): void {
           :aria-label="messages.richNumbers"
           :title="messages.richNumbers"
           data-fg-rt-cmd="insertOrderedList"
+          :tabindex="active === 3 ? 0 : -1"
           @mousedown.prevent
+          @focus="active = 3"
           @click="run('insertOrderedList')"
         >
           <span dir="ltr">1.</span>
@@ -121,7 +151,9 @@ function onPaste(event: ClipboardEvent): void {
           :aria-label="messages.richLink"
           :title="messages.richLink"
           data-fg-rt-cmd="link"
+          :tabindex="active === 4 ? 0 : -1"
           @mousedown.prevent
+          @focus="active = 4"
           @click="link"
         >
           🔗
