@@ -301,3 +301,14 @@ function onDuplicate(): void {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Maps, signature pads, rich-text editors and embedded pages are inert in
+   the editor: a click selects the element and a drag moves it. */
+:deep(.leaflet-container),
+:deep(canvas[data-fg-signature]),
+:deep([data-fg-richtext]),
+:deep(.fg-html iframe) {
+  pointer-events: none;
+}
+</style>

@@ -2,8 +2,9 @@
 // compiled validation and conditions — compiles as-is in a fresh
 // `npm create vue@latest` project (REBUILD_PROMPT §7 target 3).
 
+import { servicesReadme } from '../readmeNotes'
 import { resolveMessages } from '@formsgen/renderer'
-import { errorsTextFunction, stepAnnouncementsLiteral, submittedText } from '../announce'
+import { errorsTextFunction, stepAnnouncementsLiteral, submittedText, jsString } from '../announce'
 import { FILE_HELPERS_TS, RUNTIME_HELPERS_TS, pruneUnusedHelpers } from '../compile'
 import { postsUploads, uploadFields, uploadStatusMarkup, uploadTextHelper, vueUploadRuntime } from '../uploadRuntime'
 import { ADD_DATE_TS, DUAL_RANGE_HELPERS_TS, MATRIX_TOGGLE_TS, exportStylesheet, hasMultiMatrix, hasRangeSlider, phoneCountryFields, phoneDefaults, phoneHelpers } from '../composite'
@@ -103,11 +104,11 @@ export const vueStandaloneTarget: ExportTarget = {
         const buttons = host.sections
           .map(
             (s) =>
-              `    <button type="button" :class="${state} === ${s.index} ? '${css.classes('tabButtonActive')}' : '${css.classes('tabButton')}'" @click="${state} = ${s.index}">${s.label}</button>`,
+              `    <button type="button" role="tab" :aria-selected="${state} === ${s.index}" :class="${state} === ${s.index} ? '${css.classes('tabButtonActive')}' : '${css.classes('tabButton')}'" @click="${state} = ${s.index}">${s.label}</button>`,
           )
           .join('\n')
         const panels = host.sections
-          .map((s) => `  <div v-show="${state} === ${s.index}">\n${indentBlock(s.html, 2)}\n  </div>`)
+          .map((s) => `  <div v-show="${state} === ${s.index}" role="tabpanel">\n${indentBlock(s.html, 2)}\n  </div>`)
           .join('\n')
         return `<div>\n  <div class="${css.classes('tabList')}" role="tablist">\n${buttons}\n  </div>\n${panels}\n</div>`
       }
@@ -357,8 +358,8 @@ function fgRemoveLabel(path: string, index: number): string {
 function fgItemValidator(path: string): (() => string | null) | undefined {
   const match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
   if (!match) return undefined
-  const validate = fgItemValidators[fgTpl(match[1]!)]?.[match[3]!]
-  const item = fgList(match[1]!)[Number(match[2])]
+  const validate: ((item: Record<string, unknown>) => string | null) | undefined = fgItemValidators[fgTpl(match[1]!)]?.[match[3]!]
+  const item: Record<string, unknown> | undefined = fgList(match[1]!)[Number(match[2])]
   return validate && item ? () => validate(item) : undefined
 }
 /** Every item field path of a repeater, inner items included (validation, step gates). */
@@ -500,8 +501,8 @@ function fgSet(path: string, value: unknown): void {
     fgUpload.percent = 0
     // multipart: a JSON "data" part + one part per file; XMLHttpRequest reports upload progress
     fgSend(
-      ${JSON.stringify(submitUrl)},
-      ${JSON.stringify(schema.meta.submit?.method ?? 'POST')},
+      ${jsString(submitUrl ?? '')},
+      ${jsString(schema.meta.submit?.method ?? 'POST')},
       fgMultipart(data),
       (percent) => {
         fgUpload.percent = percent
@@ -514,8 +515,8 @@ function fgSet(path: string, value: unknown): void {
     )\n`
       : submitUrl
       ? `    try {
-      ${draft ? 'const response = ' : ''}await fetch(${JSON.stringify(submitUrl)}, {
-        method: ${JSON.stringify(schema.meta.submit?.method ?? 'POST')},
+      ${draft ? 'const response = ' : ''}await fetch(${jsString(submitUrl)}, {
+        method: ${jsString(schema.meta.submit?.method ?? 'POST')},
         ${hasUploads ? '// multipart: a JSON "data" part + one part per file\n        body: fgMultipart(data),' : "headers: { 'Content-Type': 'application/json' },\n        body: JSON.stringify(data),"}
       })${draft ? '\n      // Sent: the answers kept in this browser go.\n      if (response.ok) fgDraftForget()' : ''}
     } catch (error) {
@@ -682,10 +683,11 @@ ${indentBlock(captchaMarkup('vue', css, messages), 2)}` : ''}
   },
   readme: (ctx) => {
     const name = componentName(ctx.schema)
+    const services = servicesReadme(ctx.schema, 'vue')
     return `# ${name} (standalone Vue 3 component)
 
-Zero dependencies beyond Vue itself — validation, conditional visibility
-and the submit payload are compiled into the component.
+No npm dependencies beyond Vue itself — validation, conditional visibility
+and the submit payload are compiled into the component.${services ? ' At run time it loads the services listed below.' : ''}
 
 ## Install
 
@@ -699,6 +701,6 @@ and the submit payload are compiled into the component.
 
 ${ctx.css.readmeNote()}
 ${ctx.schema.meta.submit?.url ? `\nOn valid submit the component also POSTs the payload to \`${ctx.schema.meta.submit.url}\`.` : ''}
-`
+${services}`
   },
 }

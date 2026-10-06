@@ -19,7 +19,15 @@ const value = computed({
     return typeof v === 'number' ? v : ''
   },
   set: (v: number | '') => {
-    store.updateProps(props.node.id, { [props.prop]: v === '' ? undefined : Number(v) })
+    if (v === '' || !Number.isFinite(Number(v))) {
+      store.updateProps(props.node.id, { [props.prop]: undefined })
+      return
+    }
+    // Kept inside the range the renderer accepts (it would fall back silently).
+    let n = Number(v)
+    if (props.min !== undefined) n = Math.max(props.min, n)
+    if (props.max !== undefined) n = Math.min(props.max, n)
+    store.updateProps(props.node.id, { [props.prop]: n })
   },
 })
 </script>

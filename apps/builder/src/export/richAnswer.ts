@@ -183,10 +183,10 @@ window.fgRichSet = function (root, values) {
     script,
     members: `
     // Rich-text editors: run by a script on the form's root (FgRichTextScript),
-    // which reports each change here; values set here (a new model: reset,
-    // saved answers) are sent back after the next render.
+    // which reports each change here; the model's values go back to the
+    // editors after every render (a reset, saved answers, an editor shown
+    // again by a step or a condition).
     private readonly Dictionary<string, (Action<string> Set, string Value)> fgRich = new();
-    private bool fgRichShow;
 
     private string FgRichKey(string key, Action<string> set, string value)
     {
@@ -195,6 +195,12 @@ window.fgRichSet = function (root, values) {
     }
 
     private const string FgRichTextScript = ${csVerbatim(script)};
+
+    // A rich-text answer's text (rules, answers inside text): tags as spaces, entities decoded.
+    private static string FgRichPlain(string? html) => System.Text.RegularExpressions.Regex.Replace(
+        System.Net.WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Replace(
+            System.Text.RegularExpressions.Regex.Replace(html ?? "", "<br>|</?(p|li|ul|ol)>", " "), "<[^>]*>", "")),
+        @"\\s+", " ").Trim();
 
     [Microsoft.JSInterop.JSInvokable]
     public void FgRichChanged(string key, string html)
@@ -208,8 +214,7 @@ window.fgRichSet = function (root, values) {
 
     private async Task FgRichShowValues()
     {
-        if (!fgRichShow || fgSelf is null) return;
-        fgRichShow = false;
+        if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgRichSet", fgFormRoot, fgRich.ToDictionary(entry => entry.Key, entry => entry.Value.Value));
     }
 `,

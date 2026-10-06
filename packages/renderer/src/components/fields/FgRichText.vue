@@ -113,7 +113,7 @@ function onPaste(event: ClipboardEvent): void {
           @mousedown.prevent
           @click="run('insertOrderedList')"
         >
-          1.
+          <span dir="ltr">1.</span>
         </button>
         <button
           type="button"

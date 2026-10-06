@@ -33,6 +33,9 @@ describe('location values', () => {
     const custom = locationSettings(node({ lat: 23.6, lng: 58.4, zoom: 11, tiles: 'https://tiles.example/{z}/{x}/{y}.png', attribution: 'Ex <Maps>', myLocation: false, height: 900 }))
     expect(custom).toMatchObject({ lat: 23.6, lng: 58.4, zoom: 11, tiles: 'https://tiles.example/{z}/{x}/{y}.png', attribution: 'Ex <Maps>', myLocation: false, height: 260 })
     expect(locationSettings(node({ tiles: 'http://tiles.example/{z}/{x}/{y}.png' })).tiles).toBe(OSM_TILES)
+    // A credit of the author's own goes with their own tiles only.
+    expect(locationSettings(node({ attribution: 'Mine' })).attribution).toBe('© OpenStreetMap contributors')
+    expect(locationSettings(node({ tiles: 'https://tiles.example/{z}/{x}/{y}.png' })).attribution).toBe('')
     expect(locationSettings(node({ tiles: 'https://tiles.example/{z}.png' })).tiles).toBe(OSM_TILES)
     expect(attributionHtml('Ex <Maps>')).toBe('Ex &lt;Maps&gt;')
     expect(attributionHtml('© OpenStreetMap contributors')).toContain('href="https://www.openstreetmap.org/copyright"')
@@ -95,7 +98,9 @@ describe('location field', () => {
     await flushPromises()
     expect(fake.calls).toContain('map([23.6,58.4],9)')
     expect(fake.calls).toContain(`tiles(${OSM_TILES})`)
-    expect(wrapper.get('[data-fg-loc-map]').attributes('aria-label')).toBe(MESSAGES.en.locationMap)
+    expect(wrapper.get('[data-fg-loc-map]').attributes('aria-label')).toBe(`Where?: ${MESSAGES.en.locationMap}`)
+    expect(wrapper.get('[data-fg-loc-map]').attributes('role')).toBe('group')
+    expect(wrapper.get('#fg-l').attributes('aria-required')).toBe('true')
     await wrapper.get('form').trigger('submit')
     expect(wrapper.text()).toContain('This field is required')
 
@@ -113,8 +118,13 @@ describe('location field', () => {
     const [data] = wrapper.emitted('submit')!.at(-1) as [Record<string, unknown>]
     expect(data['place']).toEqual({ lat: 10, lng: -20.5 })
 
+    // Emptying one box empties the value and takes the pin away.
+    await wrapper.get('#fg-l-lng').setValue('')
+    expect(wrapper.emitted('update:modelValue')!.at(-1)![0]).toMatchObject({ place: null })
+    expect(fake.calls.filter((c) => c === 'unpin')).toHaveLength(1)
+    await wrapper.get('#fg-l-lng').setValue('-20.5')
     await wrapper.get('[data-fg-loc-clear]').trigger('click')
-    expect(fake.calls).toContain('unpin')
+    expect(fake.calls.filter((c) => c === 'unpin')).toHaveLength(2)
     expect(wrapper.emitted('update:modelValue')!.at(-1)![0]).toMatchObject({ place: null })
     expect(wrapper.text()).toContain('At: nowhere')
   })
@@ -161,5 +171,18 @@ describe('location field', () => {
     const started = mount(FormsGenForm, { props: { schema: off, modelValue: { place: { lat: 1, lng: 2 } } } })
     await flushPromises()
     expect((started.get('#fg-l-lng').element as HTMLInputElement).value).toBe('2')
+  })
+
+  it('new map settings rebuild the map (the builder\'s property panel)', async () => {
+    const fake = fakeLeaflet()
+    ;(window as { L?: unknown }).L = fake.L
+    const wrapper = mount(FormsGenForm, { props: { schema } })
+    await flushPromises()
+    expect(fake.calls).toContain('map([23.6,58.4],9)')
+    const changed: FormSchema = { ...schema, tree: [{ ...schema.tree[0]!, props: { ...schema.tree[0]!.props, zoom: 4 } }, schema.tree[1]!] }
+    await wrapper.setProps({ schema: changed })
+    await flushPromises()
+    expect(fake.calls).toContain('remove')
+    expect(fake.calls).toContain('map([23.6,58.4],4)')
   })
 })

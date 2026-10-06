@@ -20,6 +20,8 @@ function loadFixture(): FormSchema {
 }
 
 const AXE_OPTIONS = {
+  // The kitchen sink embeds a page in an iframe; jsdom can't message frames.
+  iframes: false,
   rules: {
     // Needs real computed colors; jsdom has no layout/paint.
     'color-contrast': { enabled: false },

@@ -35,9 +35,9 @@ const flatIds = computed<string[]>(() => {
 })
 
 function onKeydown(event: KeyboardEvent): void {
-  // Never steal keys from inputs rendered inside the canvas.
+  // Never steal keys from inputs or editable boxes rendered inside the canvas.
   const target = event.target as HTMLElement
-  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable) return
 
   if (event.key === 'Escape') {
     store.select(null)

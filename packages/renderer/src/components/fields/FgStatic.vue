@@ -7,7 +7,7 @@ import { parseSafeHtml } from '../../safeHtml'
 import { MESSAGES } from '../../messages'
 import type { ElementNode } from '../../schema'
 import FgHtmlBlock from './FgHtmlBlock'
-import FgRichText from './FgRichText'
+import FgMarkdown from './FgMarkdown'
 
 const props = defineProps<{ node: ElementNode }>()
 const ctx = inject(FORM_CONTEXT, null)
@@ -59,7 +59,7 @@ const cite = computed(() => prop('cite'))
     v-else-if="htmlNodes"
     :nodes="htmlNodes"
   />
-  <FgRichText
+  <FgMarkdown
     v-else-if="blocks"
     :class="toneClass"
     :blocks="blocks"

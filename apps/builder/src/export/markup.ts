@@ -380,7 +380,3 @@ export function renderTree(schema: FormSchema, rootOptions: MarkupOptions): stri
   return renderNodes(schema.tree, '', 12)
 }
 
-/** Splits text on ITEM_TOKEN: `a__i__b` → ['a', 'b']. */
-export function splitItemToken(text: string): string[] {
-  return text.split(ITEM_TOKEN)
-}

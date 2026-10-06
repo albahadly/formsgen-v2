@@ -87,12 +87,14 @@ export function evaluateRules(
   value: unknown,
   lookup: FieldLookup = () => undefined,
   messages: MessageCatalog = MESSAGES.en,
+  /** What the other rules judge when it isn't the value itself (rich text: its visible text). */
+  judged: unknown = value,
 ): RuleViolation[] {
   if (!rules || rules.length === 0) return []
   const violations: RuleViolation[] = []
   for (const rule of rules) {
     if (rule.rule !== 'required' && isEmptyValue(value)) continue
-    if (violates(rule, value, lookup)) {
+    if (violates(rule, rule.rule === 'required' ? value : judged, lookup)) {
       violations.push({ rule: rule.rule, message: rule.message ?? defaultRuleMessage(rule, messages) })
     }
   }

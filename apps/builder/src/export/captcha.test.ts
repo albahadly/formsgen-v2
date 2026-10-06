@@ -53,4 +53,17 @@ describe('spam check (Turnstile) in the exports', () => {
     expect(sampleServerReadme(schemaOf(true))).toContain('TURNSTILE_SECRET=your-secret-key node server/server.mjs')
     expect(sampleServerReadme(schemaOf(false))).not.toContain('TURNSTILE_SECRET')
   })
+
+  it('every README names the services the form uses and what a CSP must allow', () => {
+    for (const target of ['html', 'react', 'vue-standalone', 'blazor', 'vue-lib']) {
+      const readme = getTarget(target)!.readme({ schema: schemaOf(true), css: getCssAdapter('vanilla') })
+      expect(readme, target).toContain('## Services this form uses')
+      expect(readme, target).toContain('challenges.cloudflare.com')
+      expect(readme, target).toContain('cf-turnstile-response')
+      expect(readme, target).toContain("one of Cloudflare's test keys")
+      expect(getTarget(target)!.readme({ schema: schemaOf(false), css: getCssAdapter('vanilla') }), target).not.toContain('Services this form uses')
+    }
+    expect(getTarget('blazor')!.readme({ schema: schemaOf(true), css: getCssAdapter('vanilla') })).toContain('MaximumReceiveMessageSize')
+    expect(getTarget('react')!.readme({ schema: schemaOf(true), css: getCssAdapter('vanilla') })).not.toContain('Zero dependencies')
+  })
 })

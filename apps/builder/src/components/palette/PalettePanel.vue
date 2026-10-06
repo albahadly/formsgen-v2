@@ -88,7 +88,7 @@ function clone(def: ElementDefinition) {
             type="button"
             class="flex w-full cursor-grab items-center gap-2 rounded-md border border-gray-200 bg-white px-2 py-2 text-start hover:border-indigo-400 hover:bg-indigo-50"
             :data-testid="`palette-item-${def.type}`"
-            :title="def.description"
+            :title="tOr(`element.${def.type}.description`, def.description)"
             @click="add(def.type)"
           >
             <SvgIcon

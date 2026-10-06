@@ -43,6 +43,12 @@ const CONDITION_OPERATORS = new Set([
 
 const URL_PROPS = ['href', 'src'] as const
 
+/** A BCP 47-shaped language tag: "en", "ar", "ar-OM", "zh-Hant-TW". */
+const LOCALE_PATTERN = /^[A-Za-z]{2,3}([-_][A-Za-z0-9]{2,8})*$/
+
+/** Where answers are sent: http(s) or relative, with no characters that could end a script or attribute. */
+const isSubmitUrl = (value: unknown): value is string => isSafeUrl(value) && !/^(mailto:|tel:)/i.test(value.trim())
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
@@ -68,8 +74,21 @@ export function parseFormSchema(input: unknown): ParseResult {
     if (!isNonEmptyString(meta['name']) || !NAME_PATTERN.test(meta['name'])) {
       errors.push('meta.name: expected a slug (letter, then letters/digits/underscores)')
     }
-    if (!isNonEmptyString(meta['locale'])) {
-      errors.push('meta.locale: expected a non-empty string')
+    if (!isNonEmptyString(meta['locale']) || !LOCALE_PATTERN.test(meta['locale'])) {
+      errors.push('meta.locale: expected a language tag such as "en" or "ar-OM"')
+    }
+    const submit = meta['submit']
+    if (submit !== undefined) {
+      if (!isRecord(submit)) {
+        errors.push('meta.submit: expected an object')
+      } else {
+        if (submit['url'] !== undefined && submit['url'] !== '' && !isSubmitUrl(submit['url'])) {
+          errors.push('meta.submit.url: expected an http(s) or relative URL')
+        }
+        if (submit['method'] !== undefined && submit['method'] !== 'POST' && submit['method'] !== 'PUT') {
+          errors.push('meta.submit.method: expected "POST" or "PUT"')
+        }
+      }
     }
     if (meta['dir'] !== 'ltr' && meta['dir'] !== 'rtl') {
       errors.push('meta.dir: expected "ltr" or "rtl"')

@@ -2,6 +2,7 @@
 // (React 18+) with useState, compiled validation and conditions
 // (REBUILD_PROMPT §7 target 5). Added as a plugin — no core changes.
 
+import { servicesReadme } from '../readmeNotes'
 import { resolveMessages } from '@formsgen/renderer'
 import { errorsTextFunction, stepAnnouncementsLiteral, submittedText } from '../announce'
 import { FILE_HELPERS_TS, RUNTIME_HELPERS_TS, pruneUnusedHelpers } from '../compile'
@@ -127,14 +128,14 @@ export const reactTarget: ExportTarget = {
       const panels = host.sections
         .map(
           (s) =>
-            `  <div style={{ display: ${state} === ${s.index} ? undefined : 'none' }}>\n${indentBlock(s.html, 2)}\n  </div>`,
+            `  <div${host.kind === 'tabs' ? ' role="tabpanel"' : ''} style={{ display: ${state} === ${s.index} ? undefined : 'none' }}>\n${indentBlock(s.html, 2)}\n  </div>`,
         )
         .join('\n')
       if (host.kind === 'tabs') {
         const buttons = host.sections
           .map(
             (s) =>
-              `    <button type="button" className={${state} === ${s.index} ? "${css.classes('tabButtonActive')}" : "${css.classes('tabButton')}"} onClick={() => setFgSec_${host.key}(${s.index})}>${s.label}</button>`,
+              `    <button type="button" role="tab" aria-selected={${state} === ${s.index}} className={${state} === ${s.index} ? "${css.classes('tabButtonActive')}" : "${css.classes('tabButton')}"} onClick={() => setFgSec_${host.key}(${s.index})}>${s.label}</button>`,
           )
           .join('\n')
         return `<div>\n  <div className="${css.classes('tabList')}" role="tablist">\n${buttons}\n  </div>\n${panels}\n</div>`
@@ -783,10 +784,11 @@ ${progress ? `      ${uploadStatusMarkup('react', css, messages)}
   },
   readme: (ctx) => {
     const name = componentName(ctx.schema)
+    const services = servicesReadme(ctx.schema, 'react')
     return `# ${name} (standalone React component)
 
-Zero dependencies beyond React 18+ — validation, conditional visibility
-and the submit payload are compiled into the component.
+No npm dependencies beyond React 18+ — validation, conditional visibility
+and the submit payload are compiled into the component.${services ? ' At run time it loads the services listed below.' : ''}
 
 ## Install
 
@@ -800,6 +802,6 @@ and the submit payload are compiled into the component.
 
 ${ctx.css.readmeNote()}
 ${ctx.schema.meta.submit?.url ? `\nOn valid submit the component also POSTs the payload to \`${ctx.schema.meta.submit.url}\`.` : ''}
-`
+${services}`
   },
 }

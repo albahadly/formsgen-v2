@@ -177,11 +177,6 @@ export function answerHelpersCs(types: { range: boolean; dateRange: boolean; upl
 
     private static string FgOr(string text, string fallback) => text == "" ? fallback : text;
 
-    // A rich-text answer's text: tags as spaces, entities decoded.
-    private static string FgRichPlain(string? html) => System.Text.RegularExpressions.Regex.Replace(
-        System.Net.WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Replace(
-            System.Text.RegularExpressions.Regex.Replace(html ?? "", "<br>|</?(p|li|ul|ol)>", " "), "<[^>]*>", "")),
-        @"\\s+", " ").Trim();
 `
 }
 

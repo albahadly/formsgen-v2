@@ -208,7 +208,7 @@ describe('tabs/steps across code targets', () => {
   it('html emits section metadata and runtime hooks', () => {
     const [file] = generate('html')
     const code = file!.content
-    expect(code).toContain('data-fg-sec-panel="ks_social_tabs:1" hidden')
+    expect(code).toContain('data-fg-sec-panel="ks_social_tabs:1" role="tabpanel" hidden')
     expect(code).toContain('data-fg-step-next="ks_wizard"')
     expect(code).toContain('"stepPaths":[["shipping_city"],["order_notes"]]')
   })

@@ -18,6 +18,21 @@ export default defineConfig({
       ),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // Libraries, the renderer and the builder ship as separate chunks (the
+        // code view's highlighter and the ZIP writer only when first used).
+        manualChunks: (id) => {
+          if (id.includes('highlight.js')) return 'highlight'
+          if (id.includes('jszip')) return 'zip'
+          if (id.includes('/node_modules/')) return 'vendor'
+          if (id.includes('/packages/renderer/')) return 'renderer'
+          return undefined
+        },
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
   },

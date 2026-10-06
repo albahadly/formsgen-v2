@@ -147,7 +147,10 @@ function fgLocMap(group${any}, onChange${t(': (group: HTMLElement, point: { lat:
       onChange(group, point, true)
     }
     state.map.on('click', function (event${any}) { state.pick(event.latlng) })
-    if (window.ResizeObserver) new ResizeObserver(function () { state.map.invalidateSize() }).observe(el)
+    if (window.ResizeObserver) {
+      state.resizer = new ResizeObserver(function () { state.map.invalidateSize() })
+      state.resizer.observe(el)
+    }
     fgLocPin(group, fgLocTyped(group), 'zoom')
   }, function () {
     var status = fgLocParts(group).status
@@ -161,12 +164,25 @@ function fgWireLocations(root${any}, onChange${t(': (group: HTMLElement, point: 
     Array.prototype.forEach.call(root.querySelectorAll('[data-fg-loc]'), function (group${any}) { fgLocMap(group, onChange) })
   }
   start()
-  // Fields that appear later (new items, shown by a condition) get their map.
+  // Fields that appear later (new items, shown by a condition) get their
+  // map; the maps of fields taken away (removed items, hidden again) go.
   if (window.MutationObserver) {
     new MutationObserver(function (records) {
-      var added = records.some(function (record) {
-        return Array.prototype.some.call(record.addedNodes, function (node${any}) {
-          return node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))
+      var added = false
+      records.forEach(function (record) {
+        Array.prototype.forEach.call(record.addedNodes, function (node${any}) {
+          if (node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))) added = true
+        })
+        Array.prototype.forEach.call(record.removedNodes, function (node${any}) {
+          if (node.nodeType !== 1 || node.closest('[data-fg-loc-map]')) return
+          var groups = node.matches('[data-fg-loc]') ? [node] : node.querySelectorAll('[data-fg-loc]')
+          Array.prototype.forEach.call(groups, function (group${any}) {
+            var state = group.fgLocMap
+            if (!state || group.isConnected) return
+            if (state.resizer) state.resizer.disconnect()
+            if (state.map) state.map.remove()
+            group.fgLocMap = null
+          })
         })
       })
       if (added) start()
@@ -298,12 +314,12 @@ window.fgLocSet = function (root, values) {
     script,
     members: `
     // Location fields: run by a script on the form's root (FgLocationScript),
-    // which reports each change here; values set here (a new model: reset,
-    // saved answers) are sent back after the next render.
+    // which reports each change here; the model's values go back to the
+    // fields after every render (a reset, saved answers, a field shown
+    // again by a step or a condition).
     public sealed record FgLatLng(double Lat, double Lng);
 
     private readonly Dictionary<string, (Action<FgLatLng?> Set, FgLatLng? Value)> fgLoc = new();
-    private bool fgLocShow;
 
     private string FgLocKey(string key, Action<FgLatLng?> set, FgLatLng? value)
     {
@@ -327,8 +343,7 @@ window.fgLocSet = function (root, values) {
 
     private async Task FgLocShowValues()
     {
-        if (!fgLocShow || fgSelf is null) return;
-        fgLocShow = false;
+        if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgLocSet", fgFormRoot, fgLoc.ToDictionary(entry => entry.Key, entry => entry.Value.Value is null ? null : (object)new { lat = entry.Value.Value.Lat, lng = entry.Value.Value.Lng }));
     }
 `,

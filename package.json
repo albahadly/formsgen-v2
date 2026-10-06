@@ -19,6 +19,7 @@
     "typescript-eslint": "^8.19.0",
     "vue-eslint-parser": "^9.4.3"
   },
+  "packageManager": "pnpm@10.28.0",
   "engines": {
     "node": ">=20"
   }

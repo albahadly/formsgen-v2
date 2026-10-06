@@ -83,6 +83,28 @@ describe('spam check (meta.captcha)', () => {
     expect(fake.calls).toContain('remove(w1)')
   })
 
+  it('the preview runs the check with the test key; an embedded wizard submit waits too', async () => {
+    const fake = fakeTurnstile()
+    ;(window as { turnstile?: unknown }).turnstile = fake.api
+    const keyed: FormSchema = { ...schema, meta: { ...schema.meta, captcha: { provider: 'turnstile', siteKey: '0x4AAAAAAAreal_key_123' } } }
+    const preview = mount(FormsGenForm, { props: { schema: keyed, captchaPreview: true } })
+    await flushPromises()
+    expect(fake.calls).toEqual([`render(${KEY},en)`])
+    preview.unmount()
+    const wizard: FormSchema = {
+      ...schema,
+      tree: [{ id: 'w', type: 'steps', props: {}, children: [{ id: 's1', type: 'step', props: { label: 'One' }, children: schema.tree }] }],
+    }
+    const wrapper = mount(FormsGenForm, { props: { schema: wizard } })
+    await flushPromises()
+    const button = wrapper.get('.fg-step-actions button[type=submit]')
+    expect(button.attributes('disabled')).toBeDefined()
+    expect(button.attributes('aria-describedby')).toBe('fg-spam-captcha')
+    fake.pass('t')
+    await flushPromises()
+    expect(wrapper.get('.fg-step-actions button[type=submit]').attributes('disabled')).toBeUndefined()
+  })
+
   it('without meta.captcha nothing changes', async () => {
     const plain: FormSchema = { ...schema, meta: { name: 'spam', locale: 'en', dir: 'ltr' } }
     const wrapper = mount(FormsGenForm, { props: { schema: plain } })

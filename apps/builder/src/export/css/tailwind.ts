@@ -91,7 +91,7 @@ const CLASSES: Record<Slot, string> = {
   locationMap: 'isolate z-0 w-full rounded-md border border-gray-300 dark:border-gray-600',
   locationRow: 'flex flex-wrap items-end gap-2',
   locationCoord: 'flex flex-[1_1_8rem] flex-col gap-1 text-sm text-gray-700 dark:text-gray-300',
-  locationStatus: 'm-0 text-sm text-gray-600 empty:hidden dark:text-gray-400',
+  locationStatus: 'm-0 text-sm text-gray-600 dark:text-gray-400',
   captcha: 'mt-4 flex flex-col gap-1',
   captchaHint: 'm-0 text-sm text-gray-600 dark:text-gray-400',
   richtextEditor: 'min-h-24 px-3 py-2 text-sm outline-none [overflow-wrap:anywhere] [&_ol]:list-decimal [&_ol]:ps-6 [&_ul]:list-disc [&_ul]:ps-6 [&_a]:text-indigo-600 [&_a]:underline [&_p]:mb-2',

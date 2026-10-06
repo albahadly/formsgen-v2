@@ -361,7 +361,7 @@
       "id": "ks-html",
       "type": "html",
       "props": {
-        "html": "<h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style=\"color: #b91c1c\">Closed on holidays. {{ not.vue }} @razor {jsx}</p><script>alert(1)</script><a href=\"javascript:alert(1)\" onclick=\"x()\">unsafe link</a>"
+        "html": "<h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style=\"color: #b91c1c\">Closed on holidays. {{ not.vue }} @razor {jsx}</p><script>alert(1)</script><a href=\"javascript:alert(1)\" onclick=\"x()\">unsafe link</a><iframe src=\"https://www.openstreetmap.org/export/embed.html?bbox=58.3%2C23.5%2C58.5%2C23.7\" width=\"320\" height=\"180\" title=\"Where we are\"></iframe>"
       }
     },
     {

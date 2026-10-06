@@ -11,7 +11,7 @@ const BUTTONS: [command: string, key: 'richBold' | 'richItalic' | 'richBullets' 
   ['bold', 'richBold', '<b>B</b>'],
   ['italic', 'richItalic', '<i>I</i>'],
   ['insertUnorderedList', 'richBullets', '•'],
-  ['insertOrderedList', 'richNumbers', '1.'],
+  ['insertOrderedList', 'richNumbers', '<span dir="ltr">1.</span>'],
   ['link', 'richLink', '🔗'],
 ]
 

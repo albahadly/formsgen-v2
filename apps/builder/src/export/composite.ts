@@ -173,7 +173,7 @@ export function exportStylesheet(css: CssFrameworkAdapter, schema: FormSchema): 
   const extra = [
     hasRangeSlider(schema) ? `/* Two-handle range slider */\n${DUAL_RANGE_CSS}` : '',
     css.id === 'bootstrap5' && hasRichText(schema.tree)
-      ? '/* Rich text editors */\n.fg-richtext-editor { min-height: 6rem; outline: none; overflow-wrap: anywhere; }\n.fg-richtext-editor p { margin-bottom: 0.5rem; }\n'
+      ? '/* Rich text editors */\n.fg-richtext-editor { min-height: 6rem; outline: none; overflow-wrap: anywhere; }\n.fg-richtext-editor p { margin-bottom: 0.5rem; }\n[data-fg-rich]:focus-within { outline: 2px solid var(--bs-primary); outline-offset: 2px; }\n'
       : '',
     css.id === 'bootstrap5' && hasLocation(schema.tree)
       ? '/* Location fields: the map under page overlays, coordinate boxes side by side */\n.fg-location-map { isolation: isolate; z-index: 0; }\n.fg-location-coord { flex: 1 1 8rem; }\n.fg-location-status:empty { display: none; }\n'

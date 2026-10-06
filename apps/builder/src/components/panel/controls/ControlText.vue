@@ -16,6 +16,8 @@ const props = defineProps<{
 }>()
 
 const store = useBuilderStore()
+/** Props holding code or addresses: shown left to right in every UI language. */
+const LTR_PROPS = new Set(['html', 'tiles', 'src', 'href', 'url', 'formula'])
 const value = computed({
   get: () => String(props.node.props[props.prop] ?? ''),
   set: (v: string) => store.updateProps(props.node.id, { [props.prop]: v }),
@@ -41,6 +43,7 @@ const value = computed({
       class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal text-gray-900"
       :placeholder="placeholder ? tText(placeholder) : undefined"
       :data-testid="`control-${prop}`"
+      :dir="LTR_PROPS.has(prop) ? 'ltr' : undefined"
     >
     <span
       v-if="hint"

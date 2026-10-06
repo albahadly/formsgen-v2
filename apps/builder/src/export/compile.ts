@@ -127,25 +127,29 @@ function ruleMessage(rule: Rule): string {
   return rule.message ?? defaultRuleMessage(rule)
 }
 
-/** JS condition (true = violated) for one rule over the expression `v`. */
-function ruleTest(rule: Rule, accessor: ValueAccessor): string {
+/**
+ * JS condition (true = violated) for one rule over the expression `v`; the
+ * size and format rules judge `s` (the value itself, or a rich-text
+ * answer's visible text).
+ */
+function ruleTest(rule: Rule, accessor: ValueAccessor, s = 'v'): string {
   switch (rule.rule) {
     case 'required':
       return 'fgIsBlank(v)'
     case 'min':
-      return `(fgSize(v) ?? -Infinity) < ${Number(rule.value)}`
+      return `(fgSize(${s}) ?? -Infinity) < ${Number(rule.value)}`
     case 'max':
-      return `(fgSize(v) ?? Infinity) > ${Number(rule.value)}`
+      return `(fgSize(${s}) ?? Infinity) > ${Number(rule.value)}`
     case 'between': {
       const [lo, hi] = Array.isArray(rule.value) ? rule.value : [0, 0]
-      return `((fgSize(v) ?? -Infinity) < ${Number(lo)} || (fgSize(v) ?? Infinity) > ${Number(hi)})`
+      return `((fgSize(${s}) ?? -Infinity) < ${Number(lo)} || (fgSize(${s}) ?? Infinity) > ${Number(hi)})`
     }
     case 'email':
-      return `(typeof v !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v))`
+      return `(typeof ${s} !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(${s}))`
     case 'url':
-      return `(typeof v !== 'string' || !(() => { try { new URL(v); return true } catch { return false } })())`
+      return `(typeof ${s} !== 'string' || !(() => { try { new URL(${s}); return true } catch { return false } })())`
     case 'regex':
-      return `(typeof v !== 'string' || !new RegExp(${js(String(rule.value))}).test(v))`
+      return `(typeof ${s} !== 'string' || !new RegExp(${js(String(rule.value))}).test(${s}))`
     case 'same-as':
       return `v !== ${accessor(String(rule.value))}`
   }
@@ -162,12 +166,14 @@ export function compileValidator(
   accessor: ValueAccessor,
   /** Expression yielding a message or null, checked right after "required". */
   extraCheck?: string,
+  /** What size and format rules judge, when not `v` (rich text: `fgRichPlain(v)`). */
+  subject?: string,
 ): string {
   const lines = [`const v = ${valueExpr}`]
   const extra = extraCheck ? `{ const problem = ${extraCheck}; if (problem) return problem }` : ''
   const required = rules.filter((r) => r.rule === 'required')
   for (const rule of [...required, ...rules.filter((r) => r.rule !== 'required')]) {
-    const test = ruleTest(rule, accessor)
+    const test = ruleTest(rule, accessor, subject)
     const guarded = rule.rule === 'required' ? test : `!fgIsEmpty(v) && (${test})`
     lines.push(`if (${guarded}) return ${js(ruleMessage(rule))}`)
     if (rule.rule === 'required' && extra) lines.push(extra)

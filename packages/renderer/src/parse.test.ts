@@ -62,6 +62,23 @@ describe('parseFormSchema', () => {
     }
   })
 
+  it('rejects a locale or submit URL that could break out of generated code', () => {
+    const bad = validSchema()
+    bad['meta'] = { name: 'ok', locale: 'en</script><script>alert(1)//', dir: 'ltr', submit: { url: 'https://x.example/s"></script>', method: 'GET' } }
+    const result = parseFormSchema(bad)
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.errors).toEqual([
+        'meta.locale: expected a language tag such as "en" or "ar-OM"',
+        'meta.submit.url: expected an http(s) or relative URL',
+        'meta.submit.method: expected "POST" or "PUT"',
+      ])
+    }
+    const fine = validSchema()
+    fine['meta'] = { name: 'ok', locale: 'ar-OM', dir: 'rtl', submit: { url: '/api/submit', method: 'PUT' } }
+    expect(parseFormSchema(fine).ok).toBe(true)
+  })
+
   it('rejects duplicate ids anywhere in the tree', () => {
     const input = validSchema()
     const tree = input['tree'] as Record<string, unknown>[]

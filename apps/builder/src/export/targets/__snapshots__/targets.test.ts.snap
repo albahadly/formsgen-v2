@@ -716,7 +716,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
                 <button type="button" class="btn btn-sm btn-light" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
                 <button type="button" class="btn btn-sm btn-light" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
                 <button type="button" class="btn btn-sm btn-light" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-                <button type="button" class="btn btn-sm btn-light" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList">1.</button>
+                <button type="button" class="btn btn-sm btn-light" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
                 <button type="button" class="btn btn-sm btn-light" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
               </div>
               <div id="fg_about" class="fg-richtext-editor px-3 py-2" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext='@FgRichKey("About", v => Model.About = v, Model.About)'></div>
@@ -729,7 +729,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
           <fieldset class="d-flex flex-column gap-1">
             <legend class="form-label fw-semibold fs-6 mb-0">Meeting point</legend>
             <div class="d-flex flex-column gap-2" data-fg-loc='@FgLocKey("Meet", v => Model.Meet = v, Model.Meet)' data-fg-loc-start="23.588,58.3829,11" data-fg-loc-tiles="https://tile.openstreetmap.org/{z}/{x}/{y}.png" data-fg-loc-attribution="© OpenStreetMap contributors">
-              <div class="fg-location-map w-100 border rounded" style="height: 220px" role="region" aria-label="Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
+              <div class="fg-location-map w-100 border rounded" style="height: 220px" role="group" aria-label="Meeting point: Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
               <div class="d-flex flex-wrap align-items-end gap-2">
                 <label class="fg-location-coord d-flex flex-column gap-1 small">
                   <span>Latitude</span>
@@ -769,7 +769,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
           </figure>
         </div>
         <div class="col-12 col-md-12">
-          <div><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style="color: #b91c1c">Closed on holidays. {{ not.vue }} &#64;razor {jsx}</p><a>unsafe link</a></div>
+          <div><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style="color: #b91c1c">Closed on holidays. {{ not.vue }} &#64;razor {jsx}</p><a>unsafe link</a><iframe src="https://www.openstreetmap.org/export/embed.html?bbox=58.3%2C23.5%2C58.5%2C23.7" width="320" height="180" title="Where we are" sandbox="allow-scripts allow-same-origin allow-presentation" referrerpolicy="strict-origin-when-cross-origin" loading="lazy"></iframe></div>
         </div>
         <div class="col-12 col-md-12">
           <a class="link-primary" href="https://example.com/docs" target="_blank" rel="noopener noreferrer">Read the docs<span class="visually-hidden"> (opens in a new tab)</span></a>
@@ -1056,31 +1056,35 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         <div class="col-12 col-md-12">
           <div>
             <div class="nav nav-tabs mb-3" role="tablist">
-              <button type="button" class="@(fgSec_ks_social_tabs == 0 ? "nav-link active" : "nav-link")" @onclick="() => fgSec_ks_social_tabs = 0">Social</button>
-              <button type="button" class="@(fgSec_ks_social_tabs == 1 ? "nav-link active" : "nav-link")" @onclick="() => fgSec_ks_social_tabs = 1">Code</button>
+              <button type="button" role="tab" aria-selected="@(fgSec_ks_social_tabs == 0 ? "true" : "false")" class="@(fgSec_ks_social_tabs == 0 ? "nav-link active" : "nav-link")" @onclick="() => fgSec_ks_social_tabs = 0">Social</button>
+              <button type="button" role="tab" aria-selected="@(fgSec_ks_social_tabs == 1 ? "true" : "false")" class="@(fgSec_ks_social_tabs == 1 ? "nav-link active" : "nav-link")" @onclick="() => fgSec_ks_social_tabs = 1">Code</button>
             </div>
           @if (fgSec_ks_social_tabs == 0)
           {
-              <div class="row g-3">
-                <div class="col-12 col-md-12">
-                  <div class="d-flex flex-column gap-1">
-                    <label class="form-label fw-semibold fs-6 mb-0" for="fg_twitter">Twitter handle</label>
-                    <InputText id="fg_twitter" @bind-Value="Model.Twitter" class="form-control" />
-                    <ValidationMessage For="@(() => Model.Twitter)" class="invalid-feedback d-block mt-0" />
+              <div role="tabpanel">
+                  <div class="row g-3">
+                    <div class="col-12 col-md-12">
+                      <div class="d-flex flex-column gap-1">
+                        <label class="form-label fw-semibold fs-6 mb-0" for="fg_twitter">Twitter handle</label>
+                        <InputText id="fg_twitter" @bind-Value="Model.Twitter" class="form-control" />
+                        <ValidationMessage For="@(() => Model.Twitter)" class="invalid-feedback d-block mt-0" />
+                      </div>
+                    </div>
                   </div>
-                </div>
               </div>
           }
           @if (fgSec_ks_social_tabs == 1)
           {
-              <div class="row g-3">
-                <div class="col-12 col-md-12">
-                  <div class="d-flex flex-column gap-1">
-                    <label class="form-label fw-semibold fs-6 mb-0" for="fg_github">GitHub username</label>
-                    <InputText id="fg_github" @bind-Value="Model.Github" class="form-control" />
-                    <ValidationMessage For="@(() => Model.Github)" class="invalid-feedback d-block mt-0" />
+              <div role="tabpanel">
+                  <div class="row g-3">
+                    <div class="col-12 col-md-12">
+                      <div class="d-flex flex-column gap-1">
+                        <label class="form-label fw-semibold fs-6 mb-0" for="fg_github">GitHub username</label>
+                        <InputText id="fg_github" @bind-Value="Model.Github" class="form-control" />
+                        <ValidationMessage For="@(() => Model.Github)" class="invalid-feedback d-block mt-0" />
+                      </div>
+                    </div>
                   </div>
-                </div>
               </div>
           }
           </div>
@@ -1249,11 +1253,6 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
 
     private static string FgOr(string text, string fallback) => text == "" ? fallback : text;
 
-    // A rich-text answer's text: tags as spaces, entities decoded.
-    private static string FgRichPlain(string? html) => System.Text.RegularExpressions.Regex.Replace(
-        System.Net.WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Replace(
-            System.Text.RegularExpressions.Regex.Replace(html ?? "", "<br>|</?(p|li|ul|ol)>", " "), "<[^>]*>", "")),
-        @"\\s+", " ").Trim();
 
     private EditContext fgEdit = default!;
     private ValidationMessageStore fgMessages = default!;
@@ -1269,8 +1268,6 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
     private void FgInitEdit()
     {
         fgWire = true;
-        fgRichShow = true;
-        fgLocShow = true;
         fgEdit = new EditContext(Model);
         fgMessages = new ValidationMessageStore(fgEdit);
         fgEdit.OnValidationRequested += (_, _) => FgValidateAll();
@@ -2347,6 +2344,8 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         await FgRichShowValues();
         // Values from a new model into the location fields.
         await FgLocShowValues();
+        // The signatures the model holds, into pads shown again.
+        await FgSignShowValues();
     }
 
     private async Task FgReset()
@@ -2414,9 +2413,18 @@ function fgSignPad(canvas) {
     var width = Math.round(canvas.clientWidth * ratio)
     var height = Math.round(canvas.clientHeight * ratio)
     if (!ctx || width === 0 || (canvas.width === width && canvas.height === height)) return
+    // Keep the ink through the resize (a phone turning, a panel opening).
+    var kept = null
+    if (pad.ink && canvas.width > 0 && canvas.height > 0) {
+      kept = document.createElement('canvas')
+      kept.width = canvas.width
+      kept.height = canvas.height
+      kept.getContext('2d').drawImage(canvas, 0, 0)
+    }
     canvas.width = width
     canvas.height = height
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
+    if (kept) ctx.drawImage(kept, 0, 0, canvas.clientWidth, canvas.clientHeight)
   }
   pad.wipe = function () {
     if (!ctx) return
@@ -2466,6 +2474,26 @@ function fgSignPad(canvas) {
     ctx.fillText(text.trim(), canvas.clientWidth / 2, canvas.clientHeight / 2, canvas.clientWidth - 24)
     pad.ink = true
     pad.commit(done)
+  }
+  // Draws a saved signature (a file, or a data URL) into a blank pad.
+  pad.show = function (source) {
+    if (pad.ink || pad.drawing || pad.loading) return
+    pad.loading = true
+    var url = typeof source === 'string' ? source : URL.createObjectURL(source)
+    var image = new Image()
+    image.onload = function () {
+      pad.loading = false
+      if (url !== source) URL.revokeObjectURL(url)
+      if (pad.ink || pad.drawing || !ctx) return
+      pad.size()
+      ctx.drawImage(image, 0, 0, canvas.clientWidth, canvas.clientHeight)
+      pad.ink = true
+    }
+    image.onerror = function () {
+      pad.loading = false
+      if (url !== source) URL.revokeObjectURL(url)
+    }
+    image.src = url
   }
   canvas.fgPad = pad
   return pad
@@ -2534,12 +2562,19 @@ function fgWireSignatures(root, onChange) {
     onChange(group.canvas, null)
   })
 }
-// Pads whose value went empty elsewhere (a reset) are cleared, typed name too.
-function fgSignSync(root, isEmpty) {
+// Pads follow their value: cleared when it went empty elsewhere (a reset),
+// typed name too; a blank pad draws the file its value holds (a pad shown
+// again by a step or a condition).
+function fgSignSync(root, valueOf) {
   if (!root) return
   Array.prototype.forEach.call(root.querySelectorAll('canvas[data-fg-signature]'), function (canvas) {
     var pad = canvas.fgPad
-    if (!isEmpty(canvas) || (pad && (pad.pending || pad.drawing))) return
+    if (pad && (pad.pending || pad.drawing)) return
+    var value = valueOf(canvas)
+    if (value) {
+      if (!pad || !pad.ink) fgSignPad(canvas).show(value)
+      return
+    }
     if (pad && pad.ink) pad.wipe()
     var group = fgSignGroup(canvas)
     if (group && group.typed && group.typed.value !== '') group.typed.value = ''
@@ -2548,33 +2583,64 @@ function fgSignSync(root, isEmpty) {
 window.fgSignatures = function (root, dotnet) {
   fgWireSignatures(root, function (canvas, file) {
     var key = canvas.getAttribute('data-fg-signature')
-    if (!file) { dotnet.invokeMethodAsync('FgSigned', key, null); return }
-    var reader = new FileReader()
-    reader.onload = function () { dotnet.invokeMethodAsync('FgSigned', key, reader.result) }
-    reader.readAsDataURL(file)
+    dotnet.invokeMethodAsync('FgSigned', key, file ? DotNet.createJSStreamReference(file) : null)
   })
 }
-window.fgSignClear = function (root) { fgSignSync(root, function () { return true }) }";
+window.fgSignSet = function (root, dotnet, keys) {
+  fgSignSync(root, function (canvas) {
+    var key = canvas.getAttribute('data-fg-signature')
+    if (keys.indexOf(key) === -1) return null
+    var pad = fgSignPad(canvas)
+    if (!pad.ink && !pad.loading && !pad.drawing) {
+      pad.loading = true
+      dotnet.invokeMethodAsync('FgSignData', key).then(function (dataUrl) {
+        pad.loading = false
+        if (dataUrl) pad.show(dataUrl)
+      }, function () { pad.loading = false })
+    }
+    // Holding a value: never cleared here (the drawing goes through pad.show).
+    return 'kept'
+  })
+}
+window.fgSignClear = function (root) { fgSignSync(root, function () { return null }) }";
 
     [Microsoft.JSInterop.JSInvokable]
-    public void FgSigned(string key, string? dataUrl)
+    public async Task FgSigned(string key, Microsoft.JSInterop.IJSStreamReference? stream)
     {
         if (!fgSignLists.TryGetValue(key, out var list)) return;
-        list.Clear();
-        if (dataUrl is not null && dataUrl.Contains(','))
+        byte[]? bytes = null;
+        if (stream is not null)
         {
-            var bytes = Convert.FromBase64String(dataUrl[(dataUrl.IndexOf(',') + 1)..]);
-            list.Add(new FgUpload("signature.png", bytes.Length, "image/png", bytes, dataUrl));
+            await using (stream)
+            {
+                using var source = await stream.OpenReadStreamAsync(maxAllowedSize: 4L * 1024 * 1024);
+                using var buffer = new System.IO.MemoryStream();
+                await source.CopyToAsync(buffer);
+                bytes = buffer.ToArray();
+            }
         }
+        list.Clear();
+        if (bytes is not null) list.Add(new FgUpload("signature.png", bytes.Length, "image/png", bytes, "data:image/png;base64," + Convert.ToBase64String(bytes)));
         fgEdit.NotifyFieldChanged(FgField(key));
         StateHasChanged();
     }
 
+    // The PNG of a signature the model holds, for a pad shown again.
+    [Microsoft.JSInterop.JSInvokable]
+    public string? FgSignData(string key) =>
+        fgSignLists.TryGetValue(key, out var list) && list.Count > 0 ? list[0].Thumb : null;
+
+    private async Task FgSignShowValues()
+    {
+        if (fgSelf is null) return;
+        await FgJs.InvokeVoidAsync("fgSignSet", fgFormRoot, fgSelf, fgSignLists.Where(entry => entry.Value.Count > 0).Select(entry => entry.Key).ToArray());
+    }
+
     // Rich-text editors: run by a script on the form's root (FgRichTextScript),
-    // which reports each change here; values set here (a new model: reset,
-    // saved answers) are sent back after the next render.
+    // which reports each change here; the model's values go back to the
+    // editors after every render (a reset, saved answers, an editor shown
+    // again by a step or a condition).
     private readonly Dictionary<string, (Action<string> Set, string Value)> fgRich = new();
-    private bool fgRichShow;
 
     private string FgRichKey(string key, Action<string> set, string value)
     {
@@ -2707,6 +2773,12 @@ window.fgRichSet = function (root, values) {
   })
 }";
 
+    // A rich-text answer's text (rules, answers inside text): tags as spaces, entities decoded.
+    private static string FgRichPlain(string? html) => System.Text.RegularExpressions.Regex.Replace(
+        System.Net.WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Replace(
+            System.Text.RegularExpressions.Regex.Replace(html ?? "", "<br>|</?(p|li|ul|ol)>", " "), "<[^>]*>", "")),
+        @"\\s+", " ").Trim();
+
     [Microsoft.JSInterop.JSInvokable]
     public void FgRichChanged(string key, string html)
     {
@@ -2719,18 +2791,17 @@ window.fgRichSet = function (root, values) {
 
     private async Task FgRichShowValues()
     {
-        if (!fgRichShow || fgSelf is null) return;
-        fgRichShow = false;
+        if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgRichSet", fgFormRoot, fgRich.ToDictionary(entry => entry.Key, entry => entry.Value.Value));
     }
 
     // Location fields: run by a script on the form's root (FgLocationScript),
-    // which reports each change here; values set here (a new model: reset,
-    // saved answers) are sent back after the next render.
+    // which reports each change here; the model's values go back to the
+    // fields after every render (a reset, saved answers, a field shown
+    // again by a step or a condition).
     public sealed record FgLatLng(double Lat, double Lng);
 
     private readonly Dictionary<string, (Action<FgLatLng?> Set, FgLatLng? Value)> fgLoc = new();
-    private bool fgLocShow;
 
     private string FgLocKey(string key, Action<FgLatLng?> set, FgLatLng? value)
     {
@@ -2852,7 +2923,10 @@ function fgLocMap(group, onChange) {
       onChange(group, point, true)
     }
     state.map.on('click', function (event) { state.pick(event.latlng) })
-    if (window.ResizeObserver) new ResizeObserver(function () { state.map.invalidateSize() }).observe(el)
+    if (window.ResizeObserver) {
+      state.resizer = new ResizeObserver(function () { state.map.invalidateSize() })
+      state.resizer.observe(el)
+    }
     fgLocPin(group, fgLocTyped(group), 'zoom')
   }, function () {
     var status = fgLocParts(group).status
@@ -2866,12 +2940,25 @@ function fgWireLocations(root, onChange) {
     Array.prototype.forEach.call(root.querySelectorAll('[data-fg-loc]'), function (group) { fgLocMap(group, onChange) })
   }
   start()
-  // Fields that appear later (new items, shown by a condition) get their map.
+  // Fields that appear later (new items, shown by a condition) get their
+  // map; the maps of fields taken away (removed items, hidden again) go.
   if (window.MutationObserver) {
     new MutationObserver(function (records) {
-      var added = records.some(function (record) {
-        return Array.prototype.some.call(record.addedNodes, function (node) {
-          return node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))
+      var added = false
+      records.forEach(function (record) {
+        Array.prototype.forEach.call(record.addedNodes, function (node) {
+          if (node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))) added = true
+        })
+        Array.prototype.forEach.call(record.removedNodes, function (node) {
+          if (node.nodeType !== 1 || node.closest('[data-fg-loc-map]')) return
+          var groups = node.matches('[data-fg-loc]') ? [node] : node.querySelectorAll('[data-fg-loc]')
+          Array.prototype.forEach.call(groups, function (group) {
+            var state = group.fgLocMap
+            if (!state || group.isConnected) return
+            if (state.resizer) state.resizer.disconnect()
+            if (state.map) state.map.remove()
+            group.fgLocMap = null
+          })
         })
       })
       if (added) start()
@@ -2961,8 +3048,7 @@ window.fgLocSet = function (root, values) {
 
     private async Task FgLocShowValues()
     {
-        if (!fgLocShow || fgSelf is null) return;
-        fgLocShow = false;
+        if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgLocSet", fgFormRoot, fgLoc.ToDictionary(entry => entry.Key, entry => entry.Value.Value is null ? null : (object)new { lat = entry.Value.Value.Lat, lng = entry.Value.Value.Lng }));
     }
 
@@ -3915,7 +4001,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
                 <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
                 <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
                 <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-                <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList">1.</button>
+                <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
                 <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
               </div>
               <div id="fg_about" class="min-h-24 px-3 py-2 text-sm outline-none [overflow-wrap:anywhere] [&_ol]:list-decimal [&_ol]:ps-6 [&_ul]:list-disc [&_ul]:ps-6 [&_a]:text-indigo-600 [&_a]:underline [&_p]:mb-2" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext='@FgRichKey("About", v => Model.About = v, Model.About)'></div>
@@ -3928,7 +4014,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
           <fieldset class="flex flex-col gap-1.5">
             <legend class="text-sm font-semibold">Meeting point</legend>
             <div class="flex flex-col gap-2" data-fg-loc='@FgLocKey("Meet", v => Model.Meet = v, Model.Meet)' data-fg-loc-start="23.588,58.3829,11" data-fg-loc-tiles="https://tile.openstreetmap.org/{z}/{x}/{y}.png" data-fg-loc-attribution="© OpenStreetMap contributors">
-              <div class="isolate z-0 w-full rounded-md border border-gray-300 dark:border-gray-600" style="height: 220px" role="region" aria-label="Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
+              <div class="isolate z-0 w-full rounded-md border border-gray-300 dark:border-gray-600" style="height: 220px" role="group" aria-label="Meeting point: Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
               <div class="flex flex-wrap items-end gap-2">
                 <label class="flex flex-[1_1_8rem] flex-col gap-1 text-sm text-gray-700 dark:text-gray-300">
                   <span>Latitude</span>
@@ -3941,7 +4027,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
                 <button type="button" class="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-loc-mine>Use my location</button>
                 <button type="button" class="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-loc-clear>Clear</button>
               </div>
-              <p class="m-0 text-sm text-gray-600 empty:hidden dark:text-gray-400" aria-live="polite" data-fg-loc-status></p>
+              <p class="m-0 text-sm text-gray-600 dark:text-gray-400" aria-live="polite" data-fg-loc-status></p>
             </div>
             <ValidationMessage For="@(() => Model.Meet)" class="text-xs text-red-600" />
           </fieldset>
@@ -3968,7 +4054,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
           </figure>
         </div>
         <div class="col-span-12 md:col-span-12">
-          <div class="text-sm [&_a]:underline [&_ul]:list-disc [&_ul]:ps-5 [&_ol]:list-decimal [&_ol]:ps-5 [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg [&_h1]:font-semibold [&_h2]:font-semibold [&_h3]:font-semibold [&_h4]:font-semibold [&_th]:border [&_th]:px-2 [&_th]:py-1 [&_th]:text-start [&_td]:border [&_td]:px-2 [&_td]:py-1"><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style="color: #b91c1c">Closed on holidays. {{ not.vue }} &#64;razor {jsx}</p><a>unsafe link</a></div>
+          <div class="text-sm [&_a]:underline [&_ul]:list-disc [&_ul]:ps-5 [&_ol]:list-decimal [&_ol]:ps-5 [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg [&_h1]:font-semibold [&_h2]:font-semibold [&_h3]:font-semibold [&_h4]:font-semibold [&_th]:border [&_th]:px-2 [&_th]:py-1 [&_th]:text-start [&_td]:border [&_td]:px-2 [&_td]:py-1"><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style="color: #b91c1c">Closed on holidays. {{ not.vue }} &#64;razor {jsx}</p><a>unsafe link</a><iframe src="https://www.openstreetmap.org/export/embed.html?bbox=58.3%2C23.5%2C58.5%2C23.7" width="320" height="180" title="Where we are" sandbox="allow-scripts allow-same-origin allow-presentation" referrerpolicy="strict-origin-when-cross-origin" loading="lazy"></iframe></div>
         </div>
         <div class="col-span-12 md:col-span-12">
           <a class="font-medium text-indigo-600 underline underline-offset-2 dark:text-indigo-400" href="https://example.com/docs" target="_blank" rel="noopener noreferrer">Read the docs<span class="sr-only"> (opens in a new tab)</span></a>
@@ -4255,31 +4341,35 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         <div class="col-span-12 md:col-span-12">
           <div>
             <div class="mb-4 flex flex-wrap gap-1 border-b border-gray-200 dark:border-gray-700" role="tablist">
-              <button type="button" class="@(fgSec_ks_social_tabs == 0 ? "-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600" : "-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700")" @onclick="() => fgSec_ks_social_tabs = 0">Social</button>
-              <button type="button" class="@(fgSec_ks_social_tabs == 1 ? "-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600" : "-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700")" @onclick="() => fgSec_ks_social_tabs = 1">Code</button>
+              <button type="button" role="tab" aria-selected="@(fgSec_ks_social_tabs == 0 ? "true" : "false")" class="@(fgSec_ks_social_tabs == 0 ? "-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600" : "-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700")" @onclick="() => fgSec_ks_social_tabs = 0">Social</button>
+              <button type="button" role="tab" aria-selected="@(fgSec_ks_social_tabs == 1 ? "true" : "false")" class="@(fgSec_ks_social_tabs == 1 ? "-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600" : "-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700")" @onclick="() => fgSec_ks_social_tabs = 1">Code</button>
             </div>
           @if (fgSec_ks_social_tabs == 0)
           {
-              <div class="grid grid-cols-12 gap-4">
-                <div class="col-span-12 md:col-span-12">
-                  <div class="flex flex-col gap-1.5">
-                    <label class="text-sm font-semibold" for="fg_twitter">Twitter handle</label>
-                    <InputText id="fg_twitter" @bind-Value="Model.Twitter" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
-                    <ValidationMessage For="@(() => Model.Twitter)" class="text-xs text-red-600" />
+              <div role="tabpanel">
+                  <div class="grid grid-cols-12 gap-4">
+                    <div class="col-span-12 md:col-span-12">
+                      <div class="flex flex-col gap-1.5">
+                        <label class="text-sm font-semibold" for="fg_twitter">Twitter handle</label>
+                        <InputText id="fg_twitter" @bind-Value="Model.Twitter" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
+                        <ValidationMessage For="@(() => Model.Twitter)" class="text-xs text-red-600" />
+                      </div>
+                    </div>
                   </div>
-                </div>
               </div>
           }
           @if (fgSec_ks_social_tabs == 1)
           {
-              <div class="grid grid-cols-12 gap-4">
-                <div class="col-span-12 md:col-span-12">
-                  <div class="flex flex-col gap-1.5">
-                    <label class="text-sm font-semibold" for="fg_github">GitHub username</label>
-                    <InputText id="fg_github" @bind-Value="Model.Github" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
-                    <ValidationMessage For="@(() => Model.Github)" class="text-xs text-red-600" />
+              <div role="tabpanel">
+                  <div class="grid grid-cols-12 gap-4">
+                    <div class="col-span-12 md:col-span-12">
+                      <div class="flex flex-col gap-1.5">
+                        <label class="text-sm font-semibold" for="fg_github">GitHub username</label>
+                        <InputText id="fg_github" @bind-Value="Model.Github" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
+                        <ValidationMessage For="@(() => Model.Github)" class="text-xs text-red-600" />
+                      </div>
+                    </div>
                   </div>
-                </div>
               </div>
           }
           </div>
@@ -4448,11 +4538,6 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
 
     private static string FgOr(string text, string fallback) => text == "" ? fallback : text;
 
-    // A rich-text answer's text: tags as spaces, entities decoded.
-    private static string FgRichPlain(string? html) => System.Text.RegularExpressions.Regex.Replace(
-        System.Net.WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Replace(
-            System.Text.RegularExpressions.Regex.Replace(html ?? "", "<br>|</?(p|li|ul|ol)>", " "), "<[^>]*>", "")),
-        @"\\s+", " ").Trim();
 
     private EditContext fgEdit = default!;
     private ValidationMessageStore fgMessages = default!;
@@ -4468,8 +4553,6 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
     private void FgInitEdit()
     {
         fgWire = true;
-        fgRichShow = true;
-        fgLocShow = true;
         fgEdit = new EditContext(Model);
         fgMessages = new ValidationMessageStore(fgEdit);
         fgEdit.OnValidationRequested += (_, _) => FgValidateAll();
@@ -5546,6 +5629,8 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         await FgRichShowValues();
         // Values from a new model into the location fields.
         await FgLocShowValues();
+        // The signatures the model holds, into pads shown again.
+        await FgSignShowValues();
     }
 
     private async Task FgReset()
@@ -5613,9 +5698,18 @@ function fgSignPad(canvas) {
     var width = Math.round(canvas.clientWidth * ratio)
     var height = Math.round(canvas.clientHeight * ratio)
     if (!ctx || width === 0 || (canvas.width === width && canvas.height === height)) return
+    // Keep the ink through the resize (a phone turning, a panel opening).
+    var kept = null
+    if (pad.ink && canvas.width > 0 && canvas.height > 0) {
+      kept = document.createElement('canvas')
+      kept.width = canvas.width
+      kept.height = canvas.height
+      kept.getContext('2d').drawImage(canvas, 0, 0)
+    }
     canvas.width = width
     canvas.height = height
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
+    if (kept) ctx.drawImage(kept, 0, 0, canvas.clientWidth, canvas.clientHeight)
   }
   pad.wipe = function () {
     if (!ctx) return
@@ -5665,6 +5759,26 @@ function fgSignPad(canvas) {
     ctx.fillText(text.trim(), canvas.clientWidth / 2, canvas.clientHeight / 2, canvas.clientWidth - 24)
     pad.ink = true
     pad.commit(done)
+  }
+  // Draws a saved signature (a file, or a data URL) into a blank pad.
+  pad.show = function (source) {
+    if (pad.ink || pad.drawing || pad.loading) return
+    pad.loading = true
+    var url = typeof source === 'string' ? source : URL.createObjectURL(source)
+    var image = new Image()
+    image.onload = function () {
+      pad.loading = false
+      if (url !== source) URL.revokeObjectURL(url)
+      if (pad.ink || pad.drawing || !ctx) return
+      pad.size()
+      ctx.drawImage(image, 0, 0, canvas.clientWidth, canvas.clientHeight)
+      pad.ink = true
+    }
+    image.onerror = function () {
+      pad.loading = false
+      if (url !== source) URL.revokeObjectURL(url)
+    }
+    image.src = url
   }
   canvas.fgPad = pad
   return pad
@@ -5733,12 +5847,19 @@ function fgWireSignatures(root, onChange) {
     onChange(group.canvas, null)
   })
 }
-// Pads whose value went empty elsewhere (a reset) are cleared, typed name too.
-function fgSignSync(root, isEmpty) {
+// Pads follow their value: cleared when it went empty elsewhere (a reset),
+// typed name too; a blank pad draws the file its value holds (a pad shown
+// again by a step or a condition).
+function fgSignSync(root, valueOf) {
   if (!root) return
   Array.prototype.forEach.call(root.querySelectorAll('canvas[data-fg-signature]'), function (canvas) {
     var pad = canvas.fgPad
-    if (!isEmpty(canvas) || (pad && (pad.pending || pad.drawing))) return
+    if (pad && (pad.pending || pad.drawing)) return
+    var value = valueOf(canvas)
+    if (value) {
+      if (!pad || !pad.ink) fgSignPad(canvas).show(value)
+      return
+    }
     if (pad && pad.ink) pad.wipe()
     var group = fgSignGroup(canvas)
     if (group && group.typed && group.typed.value !== '') group.typed.value = ''
@@ -5747,33 +5868,64 @@ function fgSignSync(root, isEmpty) {
 window.fgSignatures = function (root, dotnet) {
   fgWireSignatures(root, function (canvas, file) {
     var key = canvas.getAttribute('data-fg-signature')
-    if (!file) { dotnet.invokeMethodAsync('FgSigned', key, null); return }
-    var reader = new FileReader()
-    reader.onload = function () { dotnet.invokeMethodAsync('FgSigned', key, reader.result) }
-    reader.readAsDataURL(file)
+    dotnet.invokeMethodAsync('FgSigned', key, file ? DotNet.createJSStreamReference(file) : null)
   })
 }
-window.fgSignClear = function (root) { fgSignSync(root, function () { return true }) }";
+window.fgSignSet = function (root, dotnet, keys) {
+  fgSignSync(root, function (canvas) {
+    var key = canvas.getAttribute('data-fg-signature')
+    if (keys.indexOf(key) === -1) return null
+    var pad = fgSignPad(canvas)
+    if (!pad.ink && !pad.loading && !pad.drawing) {
+      pad.loading = true
+      dotnet.invokeMethodAsync('FgSignData', key).then(function (dataUrl) {
+        pad.loading = false
+        if (dataUrl) pad.show(dataUrl)
+      }, function () { pad.loading = false })
+    }
+    // Holding a value: never cleared here (the drawing goes through pad.show).
+    return 'kept'
+  })
+}
+window.fgSignClear = function (root) { fgSignSync(root, function () { return null }) }";
 
     [Microsoft.JSInterop.JSInvokable]
-    public void FgSigned(string key, string? dataUrl)
+    public async Task FgSigned(string key, Microsoft.JSInterop.IJSStreamReference? stream)
     {
         if (!fgSignLists.TryGetValue(key, out var list)) return;
-        list.Clear();
-        if (dataUrl is not null && dataUrl.Contains(','))
+        byte[]? bytes = null;
+        if (stream is not null)
         {
-            var bytes = Convert.FromBase64String(dataUrl[(dataUrl.IndexOf(',') + 1)..]);
-            list.Add(new FgUpload("signature.png", bytes.Length, "image/png", bytes, dataUrl));
+            await using (stream)
+            {
+                using var source = await stream.OpenReadStreamAsync(maxAllowedSize: 4L * 1024 * 1024);
+                using var buffer = new System.IO.MemoryStream();
+                await source.CopyToAsync(buffer);
+                bytes = buffer.ToArray();
+            }
         }
+        list.Clear();
+        if (bytes is not null) list.Add(new FgUpload("signature.png", bytes.Length, "image/png", bytes, "data:image/png;base64," + Convert.ToBase64String(bytes)));
         fgEdit.NotifyFieldChanged(FgField(key));
         StateHasChanged();
     }
 
+    // The PNG of a signature the model holds, for a pad shown again.
+    [Microsoft.JSInterop.JSInvokable]
+    public string? FgSignData(string key) =>
+        fgSignLists.TryGetValue(key, out var list) && list.Count > 0 ? list[0].Thumb : null;
+
+    private async Task FgSignShowValues()
+    {
+        if (fgSelf is null) return;
+        await FgJs.InvokeVoidAsync("fgSignSet", fgFormRoot, fgSelf, fgSignLists.Where(entry => entry.Value.Count > 0).Select(entry => entry.Key).ToArray());
+    }
+
     // Rich-text editors: run by a script on the form's root (FgRichTextScript),
-    // which reports each change here; values set here (a new model: reset,
-    // saved answers) are sent back after the next render.
+    // which reports each change here; the model's values go back to the
+    // editors after every render (a reset, saved answers, an editor shown
+    // again by a step or a condition).
     private readonly Dictionary<string, (Action<string> Set, string Value)> fgRich = new();
-    private bool fgRichShow;
 
     private string FgRichKey(string key, Action<string> set, string value)
     {
@@ -5906,6 +6058,12 @@ window.fgRichSet = function (root, values) {
   })
 }";
 
+    // A rich-text answer's text (rules, answers inside text): tags as spaces, entities decoded.
+    private static string FgRichPlain(string? html) => System.Text.RegularExpressions.Regex.Replace(
+        System.Net.WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Replace(
+            System.Text.RegularExpressions.Regex.Replace(html ?? "", "<br>|</?(p|li|ul|ol)>", " "), "<[^>]*>", "")),
+        @"\\s+", " ").Trim();
+
     [Microsoft.JSInterop.JSInvokable]
     public void FgRichChanged(string key, string html)
     {
@@ -5918,18 +6076,17 @@ window.fgRichSet = function (root, values) {
 
     private async Task FgRichShowValues()
     {
-        if (!fgRichShow || fgSelf is null) return;
-        fgRichShow = false;
+        if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgRichSet", fgFormRoot, fgRich.ToDictionary(entry => entry.Key, entry => entry.Value.Value));
     }
 
     // Location fields: run by a script on the form's root (FgLocationScript),
-    // which reports each change here; values set here (a new model: reset,
-    // saved answers) are sent back after the next render.
+    // which reports each change here; the model's values go back to the
+    // fields after every render (a reset, saved answers, a field shown
+    // again by a step or a condition).
     public sealed record FgLatLng(double Lat, double Lng);
 
     private readonly Dictionary<string, (Action<FgLatLng?> Set, FgLatLng? Value)> fgLoc = new();
-    private bool fgLocShow;
 
     private string FgLocKey(string key, Action<FgLatLng?> set, FgLatLng? value)
     {
@@ -6051,7 +6208,10 @@ function fgLocMap(group, onChange) {
       onChange(group, point, true)
     }
     state.map.on('click', function (event) { state.pick(event.latlng) })
-    if (window.ResizeObserver) new ResizeObserver(function () { state.map.invalidateSize() }).observe(el)
+    if (window.ResizeObserver) {
+      state.resizer = new ResizeObserver(function () { state.map.invalidateSize() })
+      state.resizer.observe(el)
+    }
     fgLocPin(group, fgLocTyped(group), 'zoom')
   }, function () {
     var status = fgLocParts(group).status
@@ -6065,12 +6225,25 @@ function fgWireLocations(root, onChange) {
     Array.prototype.forEach.call(root.querySelectorAll('[data-fg-loc]'), function (group) { fgLocMap(group, onChange) })
   }
   start()
-  // Fields that appear later (new items, shown by a condition) get their map.
+  // Fields that appear later (new items, shown by a condition) get their
+  // map; the maps of fields taken away (removed items, hidden again) go.
   if (window.MutationObserver) {
     new MutationObserver(function (records) {
-      var added = records.some(function (record) {
-        return Array.prototype.some.call(record.addedNodes, function (node) {
-          return node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))
+      var added = false
+      records.forEach(function (record) {
+        Array.prototype.forEach.call(record.addedNodes, function (node) {
+          if (node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))) added = true
+        })
+        Array.prototype.forEach.call(record.removedNodes, function (node) {
+          if (node.nodeType !== 1 || node.closest('[data-fg-loc-map]')) return
+          var groups = node.matches('[data-fg-loc]') ? [node] : node.querySelectorAll('[data-fg-loc]')
+          Array.prototype.forEach.call(groups, function (group) {
+            var state = group.fgLocMap
+            if (!state || group.isConnected) return
+            if (state.resizer) state.resizer.disconnect()
+            if (state.map) state.map.remove()
+            group.fgLocMap = null
+          })
         })
       })
       if (added) start()
@@ -6160,8 +6333,7 @@ window.fgLocSet = function (root, values) {
 
     private async Task FgLocShowValues()
     {
-        if (!fgLocShow || fgSelf is null) return;
-        fgLocShow = false;
+        if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgLocSet", fgFormRoot, fgLoc.ToDictionary(entry => entry.Key, entry => entry.Value.Value is null ? null : (object)new { lat = entry.Value.Value.Lat, lng = entry.Value.Value.Lng }));
     }
 
@@ -7114,7 +7286,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
                 <button type="button" class="fg-richtext-button" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
                 <button type="button" class="fg-richtext-button" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
                 <button type="button" class="fg-richtext-button" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-                <button type="button" class="fg-richtext-button" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList">1.</button>
+                <button type="button" class="fg-richtext-button" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
                 <button type="button" class="fg-richtext-button" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
               </div>
               <div id="fg_about" class="fg-richtext-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext='@FgRichKey("About", v => Model.About = v, Model.About)'></div>
@@ -7127,7 +7299,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
           <fieldset class="fg-field">
             <legend class="fg-label">Meeting point</legend>
             <div class="fg-location" data-fg-loc='@FgLocKey("Meet", v => Model.Meet = v, Model.Meet)' data-fg-loc-start="23.588,58.3829,11" data-fg-loc-tiles="https://tile.openstreetmap.org/{z}/{x}/{y}.png" data-fg-loc-attribution="© OpenStreetMap contributors">
-              <div class="fg-location-map" style="height: 220px" role="region" aria-label="Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
+              <div class="fg-location-map" style="height: 220px" role="group" aria-label="Meeting point: Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
               <div class="fg-location-row">
                 <label class="fg-location-coord">
                   <span>Latitude</span>
@@ -7167,7 +7339,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
           </figure>
         </div>
         <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
-          <div class="fg-html"><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style="color: #b91c1c">Closed on holidays. {{ not.vue }} &#64;razor {jsx}</p><a>unsafe link</a></div>
+          <div class="fg-html"><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style="color: #b91c1c">Closed on holidays. {{ not.vue }} &#64;razor {jsx}</p><a>unsafe link</a><iframe src="https://www.openstreetmap.org/export/embed.html?bbox=58.3%2C23.5%2C58.5%2C23.7" width="320" height="180" title="Where we are" sandbox="allow-scripts allow-same-origin allow-presentation" referrerpolicy="strict-origin-when-cross-origin" loading="lazy"></iframe></div>
         </div>
         <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <a class="fg-link" href="https://example.com/docs" target="_blank" rel="noopener noreferrer">Read the docs<span class="fg-sr-only"> (opens in a new tab)</span></a>
@@ -7454,31 +7626,35 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <div>
             <div class="fg-tab-list" role="tablist">
-              <button type="button" class="@(fgSec_ks_social_tabs == 0 ? "fg-tab-button fg-tab-button--active" : "fg-tab-button")" @onclick="() => fgSec_ks_social_tabs = 0">Social</button>
-              <button type="button" class="@(fgSec_ks_social_tabs == 1 ? "fg-tab-button fg-tab-button--active" : "fg-tab-button")" @onclick="() => fgSec_ks_social_tabs = 1">Code</button>
+              <button type="button" role="tab" aria-selected="@(fgSec_ks_social_tabs == 0 ? "true" : "false")" class="@(fgSec_ks_social_tabs == 0 ? "fg-tab-button fg-tab-button--active" : "fg-tab-button")" @onclick="() => fgSec_ks_social_tabs = 0">Social</button>
+              <button type="button" role="tab" aria-selected="@(fgSec_ks_social_tabs == 1 ? "true" : "false")" class="@(fgSec_ks_social_tabs == 1 ? "fg-tab-button fg-tab-button--active" : "fg-tab-button")" @onclick="() => fgSec_ks_social_tabs = 1">Code</button>
             </div>
           @if (fgSec_ks_social_tabs == 0)
           {
-              <div class="fg-grid">
-                <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
-                  <div class="fg-field">
-                    <label class="fg-label" for="fg_twitter">Twitter handle</label>
-                    <InputText id="fg_twitter" @bind-Value="Model.Twitter" class="fg-input" />
-                    <ValidationMessage For="@(() => Model.Twitter)" class="fg-error" />
+              <div role="tabpanel">
+                  <div class="fg-grid">
+                    <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
+                      <div class="fg-field">
+                        <label class="fg-label" for="fg_twitter">Twitter handle</label>
+                        <InputText id="fg_twitter" @bind-Value="Model.Twitter" class="fg-input" />
+                        <ValidationMessage For="@(() => Model.Twitter)" class="fg-error" />
+                      </div>
+                    </div>
                   </div>
-                </div>
               </div>
           }
           @if (fgSec_ks_social_tabs == 1)
           {
-              <div class="fg-grid">
-                <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
-                  <div class="fg-field">
-                    <label class="fg-label" for="fg_github">GitHub username</label>
-                    <InputText id="fg_github" @bind-Value="Model.Github" class="fg-input" />
-                    <ValidationMessage For="@(() => Model.Github)" class="fg-error" />
+              <div role="tabpanel">
+                  <div class="fg-grid">
+                    <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
+                      <div class="fg-field">
+                        <label class="fg-label" for="fg_github">GitHub username</label>
+                        <InputText id="fg_github" @bind-Value="Model.Github" class="fg-input" />
+                        <ValidationMessage For="@(() => Model.Github)" class="fg-error" />
+                      </div>
+                    </div>
                   </div>
-                </div>
               </div>
           }
           </div>
@@ -7647,11 +7823,6 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
 
     private static string FgOr(string text, string fallback) => text == "" ? fallback : text;
 
-    // A rich-text answer's text: tags as spaces, entities decoded.
-    private static string FgRichPlain(string? html) => System.Text.RegularExpressions.Regex.Replace(
-        System.Net.WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Replace(
-            System.Text.RegularExpressions.Regex.Replace(html ?? "", "<br>|</?(p|li|ul|ol)>", " "), "<[^>]*>", "")),
-        @"\\s+", " ").Trim();
 
     private EditContext fgEdit = default!;
     private ValidationMessageStore fgMessages = default!;
@@ -7667,8 +7838,6 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
     private void FgInitEdit()
     {
         fgWire = true;
-        fgRichShow = true;
-        fgLocShow = true;
         fgEdit = new EditContext(Model);
         fgMessages = new ValidationMessageStore(fgEdit);
         fgEdit.OnValidationRequested += (_, _) => FgValidateAll();
@@ -8745,6 +8914,8 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         await FgRichShowValues();
         // Values from a new model into the location fields.
         await FgLocShowValues();
+        // The signatures the model holds, into pads shown again.
+        await FgSignShowValues();
     }
 
     private async Task FgReset()
@@ -8812,9 +8983,18 @@ function fgSignPad(canvas) {
     var width = Math.round(canvas.clientWidth * ratio)
     var height = Math.round(canvas.clientHeight * ratio)
     if (!ctx || width === 0 || (canvas.width === width && canvas.height === height)) return
+    // Keep the ink through the resize (a phone turning, a panel opening).
+    var kept = null
+    if (pad.ink && canvas.width > 0 && canvas.height > 0) {
+      kept = document.createElement('canvas')
+      kept.width = canvas.width
+      kept.height = canvas.height
+      kept.getContext('2d').drawImage(canvas, 0, 0)
+    }
     canvas.width = width
     canvas.height = height
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
+    if (kept) ctx.drawImage(kept, 0, 0, canvas.clientWidth, canvas.clientHeight)
   }
   pad.wipe = function () {
     if (!ctx) return
@@ -8864,6 +9044,26 @@ function fgSignPad(canvas) {
     ctx.fillText(text.trim(), canvas.clientWidth / 2, canvas.clientHeight / 2, canvas.clientWidth - 24)
     pad.ink = true
     pad.commit(done)
+  }
+  // Draws a saved signature (a file, or a data URL) into a blank pad.
+  pad.show = function (source) {
+    if (pad.ink || pad.drawing || pad.loading) return
+    pad.loading = true
+    var url = typeof source === 'string' ? source : URL.createObjectURL(source)
+    var image = new Image()
+    image.onload = function () {
+      pad.loading = false
+      if (url !== source) URL.revokeObjectURL(url)
+      if (pad.ink || pad.drawing || !ctx) return
+      pad.size()
+      ctx.drawImage(image, 0, 0, canvas.clientWidth, canvas.clientHeight)
+      pad.ink = true
+    }
+    image.onerror = function () {
+      pad.loading = false
+      if (url !== source) URL.revokeObjectURL(url)
+    }
+    image.src = url
   }
   canvas.fgPad = pad
   return pad
@@ -8932,12 +9132,19 @@ function fgWireSignatures(root, onChange) {
     onChange(group.canvas, null)
   })
 }
-// Pads whose value went empty elsewhere (a reset) are cleared, typed name too.
-function fgSignSync(root, isEmpty) {
+// Pads follow their value: cleared when it went empty elsewhere (a reset),
+// typed name too; a blank pad draws the file its value holds (a pad shown
+// again by a step or a condition).
+function fgSignSync(root, valueOf) {
   if (!root) return
   Array.prototype.forEach.call(root.querySelectorAll('canvas[data-fg-signature]'), function (canvas) {
     var pad = canvas.fgPad
-    if (!isEmpty(canvas) || (pad && (pad.pending || pad.drawing))) return
+    if (pad && (pad.pending || pad.drawing)) return
+    var value = valueOf(canvas)
+    if (value) {
+      if (!pad || !pad.ink) fgSignPad(canvas).show(value)
+      return
+    }
     if (pad && pad.ink) pad.wipe()
     var group = fgSignGroup(canvas)
     if (group && group.typed && group.typed.value !== '') group.typed.value = ''
@@ -8946,33 +9153,64 @@ function fgSignSync(root, isEmpty) {
 window.fgSignatures = function (root, dotnet) {
   fgWireSignatures(root, function (canvas, file) {
     var key = canvas.getAttribute('data-fg-signature')
-    if (!file) { dotnet.invokeMethodAsync('FgSigned', key, null); return }
-    var reader = new FileReader()
-    reader.onload = function () { dotnet.invokeMethodAsync('FgSigned', key, reader.result) }
-    reader.readAsDataURL(file)
+    dotnet.invokeMethodAsync('FgSigned', key, file ? DotNet.createJSStreamReference(file) : null)
   })
 }
-window.fgSignClear = function (root) { fgSignSync(root, function () { return true }) }";
+window.fgSignSet = function (root, dotnet, keys) {
+  fgSignSync(root, function (canvas) {
+    var key = canvas.getAttribute('data-fg-signature')
+    if (keys.indexOf(key) === -1) return null
+    var pad = fgSignPad(canvas)
+    if (!pad.ink && !pad.loading && !pad.drawing) {
+      pad.loading = true
+      dotnet.invokeMethodAsync('FgSignData', key).then(function (dataUrl) {
+        pad.loading = false
+        if (dataUrl) pad.show(dataUrl)
+      }, function () { pad.loading = false })
+    }
+    // Holding a value: never cleared here (the drawing goes through pad.show).
+    return 'kept'
+  })
+}
+window.fgSignClear = function (root) { fgSignSync(root, function () { return null }) }";
 
     [Microsoft.JSInterop.JSInvokable]
-    public void FgSigned(string key, string? dataUrl)
+    public async Task FgSigned(string key, Microsoft.JSInterop.IJSStreamReference? stream)
     {
         if (!fgSignLists.TryGetValue(key, out var list)) return;
-        list.Clear();
-        if (dataUrl is not null && dataUrl.Contains(','))
+        byte[]? bytes = null;
+        if (stream is not null)
         {
-            var bytes = Convert.FromBase64String(dataUrl[(dataUrl.IndexOf(',') + 1)..]);
-            list.Add(new FgUpload("signature.png", bytes.Length, "image/png", bytes, dataUrl));
+            await using (stream)
+            {
+                using var source = await stream.OpenReadStreamAsync(maxAllowedSize: 4L * 1024 * 1024);
+                using var buffer = new System.IO.MemoryStream();
+                await source.CopyToAsync(buffer);
+                bytes = buffer.ToArray();
+            }
         }
+        list.Clear();
+        if (bytes is not null) list.Add(new FgUpload("signature.png", bytes.Length, "image/png", bytes, "data:image/png;base64," + Convert.ToBase64String(bytes)));
         fgEdit.NotifyFieldChanged(FgField(key));
         StateHasChanged();
     }
 
+    // The PNG of a signature the model holds, for a pad shown again.
+    [Microsoft.JSInterop.JSInvokable]
+    public string? FgSignData(string key) =>
+        fgSignLists.TryGetValue(key, out var list) && list.Count > 0 ? list[0].Thumb : null;
+
+    private async Task FgSignShowValues()
+    {
+        if (fgSelf is null) return;
+        await FgJs.InvokeVoidAsync("fgSignSet", fgFormRoot, fgSelf, fgSignLists.Where(entry => entry.Value.Count > 0).Select(entry => entry.Key).ToArray());
+    }
+
     // Rich-text editors: run by a script on the form's root (FgRichTextScript),
-    // which reports each change here; values set here (a new model: reset,
-    // saved answers) are sent back after the next render.
+    // which reports each change here; the model's values go back to the
+    // editors after every render (a reset, saved answers, an editor shown
+    // again by a step or a condition).
     private readonly Dictionary<string, (Action<string> Set, string Value)> fgRich = new();
-    private bool fgRichShow;
 
     private string FgRichKey(string key, Action<string> set, string value)
     {
@@ -9105,6 +9343,12 @@ window.fgRichSet = function (root, values) {
   })
 }";
 
+    // A rich-text answer's text (rules, answers inside text): tags as spaces, entities decoded.
+    private static string FgRichPlain(string? html) => System.Text.RegularExpressions.Regex.Replace(
+        System.Net.WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Replace(
+            System.Text.RegularExpressions.Regex.Replace(html ?? "", "<br>|</?(p|li|ul|ol)>", " "), "<[^>]*>", "")),
+        @"\\s+", " ").Trim();
+
     [Microsoft.JSInterop.JSInvokable]
     public void FgRichChanged(string key, string html)
     {
@@ -9117,18 +9361,17 @@ window.fgRichSet = function (root, values) {
 
     private async Task FgRichShowValues()
     {
-        if (!fgRichShow || fgSelf is null) return;
-        fgRichShow = false;
+        if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgRichSet", fgFormRoot, fgRich.ToDictionary(entry => entry.Key, entry => entry.Value.Value));
     }
 
     // Location fields: run by a script on the form's root (FgLocationScript),
-    // which reports each change here; values set here (a new model: reset,
-    // saved answers) are sent back after the next render.
+    // which reports each change here; the model's values go back to the
+    // fields after every render (a reset, saved answers, a field shown
+    // again by a step or a condition).
     public sealed record FgLatLng(double Lat, double Lng);
 
     private readonly Dictionary<string, (Action<FgLatLng?> Set, FgLatLng? Value)> fgLoc = new();
-    private bool fgLocShow;
 
     private string FgLocKey(string key, Action<FgLatLng?> set, FgLatLng? value)
     {
@@ -9250,7 +9493,10 @@ function fgLocMap(group, onChange) {
       onChange(group, point, true)
     }
     state.map.on('click', function (event) { state.pick(event.latlng) })
-    if (window.ResizeObserver) new ResizeObserver(function () { state.map.invalidateSize() }).observe(el)
+    if (window.ResizeObserver) {
+      state.resizer = new ResizeObserver(function () { state.map.invalidateSize() })
+      state.resizer.observe(el)
+    }
     fgLocPin(group, fgLocTyped(group), 'zoom')
   }, function () {
     var status = fgLocParts(group).status
@@ -9264,12 +9510,25 @@ function fgWireLocations(root, onChange) {
     Array.prototype.forEach.call(root.querySelectorAll('[data-fg-loc]'), function (group) { fgLocMap(group, onChange) })
   }
   start()
-  // Fields that appear later (new items, shown by a condition) get their map.
+  // Fields that appear later (new items, shown by a condition) get their
+  // map; the maps of fields taken away (removed items, hidden again) go.
   if (window.MutationObserver) {
     new MutationObserver(function (records) {
-      var added = records.some(function (record) {
-        return Array.prototype.some.call(record.addedNodes, function (node) {
-          return node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))
+      var added = false
+      records.forEach(function (record) {
+        Array.prototype.forEach.call(record.addedNodes, function (node) {
+          if (node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))) added = true
+        })
+        Array.prototype.forEach.call(record.removedNodes, function (node) {
+          if (node.nodeType !== 1 || node.closest('[data-fg-loc-map]')) return
+          var groups = node.matches('[data-fg-loc]') ? [node] : node.querySelectorAll('[data-fg-loc]')
+          Array.prototype.forEach.call(groups, function (group) {
+            var state = group.fgLocMap
+            if (!state || group.isConnected) return
+            if (state.resizer) state.resizer.disconnect()
+            if (state.map) state.map.remove()
+            group.fgLocMap = null
+          })
         })
       })
       if (added) start()
@@ -9359,8 +9618,7 @@ window.fgLocSet = function (root, values) {
 
     private async Task FgLocShowValues()
     {
-        if (!fgLocShow || fgSelf is null) return;
-        fgLocShow = false;
+        if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgLocSet", fgFormRoot, fgLoc.ToDictionary(entry => entry.Key, entry => entry.Value.Value is null ? null : (object)new { lat = entry.Value.Value.Lat, lng = entry.Value.Value.Lng }));
     }
 
@@ -9614,6 +9872,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
   /* Rich text editors */
   .fg-richtext-editor { min-height: 6rem; outline: none; overflow-wrap: anywhere; }
   .fg-richtext-editor p { margin-bottom: 0.5rem; }
+  [data-fg-rich]:focus-within { outline: 2px solid var(--bs-primary); outline-offset: 2px; }
 
   /* Location fields: the map under page overlays, coordinate boxes side by side */
   .fg-location-map { isolation: isolate; z-index: 0; }
@@ -10285,7 +10544,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
               <button type="button" class="btn btn-sm btn-light" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
               <button type="button" class="btn btn-sm btn-light" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
               <button type="button" class="btn btn-sm btn-light" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-              <button type="button" class="btn btn-sm btn-light" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList">1.</button>
+              <button type="button" class="btn btn-sm btn-light" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
               <button type="button" class="btn btn-sm btn-light" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
             </div>
             <div id="fg_about" class="fg-richtext-editor px-3 py-2" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext="about" data-fg-path="about" data-fg-kind="richtext"></div>
@@ -10298,7 +10557,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         <fieldset class="d-flex flex-column gap-1">
           <legend class="form-label fw-semibold fs-6 mb-0">Meeting point</legend>
           <div class="d-flex flex-column gap-2" data-fg-loc="meet" data-fg-loc-start="23.588,58.3829,11" data-fg-loc-tiles="https://tile.openstreetmap.org/{z}/{x}/{y}.png" data-fg-loc-attribution="© OpenStreetMap contributors">
-            <div class="fg-location-map w-100 border rounded" style="height: 220px" role="region" aria-label="Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
+            <div class="fg-location-map w-100 border rounded" style="height: 220px" role="group" aria-label="Meeting point: Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
             <div class="d-flex flex-wrap align-items-end gap-2">
               <label class="fg-location-coord d-flex flex-column gap-1 small">
                 <span>Latitude</span>
@@ -10338,7 +10597,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         </figure>
       </div>
       <div class="col-12 col-md-12">
-        <div><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style="color: #b91c1c">Closed on holidays. {{ not.vue }} &#64;razor {jsx}</p><a>unsafe link</a></div>
+        <div><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style="color: #b91c1c">Closed on holidays. {{ not.vue }} &#64;razor {jsx}</p><a>unsafe link</a><iframe src="https://www.openstreetmap.org/export/embed.html?bbox=58.3%2C23.5%2C58.5%2C23.7" width="320" height="180" title="Where we are" sandbox="allow-scripts allow-same-origin allow-presentation" referrerpolicy="strict-origin-when-cross-origin" loading="lazy"></iframe></div>
       </div>
       <div class="col-12 col-md-12">
         <a class="link-primary" href="https://example.com/docs" target="_blank" rel="noopener noreferrer">Read the docs<span class="visually-hidden"> (opens in a new tab)</span></a>
@@ -10619,10 +10878,10 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       <div class="col-12 col-md-12">
         <div>
           <div class="nav nav-tabs mb-3" role="tablist">
-            <button type="button" class="nav-link active" data-fg-sec-btn="ks_social_tabs:0">Social</button>
-            <button type="button" class="nav-link" data-fg-sec-btn="ks_social_tabs:1">Code</button>
+            <button type="button" role="tab" aria-selected="true" class="nav-link active" data-fg-sec-btn="ks_social_tabs:0">Social</button>
+            <button type="button" role="tab" aria-selected="false" class="nav-link" data-fg-sec-btn="ks_social_tabs:1">Code</button>
           </div>
-          <div data-fg-sec-panel="ks_social_tabs:0">
+          <div data-fg-sec-panel="ks_social_tabs:0" role="tabpanel">
           <div class="row g-3">
             <div class="col-12 col-md-12">
               <div class="d-flex flex-column gap-1">
@@ -10633,7 +10892,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
             </div>
           </div>
           </div>
-          <div data-fg-sec-panel="ks_social_tabs:1" hidden>
+          <div data-fg-sec-panel="ks_social_tabs:1" role="tabpanel" hidden>
           <div class="row g-3">
             <div class="col-12 col-md-12">
               <div class="d-flex flex-column gap-1">
@@ -10921,7 +11180,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       },
       'account.avatar': function () {
       const v = fgGet("account.avatar")
-      { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
+      { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose one file at most","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
       return null
       },
       'plan': function () {
@@ -10958,7 +11217,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       },
       'signature': function () {
       const v = fgGet("signature")
-      { const problem = fgFileProblem(v, "", 0, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 0 MB"}); if (problem) return problem }
+      { const problem = fgFileProblem(v, "", 0, 1, {"tooMany":"Choose one file at most","type":"{name} is not an accepted file type","size":"{name} is larger than 0 MB"}); if (problem) return problem }
       return null
       },
       'contact_method': function () {
@@ -10990,9 +11249,11 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         el.textContent = message || ''
         el.hidden = !message
       }
-      if (control) {
-        invalid.forEach(function (cls) { control.classList.toggle(cls, Boolean(message)) })
-      }
+      Array.prototype.forEach.call(control ? document.querySelectorAll('[data-fg-path="' + path + '"]') : [], function (box) {
+        invalid.forEach(function (cls) { box.classList.toggle(cls, Boolean(message)) })
+        if (message) box.setAttribute('aria-invalid', 'true')
+        else box.removeAttribute('aria-invalid')
+      })
     }
 
     function validateField(path) {
@@ -11145,7 +11406,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
     function updateConditions() {
       fgCalcAll()
       fgPaintAnswers()
-      fgSignSync(form, function (canvas) { return (fgFiles[canvas.getAttribute('data-fg-path')] || []).length === 0 })
+      fgSignSync(form, function (canvas) { return (fgFiles[canvas.getAttribute('data-fg-path')] || [])[0] || null })
       fgLocPins(form)
       FG_CONDITIONS.forEach(function (c) {
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
@@ -11759,6 +12020,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         function (btn) {
           var active = btn.getAttribute('data-fg-sec-btn') === meta.key + ':' + index
           btn.className = active ? meta.tabActive : meta.tabBase
+          btn.setAttribute('aria-selected', active ? 'true' : 'false')
         },
       )
       Array.prototype.forEach.call(
@@ -12117,7 +12379,10 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
           onChange(group, point, true)
         }
         state.map.on('click', function (event) { state.pick(event.latlng) })
-        if (window.ResizeObserver) new ResizeObserver(function () { state.map.invalidateSize() }).observe(el)
+        if (window.ResizeObserver) {
+          state.resizer = new ResizeObserver(function () { state.map.invalidateSize() })
+          state.resizer.observe(el)
+        }
         fgLocPin(group, fgLocTyped(group), 'zoom')
       }, function () {
         var status = fgLocParts(group).status
@@ -12131,12 +12396,25 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         Array.prototype.forEach.call(root.querySelectorAll('[data-fg-loc]'), function (group) { fgLocMap(group, onChange) })
       }
       start()
-      // Fields that appear later (new items, shown by a condition) get their map.
+      // Fields that appear later (new items, shown by a condition) get their
+      // map; the maps of fields taken away (removed items, hidden again) go.
       if (window.MutationObserver) {
         new MutationObserver(function (records) {
-          var added = records.some(function (record) {
-            return Array.prototype.some.call(record.addedNodes, function (node) {
-              return node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))
+          var added = false
+          records.forEach(function (record) {
+            Array.prototype.forEach.call(record.addedNodes, function (node) {
+              if (node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))) added = true
+            })
+            Array.prototype.forEach.call(record.removedNodes, function (node) {
+              if (node.nodeType !== 1 || node.closest('[data-fg-loc-map]')) return
+              var groups = node.matches('[data-fg-loc]') ? [node] : node.querySelectorAll('[data-fg-loc]')
+              Array.prototype.forEach.call(groups, function (group) {
+                var state = group.fgLocMap
+                if (!state || group.isConnected) return
+                if (state.resizer) state.resizer.disconnect()
+                if (state.map) state.map.remove()
+                group.fgLocMap = null
+              })
             })
           })
           if (added) start()
@@ -12221,9 +12499,18 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         var width = Math.round(canvas.clientWidth * ratio)
         var height = Math.round(canvas.clientHeight * ratio)
         if (!ctx || width === 0 || (canvas.width === width && canvas.height === height)) return
+        // Keep the ink through the resize (a phone turning, a panel opening).
+        var kept = null
+        if (pad.ink && canvas.width > 0 && canvas.height > 0) {
+          kept = document.createElement('canvas')
+          kept.width = canvas.width
+          kept.height = canvas.height
+          kept.getContext('2d').drawImage(canvas, 0, 0)
+        }
         canvas.width = width
         canvas.height = height
         ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
+        if (kept) ctx.drawImage(kept, 0, 0, canvas.clientWidth, canvas.clientHeight)
       }
       pad.wipe = function () {
         if (!ctx) return
@@ -12273,6 +12560,26 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         ctx.fillText(text.trim(), canvas.clientWidth / 2, canvas.clientHeight / 2, canvas.clientWidth - 24)
         pad.ink = true
         pad.commit(done)
+      }
+      // Draws a saved signature (a file, or a data URL) into a blank pad.
+      pad.show = function (source) {
+        if (pad.ink || pad.drawing || pad.loading) return
+        pad.loading = true
+        var url = typeof source === 'string' ? source : URL.createObjectURL(source)
+        var image = new Image()
+        image.onload = function () {
+          pad.loading = false
+          if (url !== source) URL.revokeObjectURL(url)
+          if (pad.ink || pad.drawing || !ctx) return
+          pad.size()
+          ctx.drawImage(image, 0, 0, canvas.clientWidth, canvas.clientHeight)
+          pad.ink = true
+        }
+        image.onerror = function () {
+          pad.loading = false
+          if (url !== source) URL.revokeObjectURL(url)
+        }
+        image.src = url
       }
       canvas.fgPad = pad
       return pad
@@ -12341,12 +12648,19 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         onChange(group.canvas, null)
       })
     }
-    // Pads whose value went empty elsewhere (a reset) are cleared, typed name too.
-    function fgSignSync(root, isEmpty) {
+    // Pads follow their value: cleared when it went empty elsewhere (a reset),
+    // typed name too; a blank pad draws the file its value holds (a pad shown
+    // again by a step or a condition).
+    function fgSignSync(root, valueOf) {
       if (!root) return
       Array.prototype.forEach.call(root.querySelectorAll('canvas[data-fg-signature]'), function (canvas) {
         var pad = canvas.fgPad
-        if (!isEmpty(canvas) || (pad && (pad.pending || pad.drawing))) return
+        if (pad && (pad.pending || pad.drawing)) return
+        var value = valueOf(canvas)
+        if (value) {
+          if (!pad || !pad.ink) fgSignPad(canvas).show(value)
+          return
+        }
         if (pad && pad.ink) pad.wipe()
         var group = fgSignGroup(canvas)
         if (group && group.typed && group.typed.value !== '') group.typed.value = ''
@@ -13108,7 +13422,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
               <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
               <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
               <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList">1.</button>
+              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
               <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
             </div>
             <div id="fg_about" class="min-h-24 px-3 py-2 text-sm outline-none [overflow-wrap:anywhere] [&_ol]:list-decimal [&_ol]:ps-6 [&_ul]:list-disc [&_ul]:ps-6 [&_a]:text-indigo-600 [&_a]:underline [&_p]:mb-2" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext="about" data-fg-path="about" data-fg-kind="richtext"></div>
@@ -13121,7 +13435,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
         <fieldset class="flex flex-col gap-1.5">
           <legend class="text-sm font-semibold">Meeting point</legend>
           <div class="flex flex-col gap-2" data-fg-loc="meet" data-fg-loc-start="23.588,58.3829,11" data-fg-loc-tiles="https://tile.openstreetmap.org/{z}/{x}/{y}.png" data-fg-loc-attribution="© OpenStreetMap contributors">
-            <div class="isolate z-0 w-full rounded-md border border-gray-300 dark:border-gray-600" style="height: 220px" role="region" aria-label="Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
+            <div class="isolate z-0 w-full rounded-md border border-gray-300 dark:border-gray-600" style="height: 220px" role="group" aria-label="Meeting point: Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
             <div class="flex flex-wrap items-end gap-2">
               <label class="flex flex-[1_1_8rem] flex-col gap-1 text-sm text-gray-700 dark:text-gray-300">
                 <span>Latitude</span>
@@ -13134,7 +13448,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
               <button type="button" class="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-loc-mine>Use my location</button>
               <button type="button" class="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-loc-clear>Clear</button>
             </div>
-            <p class="m-0 text-sm text-gray-600 empty:hidden dark:text-gray-400" aria-live="polite" data-fg-loc-status></p>
+            <p class="m-0 text-sm text-gray-600 dark:text-gray-400" aria-live="polite" data-fg-loc-status></p>
           </div>
           <p id="fg_err_meet" class="text-xs text-red-600" role="alert" hidden></p>
         </fieldset>
@@ -13161,7 +13475,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
         </figure>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <div class="text-sm [&_a]:underline [&_ul]:list-disc [&_ul]:ps-5 [&_ol]:list-decimal [&_ol]:ps-5 [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg [&_h1]:font-semibold [&_h2]:font-semibold [&_h3]:font-semibold [&_h4]:font-semibold [&_th]:border [&_th]:px-2 [&_th]:py-1 [&_th]:text-start [&_td]:border [&_td]:px-2 [&_td]:py-1"><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style="color: #b91c1c">Closed on holidays. {{ not.vue }} &#64;razor {jsx}</p><a>unsafe link</a></div>
+        <div class="text-sm [&_a]:underline [&_ul]:list-disc [&_ul]:ps-5 [&_ol]:list-decimal [&_ol]:ps-5 [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg [&_h1]:font-semibold [&_h2]:font-semibold [&_h3]:font-semibold [&_h4]:font-semibold [&_th]:border [&_th]:px-2 [&_th]:py-1 [&_th]:text-start [&_td]:border [&_td]:px-2 [&_td]:py-1"><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style="color: #b91c1c">Closed on holidays. {{ not.vue }} &#64;razor {jsx}</p><a>unsafe link</a><iframe src="https://www.openstreetmap.org/export/embed.html?bbox=58.3%2C23.5%2C58.5%2C23.7" width="320" height="180" title="Where we are" sandbox="allow-scripts allow-same-origin allow-presentation" referrerpolicy="strict-origin-when-cross-origin" loading="lazy"></iframe></div>
       </div>
       <div class="col-span-12 md:col-span-12">
         <a class="font-medium text-indigo-600 underline underline-offset-2 dark:text-indigo-400" href="https://example.com/docs" target="_blank" rel="noopener noreferrer">Read the docs<span class="sr-only"> (opens in a new tab)</span></a>
@@ -13442,10 +13756,10 @@ exports[`html target > snapshot (tailwind) 1`] = `
       <div class="col-span-12 md:col-span-12">
         <div>
           <div class="mb-4 flex flex-wrap gap-1 border-b border-gray-200 dark:border-gray-700" role="tablist">
-            <button type="button" class="-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600" data-fg-sec-btn="ks_social_tabs:0">Social</button>
-            <button type="button" class="-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700" data-fg-sec-btn="ks_social_tabs:1">Code</button>
+            <button type="button" role="tab" aria-selected="true" class="-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600" data-fg-sec-btn="ks_social_tabs:0">Social</button>
+            <button type="button" role="tab" aria-selected="false" class="-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700" data-fg-sec-btn="ks_social_tabs:1">Code</button>
           </div>
-          <div data-fg-sec-panel="ks_social_tabs:0">
+          <div data-fg-sec-panel="ks_social_tabs:0" role="tabpanel">
           <div class="grid grid-cols-12 gap-4">
             <div class="col-span-12 md:col-span-12">
               <div class="flex flex-col gap-1.5">
@@ -13456,7 +13770,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
             </div>
           </div>
           </div>
-          <div data-fg-sec-panel="ks_social_tabs:1" hidden>
+          <div data-fg-sec-panel="ks_social_tabs:1" role="tabpanel" hidden>
           <div class="grid grid-cols-12 gap-4">
             <div class="col-span-12 md:col-span-12">
               <div class="flex flex-col gap-1.5">
@@ -13744,7 +14058,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
       },
       'account.avatar': function () {
       const v = fgGet("account.avatar")
-      { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
+      { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose one file at most","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
       return null
       },
       'plan': function () {
@@ -13781,7 +14095,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
       },
       'signature': function () {
       const v = fgGet("signature")
-      { const problem = fgFileProblem(v, "", 0, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 0 MB"}); if (problem) return problem }
+      { const problem = fgFileProblem(v, "", 0, 1, {"tooMany":"Choose one file at most","type":"{name} is not an accepted file type","size":"{name} is larger than 0 MB"}); if (problem) return problem }
       return null
       },
       'contact_method': function () {
@@ -13813,9 +14127,11 @@ exports[`html target > snapshot (tailwind) 1`] = `
         el.textContent = message || ''
         el.hidden = !message
       }
-      if (control) {
-        invalid.forEach(function (cls) { control.classList.toggle(cls, Boolean(message)) })
-      }
+      Array.prototype.forEach.call(control ? document.querySelectorAll('[data-fg-path="' + path + '"]') : [], function (box) {
+        invalid.forEach(function (cls) { box.classList.toggle(cls, Boolean(message)) })
+        if (message) box.setAttribute('aria-invalid', 'true')
+        else box.removeAttribute('aria-invalid')
+      })
     }
 
     function validateField(path) {
@@ -13968,7 +14284,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
     function updateConditions() {
       fgCalcAll()
       fgPaintAnswers()
-      fgSignSync(form, function (canvas) { return (fgFiles[canvas.getAttribute('data-fg-path')] || []).length === 0 })
+      fgSignSync(form, function (canvas) { return (fgFiles[canvas.getAttribute('data-fg-path')] || [])[0] || null })
       fgLocPins(form)
       FG_CONDITIONS.forEach(function (c) {
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
@@ -14582,6 +14898,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
         function (btn) {
           var active = btn.getAttribute('data-fg-sec-btn') === meta.key + ':' + index
           btn.className = active ? meta.tabActive : meta.tabBase
+          btn.setAttribute('aria-selected', active ? 'true' : 'false')
         },
       )
       Array.prototype.forEach.call(
@@ -14940,7 +15257,10 @@ exports[`html target > snapshot (tailwind) 1`] = `
           onChange(group, point, true)
         }
         state.map.on('click', function (event) { state.pick(event.latlng) })
-        if (window.ResizeObserver) new ResizeObserver(function () { state.map.invalidateSize() }).observe(el)
+        if (window.ResizeObserver) {
+          state.resizer = new ResizeObserver(function () { state.map.invalidateSize() })
+          state.resizer.observe(el)
+        }
         fgLocPin(group, fgLocTyped(group), 'zoom')
       }, function () {
         var status = fgLocParts(group).status
@@ -14954,12 +15274,25 @@ exports[`html target > snapshot (tailwind) 1`] = `
         Array.prototype.forEach.call(root.querySelectorAll('[data-fg-loc]'), function (group) { fgLocMap(group, onChange) })
       }
       start()
-      // Fields that appear later (new items, shown by a condition) get their map.
+      // Fields that appear later (new items, shown by a condition) get their
+      // map; the maps of fields taken away (removed items, hidden again) go.
       if (window.MutationObserver) {
         new MutationObserver(function (records) {
-          var added = records.some(function (record) {
-            return Array.prototype.some.call(record.addedNodes, function (node) {
-              return node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))
+          var added = false
+          records.forEach(function (record) {
+            Array.prototype.forEach.call(record.addedNodes, function (node) {
+              if (node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))) added = true
+            })
+            Array.prototype.forEach.call(record.removedNodes, function (node) {
+              if (node.nodeType !== 1 || node.closest('[data-fg-loc-map]')) return
+              var groups = node.matches('[data-fg-loc]') ? [node] : node.querySelectorAll('[data-fg-loc]')
+              Array.prototype.forEach.call(groups, function (group) {
+                var state = group.fgLocMap
+                if (!state || group.isConnected) return
+                if (state.resizer) state.resizer.disconnect()
+                if (state.map) state.map.remove()
+                group.fgLocMap = null
+              })
             })
           })
           if (added) start()
@@ -15044,9 +15377,18 @@ exports[`html target > snapshot (tailwind) 1`] = `
         var width = Math.round(canvas.clientWidth * ratio)
         var height = Math.round(canvas.clientHeight * ratio)
         if (!ctx || width === 0 || (canvas.width === width && canvas.height === height)) return
+        // Keep the ink through the resize (a phone turning, a panel opening).
+        var kept = null
+        if (pad.ink && canvas.width > 0 && canvas.height > 0) {
+          kept = document.createElement('canvas')
+          kept.width = canvas.width
+          kept.height = canvas.height
+          kept.getContext('2d').drawImage(canvas, 0, 0)
+        }
         canvas.width = width
         canvas.height = height
         ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
+        if (kept) ctx.drawImage(kept, 0, 0, canvas.clientWidth, canvas.clientHeight)
       }
       pad.wipe = function () {
         if (!ctx) return
@@ -15096,6 +15438,26 @@ exports[`html target > snapshot (tailwind) 1`] = `
         ctx.fillText(text.trim(), canvas.clientWidth / 2, canvas.clientHeight / 2, canvas.clientWidth - 24)
         pad.ink = true
         pad.commit(done)
+      }
+      // Draws a saved signature (a file, or a data URL) into a blank pad.
+      pad.show = function (source) {
+        if (pad.ink || pad.drawing || pad.loading) return
+        pad.loading = true
+        var url = typeof source === 'string' ? source : URL.createObjectURL(source)
+        var image = new Image()
+        image.onload = function () {
+          pad.loading = false
+          if (url !== source) URL.revokeObjectURL(url)
+          if (pad.ink || pad.drawing || !ctx) return
+          pad.size()
+          ctx.drawImage(image, 0, 0, canvas.clientWidth, canvas.clientHeight)
+          pad.ink = true
+        }
+        image.onerror = function () {
+          pad.loading = false
+          if (url !== source) URL.revokeObjectURL(url)
+        }
+        image.src = url
       }
       canvas.fgPad = pad
       return pad
@@ -15164,12 +15526,19 @@ exports[`html target > snapshot (tailwind) 1`] = `
         onChange(group.canvas, null)
       })
     }
-    // Pads whose value went empty elsewhere (a reset) are cleared, typed name too.
-    function fgSignSync(root, isEmpty) {
+    // Pads follow their value: cleared when it went empty elsewhere (a reset),
+    // typed name too; a blank pad draws the file its value holds (a pad shown
+    // again by a step or a condition).
+    function fgSignSync(root, valueOf) {
       if (!root) return
       Array.prototype.forEach.call(root.querySelectorAll('canvas[data-fg-signature]'), function (canvas) {
         var pad = canvas.fgPad
-        if (!isEmpty(canvas) || (pad && (pad.pending || pad.drawing))) return
+        if (pad && (pad.pending || pad.drawing)) return
+        var value = valueOf(canvas)
+        if (value) {
+          if (!pad || !pad.ink) fgSignPad(canvas).show(value)
+          return
+        }
         if (pad && pad.ink) pad.wipe()
         var group = fgSignGroup(canvas)
         if (group && group.typed && group.typed.value !== '') group.typed.value = ''
@@ -15325,7 +15694,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
   .fg-signature-row > input { flex: 1 1 auto; min-inline-size: 0; }
   /* Rich text: toolbar and editor */
   .fg-richtext { border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-bg); }
-  .fg-richtext:focus-within { border-color: var(--fg-color-primary); }
+  .fg-richtext:focus-within { border-color: var(--fg-color-primary); outline: 2px solid var(--fg-color-primary); outline-offset: 2px; }
   .fg-richtext-toolbar { display: flex; flex-wrap: wrap; gap: 0.25rem; padding: 0.25rem; border-block-end: 1px solid var(--fg-color-border); }
   .fg-richtext-button { min-inline-size: 2rem; padding: 0.25rem 0.5rem; border: 1px solid transparent; border-radius: var(--fg-radius); background: none; color: inherit; font: inherit; cursor: pointer; }
   .fg-richtext-button:hover, .fg-richtext-button:focus-visible { border-color: var(--fg-color-border); background: var(--fg-color-surface); }
@@ -15338,8 +15707,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
   .fg-location-map { inline-size: 100%; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); isolation: isolate; z-index: 0; }
   .fg-location-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: flex-end; }
   .fg-location-coord { display: flex; flex: 1 1 8rem; flex-direction: column; gap: 0.25rem; font-size: 0.875rem; }
-  .fg-location-status { margin: 0; font-size: 0.875rem; }
-  .fg-location-status:empty { display: none; }
+  .fg-location-status { margin: 0; font-size: 0.875rem; min-block-size: 0; }
   /* Spam check: the widget and its hint above the actions row */
   .fg-captcha { display: flex; flex-direction: column; gap: 0.25rem; margin-block-start: 1rem; }
   .fg-captcha-hint { margin: 0; font-size: 0.875rem; color: var(--fg-color-muted); }
@@ -16152,7 +16520,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
               <button type="button" class="fg-richtext-button" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
               <button type="button" class="fg-richtext-button" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
               <button type="button" class="fg-richtext-button" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-              <button type="button" class="fg-richtext-button" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList">1.</button>
+              <button type="button" class="fg-richtext-button" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
               <button type="button" class="fg-richtext-button" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
             </div>
             <div id="fg_about" class="fg-richtext-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext="about" data-fg-path="about" data-fg-kind="richtext"></div>
@@ -16165,7 +16533,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
         <fieldset class="fg-field">
           <legend class="fg-label">Meeting point</legend>
           <div class="fg-location" data-fg-loc="meet" data-fg-loc-start="23.588,58.3829,11" data-fg-loc-tiles="https://tile.openstreetmap.org/{z}/{x}/{y}.png" data-fg-loc-attribution="© OpenStreetMap contributors">
-            <div class="fg-location-map" style="height: 220px" role="region" aria-label="Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
+            <div class="fg-location-map" style="height: 220px" role="group" aria-label="Meeting point: Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
             <div class="fg-location-row">
               <label class="fg-location-coord">
                 <span>Latitude</span>
@@ -16205,7 +16573,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
         </figure>
       </div>
       <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
-        <div class="fg-html"><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style="color: #b91c1c">Closed on holidays. {{ not.vue }} &#64;razor {jsx}</p><a>unsafe link</a></div>
+        <div class="fg-html"><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style="color: #b91c1c">Closed on holidays. {{ not.vue }} &#64;razor {jsx}</p><a>unsafe link</a><iframe src="https://www.openstreetmap.org/export/embed.html?bbox=58.3%2C23.5%2C58.5%2C23.7" width="320" height="180" title="Where we are" sandbox="allow-scripts allow-same-origin allow-presentation" referrerpolicy="strict-origin-when-cross-origin" loading="lazy"></iframe></div>
       </div>
       <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <a class="fg-link" href="https://example.com/docs" target="_blank" rel="noopener noreferrer">Read the docs<span class="fg-sr-only"> (opens in a new tab)</span></a>
@@ -16486,10 +16854,10 @@ exports[`html target > snapshot (vanilla) 1`] = `
       <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div>
           <div class="fg-tab-list" role="tablist">
-            <button type="button" class="fg-tab-button fg-tab-button--active" data-fg-sec-btn="ks_social_tabs:0">Social</button>
-            <button type="button" class="fg-tab-button" data-fg-sec-btn="ks_social_tabs:1">Code</button>
+            <button type="button" role="tab" aria-selected="true" class="fg-tab-button fg-tab-button--active" data-fg-sec-btn="ks_social_tabs:0">Social</button>
+            <button type="button" role="tab" aria-selected="false" class="fg-tab-button" data-fg-sec-btn="ks_social_tabs:1">Code</button>
           </div>
-          <div data-fg-sec-panel="ks_social_tabs:0">
+          <div data-fg-sec-panel="ks_social_tabs:0" role="tabpanel">
           <div class="fg-grid">
             <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
               <div class="fg-field">
@@ -16500,7 +16868,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
             </div>
           </div>
           </div>
-          <div data-fg-sec-panel="ks_social_tabs:1" hidden>
+          <div data-fg-sec-panel="ks_social_tabs:1" role="tabpanel" hidden>
           <div class="fg-grid">
             <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
               <div class="fg-field">
@@ -16788,7 +17156,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
       },
       'account.avatar': function () {
       const v = fgGet("account.avatar")
-      { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
+      { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose one file at most","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
       return null
       },
       'plan': function () {
@@ -16825,7 +17193,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
       },
       'signature': function () {
       const v = fgGet("signature")
-      { const problem = fgFileProblem(v, "", 0, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 0 MB"}); if (problem) return problem }
+      { const problem = fgFileProblem(v, "", 0, 1, {"tooMany":"Choose one file at most","type":"{name} is not an accepted file type","size":"{name} is larger than 0 MB"}); if (problem) return problem }
       return null
       },
       'contact_method': function () {
@@ -16857,9 +17225,11 @@ exports[`html target > snapshot (vanilla) 1`] = `
         el.textContent = message || ''
         el.hidden = !message
       }
-      if (control) {
-        invalid.forEach(function (cls) { control.classList.toggle(cls, Boolean(message)) })
-      }
+      Array.prototype.forEach.call(control ? document.querySelectorAll('[data-fg-path="' + path + '"]') : [], function (box) {
+        invalid.forEach(function (cls) { box.classList.toggle(cls, Boolean(message)) })
+        if (message) box.setAttribute('aria-invalid', 'true')
+        else box.removeAttribute('aria-invalid')
+      })
     }
 
     function validateField(path) {
@@ -17012,7 +17382,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
     function updateConditions() {
       fgCalcAll()
       fgPaintAnswers()
-      fgSignSync(form, function (canvas) { return (fgFiles[canvas.getAttribute('data-fg-path')] || []).length === 0 })
+      fgSignSync(form, function (canvas) { return (fgFiles[canvas.getAttribute('data-fg-path')] || [])[0] || null })
       fgLocPins(form)
       FG_CONDITIONS.forEach(function (c) {
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
@@ -17626,6 +17996,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
         function (btn) {
           var active = btn.getAttribute('data-fg-sec-btn') === meta.key + ':' + index
           btn.className = active ? meta.tabActive : meta.tabBase
+          btn.setAttribute('aria-selected', active ? 'true' : 'false')
         },
       )
       Array.prototype.forEach.call(
@@ -17984,7 +18355,10 @@ exports[`html target > snapshot (vanilla) 1`] = `
           onChange(group, point, true)
         }
         state.map.on('click', function (event) { state.pick(event.latlng) })
-        if (window.ResizeObserver) new ResizeObserver(function () { state.map.invalidateSize() }).observe(el)
+        if (window.ResizeObserver) {
+          state.resizer = new ResizeObserver(function () { state.map.invalidateSize() })
+          state.resizer.observe(el)
+        }
         fgLocPin(group, fgLocTyped(group), 'zoom')
       }, function () {
         var status = fgLocParts(group).status
@@ -17998,12 +18372,25 @@ exports[`html target > snapshot (vanilla) 1`] = `
         Array.prototype.forEach.call(root.querySelectorAll('[data-fg-loc]'), function (group) { fgLocMap(group, onChange) })
       }
       start()
-      // Fields that appear later (new items, shown by a condition) get their map.
+      // Fields that appear later (new items, shown by a condition) get their
+      // map; the maps of fields taken away (removed items, hidden again) go.
       if (window.MutationObserver) {
         new MutationObserver(function (records) {
-          var added = records.some(function (record) {
-            return Array.prototype.some.call(record.addedNodes, function (node) {
-              return node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))
+          var added = false
+          records.forEach(function (record) {
+            Array.prototype.forEach.call(record.addedNodes, function (node) {
+              if (node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))) added = true
+            })
+            Array.prototype.forEach.call(record.removedNodes, function (node) {
+              if (node.nodeType !== 1 || node.closest('[data-fg-loc-map]')) return
+              var groups = node.matches('[data-fg-loc]') ? [node] : node.querySelectorAll('[data-fg-loc]')
+              Array.prototype.forEach.call(groups, function (group) {
+                var state = group.fgLocMap
+                if (!state || group.isConnected) return
+                if (state.resizer) state.resizer.disconnect()
+                if (state.map) state.map.remove()
+                group.fgLocMap = null
+              })
             })
           })
           if (added) start()
@@ -18088,9 +18475,18 @@ exports[`html target > snapshot (vanilla) 1`] = `
         var width = Math.round(canvas.clientWidth * ratio)
         var height = Math.round(canvas.clientHeight * ratio)
         if (!ctx || width === 0 || (canvas.width === width && canvas.height === height)) return
+        // Keep the ink through the resize (a phone turning, a panel opening).
+        var kept = null
+        if (pad.ink && canvas.width > 0 && canvas.height > 0) {
+          kept = document.createElement('canvas')
+          kept.width = canvas.width
+          kept.height = canvas.height
+          kept.getContext('2d').drawImage(canvas, 0, 0)
+        }
         canvas.width = width
         canvas.height = height
         ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
+        if (kept) ctx.drawImage(kept, 0, 0, canvas.clientWidth, canvas.clientHeight)
       }
       pad.wipe = function () {
         if (!ctx) return
@@ -18140,6 +18536,26 @@ exports[`html target > snapshot (vanilla) 1`] = `
         ctx.fillText(text.trim(), canvas.clientWidth / 2, canvas.clientHeight / 2, canvas.clientWidth - 24)
         pad.ink = true
         pad.commit(done)
+      }
+      // Draws a saved signature (a file, or a data URL) into a blank pad.
+      pad.show = function (source) {
+        if (pad.ink || pad.drawing || pad.loading) return
+        pad.loading = true
+        var url = typeof source === 'string' ? source : URL.createObjectURL(source)
+        var image = new Image()
+        image.onload = function () {
+          pad.loading = false
+          if (url !== source) URL.revokeObjectURL(url)
+          if (pad.ink || pad.drawing || !ctx) return
+          pad.size()
+          ctx.drawImage(image, 0, 0, canvas.clientWidth, canvas.clientHeight)
+          pad.ink = true
+        }
+        image.onerror = function () {
+          pad.loading = false
+          if (url !== source) URL.revokeObjectURL(url)
+        }
+        image.src = url
       }
       canvas.fgPad = pad
       return pad
@@ -18208,12 +18624,19 @@ exports[`html target > snapshot (vanilla) 1`] = `
         onChange(group.canvas, null)
       })
     }
-    // Pads whose value went empty elsewhere (a reset) are cleared, typed name too.
-    function fgSignSync(root, isEmpty) {
+    // Pads follow their value: cleared when it went empty elsewhere (a reset),
+    // typed name too; a blank pad draws the file its value holds (a pad shown
+    // again by a step or a condition).
+    function fgSignSync(root, valueOf) {
       if (!root) return
       Array.prototype.forEach.call(root.querySelectorAll('canvas[data-fg-signature]'), function (canvas) {
         var pad = canvas.fgPad
-        if (!isEmpty(canvas) || (pad && (pad.pending || pad.drawing))) return
+        if (pad && (pad.pending || pad.drawing)) return
+        var value = valueOf(canvas)
+        if (value) {
+          if (!pad || !pad.ink) fgSignPad(canvas).show(value)
+          return
+        }
         if (pad && pad.ink) pad.wipe()
         var group = fgSignGroup(canvas)
         if (group && group.typed && group.typed.value !== '') group.typed.value = ''
@@ -18420,9 +18843,18 @@ function fgSignPad(canvas: any): any {
     var width = Math.round(canvas.clientWidth * ratio)
     var height = Math.round(canvas.clientHeight * ratio)
     if (!ctx || width === 0 || (canvas.width === width && canvas.height === height)) return
+    // Keep the ink through the resize (a phone turning, a panel opening).
+    var kept: any = null
+    if (pad.ink && canvas.width > 0 && canvas.height > 0) {
+      kept = document.createElement('canvas')
+      kept.width = canvas.width
+      kept.height = canvas.height
+      kept.getContext('2d').drawImage(canvas, 0, 0)
+    }
     canvas.width = width
     canvas.height = height
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
+    if (kept) ctx.drawImage(kept, 0, 0, canvas.clientWidth, canvas.clientHeight)
   }
   pad.wipe = function () {
     if (!ctx) return
@@ -18472,6 +18904,26 @@ function fgSignPad(canvas: any): any {
     ctx.fillText(text.trim(), canvas.clientWidth / 2, canvas.clientHeight / 2, canvas.clientWidth - 24)
     pad.ink = true
     pad.commit(done)
+  }
+  // Draws a saved signature (a file, or a data URL) into a blank pad.
+  pad.show = function (source: any) {
+    if (pad.ink || pad.drawing || pad.loading) return
+    pad.loading = true
+    var url = typeof source === 'string' ? source : URL.createObjectURL(source)
+    var image = new Image()
+    image.onload = function () {
+      pad.loading = false
+      if (url !== source) URL.revokeObjectURL(url)
+      if (pad.ink || pad.drawing || !ctx) return
+      pad.size()
+      ctx.drawImage(image, 0, 0, canvas.clientWidth, canvas.clientHeight)
+      pad.ink = true
+    }
+    image.onerror = function () {
+      pad.loading = false
+      if (url !== source) URL.revokeObjectURL(url)
+    }
+    image.src = url
   }
   canvas.fgPad = pad
   return pad
@@ -18540,12 +18992,19 @@ function fgWireSignatures(root: any, onChange: (canvas: HTMLCanvasElement, file:
     onChange(group.canvas, null)
   })
 }
-// Pads whose value went empty elsewhere (a reset) are cleared, typed name too.
-function fgSignSync(root: any, isEmpty: (canvas: HTMLCanvasElement) => boolean) {
+// Pads follow their value: cleared when it went empty elsewhere (a reset),
+// typed name too; a blank pad draws the file its value holds (a pad shown
+// again by a step or a condition).
+function fgSignSync(root: any, valueOf: (canvas: HTMLCanvasElement) => File | Blob | string | null | undefined) {
   if (!root) return
   Array.prototype.forEach.call(root.querySelectorAll('canvas[data-fg-signature]'), function (canvas: any) {
     var pad = canvas.fgPad
-    if (!isEmpty(canvas) || (pad && (pad.pending || pad.drawing))) return
+    if (pad && (pad.pending || pad.drawing)) return
+    var value = valueOf(canvas)
+    if (value) {
+      if (!pad || !pad.ink) fgSignPad(canvas).show(value)
+      return
+    }
     if (pad && pad.ink) pad.wipe()
     var group = fgSignGroup(canvas)
     if (group && group.typed && group.typed.value !== '') group.typed.value = ''
@@ -18778,7 +19237,10 @@ function fgLocMap(group: any, onChange: (group: HTMLElement, point: { lat: numbe
       onChange(group, point, true)
     }
     state.map.on('click', function (event: any) { state.pick(event.latlng) })
-    if (window.ResizeObserver) new ResizeObserver(function () { state.map.invalidateSize() }).observe(el)
+    if (window.ResizeObserver) {
+      state.resizer = new ResizeObserver(function () { state.map.invalidateSize() })
+      state.resizer.observe(el)
+    }
     fgLocPin(group, fgLocTyped(group), 'zoom')
   }, function () {
     var status = fgLocParts(group).status
@@ -18792,12 +19254,25 @@ function fgWireLocations(root: any, onChange: (group: HTMLElement, point: { lat:
     Array.prototype.forEach.call(root.querySelectorAll('[data-fg-loc]'), function (group: any) { fgLocMap(group, onChange) })
   }
   start()
-  // Fields that appear later (new items, shown by a condition) get their map.
+  // Fields that appear later (new items, shown by a condition) get their
+  // map; the maps of fields taken away (removed items, hidden again) go.
   if (window.MutationObserver) {
     new MutationObserver(function (records) {
-      var added = records.some(function (record) {
-        return Array.prototype.some.call(record.addedNodes, function (node: any) {
-          return node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))
+      var added = false
+      records.forEach(function (record) {
+        Array.prototype.forEach.call(record.addedNodes, function (node: any) {
+          if (node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))) added = true
+        })
+        Array.prototype.forEach.call(record.removedNodes, function (node: any) {
+          if (node.nodeType !== 1 || node.closest('[data-fg-loc-map]')) return
+          var groups = node.matches('[data-fg-loc]') ? [node] : node.querySelectorAll('[data-fg-loc]')
+          Array.prototype.forEach.call(groups, function (group: any) {
+            var state = group.fgLocMap
+            if (!state || group.isConnected) return
+            if (state.resizer) state.resizer.disconnect()
+            if (state.map) state.map.remove()
+            group.fgLocMap = null
+          })
         })
       })
       if (added) start()
@@ -19022,7 +19497,7 @@ const validators: Record<string, (data: FormData) => string | null> = {
   },
   'account.avatar': function (data: FormData) {
   const v = data.account.avatar
-  { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
+  { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose one file at most","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
   return null
   },
   'plan': function (data: FormData) {
@@ -19059,7 +19534,7 @@ const validators: Record<string, (data: FormData) => string | null> = {
   },
   'signature': function (data: FormData) {
   const v = data.signature
-  { const problem = fgFileProblem(v, "", 0, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 0 MB"}); if (problem) return problem }
+  { const problem = fgFileProblem(v, "", 0, 1, {"tooMany":"Choose one file at most","type":"{name} is not an accepted file type","size":"{name} is larger than 0 MB"}); if (problem) return problem }
   return null
   },
   'contact_method': function (data: FormData) {
@@ -19469,9 +19944,9 @@ export default function KitchenSinkForm({
   useEffect(() => {
     fgWireSignatures(fgRoot.current, (canvas, file) => fgSignChange.current(canvas.getAttribute('data-fg-signature')!, file))
   }, [])
-  // A reset empties the value: the pad follows.
+  // The pads follow the value: a reset clears them, a pad shown again draws its file.
   useEffect(() => {
-    fgSignSync(fgRoot.current, (canvas) => (fgFileList(form, canvas.getAttribute('data-fg-signature')!) ?? []).length === 0)
+    fgSignSync(fgRoot.current, (canvas) => (fgFileList(form, canvas.getAttribute('data-fg-signature')!) ?? [])[0] ?? null)
   })
 
   // Rich-text editors: wired once on the form; changes go through the latest handler.
@@ -20435,7 +20910,7 @@ export default function KitchenSinkForm({
                 <button type="button" className="btn btn-sm btn-light" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
                 <button type="button" className="btn btn-sm btn-light" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
                 <button type="button" className="btn btn-sm btn-light" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-                <button type="button" className="btn btn-sm btn-light" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList">1.</button>
+                <button type="button" className="btn btn-sm btn-light" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
                 <button type="button" className="btn btn-sm btn-light" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
               </div>
               <div id="fg_about" className="fg-richtext-editor px-3 py-2" contentEditable role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext="about" onBlur={() => touch('about')}></div>
@@ -20448,7 +20923,7 @@ export default function KitchenSinkForm({
           <fieldset className="d-flex flex-column gap-1">
             <legend className="form-label fw-semibold fs-6 mb-0">Meeting point</legend>
             <div className="d-flex flex-column gap-2" data-fg-loc="meet" data-fg-loc-start="23.588,58.3829,11" data-fg-loc-tiles="https://tile.openstreetmap.org/{z}/{x}/{y}.png" data-fg-loc-attribution="© OpenStreetMap contributors">
-              <div className="fg-location-map w-100 border rounded" style={{ height: '220px' }} role="region" aria-label="Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
+              <div className="fg-location-map w-100 border rounded" style={{ height: '220px' }} role="group" aria-label="Meeting point: Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
               <div className="d-flex flex-wrap align-items-end gap-2">
                 <label className="fg-location-coord d-flex flex-column gap-1 small">
                   <span>Latitude</span>
@@ -20488,7 +20963,7 @@ export default function KitchenSinkForm({
           </figure>
         </div>
         <div className="col-12 col-md-12">
-          <div><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style={{ color: "#b91c1c" }}>{"Closed on holidays. {{ not.vue }} @razor {jsx}"}</p><a>unsafe link</a></div>
+          <div><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style={{ color: "#b91c1c" }}>{"Closed on holidays. {{ not.vue }} @razor {jsx}"}</p><a>unsafe link</a><iframe src="https://www.openstreetmap.org/export/embed.html?bbox=58.3%2C23.5%2C58.5%2C23.7" width="320" height="180" title="Where we are" sandbox="allow-scripts allow-same-origin allow-presentation" referrerPolicy="strict-origin-when-cross-origin" loading="lazy"></iframe></div>
         </div>
         <div className="col-12 col-md-12">
           <a className="link-primary" href="https://example.com/docs" target="_blank" rel="noopener noreferrer">Read the docs<span className="visually-hidden"> (opens in a new tab)</span></a>
@@ -20773,10 +21248,10 @@ export default function KitchenSinkForm({
         <div className="col-12 col-md-12">
           <div>
             <div className="nav nav-tabs mb-3" role="tablist">
-              <button type="button" className={fgSec_ks_social_tabs === 0 ? "nav-link active" : "nav-link"} onClick={() => setFgSec_ks_social_tabs(0)}>Social</button>
-              <button type="button" className={fgSec_ks_social_tabs === 1 ? "nav-link active" : "nav-link"} onClick={() => setFgSec_ks_social_tabs(1)}>Code</button>
+              <button type="button" role="tab" aria-selected={fgSec_ks_social_tabs === 0} className={fgSec_ks_social_tabs === 0 ? "nav-link active" : "nav-link"} onClick={() => setFgSec_ks_social_tabs(0)}>Social</button>
+              <button type="button" role="tab" aria-selected={fgSec_ks_social_tabs === 1} className={fgSec_ks_social_tabs === 1 ? "nav-link active" : "nav-link"} onClick={() => setFgSec_ks_social_tabs(1)}>Code</button>
             </div>
-            <div style={{ display: fgSec_ks_social_tabs === 0 ? undefined : 'none' }}>
+            <div role="tabpanel" style={{ display: fgSec_ks_social_tabs === 0 ? undefined : 'none' }}>
               <div className="row g-3">
                 <div className="col-12 col-md-12">
                   <div className="d-flex flex-column gap-1">
@@ -20787,7 +21262,7 @@ export default function KitchenSinkForm({
                 </div>
               </div>
             </div>
-            <div style={{ display: fgSec_ks_social_tabs === 1 ? undefined : 'none' }}>
+            <div role="tabpanel" style={{ display: fgSec_ks_social_tabs === 1 ? undefined : 'none' }}>
               <div className="row g-3">
                 <div className="col-12 col-md-12">
                   <div className="d-flex flex-column gap-1">
@@ -20990,9 +21465,18 @@ function fgSignPad(canvas: any): any {
     var width = Math.round(canvas.clientWidth * ratio)
     var height = Math.round(canvas.clientHeight * ratio)
     if (!ctx || width === 0 || (canvas.width === width && canvas.height === height)) return
+    // Keep the ink through the resize (a phone turning, a panel opening).
+    var kept: any = null
+    if (pad.ink && canvas.width > 0 && canvas.height > 0) {
+      kept = document.createElement('canvas')
+      kept.width = canvas.width
+      kept.height = canvas.height
+      kept.getContext('2d').drawImage(canvas, 0, 0)
+    }
     canvas.width = width
     canvas.height = height
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
+    if (kept) ctx.drawImage(kept, 0, 0, canvas.clientWidth, canvas.clientHeight)
   }
   pad.wipe = function () {
     if (!ctx) return
@@ -21042,6 +21526,26 @@ function fgSignPad(canvas: any): any {
     ctx.fillText(text.trim(), canvas.clientWidth / 2, canvas.clientHeight / 2, canvas.clientWidth - 24)
     pad.ink = true
     pad.commit(done)
+  }
+  // Draws a saved signature (a file, or a data URL) into a blank pad.
+  pad.show = function (source: any) {
+    if (pad.ink || pad.drawing || pad.loading) return
+    pad.loading = true
+    var url = typeof source === 'string' ? source : URL.createObjectURL(source)
+    var image = new Image()
+    image.onload = function () {
+      pad.loading = false
+      if (url !== source) URL.revokeObjectURL(url)
+      if (pad.ink || pad.drawing || !ctx) return
+      pad.size()
+      ctx.drawImage(image, 0, 0, canvas.clientWidth, canvas.clientHeight)
+      pad.ink = true
+    }
+    image.onerror = function () {
+      pad.loading = false
+      if (url !== source) URL.revokeObjectURL(url)
+    }
+    image.src = url
   }
   canvas.fgPad = pad
   return pad
@@ -21110,12 +21614,19 @@ function fgWireSignatures(root: any, onChange: (canvas: HTMLCanvasElement, file:
     onChange(group.canvas, null)
   })
 }
-// Pads whose value went empty elsewhere (a reset) are cleared, typed name too.
-function fgSignSync(root: any, isEmpty: (canvas: HTMLCanvasElement) => boolean) {
+// Pads follow their value: cleared when it went empty elsewhere (a reset),
+// typed name too; a blank pad draws the file its value holds (a pad shown
+// again by a step or a condition).
+function fgSignSync(root: any, valueOf: (canvas: HTMLCanvasElement) => File | Blob | string | null | undefined) {
   if (!root) return
   Array.prototype.forEach.call(root.querySelectorAll('canvas[data-fg-signature]'), function (canvas: any) {
     var pad = canvas.fgPad
-    if (!isEmpty(canvas) || (pad && (pad.pending || pad.drawing))) return
+    if (pad && (pad.pending || pad.drawing)) return
+    var value = valueOf(canvas)
+    if (value) {
+      if (!pad || !pad.ink) fgSignPad(canvas).show(value)
+      return
+    }
     if (pad && pad.ink) pad.wipe()
     var group = fgSignGroup(canvas)
     if (group && group.typed && group.typed.value !== '') group.typed.value = ''
@@ -21348,7 +21859,10 @@ function fgLocMap(group: any, onChange: (group: HTMLElement, point: { lat: numbe
       onChange(group, point, true)
     }
     state.map.on('click', function (event: any) { state.pick(event.latlng) })
-    if (window.ResizeObserver) new ResizeObserver(function () { state.map.invalidateSize() }).observe(el)
+    if (window.ResizeObserver) {
+      state.resizer = new ResizeObserver(function () { state.map.invalidateSize() })
+      state.resizer.observe(el)
+    }
     fgLocPin(group, fgLocTyped(group), 'zoom')
   }, function () {
     var status = fgLocParts(group).status
@@ -21362,12 +21876,25 @@ function fgWireLocations(root: any, onChange: (group: HTMLElement, point: { lat:
     Array.prototype.forEach.call(root.querySelectorAll('[data-fg-loc]'), function (group: any) { fgLocMap(group, onChange) })
   }
   start()
-  // Fields that appear later (new items, shown by a condition) get their map.
+  // Fields that appear later (new items, shown by a condition) get their
+  // map; the maps of fields taken away (removed items, hidden again) go.
   if (window.MutationObserver) {
     new MutationObserver(function (records) {
-      var added = records.some(function (record) {
-        return Array.prototype.some.call(record.addedNodes, function (node: any) {
-          return node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))
+      var added = false
+      records.forEach(function (record) {
+        Array.prototype.forEach.call(record.addedNodes, function (node: any) {
+          if (node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))) added = true
+        })
+        Array.prototype.forEach.call(record.removedNodes, function (node: any) {
+          if (node.nodeType !== 1 || node.closest('[data-fg-loc-map]')) return
+          var groups = node.matches('[data-fg-loc]') ? [node] : node.querySelectorAll('[data-fg-loc]')
+          Array.prototype.forEach.call(groups, function (group: any) {
+            var state = group.fgLocMap
+            if (!state || group.isConnected) return
+            if (state.resizer) state.resizer.disconnect()
+            if (state.map) state.map.remove()
+            group.fgLocMap = null
+          })
         })
       })
       if (added) start()
@@ -21592,7 +22119,7 @@ const validators: Record<string, (data: FormData) => string | null> = {
   },
   'account.avatar': function (data: FormData) {
   const v = data.account.avatar
-  { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
+  { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose one file at most","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
   return null
   },
   'plan': function (data: FormData) {
@@ -21629,7 +22156,7 @@ const validators: Record<string, (data: FormData) => string | null> = {
   },
   'signature': function (data: FormData) {
   const v = data.signature
-  { const problem = fgFileProblem(v, "", 0, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 0 MB"}); if (problem) return problem }
+  { const problem = fgFileProblem(v, "", 0, 1, {"tooMany":"Choose one file at most","type":"{name} is not an accepted file type","size":"{name} is larger than 0 MB"}); if (problem) return problem }
   return null
   },
   'contact_method': function (data: FormData) {
@@ -22039,9 +22566,9 @@ export default function KitchenSinkForm({
   useEffect(() => {
     fgWireSignatures(fgRoot.current, (canvas, file) => fgSignChange.current(canvas.getAttribute('data-fg-signature')!, file))
   }, [])
-  // A reset empties the value: the pad follows.
+  // The pads follow the value: a reset clears them, a pad shown again draws its file.
   useEffect(() => {
-    fgSignSync(fgRoot.current, (canvas) => (fgFileList(form, canvas.getAttribute('data-fg-signature')!) ?? []).length === 0)
+    fgSignSync(fgRoot.current, (canvas) => (fgFileList(form, canvas.getAttribute('data-fg-signature')!) ?? [])[0] ?? null)
   })
 
   // Rich-text editors: wired once on the form; changes go through the latest handler.
@@ -23013,7 +23540,7 @@ export default function KitchenSinkForm({
                 <button type="button" className="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
                 <button type="button" className="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
                 <button type="button" className="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-                <button type="button" className="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList">1.</button>
+                <button type="button" className="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
                 <button type="button" className="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
               </div>
               <div id="fg_about" className="min-h-24 px-3 py-2 text-sm outline-none [overflow-wrap:anywhere] [&_ol]:list-decimal [&_ol]:ps-6 [&_ul]:list-disc [&_ul]:ps-6 [&_a]:text-indigo-600 [&_a]:underline [&_p]:mb-2" contentEditable role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext="about" onBlur={() => touch('about')}></div>
@@ -23026,7 +23553,7 @@ export default function KitchenSinkForm({
           <fieldset className="flex flex-col gap-1.5">
             <legend className="text-sm font-semibold">Meeting point</legend>
             <div className="flex flex-col gap-2" data-fg-loc="meet" data-fg-loc-start="23.588,58.3829,11" data-fg-loc-tiles="https://tile.openstreetmap.org/{z}/{x}/{y}.png" data-fg-loc-attribution="© OpenStreetMap contributors">
-              <div className="isolate z-0 w-full rounded-md border border-gray-300 dark:border-gray-600" style={{ height: '220px' }} role="region" aria-label="Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
+              <div className="isolate z-0 w-full rounded-md border border-gray-300 dark:border-gray-600" style={{ height: '220px' }} role="group" aria-label="Meeting point: Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
               <div className="flex flex-wrap items-end gap-2">
                 <label className="flex flex-[1_1_8rem] flex-col gap-1 text-sm text-gray-700 dark:text-gray-300">
                   <span>Latitude</span>
@@ -23039,7 +23566,7 @@ export default function KitchenSinkForm({
                 <button type="button" className="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-loc-mine>Use my location</button>
                 <button type="button" className="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-loc-clear>Clear</button>
               </div>
-              <p className="m-0 text-sm text-gray-600 empty:hidden dark:text-gray-400" aria-live="polite" data-fg-loc-status></p>
+              <p className="m-0 text-sm text-gray-600 dark:text-gray-400" aria-live="polite" data-fg-loc-status></p>
             </div>
             {errors['meet'] && <p className="text-xs text-red-600" role="alert">{errors['meet']}</p>}
           </fieldset>
@@ -23066,7 +23593,7 @@ export default function KitchenSinkForm({
           </figure>
         </div>
         <div className="col-span-12 md:col-span-12">
-          <div className="text-sm [&_a]:underline [&_ul]:list-disc [&_ul]:ps-5 [&_ol]:list-decimal [&_ol]:ps-5 [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg [&_h1]:font-semibold [&_h2]:font-semibold [&_h3]:font-semibold [&_h4]:font-semibold [&_th]:border [&_th]:px-2 [&_th]:py-1 [&_th]:text-start [&_td]:border [&_td]:px-2 [&_td]:py-1"><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style={{ color: "#b91c1c" }}>{"Closed on holidays. {{ not.vue }} @razor {jsx}"}</p><a>unsafe link</a></div>
+          <div className="text-sm [&_a]:underline [&_ul]:list-disc [&_ul]:ps-5 [&_ol]:list-decimal [&_ol]:ps-5 [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg [&_h1]:font-semibold [&_h2]:font-semibold [&_h3]:font-semibold [&_h4]:font-semibold [&_th]:border [&_th]:px-2 [&_th]:py-1 [&_th]:text-start [&_td]:border [&_td]:px-2 [&_td]:py-1"><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style={{ color: "#b91c1c" }}>{"Closed on holidays. {{ not.vue }} @razor {jsx}"}</p><a>unsafe link</a><iframe src="https://www.openstreetmap.org/export/embed.html?bbox=58.3%2C23.5%2C58.5%2C23.7" width="320" height="180" title="Where we are" sandbox="allow-scripts allow-same-origin allow-presentation" referrerPolicy="strict-origin-when-cross-origin" loading="lazy"></iframe></div>
         </div>
         <div className="col-span-12 md:col-span-12">
           <a className="font-medium text-indigo-600 underline underline-offset-2 dark:text-indigo-400" href="https://example.com/docs" target="_blank" rel="noopener noreferrer">Read the docs<span className="sr-only"> (opens in a new tab)</span></a>
@@ -23351,10 +23878,10 @@ export default function KitchenSinkForm({
         <div className="col-span-12 md:col-span-12">
           <div>
             <div className="mb-4 flex flex-wrap gap-1 border-b border-gray-200 dark:border-gray-700" role="tablist">
-              <button type="button" className={fgSec_ks_social_tabs === 0 ? "-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600" : "-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700"} onClick={() => setFgSec_ks_social_tabs(0)}>Social</button>
-              <button type="button" className={fgSec_ks_social_tabs === 1 ? "-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600" : "-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700"} onClick={() => setFgSec_ks_social_tabs(1)}>Code</button>
+              <button type="button" role="tab" aria-selected={fgSec_ks_social_tabs === 0} className={fgSec_ks_social_tabs === 0 ? "-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600" : "-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700"} onClick={() => setFgSec_ks_social_tabs(0)}>Social</button>
+              <button type="button" role="tab" aria-selected={fgSec_ks_social_tabs === 1} className={fgSec_ks_social_tabs === 1 ? "-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600" : "-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700"} onClick={() => setFgSec_ks_social_tabs(1)}>Code</button>
             </div>
-            <div style={{ display: fgSec_ks_social_tabs === 0 ? undefined : 'none' }}>
+            <div role="tabpanel" style={{ display: fgSec_ks_social_tabs === 0 ? undefined : 'none' }}>
               <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-12 md:col-span-12">
                   <div className="flex flex-col gap-1.5">
@@ -23365,7 +23892,7 @@ export default function KitchenSinkForm({
                 </div>
               </div>
             </div>
-            <div style={{ display: fgSec_ks_social_tabs === 1 ? undefined : 'none' }}>
+            <div role="tabpanel" style={{ display: fgSec_ks_social_tabs === 1 ? undefined : 'none' }}>
               <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-12 md:col-span-12">
                   <div className="flex flex-col gap-1.5">
@@ -23568,9 +24095,18 @@ function fgSignPad(canvas: any): any {
     var width = Math.round(canvas.clientWidth * ratio)
     var height = Math.round(canvas.clientHeight * ratio)
     if (!ctx || width === 0 || (canvas.width === width && canvas.height === height)) return
+    // Keep the ink through the resize (a phone turning, a panel opening).
+    var kept: any = null
+    if (pad.ink && canvas.width > 0 && canvas.height > 0) {
+      kept = document.createElement('canvas')
+      kept.width = canvas.width
+      kept.height = canvas.height
+      kept.getContext('2d').drawImage(canvas, 0, 0)
+    }
     canvas.width = width
     canvas.height = height
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
+    if (kept) ctx.drawImage(kept, 0, 0, canvas.clientWidth, canvas.clientHeight)
   }
   pad.wipe = function () {
     if (!ctx) return
@@ -23620,6 +24156,26 @@ function fgSignPad(canvas: any): any {
     ctx.fillText(text.trim(), canvas.clientWidth / 2, canvas.clientHeight / 2, canvas.clientWidth - 24)
     pad.ink = true
     pad.commit(done)
+  }
+  // Draws a saved signature (a file, or a data URL) into a blank pad.
+  pad.show = function (source: any) {
+    if (pad.ink || pad.drawing || pad.loading) return
+    pad.loading = true
+    var url = typeof source === 'string' ? source : URL.createObjectURL(source)
+    var image = new Image()
+    image.onload = function () {
+      pad.loading = false
+      if (url !== source) URL.revokeObjectURL(url)
+      if (pad.ink || pad.drawing || !ctx) return
+      pad.size()
+      ctx.drawImage(image, 0, 0, canvas.clientWidth, canvas.clientHeight)
+      pad.ink = true
+    }
+    image.onerror = function () {
+      pad.loading = false
+      if (url !== source) URL.revokeObjectURL(url)
+    }
+    image.src = url
   }
   canvas.fgPad = pad
   return pad
@@ -23688,12 +24244,19 @@ function fgWireSignatures(root: any, onChange: (canvas: HTMLCanvasElement, file:
     onChange(group.canvas, null)
   })
 }
-// Pads whose value went empty elsewhere (a reset) are cleared, typed name too.
-function fgSignSync(root: any, isEmpty: (canvas: HTMLCanvasElement) => boolean) {
+// Pads follow their value: cleared when it went empty elsewhere (a reset),
+// typed name too; a blank pad draws the file its value holds (a pad shown
+// again by a step or a condition).
+function fgSignSync(root: any, valueOf: (canvas: HTMLCanvasElement) => File | Blob | string | null | undefined) {
   if (!root) return
   Array.prototype.forEach.call(root.querySelectorAll('canvas[data-fg-signature]'), function (canvas: any) {
     var pad = canvas.fgPad
-    if (!isEmpty(canvas) || (pad && (pad.pending || pad.drawing))) return
+    if (pad && (pad.pending || pad.drawing)) return
+    var value = valueOf(canvas)
+    if (value) {
+      if (!pad || !pad.ink) fgSignPad(canvas).show(value)
+      return
+    }
     if (pad && pad.ink) pad.wipe()
     var group = fgSignGroup(canvas)
     if (group && group.typed && group.typed.value !== '') group.typed.value = ''
@@ -23926,7 +24489,10 @@ function fgLocMap(group: any, onChange: (group: HTMLElement, point: { lat: numbe
       onChange(group, point, true)
     }
     state.map.on('click', function (event: any) { state.pick(event.latlng) })
-    if (window.ResizeObserver) new ResizeObserver(function () { state.map.invalidateSize() }).observe(el)
+    if (window.ResizeObserver) {
+      state.resizer = new ResizeObserver(function () { state.map.invalidateSize() })
+      state.resizer.observe(el)
+    }
     fgLocPin(group, fgLocTyped(group), 'zoom')
   }, function () {
     var status = fgLocParts(group).status
@@ -23940,12 +24506,25 @@ function fgWireLocations(root: any, onChange: (group: HTMLElement, point: { lat:
     Array.prototype.forEach.call(root.querySelectorAll('[data-fg-loc]'), function (group: any) { fgLocMap(group, onChange) })
   }
   start()
-  // Fields that appear later (new items, shown by a condition) get their map.
+  // Fields that appear later (new items, shown by a condition) get their
+  // map; the maps of fields taken away (removed items, hidden again) go.
   if (window.MutationObserver) {
     new MutationObserver(function (records) {
-      var added = records.some(function (record) {
-        return Array.prototype.some.call(record.addedNodes, function (node: any) {
-          return node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))
+      var added = false
+      records.forEach(function (record) {
+        Array.prototype.forEach.call(record.addedNodes, function (node: any) {
+          if (node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))) added = true
+        })
+        Array.prototype.forEach.call(record.removedNodes, function (node: any) {
+          if (node.nodeType !== 1 || node.closest('[data-fg-loc-map]')) return
+          var groups = node.matches('[data-fg-loc]') ? [node] : node.querySelectorAll('[data-fg-loc]')
+          Array.prototype.forEach.call(groups, function (group: any) {
+            var state = group.fgLocMap
+            if (!state || group.isConnected) return
+            if (state.resizer) state.resizer.disconnect()
+            if (state.map) state.map.remove()
+            group.fgLocMap = null
+          })
         })
       })
       if (added) start()
@@ -24170,7 +24749,7 @@ const validators: Record<string, (data: FormData) => string | null> = {
   },
   'account.avatar': function (data: FormData) {
   const v = data.account.avatar
-  { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
+  { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose one file at most","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
   return null
   },
   'plan': function (data: FormData) {
@@ -24207,7 +24786,7 @@ const validators: Record<string, (data: FormData) => string | null> = {
   },
   'signature': function (data: FormData) {
   const v = data.signature
-  { const problem = fgFileProblem(v, "", 0, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 0 MB"}); if (problem) return problem }
+  { const problem = fgFileProblem(v, "", 0, 1, {"tooMany":"Choose one file at most","type":"{name} is not an accepted file type","size":"{name} is larger than 0 MB"}); if (problem) return problem }
   return null
   },
   'contact_method': function (data: FormData) {
@@ -24617,9 +25196,9 @@ export default function KitchenSinkForm({
   useEffect(() => {
     fgWireSignatures(fgRoot.current, (canvas, file) => fgSignChange.current(canvas.getAttribute('data-fg-signature')!, file))
   }, [])
-  // A reset empties the value: the pad follows.
+  // The pads follow the value: a reset clears them, a pad shown again draws its file.
   useEffect(() => {
-    fgSignSync(fgRoot.current, (canvas) => (fgFileList(form, canvas.getAttribute('data-fg-signature')!) ?? []).length === 0)
+    fgSignSync(fgRoot.current, (canvas) => (fgFileList(form, canvas.getAttribute('data-fg-signature')!) ?? [])[0] ?? null)
   })
 
   // Rich-text editors: wired once on the form; changes go through the latest handler.
@@ -25591,7 +26170,7 @@ export default function KitchenSinkForm({
                 <button type="button" className="fg-richtext-button" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
                 <button type="button" className="fg-richtext-button" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
                 <button type="button" className="fg-richtext-button" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-                <button type="button" className="fg-richtext-button" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList">1.</button>
+                <button type="button" className="fg-richtext-button" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
                 <button type="button" className="fg-richtext-button" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
               </div>
               <div id="fg_about" className="fg-richtext-editor" contentEditable role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext="about" onBlur={() => touch('about')}></div>
@@ -25604,7 +26183,7 @@ export default function KitchenSinkForm({
           <fieldset className="fg-field">
             <legend className="fg-label">Meeting point</legend>
             <div className="fg-location" data-fg-loc="meet" data-fg-loc-start="23.588,58.3829,11" data-fg-loc-tiles="https://tile.openstreetmap.org/{z}/{x}/{y}.png" data-fg-loc-attribution="© OpenStreetMap contributors">
-              <div className="fg-location-map" style={{ height: '220px' }} role="region" aria-label="Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
+              <div className="fg-location-map" style={{ height: '220px' }} role="group" aria-label="Meeting point: Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
               <div className="fg-location-row">
                 <label className="fg-location-coord">
                   <span>Latitude</span>
@@ -25644,7 +26223,7 @@ export default function KitchenSinkForm({
           </figure>
         </div>
         <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
-          <div className="fg-html"><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style={{ color: "#b91c1c" }}>{"Closed on holidays. {{ not.vue }} @razor {jsx}"}</p><a>unsafe link</a></div>
+          <div className="fg-html"><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style={{ color: "#b91c1c" }}>{"Closed on holidays. {{ not.vue }} @razor {jsx}"}</p><a>unsafe link</a><iframe src="https://www.openstreetmap.org/export/embed.html?bbox=58.3%2C23.5%2C58.5%2C23.7" width="320" height="180" title="Where we are" sandbox="allow-scripts allow-same-origin allow-presentation" referrerPolicy="strict-origin-when-cross-origin" loading="lazy"></iframe></div>
         </div>
         <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <a className="fg-link" href="https://example.com/docs" target="_blank" rel="noopener noreferrer">Read the docs<span className="fg-sr-only"> (opens in a new tab)</span></a>
@@ -25929,10 +26508,10 @@ export default function KitchenSinkForm({
         <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <div>
             <div className="fg-tab-list" role="tablist">
-              <button type="button" className={fgSec_ks_social_tabs === 0 ? "fg-tab-button fg-tab-button--active" : "fg-tab-button"} onClick={() => setFgSec_ks_social_tabs(0)}>Social</button>
-              <button type="button" className={fgSec_ks_social_tabs === 1 ? "fg-tab-button fg-tab-button--active" : "fg-tab-button"} onClick={() => setFgSec_ks_social_tabs(1)}>Code</button>
+              <button type="button" role="tab" aria-selected={fgSec_ks_social_tabs === 0} className={fgSec_ks_social_tabs === 0 ? "fg-tab-button fg-tab-button--active" : "fg-tab-button"} onClick={() => setFgSec_ks_social_tabs(0)}>Social</button>
+              <button type="button" role="tab" aria-selected={fgSec_ks_social_tabs === 1} className={fgSec_ks_social_tabs === 1 ? "fg-tab-button fg-tab-button--active" : "fg-tab-button"} onClick={() => setFgSec_ks_social_tabs(1)}>Code</button>
             </div>
-            <div style={{ display: fgSec_ks_social_tabs === 0 ? undefined : 'none' }}>
+            <div role="tabpanel" style={{ display: fgSec_ks_social_tabs === 0 ? undefined : 'none' }}>
               <div className="fg-grid">
                 <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
                   <div className="fg-field">
@@ -25943,7 +26522,7 @@ export default function KitchenSinkForm({
                 </div>
               </div>
             </div>
-            <div style={{ display: fgSec_ks_social_tabs === 1 ? undefined : 'none' }}>
+            <div role="tabpanel" style={{ display: fgSec_ks_social_tabs === 1 ? undefined : 'none' }}>
               <div className="fg-grid">
                 <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
                   <div className="fg-field">
@@ -26317,7 +26896,7 @@ function fgDropFirst(input: HTMLInputElement, event: { dataTransfer: DataTransfe
   input.dispatchEvent(new Event('change', { bubbles: true }))
   return "Only one file fits here, so {name} was added.".split('{name}').join(first.name)
 }
-const fgFileMultiple: Record<string, boolean> = { 'account.avatar': false, 'attachments': true, 'signature': false }
+const fgFileMultiple: Record<string, boolean> = { 'account.avatar': false, 'attachments': true }
 function fgFileList(path: string): File[] {
   return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form) as File[]
 }
@@ -26364,9 +26943,18 @@ function fgSignPad(canvas: any): any {
     var width = Math.round(canvas.clientWidth * ratio)
     var height = Math.round(canvas.clientHeight * ratio)
     if (!ctx || width === 0 || (canvas.width === width && canvas.height === height)) return
+    // Keep the ink through the resize (a phone turning, a panel opening).
+    var kept: any = null
+    if (pad.ink && canvas.width > 0 && canvas.height > 0) {
+      kept = document.createElement('canvas')
+      kept.width = canvas.width
+      kept.height = canvas.height
+      kept.getContext('2d').drawImage(canvas, 0, 0)
+    }
     canvas.width = width
     canvas.height = height
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
+    if (kept) ctx.drawImage(kept, 0, 0, canvas.clientWidth, canvas.clientHeight)
   }
   pad.wipe = function () {
     if (!ctx) return
@@ -26416,6 +27004,26 @@ function fgSignPad(canvas: any): any {
     ctx.fillText(text.trim(), canvas.clientWidth / 2, canvas.clientHeight / 2, canvas.clientWidth - 24)
     pad.ink = true
     pad.commit(done)
+  }
+  // Draws a saved signature (a file, or a data URL) into a blank pad.
+  pad.show = function (source: any) {
+    if (pad.ink || pad.drawing || pad.loading) return
+    pad.loading = true
+    var url = typeof source === 'string' ? source : URL.createObjectURL(source)
+    var image = new Image()
+    image.onload = function () {
+      pad.loading = false
+      if (url !== source) URL.revokeObjectURL(url)
+      if (pad.ink || pad.drawing || !ctx) return
+      pad.size()
+      ctx.drawImage(image, 0, 0, canvas.clientWidth, canvas.clientHeight)
+      pad.ink = true
+    }
+    image.onerror = function () {
+      pad.loading = false
+      if (url !== source) URL.revokeObjectURL(url)
+    }
+    image.src = url
   }
   canvas.fgPad = pad
   return pad
@@ -26484,12 +27092,19 @@ function fgWireSignatures(root: any, onChange: (canvas: HTMLCanvasElement, file:
     onChange(group.canvas, null)
   })
 }
-// Pads whose value went empty elsewhere (a reset) are cleared, typed name too.
-function fgSignSync(root: any, isEmpty: (canvas: HTMLCanvasElement) => boolean) {
+// Pads follow their value: cleared when it went empty elsewhere (a reset),
+// typed name too; a blank pad draws the file its value holds (a pad shown
+// again by a step or a condition).
+function fgSignSync(root: any, valueOf: (canvas: HTMLCanvasElement) => File | Blob | string | null | undefined) {
   if (!root) return
   Array.prototype.forEach.call(root.querySelectorAll('canvas[data-fg-signature]'), function (canvas: any) {
     var pad = canvas.fgPad
-    if (!isEmpty(canvas) || (pad && (pad.pending || pad.drawing))) return
+    if (pad && (pad.pending || pad.drawing)) return
+    var value = valueOf(canvas)
+    if (value) {
+      if (!pad || !pad.ink) fgSignPad(canvas).show(value)
+      return
+    }
     if (pad && pad.ink) pad.wipe()
     var group = fgSignGroup(canvas)
     if (group && group.typed && group.typed.value !== '') group.typed.value = ''
@@ -26503,7 +27118,7 @@ onMounted(() => {
   })
 })
 watch(form, () => {
-  void nextTick(() => fgSignSync(fgRoot.value, (canvas) => ((fgGet(canvas.getAttribute('data-fg-signature')!) as File[] | undefined) ?? []).length === 0))
+  void nextTick(() => fgSignSync(fgRoot.value, (canvas) => ((fgGet(canvas.getAttribute('data-fg-signature')!) as File[] | undefined) ?? [])[0] ?? null))
 }, { deep: true })
 // Rich text: the editor's HTML reduced to p, br, strong, em, u, s, lists and
 // http(s)/mailto links (the renderer's cleanRichText); '' when empty.
@@ -26743,7 +27358,10 @@ function fgLocMap(group: any, onChange: (group: HTMLElement, point: { lat: numbe
       onChange(group, point, true)
     }
     state.map.on('click', function (event: any) { state.pick(event.latlng) })
-    if (window.ResizeObserver) new ResizeObserver(function () { state.map.invalidateSize() }).observe(el)
+    if (window.ResizeObserver) {
+      state.resizer = new ResizeObserver(function () { state.map.invalidateSize() })
+      state.resizer.observe(el)
+    }
     fgLocPin(group, fgLocTyped(group), 'zoom')
   }, function () {
     var status = fgLocParts(group).status
@@ -26757,12 +27375,25 @@ function fgWireLocations(root: any, onChange: (group: HTMLElement, point: { lat:
     Array.prototype.forEach.call(root.querySelectorAll('[data-fg-loc]'), function (group: any) { fgLocMap(group, onChange) })
   }
   start()
-  // Fields that appear later (new items, shown by a condition) get their map.
+  // Fields that appear later (new items, shown by a condition) get their
+  // map; the maps of fields taken away (removed items, hidden again) go.
   if (window.MutationObserver) {
     new MutationObserver(function (records) {
-      var added = records.some(function (record) {
-        return Array.prototype.some.call(record.addedNodes, function (node: any) {
-          return node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))
+      var added = false
+      records.forEach(function (record) {
+        Array.prototype.forEach.call(record.addedNodes, function (node: any) {
+          if (node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))) added = true
+        })
+        Array.prototype.forEach.call(record.removedNodes, function (node: any) {
+          if (node.nodeType !== 1 || node.closest('[data-fg-loc-map]')) return
+          var groups = node.matches('[data-fg-loc]') ? [node] : node.querySelectorAll('[data-fg-loc]')
+          Array.prototype.forEach.call(groups, function (group: any) {
+            var state = group.fgLocMap
+            if (!state || group.isConnected) return
+            if (state.resizer) state.resizer.disconnect()
+            if (state.map) state.map.remove()
+            group.fgLocMap = null
+          })
         })
       })
       if (added) start()
@@ -26879,7 +27510,7 @@ const validators: Record<string, () => string | null> = {
   },
   'account.avatar': function () {
   const v = form.account.avatar
-  { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
+  { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose one file at most","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
   return null
   },
   'plan': function () {
@@ -26916,7 +27547,7 @@ const validators: Record<string, () => string | null> = {
   },
   'signature': function () {
   const v = form.signature
-  { const problem = fgFileProblem(v, "", 0, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 0 MB"}); if (problem) return problem }
+  { const problem = fgFileProblem(v, "", 0, 1, {"tooMany":"Choose one file at most","type":"{name} is not an accepted file type","size":"{name} is larger than 0 MB"}); if (problem) return problem }
   return null
   },
   'contact_method': function () {
@@ -27154,8 +27785,8 @@ function fgRemoveLabel(path: string, index: number): string {
 function fgItemValidator(path: string): (() => string | null) | undefined {
   const match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
   if (!match) return undefined
-  const validate = fgItemValidators[fgTpl(match[1]!)]?.[match[3]!]
-  const item = fgList(match[1]!)[Number(match[2])]
+  const validate: ((item: Record<string, unknown>) => string | null) | undefined = fgItemValidators[fgTpl(match[1]!)]?.[match[3]!]
+  const item: Record<string, unknown> | undefined = fgList(match[1]!)[Number(match[2])]
   return validate && item ? () => validate(item) : undefined
 }
 /** Every item field path of a repeater, inner items included (validation, step gates). */
@@ -28099,7 +28730,7 @@ async function onSubmit(): Promise<void> {
               <button type="button" class="btn btn-sm btn-light" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
               <button type="button" class="btn btn-sm btn-light" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
               <button type="button" class="btn btn-sm btn-light" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-              <button type="button" class="btn btn-sm btn-light" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList">1.</button>
+              <button type="button" class="btn btn-sm btn-light" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
               <button type="button" class="btn btn-sm btn-light" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
             </div>
             <div id="fg_about" class="fg-richtext-editor px-3 py-2" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext="about" @blur="touch('about')"></div>
@@ -28112,7 +28743,7 @@ async function onSubmit(): Promise<void> {
         <fieldset class="d-flex flex-column gap-1">
           <legend class="form-label fw-semibold fs-6 mb-0">Meeting point</legend>
           <div class="d-flex flex-column gap-2" data-fg-loc="meet" data-fg-loc-start="23.588,58.3829,11" data-fg-loc-tiles="https://tile.openstreetmap.org/{z}/{x}/{y}.png" data-fg-loc-attribution="© OpenStreetMap contributors">
-            <div class="fg-location-map w-100 border rounded" style="height: 220px" role="region" aria-label="Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
+            <div class="fg-location-map w-100 border rounded" style="height: 220px" role="group" aria-label="Meeting point: Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
             <div class="d-flex flex-wrap align-items-end gap-2">
               <label class="fg-location-coord d-flex flex-column gap-1 small">
                 <span>Latitude</span>
@@ -28152,7 +28783,7 @@ async function onSubmit(): Promise<void> {
         </figure>
       </div>
       <div class="col-12 col-md-12">
-        <div><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style="color: #b91c1c">Closed on holidays. &#123;&#123; not.vue }} &#64;razor &#123;jsx}</p><a>unsafe link</a></div>
+        <div><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style="color: #b91c1c">Closed on holidays. &#123;&#123; not.vue }} &#64;razor &#123;jsx}</p><a>unsafe link</a><iframe :src="'https://www.openstreetmap.org/export/embed.html?bbox=58.3%2C23.5%2C58.5%2C23.7'" width="320" height="180" title="Where we are" sandbox="allow-scripts allow-same-origin allow-presentation" referrerpolicy="strict-origin-when-cross-origin" loading="lazy"></iframe></div>
       </div>
       <div class="col-12 col-md-12">
         <a class="link-primary" href="https://example.com/docs" target="_blank" rel="noopener noreferrer">Read the docs<span class="visually-hidden"> (opens in a new tab)</span></a>
@@ -28433,10 +29064,10 @@ async function onSubmit(): Promise<void> {
       <div class="col-12 col-md-12">
         <div>
           <div class="nav nav-tabs mb-3" role="tablist">
-            <button type="button" :class="fgSec_ks_social_tabs === 0 ? 'nav-link active' : 'nav-link'" @click="fgSec_ks_social_tabs = 0">Social</button>
-            <button type="button" :class="fgSec_ks_social_tabs === 1 ? 'nav-link active' : 'nav-link'" @click="fgSec_ks_social_tabs = 1">Code</button>
+            <button type="button" role="tab" :aria-selected="fgSec_ks_social_tabs === 0" :class="fgSec_ks_social_tabs === 0 ? 'nav-link active' : 'nav-link'" @click="fgSec_ks_social_tabs = 0">Social</button>
+            <button type="button" role="tab" :aria-selected="fgSec_ks_social_tabs === 1" :class="fgSec_ks_social_tabs === 1 ? 'nav-link active' : 'nav-link'" @click="fgSec_ks_social_tabs = 1">Code</button>
           </div>
-          <div v-show="fgSec_ks_social_tabs === 0">
+          <div v-show="fgSec_ks_social_tabs === 0" role="tabpanel">
             <div class="row g-3">
               <div class="col-12 col-md-12">
                 <div class="d-flex flex-column gap-1">
@@ -28447,7 +29078,7 @@ async function onSubmit(): Promise<void> {
               </div>
             </div>
           </div>
-          <div v-show="fgSec_ks_social_tabs === 1">
+          <div v-show="fgSec_ks_social_tabs === 1" role="tabpanel">
             <div class="row g-3">
               <div class="col-12 col-md-12">
                 <div class="d-flex flex-column gap-1">
@@ -28539,6 +29170,7 @@ async function onSubmit(): Promise<void> {
 /* Rich text editors */
 .fg-richtext-editor { min-height: 6rem; outline: none; overflow-wrap: anywhere; }
 .fg-richtext-editor p { margin-bottom: 0.5rem; }
+[data-fg-rich]:focus-within { outline: 2px solid var(--bs-primary); outline-offset: 2px; }
 
 /* Location fields: the map under page overlays, coordinate boxes side by side */
 .fg-location-map { isolation: isolate; z-index: 0; }
@@ -28871,7 +29503,7 @@ function fgDropFirst(input: HTMLInputElement, event: { dataTransfer: DataTransfe
   input.dispatchEvent(new Event('change', { bubbles: true }))
   return "Only one file fits here, so {name} was added.".split('{name}').join(first.name)
 }
-const fgFileMultiple: Record<string, boolean> = { 'account.avatar': false, 'attachments': true, 'signature': false }
+const fgFileMultiple: Record<string, boolean> = { 'account.avatar': false, 'attachments': true }
 function fgFileList(path: string): File[] {
   return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form) as File[]
 }
@@ -28918,9 +29550,18 @@ function fgSignPad(canvas: any): any {
     var width = Math.round(canvas.clientWidth * ratio)
     var height = Math.round(canvas.clientHeight * ratio)
     if (!ctx || width === 0 || (canvas.width === width && canvas.height === height)) return
+    // Keep the ink through the resize (a phone turning, a panel opening).
+    var kept: any = null
+    if (pad.ink && canvas.width > 0 && canvas.height > 0) {
+      kept = document.createElement('canvas')
+      kept.width = canvas.width
+      kept.height = canvas.height
+      kept.getContext('2d').drawImage(canvas, 0, 0)
+    }
     canvas.width = width
     canvas.height = height
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
+    if (kept) ctx.drawImage(kept, 0, 0, canvas.clientWidth, canvas.clientHeight)
   }
   pad.wipe = function () {
     if (!ctx) return
@@ -28970,6 +29611,26 @@ function fgSignPad(canvas: any): any {
     ctx.fillText(text.trim(), canvas.clientWidth / 2, canvas.clientHeight / 2, canvas.clientWidth - 24)
     pad.ink = true
     pad.commit(done)
+  }
+  // Draws a saved signature (a file, or a data URL) into a blank pad.
+  pad.show = function (source: any) {
+    if (pad.ink || pad.drawing || pad.loading) return
+    pad.loading = true
+    var url = typeof source === 'string' ? source : URL.createObjectURL(source)
+    var image = new Image()
+    image.onload = function () {
+      pad.loading = false
+      if (url !== source) URL.revokeObjectURL(url)
+      if (pad.ink || pad.drawing || !ctx) return
+      pad.size()
+      ctx.drawImage(image, 0, 0, canvas.clientWidth, canvas.clientHeight)
+      pad.ink = true
+    }
+    image.onerror = function () {
+      pad.loading = false
+      if (url !== source) URL.revokeObjectURL(url)
+    }
+    image.src = url
   }
   canvas.fgPad = pad
   return pad
@@ -29038,12 +29699,19 @@ function fgWireSignatures(root: any, onChange: (canvas: HTMLCanvasElement, file:
     onChange(group.canvas, null)
   })
 }
-// Pads whose value went empty elsewhere (a reset) are cleared, typed name too.
-function fgSignSync(root: any, isEmpty: (canvas: HTMLCanvasElement) => boolean) {
+// Pads follow their value: cleared when it went empty elsewhere (a reset),
+// typed name too; a blank pad draws the file its value holds (a pad shown
+// again by a step or a condition).
+function fgSignSync(root: any, valueOf: (canvas: HTMLCanvasElement) => File | Blob | string | null | undefined) {
   if (!root) return
   Array.prototype.forEach.call(root.querySelectorAll('canvas[data-fg-signature]'), function (canvas: any) {
     var pad = canvas.fgPad
-    if (!isEmpty(canvas) || (pad && (pad.pending || pad.drawing))) return
+    if (pad && (pad.pending || pad.drawing)) return
+    var value = valueOf(canvas)
+    if (value) {
+      if (!pad || !pad.ink) fgSignPad(canvas).show(value)
+      return
+    }
     if (pad && pad.ink) pad.wipe()
     var group = fgSignGroup(canvas)
     if (group && group.typed && group.typed.value !== '') group.typed.value = ''
@@ -29057,7 +29725,7 @@ onMounted(() => {
   })
 })
 watch(form, () => {
-  void nextTick(() => fgSignSync(fgRoot.value, (canvas) => ((fgGet(canvas.getAttribute('data-fg-signature')!) as File[] | undefined) ?? []).length === 0))
+  void nextTick(() => fgSignSync(fgRoot.value, (canvas) => ((fgGet(canvas.getAttribute('data-fg-signature')!) as File[] | undefined) ?? [])[0] ?? null))
 }, { deep: true })
 // Rich text: the editor's HTML reduced to p, br, strong, em, u, s, lists and
 // http(s)/mailto links (the renderer's cleanRichText); '' when empty.
@@ -29297,7 +29965,10 @@ function fgLocMap(group: any, onChange: (group: HTMLElement, point: { lat: numbe
       onChange(group, point, true)
     }
     state.map.on('click', function (event: any) { state.pick(event.latlng) })
-    if (window.ResizeObserver) new ResizeObserver(function () { state.map.invalidateSize() }).observe(el)
+    if (window.ResizeObserver) {
+      state.resizer = new ResizeObserver(function () { state.map.invalidateSize() })
+      state.resizer.observe(el)
+    }
     fgLocPin(group, fgLocTyped(group), 'zoom')
   }, function () {
     var status = fgLocParts(group).status
@@ -29311,12 +29982,25 @@ function fgWireLocations(root: any, onChange: (group: HTMLElement, point: { lat:
     Array.prototype.forEach.call(root.querySelectorAll('[data-fg-loc]'), function (group: any) { fgLocMap(group, onChange) })
   }
   start()
-  // Fields that appear later (new items, shown by a condition) get their map.
+  // Fields that appear later (new items, shown by a condition) get their
+  // map; the maps of fields taken away (removed items, hidden again) go.
   if (window.MutationObserver) {
     new MutationObserver(function (records) {
-      var added = records.some(function (record) {
-        return Array.prototype.some.call(record.addedNodes, function (node: any) {
-          return node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))
+      var added = false
+      records.forEach(function (record) {
+        Array.prototype.forEach.call(record.addedNodes, function (node: any) {
+          if (node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))) added = true
+        })
+        Array.prototype.forEach.call(record.removedNodes, function (node: any) {
+          if (node.nodeType !== 1 || node.closest('[data-fg-loc-map]')) return
+          var groups = node.matches('[data-fg-loc]') ? [node] : node.querySelectorAll('[data-fg-loc]')
+          Array.prototype.forEach.call(groups, function (group: any) {
+            var state = group.fgLocMap
+            if (!state || group.isConnected) return
+            if (state.resizer) state.resizer.disconnect()
+            if (state.map) state.map.remove()
+            group.fgLocMap = null
+          })
         })
       })
       if (added) start()
@@ -29433,7 +30117,7 @@ const validators: Record<string, () => string | null> = {
   },
   'account.avatar': function () {
   const v = form.account.avatar
-  { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
+  { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose one file at most","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
   return null
   },
   'plan': function () {
@@ -29470,7 +30154,7 @@ const validators: Record<string, () => string | null> = {
   },
   'signature': function () {
   const v = form.signature
-  { const problem = fgFileProblem(v, "", 0, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 0 MB"}); if (problem) return problem }
+  { const problem = fgFileProblem(v, "", 0, 1, {"tooMany":"Choose one file at most","type":"{name} is not an accepted file type","size":"{name} is larger than 0 MB"}); if (problem) return problem }
   return null
   },
   'contact_method': function () {
@@ -29708,8 +30392,8 @@ function fgRemoveLabel(path: string, index: number): string {
 function fgItemValidator(path: string): (() => string | null) | undefined {
   const match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
   if (!match) return undefined
-  const validate = fgItemValidators[fgTpl(match[1]!)]?.[match[3]!]
-  const item = fgList(match[1]!)[Number(match[2])]
+  const validate: ((item: Record<string, unknown>) => string | null) | undefined = fgItemValidators[fgTpl(match[1]!)]?.[match[3]!]
+  const item: Record<string, unknown> | undefined = fgList(match[1]!)[Number(match[2])]
   return validate && item ? () => validate(item) : undefined
 }
 /** Every item field path of a repeater, inner items included (validation, step gates). */
@@ -30661,7 +31345,7 @@ async function onSubmit(): Promise<void> {
               <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
               <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
               <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList">1.</button>
+              <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
               <button type="button" class="min-w-8 rounded px-2 py-1 text-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
             </div>
             <div id="fg_about" class="min-h-24 px-3 py-2 text-sm outline-none [overflow-wrap:anywhere] [&_ol]:list-decimal [&_ol]:ps-6 [&_ul]:list-disc [&_ul]:ps-6 [&_a]:text-indigo-600 [&_a]:underline [&_p]:mb-2" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext="about" @blur="touch('about')"></div>
@@ -30674,7 +31358,7 @@ async function onSubmit(): Promise<void> {
         <fieldset class="flex flex-col gap-1.5">
           <legend class="text-sm font-semibold">Meeting point</legend>
           <div class="flex flex-col gap-2" data-fg-loc="meet" data-fg-loc-start="23.588,58.3829,11" data-fg-loc-tiles="https://tile.openstreetmap.org/{z}/{x}/{y}.png" data-fg-loc-attribution="© OpenStreetMap contributors">
-            <div class="isolate z-0 w-full rounded-md border border-gray-300 dark:border-gray-600" style="height: 220px" role="region" aria-label="Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
+            <div class="isolate z-0 w-full rounded-md border border-gray-300 dark:border-gray-600" style="height: 220px" role="group" aria-label="Meeting point: Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
             <div class="flex flex-wrap items-end gap-2">
               <label class="flex flex-[1_1_8rem] flex-col gap-1 text-sm text-gray-700 dark:text-gray-300">
                 <span>Latitude</span>
@@ -30687,7 +31371,7 @@ async function onSubmit(): Promise<void> {
               <button type="button" class="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-loc-mine>Use my location</button>
               <button type="button" class="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-loc-clear>Clear</button>
             </div>
-            <p class="m-0 text-sm text-gray-600 empty:hidden dark:text-gray-400" aria-live="polite" data-fg-loc-status></p>
+            <p class="m-0 text-sm text-gray-600 dark:text-gray-400" aria-live="polite" data-fg-loc-status></p>
           </div>
           <p v-if="errors['meet']" class="text-xs text-red-600" role="alert">{{ errors['meet'] }}</p>
         </fieldset>
@@ -30714,7 +31398,7 @@ async function onSubmit(): Promise<void> {
         </figure>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <div class="text-sm [&_a]:underline [&_ul]:list-disc [&_ul]:ps-5 [&_ol]:list-decimal [&_ol]:ps-5 [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg [&_h1]:font-semibold [&_h2]:font-semibold [&_h3]:font-semibold [&_h4]:font-semibold [&_th]:border [&_th]:px-2 [&_th]:py-1 [&_th]:text-start [&_td]:border [&_td]:px-2 [&_td]:py-1"><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style="color: #b91c1c">Closed on holidays. &#123;&#123; not.vue }} &#64;razor &#123;jsx}</p><a>unsafe link</a></div>
+        <div class="text-sm [&_a]:underline [&_ul]:list-disc [&_ul]:ps-5 [&_ol]:list-decimal [&_ol]:ps-5 [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg [&_h1]:font-semibold [&_h2]:font-semibold [&_h3]:font-semibold [&_h4]:font-semibold [&_th]:border [&_th]:px-2 [&_th]:py-1 [&_th]:text-start [&_td]:border [&_td]:px-2 [&_td]:py-1"><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style="color: #b91c1c">Closed on holidays. &#123;&#123; not.vue }} &#64;razor &#123;jsx}</p><a>unsafe link</a><iframe :src="'https://www.openstreetmap.org/export/embed.html?bbox=58.3%2C23.5%2C58.5%2C23.7'" width="320" height="180" title="Where we are" sandbox="allow-scripts allow-same-origin allow-presentation" referrerpolicy="strict-origin-when-cross-origin" loading="lazy"></iframe></div>
       </div>
       <div class="col-span-12 md:col-span-12">
         <a class="font-medium text-indigo-600 underline underline-offset-2 dark:text-indigo-400" href="https://example.com/docs" target="_blank" rel="noopener noreferrer">Read the docs<span class="sr-only"> (opens in a new tab)</span></a>
@@ -30995,10 +31679,10 @@ async function onSubmit(): Promise<void> {
       <div class="col-span-12 md:col-span-12">
         <div>
           <div class="mb-4 flex flex-wrap gap-1 border-b border-gray-200 dark:border-gray-700" role="tablist">
-            <button type="button" :class="fgSec_ks_social_tabs === 0 ? '-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600' : '-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700'" @click="fgSec_ks_social_tabs = 0">Social</button>
-            <button type="button" :class="fgSec_ks_social_tabs === 1 ? '-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600' : '-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700'" @click="fgSec_ks_social_tabs = 1">Code</button>
+            <button type="button" role="tab" :aria-selected="fgSec_ks_social_tabs === 0" :class="fgSec_ks_social_tabs === 0 ? '-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600' : '-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700'" @click="fgSec_ks_social_tabs = 0">Social</button>
+            <button type="button" role="tab" :aria-selected="fgSec_ks_social_tabs === 1" :class="fgSec_ks_social_tabs === 1 ? '-mb-px border-b-2 border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-600' : '-mb-px border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700'" @click="fgSec_ks_social_tabs = 1">Code</button>
           </div>
-          <div v-show="fgSec_ks_social_tabs === 0">
+          <div v-show="fgSec_ks_social_tabs === 0" role="tabpanel">
             <div class="grid grid-cols-12 gap-4">
               <div class="col-span-12 md:col-span-12">
                 <div class="flex flex-col gap-1.5">
@@ -31009,7 +31693,7 @@ async function onSubmit(): Promise<void> {
               </div>
             </div>
           </div>
-          <div v-show="fgSec_ks_social_tabs === 1">
+          <div v-show="fgSec_ks_social_tabs === 1" role="tabpanel">
             <div class="grid grid-cols-12 gap-4">
               <div class="col-span-12 md:col-span-12">
                 <div class="flex flex-col gap-1.5">
@@ -31409,7 +32093,7 @@ function fgDropFirst(input: HTMLInputElement, event: { dataTransfer: DataTransfe
   input.dispatchEvent(new Event('change', { bubbles: true }))
   return "Only one file fits here, so {name} was added.".split('{name}').join(first.name)
 }
-const fgFileMultiple: Record<string, boolean> = { 'account.avatar': false, 'attachments': true, 'signature': false }
+const fgFileMultiple: Record<string, boolean> = { 'account.avatar': false, 'attachments': true }
 function fgFileList(path: string): File[] {
   return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form) as File[]
 }
@@ -31456,9 +32140,18 @@ function fgSignPad(canvas: any): any {
     var width = Math.round(canvas.clientWidth * ratio)
     var height = Math.round(canvas.clientHeight * ratio)
     if (!ctx || width === 0 || (canvas.width === width && canvas.height === height)) return
+    // Keep the ink through the resize (a phone turning, a panel opening).
+    var kept: any = null
+    if (pad.ink && canvas.width > 0 && canvas.height > 0) {
+      kept = document.createElement('canvas')
+      kept.width = canvas.width
+      kept.height = canvas.height
+      kept.getContext('2d').drawImage(canvas, 0, 0)
+    }
     canvas.width = width
     canvas.height = height
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
+    if (kept) ctx.drawImage(kept, 0, 0, canvas.clientWidth, canvas.clientHeight)
   }
   pad.wipe = function () {
     if (!ctx) return
@@ -31508,6 +32201,26 @@ function fgSignPad(canvas: any): any {
     ctx.fillText(text.trim(), canvas.clientWidth / 2, canvas.clientHeight / 2, canvas.clientWidth - 24)
     pad.ink = true
     pad.commit(done)
+  }
+  // Draws a saved signature (a file, or a data URL) into a blank pad.
+  pad.show = function (source: any) {
+    if (pad.ink || pad.drawing || pad.loading) return
+    pad.loading = true
+    var url = typeof source === 'string' ? source : URL.createObjectURL(source)
+    var image = new Image()
+    image.onload = function () {
+      pad.loading = false
+      if (url !== source) URL.revokeObjectURL(url)
+      if (pad.ink || pad.drawing || !ctx) return
+      pad.size()
+      ctx.drawImage(image, 0, 0, canvas.clientWidth, canvas.clientHeight)
+      pad.ink = true
+    }
+    image.onerror = function () {
+      pad.loading = false
+      if (url !== source) URL.revokeObjectURL(url)
+    }
+    image.src = url
   }
   canvas.fgPad = pad
   return pad
@@ -31576,12 +32289,19 @@ function fgWireSignatures(root: any, onChange: (canvas: HTMLCanvasElement, file:
     onChange(group.canvas, null)
   })
 }
-// Pads whose value went empty elsewhere (a reset) are cleared, typed name too.
-function fgSignSync(root: any, isEmpty: (canvas: HTMLCanvasElement) => boolean) {
+// Pads follow their value: cleared when it went empty elsewhere (a reset),
+// typed name too; a blank pad draws the file its value holds (a pad shown
+// again by a step or a condition).
+function fgSignSync(root: any, valueOf: (canvas: HTMLCanvasElement) => File | Blob | string | null | undefined) {
   if (!root) return
   Array.prototype.forEach.call(root.querySelectorAll('canvas[data-fg-signature]'), function (canvas: any) {
     var pad = canvas.fgPad
-    if (!isEmpty(canvas) || (pad && (pad.pending || pad.drawing))) return
+    if (pad && (pad.pending || pad.drawing)) return
+    var value = valueOf(canvas)
+    if (value) {
+      if (!pad || !pad.ink) fgSignPad(canvas).show(value)
+      return
+    }
     if (pad && pad.ink) pad.wipe()
     var group = fgSignGroup(canvas)
     if (group && group.typed && group.typed.value !== '') group.typed.value = ''
@@ -31595,7 +32315,7 @@ onMounted(() => {
   })
 })
 watch(form, () => {
-  void nextTick(() => fgSignSync(fgRoot.value, (canvas) => ((fgGet(canvas.getAttribute('data-fg-signature')!) as File[] | undefined) ?? []).length === 0))
+  void nextTick(() => fgSignSync(fgRoot.value, (canvas) => ((fgGet(canvas.getAttribute('data-fg-signature')!) as File[] | undefined) ?? [])[0] ?? null))
 }, { deep: true })
 // Rich text: the editor's HTML reduced to p, br, strong, em, u, s, lists and
 // http(s)/mailto links (the renderer's cleanRichText); '' when empty.
@@ -31835,7 +32555,10 @@ function fgLocMap(group: any, onChange: (group: HTMLElement, point: { lat: numbe
       onChange(group, point, true)
     }
     state.map.on('click', function (event: any) { state.pick(event.latlng) })
-    if (window.ResizeObserver) new ResizeObserver(function () { state.map.invalidateSize() }).observe(el)
+    if (window.ResizeObserver) {
+      state.resizer = new ResizeObserver(function () { state.map.invalidateSize() })
+      state.resizer.observe(el)
+    }
     fgLocPin(group, fgLocTyped(group), 'zoom')
   }, function () {
     var status = fgLocParts(group).status
@@ -31849,12 +32572,25 @@ function fgWireLocations(root: any, onChange: (group: HTMLElement, point: { lat:
     Array.prototype.forEach.call(root.querySelectorAll('[data-fg-loc]'), function (group: any) { fgLocMap(group, onChange) })
   }
   start()
-  // Fields that appear later (new items, shown by a condition) get their map.
+  // Fields that appear later (new items, shown by a condition) get their
+  // map; the maps of fields taken away (removed items, hidden again) go.
   if (window.MutationObserver) {
     new MutationObserver(function (records) {
-      var added = records.some(function (record) {
-        return Array.prototype.some.call(record.addedNodes, function (node: any) {
-          return node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))
+      var added = false
+      records.forEach(function (record) {
+        Array.prototype.forEach.call(record.addedNodes, function (node: any) {
+          if (node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))) added = true
+        })
+        Array.prototype.forEach.call(record.removedNodes, function (node: any) {
+          if (node.nodeType !== 1 || node.closest('[data-fg-loc-map]')) return
+          var groups = node.matches('[data-fg-loc]') ? [node] : node.querySelectorAll('[data-fg-loc]')
+          Array.prototype.forEach.call(groups, function (group: any) {
+            var state = group.fgLocMap
+            if (!state || group.isConnected) return
+            if (state.resizer) state.resizer.disconnect()
+            if (state.map) state.map.remove()
+            group.fgLocMap = null
+          })
         })
       })
       if (added) start()
@@ -31971,7 +32707,7 @@ const validators: Record<string, () => string | null> = {
   },
   'account.avatar': function () {
   const v = form.account.avatar
-  { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
+  { const problem = fgFileProblem(v, "image/*", 2, 1, {"tooMany":"Choose one file at most","type":"{name} is not an accepted file type","size":"{name} is larger than 2 MB"}); if (problem) return problem }
   return null
   },
   'plan': function () {
@@ -32008,7 +32744,7 @@ const validators: Record<string, () => string | null> = {
   },
   'signature': function () {
   const v = form.signature
-  { const problem = fgFileProblem(v, "", 0, 1, {"tooMany":"Choose at most 1 files","type":"{name} is not an accepted file type","size":"{name} is larger than 0 MB"}); if (problem) return problem }
+  { const problem = fgFileProblem(v, "", 0, 1, {"tooMany":"Choose one file at most","type":"{name} is not an accepted file type","size":"{name} is larger than 0 MB"}); if (problem) return problem }
   return null
   },
   'contact_method': function () {
@@ -32246,8 +32982,8 @@ function fgRemoveLabel(path: string, index: number): string {
 function fgItemValidator(path: string): (() => string | null) | undefined {
   const match = /^(.+)\\.(\\d+)\\.([^.]+)$/.exec(path)
   if (!match) return undefined
-  const validate = fgItemValidators[fgTpl(match[1]!)]?.[match[3]!]
-  const item = fgList(match[1]!)[Number(match[2])]
+  const validate: ((item: Record<string, unknown>) => string | null) | undefined = fgItemValidators[fgTpl(match[1]!)]?.[match[3]!]
+  const item: Record<string, unknown> | undefined = fgList(match[1]!)[Number(match[2])]
   return validate && item ? () => validate(item) : undefined
 }
 /** Every item field path of a repeater, inner items included (validation, step gates). */
@@ -33199,7 +33935,7 @@ async function onSubmit(): Promise<void> {
               <button type="button" class="fg-richtext-button" aria-label="Bold" title="Bold" data-fg-rt-cmd="bold"><b>B</b></button>
               <button type="button" class="fg-richtext-button" aria-label="Italic" title="Italic" data-fg-rt-cmd="italic"><i>I</i></button>
               <button type="button" class="fg-richtext-button" aria-label="Bulleted list" title="Bulleted list" data-fg-rt-cmd="insertUnorderedList">•</button>
-              <button type="button" class="fg-richtext-button" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList">1.</button>
+              <button type="button" class="fg-richtext-button" aria-label="Numbered list" title="Numbered list" data-fg-rt-cmd="insertOrderedList"><span dir="ltr">1.</span></button>
               <button type="button" class="fg-richtext-button" aria-label="Link" title="Link" data-fg-rt-cmd="link">🔗</button>
             </div>
             <div id="fg_about" class="fg-richtext-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" data-fg-richtext="about" @blur="touch('about')"></div>
@@ -33212,7 +33948,7 @@ async function onSubmit(): Promise<void> {
         <fieldset class="fg-field">
           <legend class="fg-label">Meeting point</legend>
           <div class="fg-location" data-fg-loc="meet" data-fg-loc-start="23.588,58.3829,11" data-fg-loc-tiles="https://tile.openstreetmap.org/{z}/{x}/{y}.png" data-fg-loc-attribution="© OpenStreetMap contributors">
-            <div class="fg-location-map" style="height: 220px" role="region" aria-label="Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
+            <div class="fg-location-map" style="height: 220px" role="group" aria-label="Meeting point: Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map></div>
             <div class="fg-location-row">
               <label class="fg-location-coord">
                 <span>Latitude</span>
@@ -33252,7 +33988,7 @@ async function onSubmit(): Promise<void> {
         </figure>
       </div>
       <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
-        <div class="fg-html"><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style="color: #b91c1c">Closed on holidays. &#123;&#123; not.vue }} &#64;razor &#123;jsx}</p><a>unsafe link</a></div>
+        <div class="fg-html"><h3>Opening hours</h3><ul><li><b>Mon–Fri</b> 9–17</li><li>Sat <em>10–14</em></li></ul><p style="color: #b91c1c">Closed on holidays. &#123;&#123; not.vue }} &#64;razor &#123;jsx}</p><a>unsafe link</a><iframe :src="'https://www.openstreetmap.org/export/embed.html?bbox=58.3%2C23.5%2C58.5%2C23.7'" width="320" height="180" title="Where we are" sandbox="allow-scripts allow-same-origin allow-presentation" referrerpolicy="strict-origin-when-cross-origin" loading="lazy"></iframe></div>
       </div>
       <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <a class="fg-link" href="https://example.com/docs" target="_blank" rel="noopener noreferrer">Read the docs<span class="fg-sr-only"> (opens in a new tab)</span></a>
@@ -33533,10 +34269,10 @@ async function onSubmit(): Promise<void> {
       <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <div>
           <div class="fg-tab-list" role="tablist">
-            <button type="button" :class="fgSec_ks_social_tabs === 0 ? 'fg-tab-button fg-tab-button--active' : 'fg-tab-button'" @click="fgSec_ks_social_tabs = 0">Social</button>
-            <button type="button" :class="fgSec_ks_social_tabs === 1 ? 'fg-tab-button fg-tab-button--active' : 'fg-tab-button'" @click="fgSec_ks_social_tabs = 1">Code</button>
+            <button type="button" role="tab" :aria-selected="fgSec_ks_social_tabs === 0" :class="fgSec_ks_social_tabs === 0 ? 'fg-tab-button fg-tab-button--active' : 'fg-tab-button'" @click="fgSec_ks_social_tabs = 0">Social</button>
+            <button type="button" role="tab" :aria-selected="fgSec_ks_social_tabs === 1" :class="fgSec_ks_social_tabs === 1 ? 'fg-tab-button fg-tab-button--active' : 'fg-tab-button'" @click="fgSec_ks_social_tabs = 1">Code</button>
           </div>
-          <div v-show="fgSec_ks_social_tabs === 0">
+          <div v-show="fgSec_ks_social_tabs === 0" role="tabpanel">
             <div class="fg-grid">
               <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                 <div class="fg-field">
@@ -33547,7 +34283,7 @@ async function onSubmit(): Promise<void> {
               </div>
             </div>
           </div>
-          <div v-show="fgSec_ks_social_tabs === 1">
+          <div v-show="fgSec_ks_social_tabs === 1" role="tabpanel">
             <div class="fg-grid">
               <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
                 <div class="fg-field">
@@ -33689,7 +34425,7 @@ async function onSubmit(): Promise<void> {
 .fg-signature-row > input { flex: 1 1 auto; min-inline-size: 0; }
 /* Rich text: toolbar and editor */
 .fg-richtext { border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-bg); }
-.fg-richtext:focus-within { border-color: var(--fg-color-primary); }
+.fg-richtext:focus-within { border-color: var(--fg-color-primary); outline: 2px solid var(--fg-color-primary); outline-offset: 2px; }
 .fg-richtext-toolbar { display: flex; flex-wrap: wrap; gap: 0.25rem; padding: 0.25rem; border-block-end: 1px solid var(--fg-color-border); }
 .fg-richtext-button { min-inline-size: 2rem; padding: 0.25rem 0.5rem; border: 1px solid transparent; border-radius: var(--fg-radius); background: none; color: inherit; font: inherit; cursor: pointer; }
 .fg-richtext-button:hover, .fg-richtext-button:focus-visible { border-color: var(--fg-color-border); background: var(--fg-color-surface); }
@@ -33702,8 +34438,7 @@ async function onSubmit(): Promise<void> {
 .fg-location-map { inline-size: 100%; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); isolation: isolate; z-index: 0; }
 .fg-location-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: flex-end; }
 .fg-location-coord { display: flex; flex: 1 1 8rem; flex-direction: column; gap: 0.25rem; font-size: 0.875rem; }
-.fg-location-status { margin: 0; font-size: 0.875rem; }
-.fg-location-status:empty { display: none; }
+.fg-location-status { margin: 0; font-size: 0.875rem; min-block-size: 0; }
 /* Spam check: the widget and its hint above the actions row */
 .fg-captcha { display: flex; flex-direction: column; gap: 0.25rem; margin-block-start: 1rem; }
 .fg-captcha-hint { margin: 0; font-size: 0.875rem; color: var(--fg-color-muted); }

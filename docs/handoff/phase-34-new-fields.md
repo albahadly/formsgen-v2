@@ -2,7 +2,9 @@
 
 ## Status
 
-Five backlog items, picked by the user. Commit: feat(phase-34).
+Phase complete. 2026-10-05, commit `8a1b1b8` (feat(phase-34)); a project-wide review followed on 2026-10-06 and its fixes are in the next commit (fix(review), see "Review fixes" below).
+
+Five backlog items, picked by the user.
 
 Schema additions are logged in ADR-0002 (rows 34a–34e): element types `signature`, `richtext` and `location`, `meta.captcha`, and iframes in HTML blocks.
 
@@ -126,8 +128,8 @@ The scripts are now loaded once (`FgInteropInit`), and wired to the form's eleme
 ## 34e: iframes in HTML blocks
 
 HTML blocks may now embed any `https:` page, such as videos or maps.
-- **Kept:** `src`, `width`, `height`, `title`, `allow` (media features only) and `allowfullscreen`.
-- **Added to every iframe:** `sandbox="allow-scripts allow-same-origin allow-presentation"` (no forms, popups or top navigation), `referrerpolicy="strict-origin-when-cross-origin"` and `loading="lazy"`.
+- **Kept:** `src`, `width`, `height`, `title`, `allowfullscreen`, and `allow` limited to the features embed codes ask for (autoplay, encrypted-media, fullscreen, picture-in-picture, clipboard-write, web-share, accelerometer, gyroscope; never camera, microphone, geolocation or payment).
+- **Added to every iframe:** `sandbox="allow-scripts allow-same-origin allow-presentation"` (no forms, popups or top navigation), `referrerpolicy="strict-origin-when-cross-origin"` and `loading="lazy"`. The sandbox restrains a cross-origin page; a page from the form's own origin keeps that origin's powers, as any same-origin script would.
 - **Replaced:** the author's own `sandbox` and referrer policy.
 - **Removed:** iframes with an `http:` or script address, and fallback content inside an iframe.
 
@@ -144,13 +146,54 @@ React output uses `allowFullScreen` / `referrerPolicy`. The builder's hint says 
 - **The renderer's signature pad** asks for its canvas context on first use, not while the form is built.
 - **The kitchen-sink fixture** now has a rich-text, a location and a signature field.
 
-## Verification
+## Review fixes (2026-10-06)
 
-- **`pnpm verify` passes:** 191 renderer tests, 316 builder tests and 7 sample-server tests.
+A project-wide review (12 reviewers, each finding judged independently) found the problems below; all are fixed in the fix(review) commit.
+
+- **Blazor Server dropped the circuit on an ordinary signature**: the PNG went in one JS→.NET message, over SignalR's 32 KB limit from the third stroke. The pad now streams it (`DotNet.createJSStreamReference` → `IJSStreamReference`).
+- **Blazor lost rich text, locations and signatures from the screen** when a step, tab or condition re-rendered them (the model kept them). The model's values now go back to the editors, maps and pads after every render; Vue, React and HTML pads shown again draw their file too.
+- **A mistyped Turnstile site key was saved**, so the project would not reopen and the autosaved draft was dropped on reload, while exports silently had no check. Settings now writes only a well-formed key.
+- **Typing in the canvas rich-text editor fired the canvas shortcuts** (Backspace removed the element). Editable boxes are left alone; on the design canvas, maps, pads, editors and embedded pages are inert (a click selects, a drag moves).
+- **Location fields were offered length and format rules and text conditions** that could never pass (and broke the Blazor build): `location` joined `OBJECT_VALUE_TYPES`.
+- **Rich-text length and format rules judged the markup**: they judge the visible text now, in the renderer, JS and C#.
+- **`</script>` in `meta.locale` or the submit URL** could end the inline script of the HTML and Vue exports: every author string written into a script goes through `jsString`, and the parser accepts only language tags and http(s)/relative submit URLs.
+- **Accessibility**: tabs in every export carry `role="tab"`, `aria-selected` and `tabpanel`; each map is a labelled group (two maps on a page were duplicate landmarks); the location status line stays in the tree while empty; the rich-text editor shows focus like other controls; every control of a field is marked `aria-invalid` in the HTML export; `aria-required` on the latitude box; map moves respect reduced motion; "1." reads right in RTL.
+- **Smaller**: a resized pad keeps its ink; emptying one coordinate box clears the pin; new map settings rebuild the map on the design canvas; a custom map credit only goes with a custom tile server; the builder preview runs the check with Cloudflare's test key (a production key refuses the builder's domain); number controls stay inside their ranges; the Tailwind pad stays white under every theme; removed location fields free their maps; the Vue export of a signature-only form has no upload helpers; the Vue item validator types under any tsconfig; "Choose one file at most"; a favicon; `highlight.js` and JSZip in their own chunks; `packageManager` pinned; the sample server times out, answers 503 for Cloudflare's own trouble and caps token length; READMEs list the run-time services and CSP hosts; `FgRichText.ts` (formatted paragraphs) is `FgMarkdown.ts`.
+
+## What was intentionally NOT done
+
+- **npm publish of `@formsgen/renderer`**: parked by the user (unchanged since phase 16).
+- **Rich-text toolbar roving tabindex** (arrow keys between buttons): every button is a tab stop; five stops is acceptable, deferred.
+- **A signature without "Or type your name"** has no keyboard way to sign: the typing box is the keyboard path and is on by default; the builder's control says so. Deferred: a focusable pad with key-drawn strokes is not worth it.
+- **`meta.captcha` in the kitchen-sink fixture**: a check would block the fixture's own submit tests; the spam check is covered by its own unit tests, the export tests and the 12-runtime demo.
+- **Bootstrap 5 contrast** of secondary legends and outline buttons on `bg-body-tertiary` (pre-existing, Bootstrap's own palette): left as Bootstrap ships it.
+- **Explicit `any` in the generated TypeScript of the Phase 34 runtimes**: strict `tsc`/`vue-tsc` accept it; tightening is cosmetic.
+- **Entity decoding parity** between the renderer's cleaner and the script cleaner for unknown named entities (`&copy;` typed as text is the same in both; only raw HTML with such entities differs). Deferred.
+- **Blazor interop registries** keep entries for removed items for the circuit's life (small strings; file bytes only for signatures). Deferred.
+
+## Key decisions & why
+
+- **Signature value = one-file list** (`signature.png`), so every upload path (required, multipart, drafts not keeping files, answers inside text) works unchanged.
+- **Rich text is HTML, cleaned twice** (renderer and script, identical rules, asserted by a test); servers should clean it again. Plain text (`richPlainText`) is what rules and answers inside text use.
+- **Location = `{ lat, lng }` rounded to 6 decimals, or `null`**; Leaflet from cdnjs with integrity hashes rather than a bundled copy, so exports stay single files; OpenStreetMap tiles by default with the credit it requires, and a `tiles` prop for busy forms.
+- **Turnstile only**, with the token in the answers as `cf-turnstile-response` (Cloudflare's own name), so any server-side verifier works. The builder preview substitutes the test site key because real keys are domain-bound.
+- **Iframes keep `allow-same-origin`** so embeds such as YouTube keep their storage; the sandbox is a cross-origin restraint, not a same-origin one (documented above).
+- **Blazor root scripts are re-wired after every new `EditContext`** and the model's values are pushed back after every render: `EditForm` rebuilds its elements and only the .NET side knows the values.
+- **Blazor signatures stream** (`IJSStreamReference`) instead of raising `MaximumReceiveMessageSize`: a visitor's drawing must not depend on a hub option the deployer may not set.
+
+## How to verify
+
+- **`pnpm verify` passes:** 195 renderer tests, 320 builder tests and 8 sample-server tests (after the review fixes; 191 / 316 / 7 at the phase commit).
   - New renderer tests: location values, settings and the field (with a stand-in Leaflet), the spam check (with a stand-in Turnstile), signatures, rich text, iframes.
   - New builder tests: each target's location and spam-check code, signatures, rich text.
   - New server tests: secret required, bad token refused, token not stored, multipart.
-- **Strict compilers:** React `tsc`, `vue-tsc` and the .NET 8 build, with 0 errors and 0 warnings, for each of the four demos and the kitchen sink.
+- **Strict compilers:** React `tsc`, `vue-tsc` and the .NET 8 build, with 0 errors and 0 warnings, for each of the four demos and the kitchen sink (rerun after the review fixes).
+- **A fifth demo after the review fixes (wizard):** a steps wizard holding a signature, rich text and a map, a condition that shows a second map, and a reset; identical in all 12 runtimes. The scenario:
+  1. Three long strokes across the pad (a 43 KB PNG, over Blazor Server's 32 KB message size), bold text, typed coordinates.
+  2. Next, then Back: the step is rendered again and the pad still shows the ink, the editor its HTML, the boxes and the pin the point.
+  3. A checkbox shows the second map; unchecking hides it; checking again brings it back with its coordinates and pin.
+  4. Submit from step 2: the server got the PNG (multipart) and every answer.
+  5. Start over: everything empties, the pad included.
 - **Each demo in 12 runtimes:** HTML, React, Vue and Blazor, each in vanilla, Tailwind and Bootstrap 5. The results are compared with plain HTML.
   - **Signature:** required check, drawing, typed name, Clear, pads in new items, reset, then a multipart post to the sample server with both PNGs.
   - **Rich text:** required check, bold, list, link and paste, item editors, answers in text, saved answers after a reload, reset, a sandboxed YouTube iframe (with the http one removed), and the stored value.
@@ -170,3 +213,21 @@ React output uses `allowFullScreen` / `referrerPolicy`. The builder's hint says 
     4. A valid submit sends the token once; the server confirms it with Cloudflare and stores the answers without it.
     5. The button waits again until a new check passes, and a second submission goes through.
     6. With the script blocked, the form says the check didn't load.
+
+## Known issues / gotchas
+
+- **Blazor Server and long rich-text answers**: HTML over ~32 KB in one `FgRichChanged` call exceeds the default `MaximumReceiveMessageSize`; the Blazor README says how to raise it. Signatures stream and are not affected.
+- **Blazor interop scripts use `eval`** (installed once from C# constants): a `script-src` policy without `'unsafe-eval'` blocks them; the README says to move the `Fg*Script` constants into a static file in that case.
+- **The design canvas keeps maps, pads, editors and iframes inert**; use Preview to interact with them.
+- **"Use my location" needs a secure context** (https or localhost): on plain http the device refuses and the field says so.
+- **Turnstile iframes live in a closed shadow root**: tests read the token and the button state, not the widget's internals.
+- **The vanilla stylesheet is mirrored** between `packages/renderer/src/styles.css` and `apps/builder/src/export/css/vanilla.ts`; a test fails when a rule differs by a character.
+
+## Pointers for the next phase
+
+- New element types: `packages/renderer/src/elements.ts` + `components/fieldComponents.ts` + `apps/builder/src/registry/elements/<type>.ts` (+ `registry/index.ts`), the kitchen sink, and the README's "Adding an element type".
+- Run-time scripts shared by the exports live in `apps/builder/src/export/{signature,richAnswer,location,captcha}.ts`; Blazor members (JSInvokable methods, show-after-render) sit beside them and are wired in `targets/blazor.ts` (`FgInteropInit`/`FgInteropWire`, `OnAfterRenderAsync`).
+- `OBJECT_VALUE_TYPES` (renderer `composite.ts`) decides which rules and conditions the builder offers for an object-valued type; add new object-valued types there.
+- `servicesReadme` (`apps/builder/src/export/readmeNotes.ts`) is where a new run-time dependency is documented for every target at once.
+- The review's demos and e2e scripts (`p34a`–`p34d`, the matrix runner) live in the session scratchpad, not in the repository; the Phase Standard's 12-runtime check needs them re-created from the handoff's scenarios.
+

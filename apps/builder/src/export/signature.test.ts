@@ -39,8 +39,21 @@ describe('signature in the exports', () => {
     expect(out('vue-standalone', [sign()])).toContain('fgMultipart(data)')
     const razor = out('blazor', [sign()])
     expect(razor).toContain('public List<FgUpload> Sig { get; set; } = new();')
-    expect(razor).toContain('[Microsoft.JSInterop.JSInvokable]\n    public void FgSigned(string key, string? dataUrl)')
+    // The PNG streams to .NET (not one SignalR message, which is capped at 32 KB).
+    expect(razor).toContain('[Microsoft.JSInterop.JSInvokable]\n    public async Task FgSigned(string key, Microsoft.JSInterop.IJSStreamReference? stream)')
+    expect(razor).toContain("dotnet.invokeMethodAsync('FgSigned', key, file ? DotNet.createJSStreamReference(file) : null)")
     expect(razor).toContain('await FgJs.InvokeVoidAsync("fgSignatures", fgFormRoot, fgSelf);')
+    // A pad shown again (a step, a condition) draws the signature the model holds.
+    expect(razor).toContain('public string? FgSignData(string key)')
+    expect(razor).toContain('await FgSignShowValues();')
+    for (const target of ['vue-standalone', 'react', 'html']) expect(out(target, [sign()]), target).toContain('pad.show = function (source')
+  })
+
+  it('Vue: no picking or thumbnail helpers without a file field', () => {
+    const vue = out('vue-standalone', [sign()])
+    expect(vue).not.toContain('fgThumbs')
+    expect(vue).not.toContain('fgFileNotes')
+    expect(vue).toContain('function fgSetFiles(')
   })
 
   it('React: no upload handlers without a file field; Bootstrap gets the pad rule', () => {

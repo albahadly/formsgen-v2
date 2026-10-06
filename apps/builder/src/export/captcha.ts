@@ -6,6 +6,7 @@
 // (packages/submit-server: TURNSTILE_SECRET).
 
 import { CAPTCHA_FIELD, TURNSTILE_SCRIPT, captchaSiteKey, type FormSchema, type MessageCatalog } from '@formsgen/renderer'
+import { jsString } from './announce'
 import type { CssFrameworkAdapter } from './css/types'
 
 /** The site key when the form has a spam check, else null. */
@@ -116,7 +117,7 @@ const fgCaptchaEl = ref<HTMLElement | null>(null)
 const fgCaptchaToken = ref('')
 const fgCaptchaFailed = ref(false)
 onMounted(() => {
-  fgCaptcha(fgCaptchaEl.value, ${JSON.stringify(siteKey)}, ${JSON.stringify(locale)}, (token, failed) => {
+  fgCaptcha(fgCaptchaEl.value, ${jsString(siteKey)}, ${jsString(locale)}, (token, failed) => {
     fgCaptchaToken.value = token
     fgCaptchaFailed.value = failed
   })
@@ -130,7 +131,7 @@ export function reactCaptchaHooks(siteKey: string, locale: string): string {
   const [fgCaptchaToken, setFgCaptchaToken] = useState('')
   const [fgCaptchaFailed, setFgCaptchaFailed] = useState(false)
   useEffect(() => {
-    fgCaptcha(fgCaptchaEl.current, ${JSON.stringify(siteKey)}, ${JSON.stringify(locale)}, (token, failed) => {
+    fgCaptcha(fgCaptchaEl.current, ${jsString(siteKey)}, ${jsString(locale)}, (token, failed) => {
       setFgCaptchaToken(token)
       setFgCaptchaFailed(failed)
     })

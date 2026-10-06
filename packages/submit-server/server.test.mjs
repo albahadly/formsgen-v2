@@ -135,3 +135,32 @@ test('without a secret, a token sent anyway is not stored', async () => {
   const record = JSON.parse(await readFile(join(dir, id, 'submission.json'), 'utf8'))
   assert.deepEqual(record.data, { name: 'Ana' })
 })
+
+test('Cloudflare trouble is a 503 (try again), not a refused submission', async () => {
+  let mode = 'down'
+  const flaky = createSubmitServer({
+    dir,
+    log: () => {},
+    turnstileSecret: '1x0000000000000000000000000000000AA',
+    verify: async () => {
+      if (mode === 'down') throw new Error('siteverify internal-error')
+      return { success: true }
+    },
+  })
+  await new Promise((resolve) => flaky.listen(0, '127.0.0.1', resolve))
+  const url = `http://127.0.0.1:${flaky.address().port}/submit`
+  const post = (data) => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+  try {
+    const down = await post({ name: 'Ana', 'cf-turnstile-response': 'token' })
+    assert.equal(down.status, 503)
+    assert.deepEqual(await down.json(), { ok: false, error: 'spam check unavailable' })
+    const huge = await post({ name: 'Ana', 'cf-turnstile-response': 'x'.repeat(5000) })
+    assert.equal(huge.status, 403)
+    mode = 'up'
+    const ok = await post({ name: 'Ana', 'cf-turnstile-response': 'token' })
+    assert.equal(ok.status, 201)
+  } finally {
+    flaky.close()
+  }
+})
+

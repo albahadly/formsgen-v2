@@ -339,6 +339,7 @@ const embeddedSubmit = computed(
           v-if="embedsSubmit"
           type="submit"
           :disabled="formCtx.submitBlocked?.() ?? false"
+          :aria-describedby="formCtx.submitHintId?.()"
           class="fg-button"
           :class="embeddedSubmit.secondary ? 'fg-button--secondary' : 'fg-button--primary'"
         >

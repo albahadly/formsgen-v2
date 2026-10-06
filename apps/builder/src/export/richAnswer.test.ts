@@ -62,4 +62,19 @@ describe('rich text in the exports', () => {
     expect(razor).toContain('@(FgOr(FgRichPlain(Model.About), "nothing"))')
     expect(out('vue-standalone')).toContain(`{{ fgOr(fgRichPlain(form.about), 'nothing') }}`)
   })
+
+  it('length rules judge the visible text in every language', () => {
+    const limited = parseFormSchema({
+      $schema: 'formsgen/v2',
+      meta: { name: 'rt', locale: 'en', dir: 'ltr' },
+      tree: [{ id: 'r', type: 'richtext', name: 'about', props: { label: 'About' }, validation: [{ rule: 'max', value: 20 }] }],
+    })
+    if (!limited.ok) throw new Error(limited.errors.join())
+    const gen = (target: string): string => getTarget(target)!.generate({ schema: limited.schema, css: getCssAdapter('vanilla') }).map((f) => f.content).join('\n')
+    expect(gen('html')).toContain('(fgSize(fgRichPlain(v)) ?? Infinity) > 20')
+    expect(gen('vue-standalone')).toContain('(fgSize(fgRichPlain(v)) ?? Infinity) > 20')
+    const razor = gen('blazor')
+    expect(razor).toContain('FgRichPlain(About).Length > 20')
+    expect(razor.match(/private static string FgRichPlain/g)).toHaveLength(1)
+  })
 })

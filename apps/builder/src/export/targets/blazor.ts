@@ -4,6 +4,7 @@
 // visibility properties, and a payload builder that reconstructs the
 // nested data shape (REBUILD_PROMPT §7 target 6).
 
+import { servicesReadme } from '../readmeNotes'
 import {
   FILE_TYPES,
   getCoreElement,
@@ -206,14 +207,14 @@ ${CALC_HELPERS_CS}
       const state = `fgSec_${host.key}`
       const panels = host.sections
         .map(
-          (s) => `@if (${state} == ${s.index})\n{\n${indentBlock(s.html, 1)}\n}`,
+          (s) => `@if (${state} == ${s.index})\n{\n${host.kind === 'tabs' ? `    <div role="tabpanel">\n${indentBlock(s.html, 2)}\n    </div>` : indentBlock(s.html, 1)}\n}`,
         )
         .join('\n')
       if (host.kind === 'tabs') {
         const buttons = host.sections
           .map(
             (s) =>
-              `    <button type="button" class="@(${state} == ${s.index} ? "${css.classes('tabButtonActive')}" : "${css.classes('tabButton')}")" @onclick="() => ${state} = ${s.index}">${s.label}</button>`,
+              `    <button type="button" role="tab" aria-selected="@(${state} == ${s.index} ? "true" : "false")" class="@(${state} == ${s.index} ? "${css.classes('tabButtonActive')}" : "${css.classes('tabButton')}")" @onclick="() => ${state} = ${s.index}">${s.label}</button>`,
           )
           .join('\n')
         return `<div>\n  <div class="${css.classes('tabList')}" role="tablist">\n${buttons}\n  </div>\n${panels}\n</div>`
@@ -544,7 +545,7 @@ ${[
     protected override void OnInitialized()${steps.length ? '\n    {\n        FgInitEdit();\n        FgCalc();\n    }' : ' => FgInitEdit();'}
 
     private void FgInitEdit()
-    {${interop ? '\n        fgWire = true;' : ''}${captchaKeyOf(schema) ? '\n        // New elements, a new check.\n        fgCaptchaToken = "";' : ''}${rich ? '\n        fgRichShow = true;' : ''}${locations ? '\n        fgLocShow = true;' : ''}
+    {${interop ? '\n        fgWire = true;' : ''}${captchaKeyOf(schema) ? '\n        // New elements, a new check.\n        fgCaptchaToken = "";' : ''}
         fgEdit = new EditContext(Model);
         fgMessages = new ValidationMessageStore(fgEdit);
         fgEdit.OnValidationRequested += (_, _) => FgValidateAll();
@@ -1477,7 +1478,7 @@ ${signatures ? blazorSignature().members : ''}${rich ? blazorRichText(messages.r
       hasRepeaters || hasUploads || hasSlider || saveDraft || interop
         ? `
     protected override async Task OnAfterRenderAsync(bool firstRender)
-    {${hasRepeaters ? '\n        await FgFocusRepeaters();' : ''}${hasUploads ? '\n        await FgFocusUploads();' : ''}${hasSlider ? '\n        await FgFocusDual();' : ''}${interop ? '\n        if (firstRender) await FgInteropInit();\n        await FgInteropWire();' : ''}${rich ? '\n        // Values from a new model (start, reset, saved answers) into the editors.\n        await FgRichShowValues();' : ''}${locations ? '\n        // Values from a new model into the location fields.\n        await FgLocShowValues();' : ''}${saveDraft ? '\n        // Saved answers: restored after the first render, kept after later ones.\n        if (firstRender) await FgDraftLoad();\n        else await FgDraftSave();' : ''}
+    {${hasRepeaters ? '\n        await FgFocusRepeaters();' : ''}${hasUploads ? '\n        await FgFocusUploads();' : ''}${hasSlider ? '\n        await FgFocusDual();' : ''}${interop ? '\n        if (firstRender) await FgInteropInit();\n        await FgInteropWire();' : ''}${rich ? '\n        // Values from a new model (start, reset, saved answers) into the editors.\n        await FgRichShowValues();' : ''}${locations ? '\n        // Values from a new model into the location fields.\n        await FgLocShowValues();' : ''}${signatures ? '\n        // The signatures the model holds, into pads shown again.\n        await FgSignShowValues();' : ''}${saveDraft ? '\n        // Saved answers: restored after the first render, kept after later ones.\n        if (firstRender) await FgDraftLoad();\n        else await FgDraftSave();' : ''}
     }
 `
         : ''
@@ -1670,6 +1671,6 @@ typed text when the input commits (blur or Enter — note Enter inside an
 3. Use it: \`<${name} />\`${ctx.schema.meta.submit?.url ? `\n4. The component POSTs to \`${ctx.schema.meta.submit.url}\` on valid submit — register \`HttpClient\` in DI (WASM templates do by default).` : ''}
 
 ${ctx.css.id === 'bootstrap5' ? 'Bootstrap 5 classes are used — the default Blazor templates already ship Bootstrap, so it works out of the box.' : ctx.css.readmeNote()}
-`
+${servicesReadme(ctx.schema, 'blazor')}`
   },
 }

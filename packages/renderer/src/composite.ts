@@ -11,8 +11,11 @@ export const RANGE_SLIDER_TYPE = 'rangeslider'
 export const DATE_RANGE_TYPE = 'daterange'
 export const DATES_TYPE = 'dates'
 
-/** Types whose value is an object of parts; only "required" applies to them. */
-export const OBJECT_VALUE_TYPES: ReadonlySet<string> = new Set([RANGE_SLIDER_TYPE, DATE_RANGE_TYPE, 'matrix'])
+/**
+ * Types whose value is an object of parts (a location point too); only
+ * "required" and the presence conditions apply to them.
+ */
+export const OBJECT_VALUE_TYPES: ReadonlySet<string> = new Set([RANGE_SLIDER_TYPE, DATE_RANGE_TYPE, 'matrix', 'location'])
 
 export interface RangeBounds {
   min: number

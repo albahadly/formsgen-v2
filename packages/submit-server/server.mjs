@@ -101,12 +101,23 @@ function decode(body, contentType) {
 /** The answers' spam-check token field (Cloudflare's own name). */
 export const CAPTCHA_FIELD = 'cf-turnstile-response'
 
-/** Asks Cloudflare whether a Turnstile token is good: { success, 'error-codes' }. */
+/** Turnstile tokens are at most 2048 characters (Cloudflare's own limit). */
+const TOKEN_MAX = 2048
+
+/**
+ * Asks Cloudflare whether a Turnstile token is good: { success, 'error-codes' }.
+ * Throws when Cloudflare can't be reached or didn't answer properly (the
+ * caller answers 503, so the visitor can try again), within 10 seconds.
+ */
 export async function verifyTurnstile(secret, token, ip) {
   const body = new URLSearchParams({ secret, response: token })
   if (ip) body.set('remoteip', ip)
-  const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', { method: 'POST', body })
-  return res.json()
+  const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', { method: 'POST', body, signal: AbortSignal.timeout(10_000) })
+  if (!res.ok) throw new Error(`siteverify answered ${res.status}`)
+  const result = await res.json()
+  // Cloudflare's own trouble is not the visitor's failed check.
+  if (result && result.success !== true && (result['error-codes'] ?? []).includes('internal-error')) throw new Error('siteverify internal-error')
+  return result
 }
 
 /**
@@ -167,6 +178,7 @@ export function createSubmitServer({
     if (data) delete data[CAPTCHA_FIELD]
     if (turnstileSecret) {
       if (!token) throw Object.assign(new Error('spam check missing'), { status: 403 })
+      if (token.length > TOKEN_MAX) throw Object.assign(new Error('spam check failed'), { status: 403 })
       let result
       try {
         result = await verify(turnstileSecret, token, req.socket.remoteAddress)

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, watch } from 'vue'
-import { CAPTCHA_FIELD, captchaSiteKey, loadTurnstile, type Turnstile } from '../captcha'
+import { CAPTCHA_FIELD, TURNSTILE_TEST_SITE_KEY, captchaSiteKey, loadTurnstile, type Turnstile } from '../captcha'
 import { getValueByPath } from '../conditions'
 import { FORM_CONTEXT, type FormContext } from '../context'
 import { fill, pluralText, resolveMessages } from '../messages'
@@ -31,6 +31,11 @@ const props = defineProps<{
    * omitted; null keeps nothing (the builder preview passes memory storage).
    */
   draftStorage?: DraftStorage | null | undefined
+  /**
+   * Run meta.captcha with Cloudflare's test site key (passes on any site):
+   * the builder's preview, where the form's own key would refuse the domain.
+   */
+  captchaPreview?: boolean | undefined
 }>()
 
 const emit = defineEmits<{
@@ -248,6 +253,7 @@ const context: FormContext = {
     secondary: submitCfg.value?.variant === 'secondary',
   }),
   submitBlocked: () => uploading.value || captchaBlocks.value,
+  submitHintId: () => (captchaBlocks.value && !captchaBroken.value ? captchaHintId.value : undefined),
 }
 provide(FORM_CONTEXT, context)
 
@@ -376,7 +382,10 @@ watch(
 )
 
 // ---- spam check (meta.captcha, see captcha.ts) ----
-const captchaKey = computed(() => captchaSiteKey(props.schema.meta))
+const captchaKey = computed(() => {
+  const key = captchaSiteKey(props.schema.meta)
+  return key && props.captchaPreview ? TURNSTILE_TEST_SITE_KEY : key
+})
 const captchaEl = ref<HTMLElement | null>(null)
 const captchaToken = ref('')
 const captchaBroken = ref(false)
@@ -391,7 +400,8 @@ function startCaptcha(): void {
   if (!key || !captchaEl.value || captchaWidget !== null) return
   loadTurnstile()
     .then((turnstile) => {
-      if (gone || !captchaEl.value || captchaWidget !== null) return
+      // The key changed while the script loaded: the watcher starts again.
+      if (gone || !captchaEl.value || captchaWidget !== null || captchaKey.value !== key) return
       captchaApi = turnstile
       captchaWidget = turnstile.render(captchaEl.value, {
         sitekey: key,

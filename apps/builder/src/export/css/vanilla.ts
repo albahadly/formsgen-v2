@@ -194,7 +194,7 @@ function baseStylesheet(theme: ThemeTokens | undefined): string {
 .fg-signature-row > input { flex: 1 1 auto; min-inline-size: 0; }
 /* Rich text: toolbar and editor */
 .fg-richtext { border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-bg); }
-.fg-richtext:focus-within { border-color: var(--fg-color-primary); }
+.fg-richtext:focus-within { border-color: var(--fg-color-primary); outline: 2px solid var(--fg-color-primary); outline-offset: 2px; }
 .fg-richtext-toolbar { display: flex; flex-wrap: wrap; gap: 0.25rem; padding: 0.25rem; border-block-end: 1px solid var(--fg-color-border); }
 .fg-richtext-button { min-inline-size: 2rem; padding: 0.25rem 0.5rem; border: 1px solid transparent; border-radius: var(--fg-radius); background: none; color: inherit; font: inherit; cursor: pointer; }
 .fg-richtext-button:hover, .fg-richtext-button:focus-visible { border-color: var(--fg-color-border); background: var(--fg-color-surface); }
@@ -207,8 +207,7 @@ function baseStylesheet(theme: ThemeTokens | undefined): string {
 .fg-location-map { inline-size: 100%; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); isolation: isolate; z-index: 0; }
 .fg-location-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: flex-end; }
 .fg-location-coord { display: flex; flex: 1 1 8rem; flex-direction: column; gap: 0.25rem; font-size: 0.875rem; }
-.fg-location-status { margin: 0; font-size: 0.875rem; }
-.fg-location-status:empty { display: none; }
+.fg-location-status { margin: 0; font-size: 0.875rem; min-block-size: 0; }
 /* Spam check: the widget and its hint above the actions row */
 .fg-captcha { display: flex; flex-direction: column; gap: 0.25rem; margin-block-start: 1rem; }
 .fg-captcha-hint { margin: 0; font-size: 0.875rem; color: var(--fg-color-muted); }

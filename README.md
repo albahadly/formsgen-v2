@@ -14,7 +14,7 @@ every phase: `docs/handoff/INDEX.md`.
 | Path | What |
 |---|---|
 | `packages/renderer` | `@formsgen/renderer` — standalone Vue 3 library that renders a FormsGen JSON schema (ESM + UMD + d.ts + CSS) |
-| `packages/submit-server` | Sample submission server: one dependency-free Node file that receives and stores what a form sends (JSON or multipart with files); the export dialog can add it to a ZIP |
+| `packages/submit-server` | Sample submission server: one dependency-free Node file that receives and stores what a form sends (JSON or multipart with files) and, with `TURNSTILE_SECRET` set, verifies the form's Cloudflare Turnstile token; the export dialog can add it to a ZIP |
 | `apps/builder` | The builder application (Vue 3 + Vite + Pinia + Tailwind) |
 | `docs/handoff` | Per-phase handoff documents — read the latest one first |
 | `docs/adr` | Architecture decision records |
@@ -55,8 +55,8 @@ pnpm verify     # THE gate: lint + typecheck + test + build (CI runs this)
 1. **Core semantics** — add a line to `coreElements` in
    `packages/renderer/src/elements.ts` (`hasValue`, `isContainer`, default
    value) and, if it needs new rendering, a `Fg*.vue` component + an entry
-   in `FgNode.vue`'s map. Text-like inputs just reuse `FgText` via
-   `TEXT_INPUT_TYPES`.
+   in `components/fieldComponents.ts`. Text-like inputs just reuse `FgText`
+   via `TEXT_INPUT_TYPES`.
 2. **Builder definition** — one file in
    `apps/builder/src/registry/elements/` (icon, default props, declarative
    property panel, and `export` emitters for `vue` / `html` / `react` /
@@ -78,7 +78,13 @@ pnpm verify     # THE gate: lint + typecheck + test + build (CI runs this)
 
 Every code target generates for vanilla CSS, Tailwind, or Bootstrap 5, and
 the zip download bundles a README with exact install steps for the chosen
-combination.
+combination. Exported forms have no npm dependencies, but three features
+load outside services at run time, which the README lists with the hosts a
+Content-Security-Policy must allow: a **location field** loads Leaflet from
+cdnjs (pinned with integrity hashes) and map tiles from OpenStreetMap or the
+tile server set on the field; a **spam check** loads Cloudflare Turnstile and
+needs the receiving server to verify the token with the secret key; an
+**HTML block** may embed https pages in sandboxed iframes.
 
 ## Deployment
 

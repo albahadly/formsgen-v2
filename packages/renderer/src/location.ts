@@ -80,7 +80,8 @@ export function locationSettings(node: ElementNode): LocationSettings {
     lng: num(p['lng'], -180, 180, 0),
     zoom: Math.round(num(p['zoom'], 1, 18, 2)),
     tiles: custom ? (p['tiles'] as string) : OSM_TILES,
-    attribution: attribution || (custom ? '' : OSM_ATTRIBUTION),
+    // A credit of the author's own goes with their own tile server; OpenStreetMap keeps its credit.
+    attribution: custom ? attribution : OSM_ATTRIBUTION,
     myLocation: p['myLocation'] !== false,
     height: Math.round(num(p['height'], 160, 600, 260)),
   }
@@ -113,8 +114,8 @@ interface LeafletMarker extends LeafletLayer {
 }
 interface LeafletMap {
   on(event: 'click', handler: (event: { latlng: LeafletPoint }) => void): void
-  setView(point: [number, number], zoom: number): void
-  panTo(point: [number, number]): void
+  setView(point: [number, number], zoom: number, options?: { animate: boolean }): void
+  panTo(point: [number, number], options?: { animate: boolean }): void
   getZoom(): number
   invalidateSize(): void
   remove(): void
@@ -145,6 +146,8 @@ export function createLocationMap(
   onPick: (point: LatLng) => void,
 ): LocationMap {
   const map = L.map(el, { center: [settings.lat, settings.lng], zoom: settings.zoom, scrollWheelZoom: false })
+  // Moves jump instead of gliding for people who asked for less motion.
+  const motion = { animate: !(typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches) }
   L.tileLayer(settings.tiles, { attribution: attributionHtml(settings.attribution), maxZoom: 19 }).addTo(map)
   const icon = L.divIcon({ className: 'fg-location-pin', html: LOCATION_PIN, iconSize: [24, 36], iconAnchor: [12, 35] })
   let marker: LeafletMarker | null = null
@@ -170,12 +173,12 @@ export function createLocationMap(
       if (!point) {
         marker?.remove()
         marker = null
-        if (move === 'zoom') map.setView([settings.lat, settings.lng], settings.zoom)
+        if (move === 'zoom') map.setView([settings.lat, settings.lng], settings.zoom, motion)
         return
       }
       place(point)
-      if (move === 'zoom') map.setView([point.lat, point.lng], Math.max(map.getZoom(), LOCATION_CLOSE_ZOOM))
-      else if (move === 'pan') map.panTo([point.lat, point.lng])
+      if (move === 'zoom') map.setView([point.lat, point.lng], Math.max(map.getZoom(), LOCATION_CLOSE_ZOOM), motion)
+      else if (move === 'pan') map.panTo([point.lat, point.lng], motion)
     },
     resize: () => map.invalidateSize(),
     destroy: () => map.remove(),

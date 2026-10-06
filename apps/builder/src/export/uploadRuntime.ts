@@ -74,9 +74,7 @@ export function dropFirstHelper(messages: MessageCatalog, ts: boolean): string {
 /** Vue standalone: module-level helpers over the reactive `form`. */
 export function vueUploadRuntime(fields: ExportField[], messages: MessageCatalog): string {
   if (uploadFields(fields).length === 0) return ''
-  return `${commonTs(messages)}
-const fgFileMultiple: Record<string, boolean> = ${multipleMap(fields)}
-function fgFileList(path: string): File[] {
+  const lists = `function fgFileList(path: string): File[] {
   return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form) as File[]
 }
 function fgSetFiles(path: string, files: File[]): void {
@@ -84,7 +82,12 @@ function fgSetFiles(path: string, files: File[]): void {
   const last = keys.pop()!
   const target = keys.reduce<Record<string, unknown>>((o, k) => o[k] as Record<string, unknown>, form as unknown as Record<string, unknown>)
   target[last] = files
-}
+}`
+  // Signature pads only: no picking, notes or thumbnails.
+  if (uploadFields(fields).every((f) => f.node.type === 'signature')) return lists
+  return `${commonTs(messages)}
+const fgFileMultiple: Record<string, boolean> = ${multipleMap(fields.filter((f) => f.node.type !== 'signature'))}
+${lists}
 // "Only one file fits here, …" per field path, until its next change.
 const fgFileNotes = reactive<Record<string, string>>({})
 function fgDropFiles(path: string, event: DragEvent): void {

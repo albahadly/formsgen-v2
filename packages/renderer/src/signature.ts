@@ -40,9 +40,18 @@ export function createSignaturePad(canvas: HTMLCanvasElement, onChange: (file: F
     const width = Math.round(canvas.clientWidth * ratio)
     const height = Math.round(canvas.clientHeight * ratio)
     if (!ctx || width === 0 || (canvas.width === width && canvas.height === height)) return
+    // Keep the ink through the resize (a phone turning, a panel opening).
+    let kept: HTMLCanvasElement | null = null
+    if (ink && canvas.width > 0 && canvas.height > 0) {
+      kept = document.createElement('canvas')
+      kept.width = canvas.width
+      kept.height = canvas.height
+      kept.getContext('2d')?.drawImage(canvas, 0, 0)
+    }
     canvas.width = width
     canvas.height = height
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
+    if (kept) ctx.drawImage(kept, 0, 0, canvas.clientWidth, canvas.clientHeight)
   }
   function wipe(): void {
     const ctx = draw()

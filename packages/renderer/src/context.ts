@@ -32,6 +32,8 @@ export interface FormContext {
   submitButtonSpec?(): { text: string; secondary: boolean }
   /** The submit button is disabled (uploading, or the spam check hasn't passed). */
   submitBlocked?(): boolean
+  /** The id of the text explaining why the submit button waits, while it does. */
+  submitHintId?(): string | undefined
   /** Speak a message through the form's polite aria-live region. */
   announce?(message: string): void
   /** A repeater removed an item: shift later items' touched state/errors. */

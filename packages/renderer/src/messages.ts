@@ -102,6 +102,8 @@ export interface MessageCatalog {
   fileType: string
   /** {n} — more files than the field allows */
   tooManyFiles: string
+  /** The limit when it is one file. */
+  tooManyFilesOne: string
   /** {name} — accessible name of a chosen file's remove button */
   removeFile: string
   /** An answer to a yes/no field, inserted into text ({field}). */
@@ -209,6 +211,7 @@ const en: MessageCatalog = {
   fileTooLarge: '{name} is larger than {size} MB',
   fileType: '{name} is not an accepted file type',
   tooManyFiles: 'Choose at most {n} files',
+  tooManyFilesOne: 'Choose one file at most',
   removeFile: 'Remove {name}',
   yes: 'Yes',
   no: 'No',
@@ -298,6 +301,7 @@ const ar: MessageCatalog = {
   fileTooLarge: 'حجم {name} أكبر من {size} ميغابايت',
   fileType: '{name} ليس من أنواع الملفات المقبولة',
   tooManyFiles: 'اختر {n} ملفات على الأكثر',
+  tooManyFilesOne: 'اختر ملفًا واحدًا على الأكثر',
   removeFile: 'إزالة {name}',
   yes: 'نعم',
   no: 'لا',

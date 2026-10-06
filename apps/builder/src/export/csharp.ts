@@ -61,6 +61,7 @@ export type CsFieldKind =
   | 'map' // matrix (Dictionary<string, string?>: row → chosen column)
   | 'multimap' // matrix with several answers per row (Dictionary<string, List<string>>)
   | 'location' // a point on a map (FgLatLng?: Lat/Lng, null until picked)
+  | 'richtext' // cleaned HTML (string); size and format rules judge FgRichPlain(value)
 
 export function csFieldKind(node: ElementNode): CsFieldKind {
   switch (node.type) {
@@ -90,6 +91,8 @@ export function csFieldKind(node: ElementNode): CsFieldKind {
       return 'files'
     case 'location':
       return 'location'
+    case 'richtext':
+      return 'richtext'
     default:
       return 'string'
   }
@@ -104,7 +107,7 @@ export function csAttributes(field: ExportField, kind: CsFieldKind): string[] | 
   const rules = field.node.validation ?? []
   if (rules.length === 0) return []
   if (field.conditionChain.length > 0) return null
-  if (['bool', 'list', 'array', 'files', 'range2', 'daterange', 'map', 'multimap', 'location'].includes(kind)) {
+  if (['bool', 'list', 'array', 'files', 'range2', 'daterange', 'map', 'multimap', 'location', 'richtext'].includes(kind)) {
     return null // Validate() handles these
   }
   const numeric = kind === 'number' || kind === 'numberValue'
@@ -294,6 +297,8 @@ export function csRuleChecks(
   sameAs: (key: string) => string,
 ): { test: string; message: string }[] {
   const emptyExpr = csEmptyExpr(kind, member)
+  // Rich text: the rules judge the visible text, not the markup.
+  const subject = kind === 'richtext' ? `FgRichPlain(${member})` : member
   const sizeExpr =
     kind === 'number'
       ? `${member}!.Value`
@@ -301,7 +306,7 @@ export function csRuleChecks(
         ? member
         : kind === 'list' || kind === 'files'
           ? `${member}.Count`
-          : `${member}.Length`
+          : `${subject}.Length`
   const guarded = (test: string): string => `!(${emptyExpr}) && (${test})`
   const checks: { test: string; message: string }[] = []
   for (const rule of rules) {

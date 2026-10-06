@@ -12,7 +12,7 @@ Bumping `$schema` to `formsgen/v3` would make every existing document fail `pars
 
 - **Additive, optional, default-preserving fields do not bump `$schema`.** A field qualifies when it is optional, its absence means exactly the previous behavior, and older consumers can ignore it safely. Each such field gets an entry in this ADR's log below.
 - **Anything else still requires a version bump plus a migration**: removing or renaming a field, changing its meaning, or making it required.
-- The parser validates the *shape* of every additive field when present, so a malformed value is reported rather than silently half-applied.
+- The parser validates the *shape* of every additive field when present, so a malformed value is reported rather than silently half-applied. Element props stay the element's own business: a value outside its documented range falls back to the default in the renderer and every export (the builder's controls keep values inside the range), so an older or hand-edited document still opens.
 
 ### Log of additive fields
 

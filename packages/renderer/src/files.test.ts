@@ -28,6 +28,7 @@ describe('upload helpers', () => {
   it('problems: count, then type, then size — with localized messages', () => {
     const limits = { multiple: true, accept: '.pdf', maxSizeMb: 1, maxFiles: 2 }
     expect(fileProblem([file('a.pdf', ''), file('b.pdf', ''), file('c.pdf', '')], limits, MESSAGES.en)).toBe('Choose at most 2 files')
+    expect(fileProblem([file('a.pdf', ''), file('b.pdf', '')], { ...limits, maxFiles: 1 }, MESSAGES.en)).toBe('Choose one file at most')
     expect(fileProblem([file('a.doc', '')], limits, MESSAGES.en)).toBe('a.doc is not an accepted file type')
     expect(fileProblem([file('big.pdf', '', 2 * 1024 * 1024)], limits, MESSAGES.ar)).toBe('حجم big.pdf أكبر من 1 ميغابايت')
     expect(fileProblem([file('ok.pdf', '')], limits, MESSAGES.en)).toBeNull()

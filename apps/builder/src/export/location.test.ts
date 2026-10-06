@@ -25,7 +25,7 @@ describe('location in the exports', () => {
     for (const target of ['vue-standalone', 'react', 'html', 'blazor']) {
       const code = out(target, [place()])
       expect(code, target).toContain('data-fg-loc-start="23.6,58.4,11" data-fg-loc-tiles="https://tile.openstreetmap.org/{z}/{x}/{y}.png" data-fg-loc-attribution="© OpenStreetMap contributors"')
-      expect(code, target).toContain('role="region" aria-label="Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map')
+      expect(code, target).toContain('role="group" aria-label="Where?: Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map')
       expect(code, target).toMatch(/<input id="fg_place" type="number" [^>]*step="any" min="-90" max="90"/)
       expect(code, target).toContain('<input id="fg_place_lng" type="number"')
       expect(code, target).toContain('data-fg-loc-mine>Use my location</button>')
@@ -62,8 +62,23 @@ describe('location in the exports', () => {
 
   it('Blazor wires its scripts again after EditForm builds new elements (reset, saved answers)', () => {
     const razor = out('blazor', [place()])
-    expect(razor).toContain('        fgWire = true;\n        fgLocShow = true;')
+    expect(razor).toContain('        fgWire = true;')
     expect(razor).toContain('if (firstRender) await FgInteropInit();\n        await FgInteropWire();')
     expect(razor).toContain('await FgJs.InvokeVoidAsync("fgLocations", fgFormRoot, fgSelf);')
+    // The model's values go back to the fields after every render (a step or a condition showing them again).
+    expect(razor).toContain('await FgInteropWire();\n        // Values from a new model into the location fields.\n        await FgLocShowValues();')
+    expect(razor).not.toContain('private bool fgLocShow')
+    // Maps of removed fields go.
+    expect(out('html', [place()])).toContain('if (state.map) state.map.remove()')
+  })
+
+  it('the README names Leaflet, the tile server and the CSP hosts', () => {
+    const readme = getTarget('html')!.readme({ schema: schemaOf([place()]), css: getCssAdapter('vanilla') })
+    expect(readme).toContain('Leaflet 1.9.4 loads from `cdnjs.cloudflare.com`')
+    expect(readme).toContain('`tile.openstreetmap.org`')
+    expect(readme).toContain('meant for light use')
+    const own = getTarget('vue-standalone')!.readme({ schema: schemaOf([place({ tiles: 'https://tiles.example/{z}/{x}/{y}.png' })]), css: getCssAdapter('vanilla') })
+    expect(own).toContain('`tiles.example`')
+    expect(own).not.toContain('meant for light use')
   })
 })

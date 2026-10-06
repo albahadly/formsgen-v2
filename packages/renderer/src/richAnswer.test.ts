@@ -1,5 +1,8 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
+import { firstFieldError } from './files'
+import { MESSAGES } from './messages'
+import type { ElementNode } from './schema'
 import FormsGenForm from './components/FormsGenForm.vue'
 import { cleanRichText, richPlainText } from './richAnswer'
 import type { FormSchema } from './schema'
@@ -66,5 +69,12 @@ describe('<FormsGenForm> with a rich-text field', () => {
     await flushPromises()
     expect(wrapper.get('[data-fg-richtext]').element.innerHTML).toBe('<p>Saved <em>text</em></p>')
     wrapper.unmount()
+  })
+
+  it('length rules judge the visible text, not the markup', () => {
+    const node = { id: 'r', type: 'richtext', name: 'r', props: {}, validation: [{ rule: 'max', value: 6 }, { rule: 'min', value: 2 }] } as ElementNode
+    expect(firstFieldError(node, '<p><strong>Hi</strong> all</p>', () => undefined, MESSAGES.en)).toBeNull()
+    expect(firstFieldError(node, '<p><strong>Hello</strong> world</p>', () => undefined, MESSAGES.en)).toContain('6')
+    expect(firstFieldError(node, '<ul><li>a</li></ul>', () => undefined, MESSAGES.en)).toContain('2')
   })
 })

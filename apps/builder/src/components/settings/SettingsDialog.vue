@@ -64,15 +64,25 @@ const saveDraft = computed({
   set: (v: boolean) => builder.updateMeta({ saveDraft: v || undefined }),
 })
 
-// Spam check: a Cloudflare Turnstile site key (empty = off).
+// Spam check: a Cloudflare Turnstile site key (empty = off). Only a
+// well-formed key is written to the schema (the parser would refuse the
+// saved project otherwise); other text stays here, marked as wrong.
+const captchaTyped = ref(builder.schema.meta.captcha?.siteKey ?? '')
+watch(
+  () => builder.schema.meta.captcha?.siteKey ?? '',
+  (key) => {
+    if (key !== '' || SITE_KEY_PATTERN.test(captchaTyped.value.trim())) captchaTyped.value = key
+  },
+)
 const captchaKey = computed({
-  get: () => builder.schema.meta.captcha?.siteKey ?? '',
+  get: () => captchaTyped.value,
   set: (v: string) => {
+    captchaTyped.value = v
     const key = v.trim()
-    builder.updateMeta({ captcha: key === '' ? undefined : { provider: 'turnstile', siteKey: key } })
+    builder.updateMeta({ captcha: SITE_KEY_PATTERN.test(key) ? { provider: 'turnstile', siteKey: key } : undefined })
   },
 })
-const captchaKeyBad = computed(() => captchaKey.value !== '' && !SITE_KEY_PATTERN.test(captchaKey.value))
+const captchaKeyBad = computed(() => captchaKey.value.trim() !== '' && !SITE_KEY_PATTERN.test(captchaKey.value.trim()))
 
 const submitUrl = computed({
   get: () => builder.schema.meta.submit?.url ?? '',

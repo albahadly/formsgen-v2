@@ -5,7 +5,7 @@
 // Blazor's calls back into .NET with each change.
 
 import { locationSettings, type ElementNode } from '@formsgen/renderer'
-import { blazorValidationMessage, descriptionFor, esc, legendFor, pascalMember, reactDescription, reactError, vueError, htmlError } from '../emitters/shared'
+import { blazorValidationMessage, descriptionFor, esc, legendFor, pascalMember, reactDescription, reactError, textProp, vueError, htmlError } from '../emitters/shared'
 import { commonFieldSections, type ElementDefinition, type EmitCtx, type EmitterLang } from '../types'
 import { locationAttrs } from '@/export/location'
 
@@ -14,6 +14,8 @@ function picker(node: ElementNode, ctx: EmitCtx, lang: EmitterLang): string {
   const m = ctx.messages
   const settings = locationSettings(node)
   const text = (s: string): string => (lang === 'blazor' ? esc(s).replace(/@/g, '&#64;') : esc(s))
+  // Attribute text: no Razor or Vue interpolation.
+  const attr = (s: string): string => (lang === 'vue' ? esc(s).replace(/\{\{/g, '&#123;&#123;') : text(s))
   const member = pascalMember(ctx.key)
   // The field's value key: the field path (JS targets) or the Blazor field key.
   const key =
@@ -33,7 +35,7 @@ function picker(node: ElementNode, ctx: EmitCtx, lang: EmitterLang): string {
     : ''
   const attrs = locationAttrs(node)
   return `<div ${c}="${ctx.css.classes('location')}" ${key} ${lang === 'blazor' ? attrs.replace(/@/g, '&#64;') : attrs}>
-  <div ${c}="${ctx.css.classes('locationMap')}" ${style} role="region" aria-label="${text(m.locationMap)}" data-fg-loc-map></div>
+  <div ${c}="${ctx.css.classes('locationMap')}" ${style} role="group" aria-label="${attr(`${textProp(node, 'label') ?? ''}: ${m.locationMap}`)}" data-fg-loc-map></div>
   <div ${c}="${ctx.css.classes('locationRow')}">
     ${input('lat', ctx.id, 90)}
     ${input('lng', `${ctx.id}_lng`, 180)}${mine}

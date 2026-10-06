@@ -103,6 +103,7 @@ export {
   describeFiles,
   fileLimits,
   fileProblem,
+  tooManyFilesText,
   firstFieldError,
   hasFiles,
   hasUploadFields,

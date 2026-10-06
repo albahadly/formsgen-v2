@@ -16,6 +16,7 @@ import {
   type MessageCatalog,
   type ElementNode,
   type FormSchema,
+  tooManyFilesText,
 } from '@formsgen/renderer'
 import { compileConditions, compileValidator, type ValueAccessor } from './compile'
 import {
@@ -74,6 +75,7 @@ export function itemValidatorsLiteral(
           items.read(f.templatePath, repeater),
           scoped,
           builtinCheckExpr(f.node, messages),
+          ruleSubject(f.node),
         )
         return `    '${f.name}': function (${args(repeater, guard + body)}) {\n      ${guard}${body.split('\n  ').join('\n      ')}\n    },`
       })
@@ -103,12 +105,15 @@ export function visibilityFunctions(
     .join('\n')
 }
 
+/** What size and format rules judge: a rich-text answer's visible text, else the value. */
+const ruleSubject = (node: ElementNode): string | undefined => (node.type === 'richtext' ? 'fgRichPlain(v)' : undefined)
+
 /** `fgFileProblem(v, …)` for an upload field (null for other fields). */
 export function fileCheckExpr(node: ElementNode, messages: MessageCatalog): string | undefined {
   if (!FILE_TYPES.has(node.type)) return undefined
   const limits = fileLimits(node)
   const m = {
-    tooMany: fill(messages.tooManyFiles, { n: limits.maxFiles }),
+    tooMany: tooManyFilesText(messages, limits.maxFiles),
     type: messages.fileType,
     size: fill(messages.fileTooLarge, { size: limits.maxSizeMb }),
   }
@@ -146,6 +151,7 @@ export function validatorsLiteral(
         accessor(f.path),
         accessor,
         builtinCheckExpr(f.node, messages),
+        ruleSubject(f.node),
       )
       return `  '${f.path}': function (${args}) {\n  ${guard}${body}\n  },`
     })

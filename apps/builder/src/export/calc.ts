@@ -60,7 +60,6 @@ export function calcSteps(schema: FormSchema): CalcStep[] {
     })
 }
 
-export const hasCalculated = (schema: FormSchema): boolean => calcSteps(schema).length > 0
 
 export interface FormulaAccess {
   /** Raw value of a field by template path. */
@@ -241,10 +240,6 @@ export const CALC_HELPERS_CS = `
 
     private static string FgFmt(double? value, int decimals) =>
         value is double number ? number.ToString("F" + decimals, System.Globalization.CultureInfo.InvariantCulture) : "";
-`
-
-export const CALC_DAYS_RANGE_CS = `
-    private static double FgDaysRange(FgDateRange? range) => range == null ? double.NaN : FgDay(range.To) - FgDay(range.From);
 `
 
 /**

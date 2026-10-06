@@ -3,8 +3,9 @@
 // stylesheet; Tailwind/Bootstrap reference their CDN assets in <head>
 // (swappable for local builds, see the generated README).
 
+import { servicesReadme } from '../readmeNotes'
 import { fileLimits, resolveMessages, type ElementNode } from '@formsgen/renderer'
-import { errorsTextFunction, jsTemplate, stepAnnouncements, submittedText } from '../announce'
+import { errorsTextFunction, jsTemplate, stepAnnouncements, submittedText, jsString } from '../announce'
 import { FILE_HELPERS, RUNTIME_HELPERS, compileConditions } from '../compile'
 import { calcSteps, htmlCalcBlock } from '../calc'
 import { htmlAnswerPainter, usesAnswers } from '../answers'
@@ -95,14 +96,14 @@ export const htmlTarget: ExportTarget = {
       const panels = host.sections
         .map(
           (s) =>
-            `  <div data-fg-sec-panel="${host.key}:${s.index}"${s.index > 0 ? ' hidden' : ''}>\n${indentBlock(s.html, 1)}\n  </div>`,
+            `  <div data-fg-sec-panel="${host.key}:${s.index}"${host.kind === 'tabs' ? ' role="tabpanel"' : ''}${s.index > 0 ? ' hidden' : ''}>\n${indentBlock(s.html, 1)}\n  </div>`,
         )
         .join('\n')
       if (host.kind === 'tabs') {
         const buttons = host.sections
           .map(
             (s) =>
-              `    <button type="button" class="${s.index === 0 ? css.classes('tabButtonActive') : css.classes('tabButton')}" data-fg-sec-btn="${host.key}:${s.index}">${s.label}</button>`,
+              `    <button type="button" role="tab" aria-selected="${s.index === 0 ? 'true' : 'false'}" class="${s.index === 0 ? css.classes('tabButtonActive') : css.classes('tabButton')}" data-fg-sec-btn="${host.key}:${s.index}">${s.label}</button>`,
           )
           .join('\n')
         return `<div>\n  <div class="${css.classes('tabList')}" role="tablist">\n${buttons}\n  </div>\n${panels}\n</div>`
@@ -215,15 +216,15 @@ ${indentBlock(r.itemHtml, 3)}
     const submitBlock = progress
       ? `      fgUploadPaint('uploading', 0)
       // multipart: a JSON "data" part + one part per file; XMLHttpRequest reports upload progress
-      fgSend(${JSON.stringify(submitUrl)}, ${JSON.stringify(schema.meta.submit?.method ?? 'POST')}, fgMultipart(data), function (percent) {
+      fgSend(${jsString(submitUrl ?? '')}, ${jsString(schema.meta.submit?.method ?? 'POST')}, fgMultipart(data), function (percent) {
         fgUploadPaint('uploading', percent)
       }, function (ok) {
         fgUploadPaint(ok ? 'done' : 'failed', ok ? 100 : 0)${draft ? '\n        if (ok) fgDraftForget()' : ''}
         fgAnnounce(ok ? ${submittedText(messages)} : ${JSON.stringify(messages.uploadFailed)})
       })\n`
       : submitUrl
-      ? `      fetch(${JSON.stringify(submitUrl)}, {
-        method: ${JSON.stringify(schema.meta.submit?.method ?? 'POST')},
+      ? `      fetch(${jsString(submitUrl)}, {
+        method: ${jsString(schema.meta.submit?.method ?? 'POST')},
         ${hasUploads ? '// multipart: a JSON "data" part + one part per file\n        body: fgMultipart(data),' : "headers: { 'Content-Type': 'application/json' },\n        body: JSON.stringify(data),"}
       })${draft ? '\n        // Sent: the answers kept in this browser go.\n        .then(function (response) { if (response.ok) fgDraftForget() })' : ''}.catch(function (error) { console.error('Submit failed', error) })\n`
       : draft
@@ -868,9 +869,11 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
         el.textContent = message || ''
         el.hidden = !message
       }
-      if (control) {
-        invalid.forEach(function (cls) { control.classList.toggle(cls, Boolean(message)) })
-      }
+      Array.prototype.forEach.call(control ? document.querySelectorAll('[data-fg-path="' + path + '"]') : [], function (box) {
+        invalid.forEach(function (cls) { box.classList.toggle(cls, Boolean(message)) })
+        if (message) box.setAttribute('aria-invalid', 'true')
+        else box.removeAttribute('aria-invalid')
+      })
     }
 
     function validateField(path) {
@@ -886,7 +889,7 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
       return validate ? Boolean(validate()) : false
     }
 
-${steps.length ? `    ${htmlCalcBlock(steps).split('\n').join('\n    ')}\n` : ''}${answers ? `    ${htmlAnswerPainter(fieldsByPath(schema.tree), messages, listSeparator(schema.meta.locale)).split('\n').join('\n    ')}\n` : ''}    function updateConditions() {${steps.length ? '\n      fgCalcAll()' : ''}${answers ? '\n      fgPaintAnswers()' : ''}${signatures ? "\n      fgSignSync(form, function (canvas) { return (fgFiles[canvas.getAttribute('data-fg-path')] || []).length === 0 })" : ''}${locations ? '\n      fgLocPins(form)' : ''}
+${steps.length ? `    ${htmlCalcBlock(steps).split('\n').join('\n    ')}\n` : ''}${answers ? `    ${htmlAnswerPainter(fieldsByPath(schema.tree), messages, listSeparator(schema.meta.locale)).split('\n').join('\n    ')}\n` : ''}    function updateConditions() {${steps.length ? '\n      fgCalcAll()' : ''}${answers ? '\n      fgPaintAnswers()' : ''}${signatures ? "\n      fgSignSync(form, function (canvas) { return (fgFiles[canvas.getAttribute('data-fg-path')] || [])[0] || null })" : ''}${locations ? '\n      fgLocPins(form)' : ''}
       FG_CONDITIONS.forEach(function (c) {
         var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
         if (el) el.hidden = !c.test()
@@ -1000,6 +1003,7 @@ ${wires.map((w) => `      ${w}(root)`).join('\n')}
         function (btn) {
           var active = btn.getAttribute('data-fg-sec-btn') === meta.key + ':' + index
           btn.className = active ? meta.tabActive : meta.tabBase
+          btn.setAttribute('aria-selected', active ? 'true' : 'false')
         },
       )
       Array.prototype.forEach.call(
@@ -1119,7 +1123,7 @@ ${wires.map((w) => `      ${w}(root)`).join('\n')}
       form.querySelector('[data-fg-captcha-failed]').hidden = !failed
     }
     fgCaptchaPaint(false)
-    fgCaptcha(fgCaptchaEl, ${JSON.stringify(captchaKey)}, ${JSON.stringify(schema.meta.locale)}, function (token, failed) {
+    fgCaptcha(fgCaptchaEl, ${jsString(captchaKey)}, ${jsString(schema.meta.locale)}, function (token, failed) {
       fgCaptchaToken = token
       fgCaptchaPaint(failed)
     })` : ''}
@@ -1207,5 +1211,5 @@ a valid submit prints the payload below the form and to the console${ctx.schema.
 
 ${ctx.css.readmeNote()}
 ${ctx.css.assets().links.length + ctx.css.assets().scripts.length > 0 ? '\nThe framework is referenced from a CDN in `<head>` — swap those tags for your local build when embedding in a real project.' : ''}
-`,
+${servicesReadme(ctx.schema, 'html')}`,
 }

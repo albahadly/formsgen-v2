@@ -1,3 +1,4 @@
+import { servicesReadme } from '../readmeNotes'
 import { componentName, type ExportTarget } from './types'
 
 export const vueLibTarget: ExportTarget = {
@@ -57,5 +58,5 @@ Styling is the renderer's self-contained vanilla theme (dark-mode and RTL
 aware, themeable via \`meta.theme\` tokens in the schema). Validation and
 conditional visibility run inside the renderer — edit the schema, not the
 component, to change behavior.
-`,
+${servicesReadme(schema, 'vue-lib')}`,
 }

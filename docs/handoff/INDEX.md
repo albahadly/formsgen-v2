@@ -40,4 +40,4 @@ Read the latest handoff before starting any phase (Phase Standard, REBUILD_PROMP
 | 33 | Builder on phones (33a), sample submission server (33b), drag to reorder items (33c), several files dropped on a one-file field (33d) | ✅ Complete | [phase-33-extras.md](./phase-33-extras.md) |
 | 34 | New fields and checks: signature pad (34a), rich-text answers (34b), location on a map (34c), Cloudflare Turnstile spam check (34d), sandboxed https iframes in HTML blocks (34e) | ✅ Complete | [phase-34-new-fields.md](./phase-34-new-fields.md) |
 
-**All 11 planned phases are complete**, plus 10b and 12–34 from the backlog. Remaining backlog: npm publish of `@formsgen/renderer` (parked by user); see the "Not done" list in [phase-16-arabic-messages.md](./phase-16-arabic-messages.md).
+**All 11 planned phases are complete**, plus 10b and 12–34 from the backlog. The open backlog is kept in the latest handoff, [phase-34-new-fields.md](./phase-34-new-fields.md) ("What was intentionally not done" and "Known issues"); the one standing item is the npm publish of `@formsgen/renderer` (parked by user).

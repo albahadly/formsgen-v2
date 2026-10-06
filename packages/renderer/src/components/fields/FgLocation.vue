@@ -34,10 +34,10 @@ let gone = false
 
 const same = (a: LatLng | null, b: LatLng | null): boolean => (a === null ? b === null : b !== null && a.lat === b.lat && a.lng === b.lng)
 
-onMounted(() => {
+function startMap(): void {
   loadLeaflet()
     .then((L) => {
-      if (gone || !mapEl.value) return
+      if (gone || !mapEl.value || map) return
       map = createLocationMap(L, mapEl.value, settings.value, (picked) => set(picked, 'none'))
       map.show(point.value, 'zoom')
       if (typeof ResizeObserver !== 'undefined') {
@@ -48,12 +48,26 @@ onMounted(() => {
     .catch(() => {
       if (!gone) status.value = messages.value.locationNoMap
     })
-})
+}
+function stopMap(): void {
+  resizer?.disconnect()
+  resizer = null
+  map?.destroy()
+  map = null
+}
+onMounted(startMap)
 onBeforeUnmount(() => {
   gone = true
-  resizer?.disconnect()
-  map?.destroy()
+  stopMap()
 })
+// New map settings (the builder's property panel): a new map.
+watch(
+  () => JSON.stringify(settings.value),
+  () => {
+    stopMap()
+    startMap()
+  },
+)
 
 // A value set elsewhere (a reset, saved answers) shows in the boxes and on the map.
 watch(point, (next) => {
@@ -77,7 +91,7 @@ function onTyped(event: Event, which: 'lat' | 'lng'): void {
   ;(which === 'lat' ? lat : lng).value = (event.target as HTMLInputElement).value
   const next = parseLatLng(lat.value, lng.value)
   value.value = next
-  if (next) map?.show(next, 'pan')
+  map?.show(next, next ? 'pan' : 'none')
 }
 
 function mine(): void {
@@ -124,8 +138,8 @@ function mine(): void {
         ref="mapEl"
         class="fg-location-map"
         :style="{ height: `${settings.height}px` }"
-        role="region"
-        :aria-label="messages.locationMap"
+        role="group"
+        :aria-label="`${label}: ${messages.locationMap}`"
         data-fg-loc-map
       />
       <div class="fg-location-row">
@@ -140,6 +154,7 @@ function mine(): void {
             min="-90"
             max="90"
             inputmode="decimal"
+            :aria-required="required ? 'true' : undefined"
             :aria-describedby="describedBy"
             :aria-invalid="error ? 'true' : undefined"
             data-fg-loc-lat

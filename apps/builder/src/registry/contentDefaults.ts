@@ -12,6 +12,7 @@ const PHRASES_AR: Record<string, string> = {
   'Type and press Enter': 'اكتب ثم اضغط Enter',
   Heading: 'عنوان',
   'Paragraph text.': 'نص الفقرة.',
+  'Tell us more': 'أخبرنا المزيد',
 }
 
 const NUMBERED_AR: [RegExp, string][] = [

@@ -7,6 +7,7 @@
 import { DATE_RANGE_TYPE, dateOrderProblem } from './composite'
 import { fill, type MessageCatalog } from './messages'
 import { evaluateRules, type FieldLookup } from './rules'
+import { richPlainText } from './richAnswer'
 import type { ElementNode } from './schema'
 
 /** Values that are lists of files (a signature is one PNG). */
@@ -64,11 +65,15 @@ export function acceptsFile(file: { name: string; type: string }, accept: string
     )
 }
 
+/** "Choose at most {n} files", or its one-file wording. */
+export const tooManyFilesText = (messages: MessageCatalog, n: number): string =>
+  n === 1 ? messages.tooManyFilesOne : fill(messages.tooManyFiles, { n })
+
 /** First size/type/count problem with the chosen files, or null. */
 export function fileProblem(value: unknown, limits: FileLimits, messages: MessageCatalog): string | null {
   const files = Array.isArray(value) ? value.filter(isFile) : []
   if (limits.maxFiles > 0 && files.length > limits.maxFiles) {
-    return fill(messages.tooManyFiles, { n: limits.maxFiles })
+    return tooManyFilesText(messages, limits.maxFiles)
   }
   for (const file of files) {
     if (!acceptsFile(file, limits.accept)) return fill(messages.fileType, { name: file.name })
@@ -185,7 +190,9 @@ export function firstFieldError(
   lookup: FieldLookup,
   messages: MessageCatalog,
 ): string | null {
-  const violations = evaluateRules(node.validation, value, lookup, messages)
+  // Rich text: length and format rules judge the visible text, not the markup.
+  const judged = node.type === 'richtext' ? richPlainText(value) : value
+  const violations = evaluateRules(node.validation, value, lookup, messages, judged)
   if (violations[0]?.rule === 'required') return violations[0].message
   if (FILE_TYPES.has(node.type)) {
     const problem = fileProblem(value, fileLimits(node), messages)
