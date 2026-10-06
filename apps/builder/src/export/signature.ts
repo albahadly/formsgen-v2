@@ -284,10 +284,14 @@ window.fgSignClear = function (root) { fgSignSync(root, function () { return nul
     // Signature pads: run by a script on the form's root (FgSignatureScript),
     // which reports each change here as a PNG data URL (null when cleared).
     private readonly Dictionary<string, List<FgUpload>> fgSignLists = new();
+    // The pads rendered this time; entries of elements no longer rendered
+    // (removed items, fields hidden again) go after each render.
+    private readonly HashSet<string> fgSignLive = new();
 
     private string FgSignKey(List<FgUpload> list, string key)
     {
         fgSignLists[key] = list;
+        fgSignLive.Add(key);
         return key;
     }
 
@@ -321,6 +325,8 @@ window.fgSignClear = function (root) { fgSignSync(root, function () { return nul
 
     private async Task FgSignShowValues()
     {
+        foreach (var key in fgSignLists.Keys.Where(key => !fgSignLive.Contains(key)).ToList()) fgSignLists.Remove(key);
+        fgSignLive.Clear();
         if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgSignSet", fgFormRoot, fgSelf, fgSignLists.Where(entry => entry.Value.Count > 0).Select(entry => entry.Key).ToArray());
     }

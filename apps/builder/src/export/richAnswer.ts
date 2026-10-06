@@ -213,10 +213,14 @@ window.fgRichSet = function (root, values) {
     // editors after every render (a reset, saved answers, an editor shown
     // again by a step or a condition).
     private readonly Dictionary<string, (Action<string> Set, string Value)> fgRich = new();
+    // The editors rendered this time; entries of elements no longer
+    // rendered (removed items, fields hidden again) go after each render.
+    private readonly HashSet<string> fgRichLive = new();
 
     private string FgRichKey(string key, Action<string> set, string value)
     {
         fgRich[key] = (set, value);
+        fgRichLive.Add(key);
         return key;
     }
 
@@ -240,6 +244,8 @@ window.fgRichSet = function (root, values) {
 
     private async Task FgRichShowValues()
     {
+        foreach (var key in fgRich.Keys.Where(key => !fgRichLive.Contains(key)).ToList()) fgRich.Remove(key);
+        fgRichLive.Clear();
         if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgRichSet", fgFormRoot, fgRich.ToDictionary(entry => entry.Key, entry => entry.Value.Value));
     }

@@ -64,6 +64,9 @@ describe('rich text in the exports', () => {
     const razor = out('blazor')
     expect(razor).toContain(`data-fg-richtext='@FgRichKey("About", v => Model.About = v, Model.About)'`)
     expect(razor).toContain('public void FgRichChanged(string key, string html)')
+    // Entries of editors no longer rendered go after each render.
+    expect(razor).toContain('fgRichLive.Add(key)')
+    expect(razor).toContain('foreach (var key in fgRich.Keys.Where(key => !fgRichLive.Contains(key)).ToList()) fgRich.Remove(key);')
     expect(razor).toContain('@(FgOr(FgRichPlain(Model.About), "nothing"))')
     expect(out('vue-standalone')).toContain(`{{ fgOr(fgRichPlain(form.about), 'nothing') }}`)
   })

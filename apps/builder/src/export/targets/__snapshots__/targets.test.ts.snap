@@ -2410,10 +2410,14 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
     // Signature pads: run by a script on the form's root (FgSignatureScript),
     // which reports each change here as a PNG data URL (null when cleared).
     private readonly Dictionary<string, List<FgUpload>> fgSignLists = new();
+    // The pads rendered this time; entries of elements no longer rendered
+    // (removed items, fields hidden again) go after each render.
+    private readonly HashSet<string> fgSignLive = new();
 
     private string FgSignKey(List<FgUpload> list, string key)
     {
         fgSignLists[key] = list;
+        fgSignLive.Add(key);
         return key;
     }
 
@@ -2647,6 +2651,8 @@ window.fgSignClear = function (root) { fgSignSync(root, function () { return nul
 
     private async Task FgSignShowValues()
     {
+        foreach (var key in fgSignLists.Keys.Where(key => !fgSignLive.Contains(key)).ToList()) fgSignLists.Remove(key);
+        fgSignLive.Clear();
         if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgSignSet", fgFormRoot, fgSelf, fgSignLists.Where(entry => entry.Value.Count > 0).Select(entry => entry.Key).ToArray());
     }
@@ -2656,10 +2662,14 @@ window.fgSignClear = function (root) { fgSignSync(root, function () { return nul
     // editors after every render (a reset, saved answers, an editor shown
     // again by a step or a condition).
     private readonly Dictionary<string, (Action<string> Set, string Value)> fgRich = new();
+    // The editors rendered this time; entries of elements no longer
+    // rendered (removed items, fields hidden again) go after each render.
+    private readonly HashSet<string> fgRichLive = new();
 
     private string FgRichKey(string key, Action<string> set, string value)
     {
         fgRich[key] = (set, value);
+        fgRichLive.Add(key);
         return key;
     }
 
@@ -2832,6 +2842,8 @@ window.fgRichSet = function (root, values) {
 
     private async Task FgRichShowValues()
     {
+        foreach (var key in fgRich.Keys.Where(key => !fgRichLive.Contains(key)).ToList()) fgRich.Remove(key);
+        fgRichLive.Clear();
         if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgRichSet", fgFormRoot, fgRich.ToDictionary(entry => entry.Key, entry => entry.Value.Value));
     }
@@ -2843,10 +2855,14 @@ window.fgRichSet = function (root, values) {
     public sealed record FgLatLng(double Lat, double Lng);
 
     private readonly Dictionary<string, (Action<FgLatLng?> Set, FgLatLng? Value)> fgLoc = new();
+    // The fields rendered this time; entries of elements no longer
+    // rendered (removed items, fields hidden again) go after each render.
+    private readonly HashSet<string> fgLocLive = new();
 
     private string FgLocKey(string key, Action<FgLatLng?> set, FgLatLng? value)
     {
         fgLoc[key] = (set, value);
+        fgLocLive.Add(key);
         return key;
     }
 
@@ -3089,6 +3105,8 @@ window.fgLocSet = function (root, values) {
 
     private async Task FgLocShowValues()
     {
+        foreach (var key in fgLoc.Keys.Where(key => !fgLocLive.Contains(key)).ToList()) fgLoc.Remove(key);
+        fgLocLive.Clear();
         if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgLocSet", fgFormRoot, fgLoc.ToDictionary(entry => entry.Key, entry => entry.Value.Value is null ? null : (object)new { lat = entry.Value.Value.Lat, lng = entry.Value.Value.Lng }));
     }
@@ -5808,10 +5826,14 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
     // Signature pads: run by a script on the form's root (FgSignatureScript),
     // which reports each change here as a PNG data URL (null when cleared).
     private readonly Dictionary<string, List<FgUpload>> fgSignLists = new();
+    // The pads rendered this time; entries of elements no longer rendered
+    // (removed items, fields hidden again) go after each render.
+    private readonly HashSet<string> fgSignLive = new();
 
     private string FgSignKey(List<FgUpload> list, string key)
     {
         fgSignLists[key] = list;
+        fgSignLive.Add(key);
         return key;
     }
 
@@ -6045,6 +6067,8 @@ window.fgSignClear = function (root) { fgSignSync(root, function () { return nul
 
     private async Task FgSignShowValues()
     {
+        foreach (var key in fgSignLists.Keys.Where(key => !fgSignLive.Contains(key)).ToList()) fgSignLists.Remove(key);
+        fgSignLive.Clear();
         if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgSignSet", fgFormRoot, fgSelf, fgSignLists.Where(entry => entry.Value.Count > 0).Select(entry => entry.Key).ToArray());
     }
@@ -6054,10 +6078,14 @@ window.fgSignClear = function (root) { fgSignSync(root, function () { return nul
     // editors after every render (a reset, saved answers, an editor shown
     // again by a step or a condition).
     private readonly Dictionary<string, (Action<string> Set, string Value)> fgRich = new();
+    // The editors rendered this time; entries of elements no longer
+    // rendered (removed items, fields hidden again) go after each render.
+    private readonly HashSet<string> fgRichLive = new();
 
     private string FgRichKey(string key, Action<string> set, string value)
     {
         fgRich[key] = (set, value);
+        fgRichLive.Add(key);
         return key;
     }
 
@@ -6230,6 +6258,8 @@ window.fgRichSet = function (root, values) {
 
     private async Task FgRichShowValues()
     {
+        foreach (var key in fgRich.Keys.Where(key => !fgRichLive.Contains(key)).ToList()) fgRich.Remove(key);
+        fgRichLive.Clear();
         if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgRichSet", fgFormRoot, fgRich.ToDictionary(entry => entry.Key, entry => entry.Value.Value));
     }
@@ -6241,10 +6271,14 @@ window.fgRichSet = function (root, values) {
     public sealed record FgLatLng(double Lat, double Lng);
 
     private readonly Dictionary<string, (Action<FgLatLng?> Set, FgLatLng? Value)> fgLoc = new();
+    // The fields rendered this time; entries of elements no longer
+    // rendered (removed items, fields hidden again) go after each render.
+    private readonly HashSet<string> fgLocLive = new();
 
     private string FgLocKey(string key, Action<FgLatLng?> set, FgLatLng? value)
     {
         fgLoc[key] = (set, value);
+        fgLocLive.Add(key);
         return key;
     }
 
@@ -6487,6 +6521,8 @@ window.fgLocSet = function (root, values) {
 
     private async Task FgLocShowValues()
     {
+        foreach (var key in fgLoc.Keys.Where(key => !fgLocLive.Contains(key)).ToList()) fgLoc.Remove(key);
+        fgLocLive.Clear();
         if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgLocSet", fgFormRoot, fgLoc.ToDictionary(entry => entry.Key, entry => entry.Value.Value is null ? null : (object)new { lat = entry.Value.Value.Lat, lng = entry.Value.Value.Lng }));
     }
@@ -9206,10 +9242,14 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
     // Signature pads: run by a script on the form's root (FgSignatureScript),
     // which reports each change here as a PNG data URL (null when cleared).
     private readonly Dictionary<string, List<FgUpload>> fgSignLists = new();
+    // The pads rendered this time; entries of elements no longer rendered
+    // (removed items, fields hidden again) go after each render.
+    private readonly HashSet<string> fgSignLive = new();
 
     private string FgSignKey(List<FgUpload> list, string key)
     {
         fgSignLists[key] = list;
+        fgSignLive.Add(key);
         return key;
     }
 
@@ -9443,6 +9483,8 @@ window.fgSignClear = function (root) { fgSignSync(root, function () { return nul
 
     private async Task FgSignShowValues()
     {
+        foreach (var key in fgSignLists.Keys.Where(key => !fgSignLive.Contains(key)).ToList()) fgSignLists.Remove(key);
+        fgSignLive.Clear();
         if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgSignSet", fgFormRoot, fgSelf, fgSignLists.Where(entry => entry.Value.Count > 0).Select(entry => entry.Key).ToArray());
     }
@@ -9452,10 +9494,14 @@ window.fgSignClear = function (root) { fgSignSync(root, function () { return nul
     // editors after every render (a reset, saved answers, an editor shown
     // again by a step or a condition).
     private readonly Dictionary<string, (Action<string> Set, string Value)> fgRich = new();
+    // The editors rendered this time; entries of elements no longer
+    // rendered (removed items, fields hidden again) go after each render.
+    private readonly HashSet<string> fgRichLive = new();
 
     private string FgRichKey(string key, Action<string> set, string value)
     {
         fgRich[key] = (set, value);
+        fgRichLive.Add(key);
         return key;
     }
 
@@ -9628,6 +9674,8 @@ window.fgRichSet = function (root, values) {
 
     private async Task FgRichShowValues()
     {
+        foreach (var key in fgRich.Keys.Where(key => !fgRichLive.Contains(key)).ToList()) fgRich.Remove(key);
+        fgRichLive.Clear();
         if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgRichSet", fgFormRoot, fgRich.ToDictionary(entry => entry.Key, entry => entry.Value.Value));
     }
@@ -9639,10 +9687,14 @@ window.fgRichSet = function (root, values) {
     public sealed record FgLatLng(double Lat, double Lng);
 
     private readonly Dictionary<string, (Action<FgLatLng?> Set, FgLatLng? Value)> fgLoc = new();
+    // The fields rendered this time; entries of elements no longer
+    // rendered (removed items, fields hidden again) go after each render.
+    private readonly HashSet<string> fgLocLive = new();
 
     private string FgLocKey(string key, Action<FgLatLng?> set, FgLatLng? value)
     {
         fgLoc[key] = (set, value);
+        fgLocLive.Add(key);
         return key;
     }
 
@@ -9885,6 +9937,8 @@ window.fgLocSet = function (root, values) {
 
     private async Task FgLocShowValues()
     {
+        foreach (var key in fgLoc.Keys.Where(key => !fgLocLive.Contains(key)).ToList()) fgLoc.Remove(key);
+        fgLocLive.Clear();
         if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgLocSet", fgFormRoot, fgLoc.ToDictionary(entry => entry.Key, entry => entry.Value.Value is null ? null : (object)new { lat = entry.Value.Value.Lat, lng = entry.Value.Value.Lng }));
     }

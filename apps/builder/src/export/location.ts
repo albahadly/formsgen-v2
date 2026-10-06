@@ -320,10 +320,14 @@ window.fgLocSet = function (root, values) {
     public sealed record FgLatLng(double Lat, double Lng);
 
     private readonly Dictionary<string, (Action<FgLatLng?> Set, FgLatLng? Value)> fgLoc = new();
+    // The fields rendered this time; entries of elements no longer
+    // rendered (removed items, fields hidden again) go after each render.
+    private readonly HashSet<string> fgLocLive = new();
 
     private string FgLocKey(string key, Action<FgLatLng?> set, FgLatLng? value)
     {
         fgLoc[key] = (set, value);
+        fgLocLive.Add(key);
         return key;
     }
 
@@ -343,6 +347,8 @@ window.fgLocSet = function (root, values) {
 
     private async Task FgLocShowValues()
     {
+        foreach (var key in fgLoc.Keys.Where(key => !fgLocLive.Contains(key)).ToList()) fgLoc.Remove(key);
+        fgLocLive.Clear();
         if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgLocSet", fgFormRoot, fgLoc.ToDictionary(entry => entry.Key, entry => entry.Value.Value is null ? null : (object)new { lat = entry.Value.Value.Lat, lng = entry.Value.Value.Lng }));
     }

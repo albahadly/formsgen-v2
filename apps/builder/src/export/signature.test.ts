@@ -42,6 +42,9 @@ describe('signature in the exports', () => {
     // The PNG streams to .NET (not one SignalR message, which is capped at 32 KB).
     expect(razor).toContain('[Microsoft.JSInterop.JSInvokable]\n    public async Task FgSigned(string key, Microsoft.JSInterop.IJSStreamReference? stream)')
     expect(razor).toContain("dotnet.invokeMethodAsync('FgSigned', key, file ? DotNet.createJSStreamReference(file) : null)")
+    // Entries of pads no longer rendered go after each render.
+    expect(razor).toContain('fgSignLive.Add(key)')
+    expect(razor).toContain('foreach (var key in fgSignLists.Keys.Where(key => !fgSignLive.Contains(key)).ToList()) fgSignLists.Remove(key);')
     expect(razor).toContain('await FgJs.InvokeVoidAsync("fgSignatures", fgFormRoot, fgSelf);')
     // A pad shown again (a step, a condition) draws the signature the model holds.
     expect(razor).toContain('public string? FgSignData(string key)')
