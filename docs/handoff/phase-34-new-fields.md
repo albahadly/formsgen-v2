@@ -188,8 +188,8 @@ A project-wide review (12 reviewers, each finding judged independently) found th
   - New builder tests: each target's location and spam-check code, signatures, rich text.
   - New server tests: secret required, bad token refused, token not stored, multipart.
 - **Strict compilers:** React `tsc`, `vue-tsc` and the .NET 8 build, with 0 errors and 0 warnings, for each of the four demos and the kitchen sink (rerun after the review fixes).
-- **A fifth demo after the review fixes (wizard):** a steps wizard holding a signature, rich text and a map, a condition that shows a second map, and a reset; identical in all 12 runtimes. The scenario:
-  1. Three long strokes across the pad (a 43 KB PNG, over Blazor Server's 32 KB message size), bold text, typed coordinates.
+- **A fifth demo after the review fixes (wizard):** a steps wizard holding a signature, rich text and a map, a condition that shows a second map, and a reset; identical in all 12 runtimes, with two expected differences: the signature PNG's byte size (the pad is a different width in each CSS flavour) and Blazor's editor showing the cleaned `<strong>` for the typed `<b>` after a re-render. The scenario:
+  1. Three long strokes across the pad (a 28–43 KB PNG, 38–57 KB as the base64 text one message used to carry: over Blazor Server's 32 KB message size), bold text, typed coordinates.
   2. Next, then Back: the step is rendered again and the pad still shows the ink, the editor its HTML, the boxes and the pin the point.
   3. A checkbox shows the second map; unchecking hides it; checking again brings it back with its coordinates and pin.
   4. Submit from step 2: the server got the PNG (multipart) and every answer.
