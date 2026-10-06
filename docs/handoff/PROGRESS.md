@@ -18,26 +18,22 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
   tests); strict compiles 0 errors 0 warnings for the kitchen sink and the
   five demos; 12-runtime matrices identical for the signature, rich-text,
   location, spam-check and wizard demos.
-- **Now:** adding the persistent memory (`CLAUDE.md`, this file) and
-  moving the verification toolkit from the session scratchpad into
-  `tools/proof/` so it survives session expiry.
+- **Memory and toolkit (2026-10-06):** `CLAUDE.md` + this file are the
+  session memory; the verification toolkit lives in `tools/proof/` (see
+  its README) and was proven from a cold start: setup, export, strict
+  compiles, the 12-runtime wizard matrix (all identical) and the builder
+  browser check all pass from the repository copy.
 
 ## In flight
 
-- `tools/proof/` port in progress: `tools/proof/README.md`, the lint rule
-  for `tools/proof/**` and the ignore rules are written; the scripts,
-  harnesses, Blazor host template, e2e scenarios and demo schemas are being
-  ported from the scratchpad (sources were copied to the session scratchpad
-  `toolkit-src/`; if that is gone, the originals are described in
-  `phase-34-new-fields.md` → "How to verify" and the README's contract).
-  Then: cold-start proof on the wizard demo, `pnpm verify`, commit, push.
+- Nothing. No uncommitted work, no running checks.
 
 ## Next steps (in order)
 
-1. Finish `tools/proof/` (setup, export-demo, strict, run-matrix, e2e
-   scripts for demos a–e, builder check, demo schemas, Blazor host
-   template, README); prove it from a cold start on one demo; commit; push.
-2. Then the open backlog, in the user's order of choice (see below).
+1. Nothing is in progress. Pick the next item with the user: the open
+   backlog below, or a new phase (35) following the Phase Standard. For
+   any new feature, add a demo + scenario to `tools/proof/` and run the
+   four steps (README there).
 
 ## Open backlog (pointer)
 
@@ -66,8 +62,11 @@ and, for the spam demo, `TURNSTILE_SECRET=1x0000000000000000000000000000000AA no
 ## Log (newest first)
 
 - **2026-10-06** — User rule added: keep progress memory in the project.
-  Wrote `CLAUDE.md` and this file; porting the scratchpad toolkit into
-  `tools/proof/`.
+  Wrote `CLAUDE.md` and this file (`6281e04`), then moved the verification
+  toolkit from the scratchpad into `tools/proof/` (setup, export-demo,
+  strict, run-matrix, five scenarios + demo schemas, Blazor host template,
+  builder check) and proved it cold: wizard demo identical in 12/12
+  runtimes, strict compiles clean, builder check green.
 - **2026-10-06** — Review wrap-up merged to `main` (`29f0817`, `44cae87`,
   `7831f23`): 60 findings fixed, handoff updated, matrices and strict
   compiles rerun, verify green. Judge workflow confirmed findings 1–12

@@ -1,0 +1,17 @@
+{
+  "name": "formsgen-proof-toolkit",
+  "private": true,
+  "type": "module",
+  "description": "Verification toolkit for FormsGen v2: harness dependencies for the React/Vue bundles and the Playwright e2e scripts. Not part of the pnpm workspace; installed with `npm install` by setup.sh.",
+  "dependencies": {
+    "esbuild": "^0.25.0",
+    "playwright": "1.56.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "~5.7.2"
+  }
+}

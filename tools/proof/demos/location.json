@@ -1,0 +1,13 @@
+{
+ "$schema": "formsgen/v2",
+ "meta": { "name": "loc_demo", "title": "Pick-up", "locale": "en", "dir": "ltr", "saveDraft": true, "submit": { "url": "http://FG_HOST:4280/submit", "method": "POST" } },
+ "tree": [
+  { "id": "who", "type": "text", "name": "full_name", "props": { "label": "Full name" } },
+  { "id": "place", "type": "location", "name": "place", "props": { "label": "Pick-up point", "lat": 23.588, "lng": 58.3829, "zoom": 11, "height": 240 }, "validation": [{ "rule": "required" }] },
+  { "id": "echo", "type": "paragraph", "props": { "text": "Meet at: {place|not chosen}" } },
+  { "id": "far", "type": "paragraph", "props": { "text": "A place was chosen." }, "conditions": [[{ "field": "place", "operator": "not-empty" }]] },
+  { "id": "stops", "type": "repeater", "name": "stops", "props": { "label": "Stops", "itemLabel": "Stop {n}", "addText": "Add stop", "minItems": 0, "maxItems": 2, "initialItems": 0 },
+    "children": [ { "id": "spot", "type": "location", "name": "spot", "props": { "label": "Stop", "myLocation": false, "height": 180 } } ] },
+  { "id": "reset", "type": "button", "props": { "text": "Start over", "action": "reset", "variant": "secondary" } }
+ ]
+}

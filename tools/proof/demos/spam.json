@@ -1,0 +1,8 @@
+{
+ "$schema": "formsgen/v2",
+ "meta": { "name": "spam_demo", "title": "Contact", "locale": "en", "dir": "ltr", "captcha": { "provider": "turnstile", "siteKey": "1x00000000000000000000AA" }, "submit": { "url": "http://FG_HOST:4281/submit", "method": "POST" } },
+ "tree": [
+  { "id": "who", "type": "text", "name": "full_name", "props": { "label": "Full name" }, "validation": [{ "rule": "required" }] },
+  { "id": "msg", "type": "textarea", "name": "message", "props": { "label": "Message" } }
+ ]
+}

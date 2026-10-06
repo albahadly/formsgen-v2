@@ -194,7 +194,7 @@ A project-wide review (12 reviewers, each finding judged independently) found th
   3. A checkbox shows the second map; unchecking hides it; checking again brings it back with its coordinates and pin.
   4. Submit from step 2: the server got the PNG (multipart) and every answer.
   5. Start over: everything empties, the pad included.
-- **Each demo in 12 runtimes:** HTML, React, Vue and Blazor, each in vanilla, Tailwind and Bootstrap 5. The results are compared with plain HTML.
+- **Each demo in 12 runtimes:** HTML, React, Vue and Blazor, each in vanilla, Tailwind and Bootstrap 5. The results are compared with plain HTML. The demo schemas, scenario scripts and runners are in `tools/proof/` (see its README) since the review; rerun with `export-demo.sh` → `strict.sh` → `run-matrix.sh`.
   - **Signature:** required check, drawing, typed name, Clear, pads in new items, reset, then a multipart post to the sample server with both PNGs.
   - **Rich text:** required check, bold, list, link and paste, item editors, answers in text, saved answers after a reload, reset, a sandboxed YouTube iframe (with the http one removed), and the stored value.
   - **Location:** the map loads from cdnjs with its tiles and credit, and the required check works. The scenario:

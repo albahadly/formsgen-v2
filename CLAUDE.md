@@ -72,8 +72,8 @@ Blazor × vanilla, Tailwind, Bootstrap 5) lives in `tools/proof/`; read its
 `README.md`. In short:
 
 - `tools/proof/setup.sh` — one-time per container: installs the harness
-  deps (React, esbuild, Playwright) under `tools/proof/node_modules` and
-  restores the Blazor host project.
+  deps (React, esbuild, Playwright) under `tools/proof/node_modules` with
+  npm and checks node, dotnet and the Chromium path.
 - `tools/proof/export-demo.sh <schema.json> <outdir>` — writes the 12
   exports of a schema (uses the builder's own targets through vitest).
 - `tools/proof/strict.sh <outdir> <Component>` — strict compiles.

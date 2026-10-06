@@ -1,0 +1,21 @@
+{
+ "$schema": "formsgen/v2",
+ "meta": { "name": "wiz_demo", "title": "Wizard", "locale": "en", "dir": "ltr", "submit": { "url": "http://FG_HOST:4280/submit", "method": "POST" } },
+ "tree": [
+  { "id": "wiz", "type": "steps", "props": {}, "children": [
+    { "id": "s1", "type": "step", "props": { "label": "You" }, "children": [
+      { "id": "who", "type": "text", "name": "full_name", "props": { "label": "Full name" } },
+      { "id": "sig", "type": "signature", "name": "signature", "props": { "label": "Signature", "height": 160 } },
+      { "id": "about", "type": "richtext", "name": "about", "props": { "label": "About you" } },
+      { "id": "place", "type": "location", "name": "place", "props": { "label": "Where", "lat": 23.588, "lng": 58.3829, "zoom": 11, "height": 200, "myLocation": false } },
+      { "id": "signed", "type": "paragraph", "props": { "text": "Thanks for signing." }, "conditions": [[{ "field": "signature", "operator": "not-empty" }]] },
+      { "id": "more", "type": "checkbox", "name": "more", "props": { "label": "Add a second place" } },
+      { "id": "extra", "type": "location", "name": "extra_place", "props": { "label": "Second place", "lat": 51.5, "lng": -0.12, "zoom": 10, "height": 180, "myLocation": false }, "conditions": [[{ "field": "more", "operator": "equals", "value": true }]] }
+    ] },
+    { "id": "s2", "type": "step", "props": { "label": "Notes" }, "children": [
+      { "id": "notes", "type": "textarea", "name": "notes", "props": { "label": "Notes" } }
+    ] }
+  ] },
+  { "id": "reset", "type": "button", "props": { "text": "Start over", "action": "reset", "variant": "secondary" } }
+ ]
+}

@@ -1,0 +1,12 @@
+{
+ "$schema": "formsgen/v2",
+ "meta": { "name": "sign_demo", "title": "Agreement", "locale": "en", "dir": "ltr", "submit": { "url": "http://FG_HOST:4280/submit", "method": "POST" } },
+ "tree": [
+  { "id": "who", "type": "text", "name": "full_name", "props": { "label": "Full name" } },
+  { "id": "sig", "type": "signature", "name": "signature", "props": { "label": "Your signature", "typing": true, "height": 150 }, "validation": [{ "rule": "required" }] },
+  { "id": "note", "type": "paragraph", "props": { "text": "Signed: {signature|not yet}" } },
+  { "id": "wit", "type": "repeater", "name": "witnesses", "props": { "label": "Witnesses", "itemLabel": "Witness {n}", "addText": "Add witness", "minItems": 1, "maxItems": 2, "initialItems": 1 },
+    "children": [ { "id": "wsig", "type": "signature", "name": "wsig", "props": { "label": "Witness signature", "typing": false, "height": 100 } } ] },
+  { "id": "reset", "type": "button", "props": { "text": "Start over", "action": "reset", "variant": "secondary" } }
+ ]
+}

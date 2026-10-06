@@ -1,0 +1,6 @@
+/* The proof host adds nothing of its own: the exported form brings its CSS
+   (or the framework's CDN stylesheet injected into App.razor). */
+html, body {
+    margin: 0;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}

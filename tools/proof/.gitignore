@@ -1,0 +1,12 @@
+# Harness dependencies (npm install by setup.sh) and per-run work files.
+node_modules/
+work/
+*.log
+# Blazor host build output and the exported components copied in per run.
+blazor-proof/FgProof/bin/
+blazor-proof/FgProof/obj/
+blazor-proof/FgProof/Components/Proof/
+
+# Rendered from the .template files per run.
+blazor-proof/FgProof/Components/App.razor
+blazor-proof/FgProof/Components/Pages/Home.razor

@@ -1,0 +1,13 @@
+{
+ "$schema": "formsgen/v2",
+ "meta": { "name": "rich_demo", "title": "About you", "locale": "en", "dir": "ltr", "saveDraft": true, "submit": { "url": "http://FG_HOST:4280/submit", "method": "POST" } },
+ "tree": [
+  { "id": "who", "type": "text", "name": "full_name", "props": { "label": "Full name" } },
+  { "id": "about", "type": "richtext", "name": "about", "props": { "label": "About you" }, "validation": [{ "rule": "required" }] },
+  { "id": "echo", "type": "paragraph", "props": { "text": "You wrote: {about|nothing yet}" } },
+  { "id": "notes", "type": "repeater", "name": "notes", "props": { "label": "Notes", "itemLabel": "Note {n}", "addText": "Add note", "minItems": 1, "maxItems": 2, "initialItems": 1 },
+    "children": [ { "id": "note", "type": "richtext", "name": "note", "props": { "label": "Note" } } ] },
+  { "id": "video", "type": "html", "props": { "html": "<p>Watch:</p><iframe src=\"https://www.youtube.com/embed/aqz-KE-bpKQ\" width=\"320\" height=\"180\" title=\"Intro video\" allow=\"autoplay; encrypted-media; camera\" allowfullscreen sandbox=\"allow-top-navigation\" onload=\"alert(1)\"></iframe><iframe src=\"http://insecure.example\"></iframe>" } },
+  { "id": "reset", "type": "button", "props": { "text": "Start over", "action": "reset", "variant": "secondary" } }
+ ]
+}

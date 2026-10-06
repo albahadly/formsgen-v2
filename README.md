@@ -28,6 +28,12 @@ pnpm dev        # run the builder app
 pnpm verify     # THE gate: lint + typecheck + test + build (CI runs this)
 ```
 
+Beyond the gate, `tools/proof/` holds the browser-level verification
+toolkit: it exports a demo form in all 12 runtimes, runs the strict
+compilers on them and drives each runtime with the same scenario
+(`tools/proof/README.md`). Session memory for AI-assisted work lives in
+`CLAUDE.md` and `docs/handoff/PROGRESS.md`.
+
 ## Architecture in five sentences
 
 1. Everything revolves around one canonical, versioned JSON format

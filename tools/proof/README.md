@@ -38,7 +38,7 @@ bash tools/proof/strict.sh tools/proof/work/wizard WizDemoForm
 bash tools/proof/run-matrix.sh tools/proof/work/wizard WizDemoForm wiz_demo tools/proof/e2e/wizard.mjs wiz
 ```
 
-`run-matrix.sh` prints one line per runtime (`html-vanilla: IDENTICAL`,
+`run-matrix.sh` bundles the React export with esbuild and the Vue export with Vite for each CSS framework (the strict compilers are `strict.sh`'s job), serves them with `static-server.mjs`, and prints one line per runtime (`html-vanilla: IDENTICAL`,
 `blazor-tailwind: DIFFERS: …`) and `CHECK-DONE` at the end; it also writes
 `<outdir>/matrix.log`, `res-<run>.json` (what the scenario saw),
 `err-<run>.txt` and screenshots under `<outdir>/shots/`. `ONLY=web` runs
@@ -75,10 +75,13 @@ node tools/proof/builder-check.mjs http://$FG_HOST:4186/ tools/proof/work/shots
 ```
 
 The script prints a JSON object: typing in a canvas editor keeps the
-element, clicking a map selects it, number controls clamp, a bad spam-check
-key is not saved and the draft survives a reload, the preview's submit
-enables with the test key, and a new rich-text field in an Arabic form
-starts in Arabic.
+element (`nodesAfterTyping` equals `nodes1`), editors and maps are inert on
+the canvas (`pointer-events: none`), clicking a map selects the element,
+number controls clamp (height 600, zoom 1), a bad spam-check key shows a
+warning and is not saved (`captchaInSchema` null) while the draft survives a
+reload, the preview's submit enables with the test key, and new rich-text,
+signature and location fields in an Arabic form start with Arabic labels
+(`arabicLabels`). Screenshots go to the shots directory.
 
 ## Environment knobs (all optional; `lib.sh` picks defaults)
 
@@ -98,7 +101,7 @@ starts in Arabic.
 - `static-server.mjs` — serves a directory and records `/submit` posts (`/last`, `/mode?delay=&fail=1`).
 - `react-harness/` — tsconfig and `*.css` module declaration for the React exports.
 - `vue-harness/` — Vite config (plugin-vue and Vue from the builder's `node_modules`), `main.ts`, `index.html` template.
-- `blazor-proof/FgProof/` — the .NET 8 Blazor Server host. Exports are copied into `Components/Proof/` (ignored); `App.razor` has a `<!-- FG_HEAD -->` marker and `Pages/Home.razor` a `__COMPONENT__` placeholder that the scripts fill.
+- `blazor-proof/FgProof/` — the .NET 8 Blazor Server host. Exports are copied into `Components/Proof/` (ignored); `Components/App.razor` and `Pages/Home.razor` are rendered per run from their `.template` files (the `<!-- FG_HEAD -->` marker takes the framework's CDN tag, `__COMPONENT__` the form's name).
 - `e2e/` — the scenarios and `_browser.mjs` (browser launch from the environment knobs).
 - `demos/` — the demo schemas.
 - `builder-check.mjs` — the builder's browser check.
