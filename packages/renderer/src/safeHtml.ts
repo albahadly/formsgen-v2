@@ -79,13 +79,26 @@ const NAMED_ENTITIES: Record<string, string> = {
   mdash: '—', ndash: '–', laquo: '«', raquo: '»', times: '×', deg: '°', middot: '·', bull: '•', euro: '€', pound: '£',
 }
 
+// Named entities outside the table are decoded by the browser's own parser
+// when there is one (a detached textarea: text only, nothing runs), so the
+// renderer stores the same value as the exports' script cleaner, which
+// parses with the DOM. Without a DOM (a server) unknown names stay as typed.
+let decoder: HTMLTextAreaElement | null = null
+function domDecode(entity: string): string | null {
+  if (typeof document === 'undefined') return null
+  decoder ??= document.createElement('textarea')
+  decoder.innerHTML = entity
+  const value = decoder.value
+  return value === entity ? null : value
+}
+
 export function decodeEntities(text: string): string {
   return text.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (whole, code: string) => {
     if (code[0] === '#') {
       const n = code[1] === 'x' || code[1] === 'X' ? parseInt(code.slice(2), 16) : parseInt(code.slice(1), 10)
       return n > 0 && n <= 0x10ffff && !(n >= 0xd800 && n <= 0xdfff) ? String.fromCodePoint(n) : '�'
     }
-    return NAMED_ENTITIES[code.toLowerCase()] ?? whole
+    return NAMED_ENTITIES[code] ?? domDecode(whole) ?? NAMED_ENTITIES[code.toLowerCase()] ?? whole
   })
 }
 

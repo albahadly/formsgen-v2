@@ -23,6 +23,7 @@ const INPUTS = [
   '<iframe src="https://x.example">fallback</iframe>after',
   '<!-- note -->Hi<br>there',
   'Plain text with a "quote" & an <unknown>tag</unknown>',
+  '&eacute; &Eacute; &copy; &hellip; &#169; &foo; &AMP; <b>&ndash;</b>',
 ]
 
 describe('rich text in the exports', () => {

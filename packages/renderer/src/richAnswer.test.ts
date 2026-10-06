@@ -22,6 +22,8 @@ const RICH_CASES: [string, string][] = [
   ['<p><br></p><div> </div>', ''],
   ['<ul><li></li></ul>', '<ul><li></li></ul>'],
   ['<iframe src="https://x.example">fallback</iframe>after', 'after'],
+  // Named entities decode as in a browser (the exports clean with the DOM).
+  ['<p>&eacute; &Eacute; &copy; &foo;</p>', '<p>é É © &amp;foo;</p>'],
 ]
 
 describe('rich-text answers', () => {

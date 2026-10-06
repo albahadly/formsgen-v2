@@ -18,6 +18,10 @@ function out(nodes: HtmlNode[]): string {
 const clean = (html: string): string => out(parseSafeHtml(html))
 
 describe('parseSafeHtml', () => {
+  it('decodes every named entity the browser knows; unknown names stay as typed', () => {
+    expect(clean('<p>&eacute;&Eacute; &copy; &hellip; &#169; &foo; &AMP;</p>')).toBe('<p>éÉ © … © &amp;foo; &amp;</p>')
+  })
+
   it('keeps ordinary markup, attributes and entities', () => {
     expect(clean('<h3 class="x">Hours</h3><p>Mon&ndash;Fri <b>9&amp;5</b><br/>Sat: <i>closed</i></p>')).toBe(
       '<h3 class="x">Hours</h3><p>Mon–Fri <b>9&amp;5</b><br>Sat: <i>closed</i></p>',
