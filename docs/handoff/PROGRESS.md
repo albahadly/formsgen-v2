@@ -61,6 +61,10 @@ and, for the spam demo, `TURNSTILE_SECRET=1x0000000000000000000000000000000AA no
 
 ## Log (newest first)
 
+- **2026-10-06** — CI fix: `pnpm/action-setup@v4` refuses a `version` input
+  when `package.json` has `packageManager` (added by the review fixes); the
+  workflow now takes the version from `package.json` only.
+
 - **2026-10-06** — Phase 35 (review backlog round) done and pushed: 35e,
   35d, 35a, 35c, 35b with handoff. The proof's three takes caught tsc
   errors in the typed runtimes and a race in the first pruning design.
