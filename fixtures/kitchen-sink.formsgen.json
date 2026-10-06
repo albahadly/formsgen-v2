@@ -5,7 +5,8 @@
     "title": "Kitchen Sink",
     "description": "Grows with every phase: every implemented element, rule, condition and container pattern appears here at least once.",
     "locale": "en",
-    "dir": "ltr"
+    "dir": "ltr",
+    "captcha": { "provider": "turnstile", "siteKey": "1x00000000000000000000AA" }
   },
   "tree": [
     {

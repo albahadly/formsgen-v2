@@ -1,5 +1,5 @@
 import { flushPromises, mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
 import kitchenSink from '../../../../fixtures/kitchen-sink.formsgen.json'
 import { parseFormSchema } from '../parse'
@@ -15,6 +15,24 @@ function fixtureSchema(): FormSchema {
 }
 
 const mountForm = () => mount(FormsGenForm, { props: { schema: fixtureSchema() } })
+
+// The kitchen sink has a spam check (meta.captcha): a stand-in for
+// window.turnstile passes it as soon as the widget renders, so submits go
+// through; the token travels with the answers as cf-turnstile-response.
+const CAPTCHA_TOKEN = 'test-token'
+beforeEach(() => {
+  ;(window as { turnstile?: unknown }).turnstile = {
+    render: (_el: HTMLElement, options: Record<string, unknown>) => {
+      ;(options['callback'] as (token: string) => void)(CAPTCHA_TOKEN)
+      return 'w1'
+    },
+    reset: () => {},
+    remove: () => {},
+  }
+})
+afterEach(() => {
+  delete (window as { turnstile?: unknown }).turnstile
+})
 
 const attachment = new File(['%PDF-1.7'], 'cv.pdf', { type: 'application/pdf' })
 
@@ -85,6 +103,7 @@ describe('FormsGenForm', () => {
     expect(emitted).toHaveLength(1)
     const payload = emitted![0]![0] as Record<string, unknown>
     expect(payload).toEqual({
+      'cf-turnstile-response': CAPTCHA_TOKEN,
       full_name: 'Jane Doe',
       email: 'jane@example.com',
       website: '',

@@ -1130,7 +1130,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
               }
               @if (fgSec_ks_wizard == 1)
               {
-                  <button class="btn btn-primary" type="submit">Submit</button>
+                  <button class="btn btn-primary" type="submit" disabled='@(fgCaptchaToken == "")' aria-describedby='@(fgCaptchaToken == "" && !fgCaptchaFailed ? "fg_captcha_hint" : null)'>Submit</button>
               }
             </div>
           </div>
@@ -1156,6 +1156,17 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         <div class="col-12 col-md-12">
           <button type="button" class="btn btn-outline-secondary" @onclick="FgReset">Start over</button>
         </div>
+    </div>
+    <div class="mt-3 d-flex flex-column gap-1">
+        <div @ref="fgCaptchaEl"></div>
+        @if (fgCaptchaFailed)
+        {
+            <p class="invalid-feedback d-block mt-0">The check didn't load. Reload the page to try again.</p>
+        }
+        else if (fgCaptchaToken == "")
+        {
+            <p id="fg_captcha_hint" class="small text-body-secondary mb-0">The form can be sent once the check above has passed.</p>
+        }
     </div>
     <div class="visually-hidden" role="status" aria-live="polite" aria-atomic="true">@fgAnnouncement</div>
     @if (ResultJson is not null)
@@ -1268,6 +1279,8 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
     private void FgInitEdit()
     {
         fgWire = true;
+        // New elements, a new check.
+        fgCaptchaToken = "";
         fgEdit = new EditContext(Model);
         fgMessages = new ValidationMessageStore(fgEdit);
         fgEdit.OnValidationRequested += (_, _) => FgValidateAll();
@@ -2378,6 +2391,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         await FgJs.InvokeVoidAsync("eval", FgSignatureScript);
         await FgJs.InvokeVoidAsync("eval", FgRichTextScript);
         await FgJs.InvokeVoidAsync("eval", FgLocationScript);
+        await FgJs.InvokeVoidAsync("eval", FgCaptchaScript);
     }
 
     private async Task FgInteropWire()
@@ -2388,6 +2402,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         await FgJs.InvokeVoidAsync("fgSignatures", fgFormRoot, fgSelf);
         await FgJs.InvokeVoidAsync("fgRich", fgFormRoot, fgSelf);
         await FgJs.InvokeVoidAsync("fgLocations", fgFormRoot, fgSelf);
+        await FgJs.InvokeVoidAsync("fgCaptchaWire", fgCaptchaEl, fgSelf);
     }
 
     public void Dispose() => fgSelf?.Dispose();
@@ -3052,6 +3067,69 @@ window.fgLocSet = function (root, values) {
         await FgJs.InvokeVoidAsync("fgLocSet", fgFormRoot, fgLoc.ToDictionary(entry => entry.Key, entry => entry.Value.Value is null ? null : (object)new { lat = entry.Value.Value.Lat, lng = entry.Value.Value.Lng }));
     }
 
+    // Spam check (Cloudflare Turnstile): the widget is run by a script
+    // (FgCaptchaScript) that reports each token here; the submit button
+    // waits for one, and each submission sends it once.
+    private ElementReference fgCaptchaEl;
+    private string fgCaptchaToken = "";
+    private bool fgCaptchaFailed;
+
+    private const string FgCaptchaScript = @"// Spam check (Cloudflare Turnstile): onToken(token, failed) runs when the
+// check passes, and with '' when it expires or fails.
+var fgTurnstileWaiting = null
+function fgCaptcha(el, siteKey, lang, onToken) {
+  if (!el || el.fgCaptcha) return
+  el.fgCaptcha = true
+  var w = window
+  var render = function () {
+    if (!el.isConnected) return
+    el.fgCaptchaId = w.turnstile.render(el, {
+      sitekey: siteKey,
+      language: lang,
+      callback: function (token) { onToken(token, false) },
+      'expired-callback': function () { onToken('', false) },
+      'error-callback': function () { onToken('', true) },
+    })
+  }
+  if (w.turnstile) { render(); return }
+  if (!fgTurnstileWaiting) {
+    fgTurnstileWaiting = []
+    var script = document.createElement('script')
+    // Cloudflare changes this file in place: no integrity hash is possible.
+    script.src = ""https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit""
+    script.onload = function () {
+      var waiting = fgTurnstileWaiting
+      fgTurnstileWaiting = null
+      waiting.forEach(function (pair) { if (w.turnstile) pair[0](); else pair[1]() })
+    }
+    script.onerror = function () {
+      var waiting = fgTurnstileWaiting
+      fgTurnstileWaiting = null
+      waiting.forEach(function (pair) { pair[1]() })
+    }
+    document.head.appendChild(script)
+  }
+  fgTurnstileWaiting.push([render, function () { onToken('', true) }])
+}
+// A token works once: a new check for the next submission.
+function fgCaptchaReset(el) {
+  var w = window
+  if (el && el.fgCaptchaId !== undefined && w.turnstile) w.turnstile.reset(el.fgCaptchaId)
+}
+window.fgCaptchaWire = function (el, dotnet) {
+  fgCaptcha(el, ""1x00000000000000000000AA"", ""en"", function (token, failed) {
+    dotnet.invokeMethodAsync('FgCaptchaToken', token, failed)
+  })
+}";
+
+    [Microsoft.JSInterop.JSInvokable]
+    public void FgCaptchaToken(string token, bool failed)
+    {
+        fgCaptchaToken = token;
+        fgCaptchaFailed = failed;
+        StateHasChanged();
+    }
+
     private static bool FgIsBlank(object? value) => value switch
     {
         null => true,
@@ -3074,8 +3152,17 @@ window.fgLocSet = function (root, values) {
 
     private async Task HandleValidSubmit()
     {
+        if (fgCaptchaToken == "")
+        {
+            await FgAnnounce("The form can be sent once the check above has passed.");
+            return;
+        }
         var parts = new List<(string Path, FgUpload File)>();
         var payload = BuildPayload(parts);
+        payload["cf-turnstile-response"] = fgCaptchaToken;
+        // A token works once: a new check for the next submission.
+        fgCaptchaToken = "";
+        await FgJs.InvokeVoidAsync("fgCaptchaReset", fgCaptchaEl);
         ResultJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
         await FgAnnounce("Form submitted.");
     }
@@ -4415,7 +4502,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
               }
               @if (fgSec_ks_wizard == 1)
               {
-                  <button class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60" type="submit">Submit</button>
+                  <button class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60" type="submit" disabled='@(fgCaptchaToken == "")' aria-describedby='@(fgCaptchaToken == "" && !fgCaptchaFailed ? "fg_captcha_hint" : null)'>Submit</button>
               }
             </div>
           </div>
@@ -4441,6 +4528,17 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         <div class="col-span-12 md:col-span-12">
           <button type="button" class="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" @onclick="FgReset">Start over</button>
         </div>
+    </div>
+    <div class="mt-4 flex flex-col gap-1">
+        <div @ref="fgCaptchaEl"></div>
+        @if (fgCaptchaFailed)
+        {
+            <p class="text-xs text-red-600">The check didn't load. Reload the page to try again.</p>
+        }
+        else if (fgCaptchaToken == "")
+        {
+            <p id="fg_captcha_hint" class="m-0 text-sm text-gray-600 dark:text-gray-400">The form can be sent once the check above has passed.</p>
+        }
     </div>
     <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">@fgAnnouncement</div>
     @if (ResultJson is not null)
@@ -4553,6 +4651,8 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
     private void FgInitEdit()
     {
         fgWire = true;
+        // New elements, a new check.
+        fgCaptchaToken = "";
         fgEdit = new EditContext(Model);
         fgMessages = new ValidationMessageStore(fgEdit);
         fgEdit.OnValidationRequested += (_, _) => FgValidateAll();
@@ -5663,6 +5763,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         await FgJs.InvokeVoidAsync("eval", FgSignatureScript);
         await FgJs.InvokeVoidAsync("eval", FgRichTextScript);
         await FgJs.InvokeVoidAsync("eval", FgLocationScript);
+        await FgJs.InvokeVoidAsync("eval", FgCaptchaScript);
     }
 
     private async Task FgInteropWire()
@@ -5673,6 +5774,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         await FgJs.InvokeVoidAsync("fgSignatures", fgFormRoot, fgSelf);
         await FgJs.InvokeVoidAsync("fgRich", fgFormRoot, fgSelf);
         await FgJs.InvokeVoidAsync("fgLocations", fgFormRoot, fgSelf);
+        await FgJs.InvokeVoidAsync("fgCaptchaWire", fgCaptchaEl, fgSelf);
     }
 
     public void Dispose() => fgSelf?.Dispose();
@@ -6337,6 +6439,69 @@ window.fgLocSet = function (root, values) {
         await FgJs.InvokeVoidAsync("fgLocSet", fgFormRoot, fgLoc.ToDictionary(entry => entry.Key, entry => entry.Value.Value is null ? null : (object)new { lat = entry.Value.Value.Lat, lng = entry.Value.Value.Lng }));
     }
 
+    // Spam check (Cloudflare Turnstile): the widget is run by a script
+    // (FgCaptchaScript) that reports each token here; the submit button
+    // waits for one, and each submission sends it once.
+    private ElementReference fgCaptchaEl;
+    private string fgCaptchaToken = "";
+    private bool fgCaptchaFailed;
+
+    private const string FgCaptchaScript = @"// Spam check (Cloudflare Turnstile): onToken(token, failed) runs when the
+// check passes, and with '' when it expires or fails.
+var fgTurnstileWaiting = null
+function fgCaptcha(el, siteKey, lang, onToken) {
+  if (!el || el.fgCaptcha) return
+  el.fgCaptcha = true
+  var w = window
+  var render = function () {
+    if (!el.isConnected) return
+    el.fgCaptchaId = w.turnstile.render(el, {
+      sitekey: siteKey,
+      language: lang,
+      callback: function (token) { onToken(token, false) },
+      'expired-callback': function () { onToken('', false) },
+      'error-callback': function () { onToken('', true) },
+    })
+  }
+  if (w.turnstile) { render(); return }
+  if (!fgTurnstileWaiting) {
+    fgTurnstileWaiting = []
+    var script = document.createElement('script')
+    // Cloudflare changes this file in place: no integrity hash is possible.
+    script.src = ""https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit""
+    script.onload = function () {
+      var waiting = fgTurnstileWaiting
+      fgTurnstileWaiting = null
+      waiting.forEach(function (pair) { if (w.turnstile) pair[0](); else pair[1]() })
+    }
+    script.onerror = function () {
+      var waiting = fgTurnstileWaiting
+      fgTurnstileWaiting = null
+      waiting.forEach(function (pair) { pair[1]() })
+    }
+    document.head.appendChild(script)
+  }
+  fgTurnstileWaiting.push([render, function () { onToken('', true) }])
+}
+// A token works once: a new check for the next submission.
+function fgCaptchaReset(el) {
+  var w = window
+  if (el && el.fgCaptchaId !== undefined && w.turnstile) w.turnstile.reset(el.fgCaptchaId)
+}
+window.fgCaptchaWire = function (el, dotnet) {
+  fgCaptcha(el, ""1x00000000000000000000AA"", ""en"", function (token, failed) {
+    dotnet.invokeMethodAsync('FgCaptchaToken', token, failed)
+  })
+}";
+
+    [Microsoft.JSInterop.JSInvokable]
+    public void FgCaptchaToken(string token, bool failed)
+    {
+        fgCaptchaToken = token;
+        fgCaptchaFailed = failed;
+        StateHasChanged();
+    }
+
     private static bool FgIsBlank(object? value) => value switch
     {
         null => true,
@@ -6359,8 +6524,17 @@ window.fgLocSet = function (root, values) {
 
     private async Task HandleValidSubmit()
     {
+        if (fgCaptchaToken == "")
+        {
+            await FgAnnounce("The form can be sent once the check above has passed.");
+            return;
+        }
         var parts = new List<(string Path, FgUpload File)>();
         var payload = BuildPayload(parts);
+        payload["cf-turnstile-response"] = fgCaptchaToken;
+        // A token works once: a new check for the next submission.
+        fgCaptchaToken = "";
+        await FgJs.InvokeVoidAsync("fgCaptchaReset", fgCaptchaEl);
         ResultJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
         await FgAnnounce("Form submitted.");
     }
@@ -7700,7 +7874,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
               }
               @if (fgSec_ks_wizard == 1)
               {
-                  <button class="fg-button fg-button--primary" type="submit">Submit</button>
+                  <button class="fg-button fg-button--primary" type="submit" disabled='@(fgCaptchaToken == "")' aria-describedby='@(fgCaptchaToken == "" && !fgCaptchaFailed ? "fg_captcha_hint" : null)'>Submit</button>
               }
             </div>
           </div>
@@ -7726,6 +7900,17 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <button type="button" class="fg-button fg-button--secondary" @onclick="FgReset">Start over</button>
         </div>
+    </div>
+    <div class="fg-captcha">
+        <div @ref="fgCaptchaEl"></div>
+        @if (fgCaptchaFailed)
+        {
+            <p class="fg-error">The check didn't load. Reload the page to try again.</p>
+        }
+        else if (fgCaptchaToken == "")
+        {
+            <p id="fg_captcha_hint" class="fg-captcha-hint">The form can be sent once the check above has passed.</p>
+        }
     </div>
     <div class="fg-sr-only" role="status" aria-live="polite" aria-atomic="true">@fgAnnouncement</div>
     @if (ResultJson is not null)
@@ -7838,6 +8023,8 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
     private void FgInitEdit()
     {
         fgWire = true;
+        // New elements, a new check.
+        fgCaptchaToken = "";
         fgEdit = new EditContext(Model);
         fgMessages = new ValidationMessageStore(fgEdit);
         fgEdit.OnValidationRequested += (_, _) => FgValidateAll();
@@ -8948,6 +9135,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         await FgJs.InvokeVoidAsync("eval", FgSignatureScript);
         await FgJs.InvokeVoidAsync("eval", FgRichTextScript);
         await FgJs.InvokeVoidAsync("eval", FgLocationScript);
+        await FgJs.InvokeVoidAsync("eval", FgCaptchaScript);
     }
 
     private async Task FgInteropWire()
@@ -8958,6 +9146,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         await FgJs.InvokeVoidAsync("fgSignatures", fgFormRoot, fgSelf);
         await FgJs.InvokeVoidAsync("fgRich", fgFormRoot, fgSelf);
         await FgJs.InvokeVoidAsync("fgLocations", fgFormRoot, fgSelf);
+        await FgJs.InvokeVoidAsync("fgCaptchaWire", fgCaptchaEl, fgSelf);
     }
 
     public void Dispose() => fgSelf?.Dispose();
@@ -9622,6 +9811,69 @@ window.fgLocSet = function (root, values) {
         await FgJs.InvokeVoidAsync("fgLocSet", fgFormRoot, fgLoc.ToDictionary(entry => entry.Key, entry => entry.Value.Value is null ? null : (object)new { lat = entry.Value.Value.Lat, lng = entry.Value.Value.Lng }));
     }
 
+    // Spam check (Cloudflare Turnstile): the widget is run by a script
+    // (FgCaptchaScript) that reports each token here; the submit button
+    // waits for one, and each submission sends it once.
+    private ElementReference fgCaptchaEl;
+    private string fgCaptchaToken = "";
+    private bool fgCaptchaFailed;
+
+    private const string FgCaptchaScript = @"// Spam check (Cloudflare Turnstile): onToken(token, failed) runs when the
+// check passes, and with '' when it expires or fails.
+var fgTurnstileWaiting = null
+function fgCaptcha(el, siteKey, lang, onToken) {
+  if (!el || el.fgCaptcha) return
+  el.fgCaptcha = true
+  var w = window
+  var render = function () {
+    if (!el.isConnected) return
+    el.fgCaptchaId = w.turnstile.render(el, {
+      sitekey: siteKey,
+      language: lang,
+      callback: function (token) { onToken(token, false) },
+      'expired-callback': function () { onToken('', false) },
+      'error-callback': function () { onToken('', true) },
+    })
+  }
+  if (w.turnstile) { render(); return }
+  if (!fgTurnstileWaiting) {
+    fgTurnstileWaiting = []
+    var script = document.createElement('script')
+    // Cloudflare changes this file in place: no integrity hash is possible.
+    script.src = ""https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit""
+    script.onload = function () {
+      var waiting = fgTurnstileWaiting
+      fgTurnstileWaiting = null
+      waiting.forEach(function (pair) { if (w.turnstile) pair[0](); else pair[1]() })
+    }
+    script.onerror = function () {
+      var waiting = fgTurnstileWaiting
+      fgTurnstileWaiting = null
+      waiting.forEach(function (pair) { pair[1]() })
+    }
+    document.head.appendChild(script)
+  }
+  fgTurnstileWaiting.push([render, function () { onToken('', true) }])
+}
+// A token works once: a new check for the next submission.
+function fgCaptchaReset(el) {
+  var w = window
+  if (el && el.fgCaptchaId !== undefined && w.turnstile) w.turnstile.reset(el.fgCaptchaId)
+}
+window.fgCaptchaWire = function (el, dotnet) {
+  fgCaptcha(el, ""1x00000000000000000000AA"", ""en"", function (token, failed) {
+    dotnet.invokeMethodAsync('FgCaptchaToken', token, failed)
+  })
+}";
+
+    [Microsoft.JSInterop.JSInvokable]
+    public void FgCaptchaToken(string token, bool failed)
+    {
+        fgCaptchaToken = token;
+        fgCaptchaFailed = failed;
+        StateHasChanged();
+    }
+
     private static bool FgIsBlank(object? value) => value switch
     {
         null => true,
@@ -9644,8 +9896,17 @@ window.fgLocSet = function (root, values) {
 
     private async Task HandleValidSubmit()
     {
+        if (fgCaptchaToken == "")
+        {
+            await FgAnnounce("The form can be sent once the check above has passed.");
+            return;
+        }
         var parts = new List<(string Path, FgUpload File)>();
         var payload = BuildPayload(parts);
+        payload["cf-turnstile-response"] = fgCaptchaToken;
+        // A token works once: a new check for the next submission.
+        fgCaptchaToken = "";
+        await FgJs.InvokeVoidAsync("fgCaptchaReset", fgCaptchaEl);
         ResultJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
         await FgAnnounce("Form submitted.");
     }
@@ -10961,6 +11222,11 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       <div class="col-12 col-md-12">
         <button type="button" class="btn btn-outline-secondary" data-fg-reset>Start over</button>
       </div>
+    </div>
+    <div class="mt-3 d-flex flex-column gap-1">
+      <div data-fg-captcha></div>
+      <p class="invalid-feedback d-block mt-0" data-fg-captcha-failed hidden>The check didn't load. Reload the page to try again.</p>
+      <p id="fg_captcha_hint" class="small text-body-secondary mb-0" data-fg-captcha-hint>The form can be sent once the check above has passed.</p>
     </div>
     <div id="fg-live" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></div>
     <pre id="fg-result" class="mt-3 p-3 bg-dark text-success rounded small overflow-auto" hidden></pre>
@@ -12673,6 +12939,66 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       validateField(path)
       updateConditions()
     })
+    // Spam check (Cloudflare Turnstile): onToken(token, failed) runs when the
+    // check passes, and with '' when it expires or fails.
+    var fgTurnstileWaiting = null
+    function fgCaptcha(el, siteKey, lang, onToken) {
+      if (!el || el.fgCaptcha) return
+      el.fgCaptcha = true
+      var w = window
+      var render = function () {
+        if (!el.isConnected) return
+        el.fgCaptchaId = w.turnstile.render(el, {
+          sitekey: siteKey,
+          language: lang,
+          callback: function (token) { onToken(token, false) },
+          'expired-callback': function () { onToken('', false) },
+          'error-callback': function () { onToken('', true) },
+        })
+      }
+      if (w.turnstile) { render(); return }
+      if (!fgTurnstileWaiting) {
+        fgTurnstileWaiting = []
+        var script = document.createElement('script')
+        // Cloudflare changes this file in place: no integrity hash is possible.
+        script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+        script.onload = function () {
+          var waiting = fgTurnstileWaiting
+          fgTurnstileWaiting = null
+          waiting.forEach(function (pair) { if (w.turnstile) pair[0](); else pair[1]() })
+        }
+        script.onerror = function () {
+          var waiting = fgTurnstileWaiting
+          fgTurnstileWaiting = null
+          waiting.forEach(function (pair) { pair[1]() })
+        }
+        document.head.appendChild(script)
+      }
+      fgTurnstileWaiting.push([render, function () { onToken('', true) }])
+    }
+    // A token works once: a new check for the next submission.
+    function fgCaptchaReset(el) {
+      var w = window
+      if (el && el.fgCaptchaId !== undefined && w.turnstile) w.turnstile.reset(el.fgCaptchaId)
+    }
+    // The submit button waits for a passed check.
+    var fgCaptchaToken = ''
+    var fgCaptchaEl = form.querySelector('[data-fg-captcha]')
+    function fgCaptchaPaint(failed) {
+      var waiting = fgCaptchaToken === ''
+      Array.prototype.forEach.call(form.querySelectorAll('[data-fg-submit]'), function (button) {
+        button.disabled = waiting
+        if (waiting && !failed) button.setAttribute('aria-describedby', 'fg_captcha_hint')
+        else button.removeAttribute('aria-describedby')
+      })
+      form.querySelector('[data-fg-captcha-hint]').hidden = !waiting || failed
+      form.querySelector('[data-fg-captcha-failed]').hidden = !failed
+    }
+    fgCaptchaPaint(false)
+    fgCaptcha(fgCaptchaEl, "1x00000000000000000000AA", "en", function (token, failed) {
+      fgCaptchaToken = token
+      fgCaptchaPaint(failed)
+    })
     function onFieldEvent(event) {
       updateConditions()
       var path = event.target.getAttribute && event.target.getAttribute('data-fg-path')
@@ -12725,7 +13051,16 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         })
         return
       }
+      if (fgCaptchaToken === '') {
+        fgAnnounce("The form can be sent once the check above has passed.")
+        return
+      }
       var data = buildPayload()
+      data["cf-turnstile-response"] = fgCaptchaToken
+      // A token works once: a new check for the next submission.
+      fgCaptchaToken = ''
+      fgCaptchaReset(fgCaptchaEl)
+      fgCaptchaPaint(false)
       var out = document.getElementById('fg-result')
       out.textContent = JSON.stringify(data, fgFileJson, 2)
       out.hidden = false
@@ -13839,6 +14174,11 @@ exports[`html target > snapshot (tailwind) 1`] = `
       <div class="col-span-12 md:col-span-12">
         <button type="button" class="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-reset>Start over</button>
       </div>
+    </div>
+    <div class="mt-4 flex flex-col gap-1">
+      <div data-fg-captcha></div>
+      <p class="text-xs text-red-600" data-fg-captcha-failed hidden>The check didn't load. Reload the page to try again.</p>
+      <p id="fg_captcha_hint" class="m-0 text-sm text-gray-600 dark:text-gray-400" data-fg-captcha-hint>The form can be sent once the check above has passed.</p>
     </div>
     <div id="fg-live" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
     <pre id="fg-result" class="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300" hidden></pre>
@@ -15551,6 +15891,66 @@ exports[`html target > snapshot (tailwind) 1`] = `
       validateField(path)
       updateConditions()
     })
+    // Spam check (Cloudflare Turnstile): onToken(token, failed) runs when the
+    // check passes, and with '' when it expires or fails.
+    var fgTurnstileWaiting = null
+    function fgCaptcha(el, siteKey, lang, onToken) {
+      if (!el || el.fgCaptcha) return
+      el.fgCaptcha = true
+      var w = window
+      var render = function () {
+        if (!el.isConnected) return
+        el.fgCaptchaId = w.turnstile.render(el, {
+          sitekey: siteKey,
+          language: lang,
+          callback: function (token) { onToken(token, false) },
+          'expired-callback': function () { onToken('', false) },
+          'error-callback': function () { onToken('', true) },
+        })
+      }
+      if (w.turnstile) { render(); return }
+      if (!fgTurnstileWaiting) {
+        fgTurnstileWaiting = []
+        var script = document.createElement('script')
+        // Cloudflare changes this file in place: no integrity hash is possible.
+        script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+        script.onload = function () {
+          var waiting = fgTurnstileWaiting
+          fgTurnstileWaiting = null
+          waiting.forEach(function (pair) { if (w.turnstile) pair[0](); else pair[1]() })
+        }
+        script.onerror = function () {
+          var waiting = fgTurnstileWaiting
+          fgTurnstileWaiting = null
+          waiting.forEach(function (pair) { pair[1]() })
+        }
+        document.head.appendChild(script)
+      }
+      fgTurnstileWaiting.push([render, function () { onToken('', true) }])
+    }
+    // A token works once: a new check for the next submission.
+    function fgCaptchaReset(el) {
+      var w = window
+      if (el && el.fgCaptchaId !== undefined && w.turnstile) w.turnstile.reset(el.fgCaptchaId)
+    }
+    // The submit button waits for a passed check.
+    var fgCaptchaToken = ''
+    var fgCaptchaEl = form.querySelector('[data-fg-captcha]')
+    function fgCaptchaPaint(failed) {
+      var waiting = fgCaptchaToken === ''
+      Array.prototype.forEach.call(form.querySelectorAll('[data-fg-submit]'), function (button) {
+        button.disabled = waiting
+        if (waiting && !failed) button.setAttribute('aria-describedby', 'fg_captcha_hint')
+        else button.removeAttribute('aria-describedby')
+      })
+      form.querySelector('[data-fg-captcha-hint]').hidden = !waiting || failed
+      form.querySelector('[data-fg-captcha-failed]').hidden = !failed
+    }
+    fgCaptchaPaint(false)
+    fgCaptcha(fgCaptchaEl, "1x00000000000000000000AA", "en", function (token, failed) {
+      fgCaptchaToken = token
+      fgCaptchaPaint(failed)
+    })
     function onFieldEvent(event) {
       updateConditions()
       var path = event.target.getAttribute && event.target.getAttribute('data-fg-path')
@@ -15603,7 +16003,16 @@ exports[`html target > snapshot (tailwind) 1`] = `
         })
         return
       }
+      if (fgCaptchaToken === '') {
+        fgAnnounce("The form can be sent once the check above has passed.")
+        return
+      }
       var data = buildPayload()
+      data["cf-turnstile-response"] = fgCaptchaToken
+      // A token works once: a new check for the next submission.
+      fgCaptchaToken = ''
+      fgCaptchaReset(fgCaptchaEl)
+      fgCaptchaPaint(false)
       var out = document.getElementById('fg-result')
       out.textContent = JSON.stringify(data, fgFileJson, 2)
       out.hidden = false
@@ -16937,6 +17346,11 @@ exports[`html target > snapshot (vanilla) 1`] = `
       <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <button type="button" class="fg-button fg-button--secondary" data-fg-reset>Start over</button>
       </div>
+    </div>
+    <div class="fg-captcha">
+      <div data-fg-captcha></div>
+      <p class="fg-error" data-fg-captcha-failed hidden>The check didn't load. Reload the page to try again.</p>
+      <p id="fg_captcha_hint" class="fg-captcha-hint" data-fg-captcha-hint>The form can be sent once the check above has passed.</p>
     </div>
     <div id="fg-live" class="fg-sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
     <pre id="fg-result" class="fg-payload" hidden></pre>
@@ -18649,6 +19063,66 @@ exports[`html target > snapshot (vanilla) 1`] = `
       validateField(path)
       updateConditions()
     })
+    // Spam check (Cloudflare Turnstile): onToken(token, failed) runs when the
+    // check passes, and with '' when it expires or fails.
+    var fgTurnstileWaiting = null
+    function fgCaptcha(el, siteKey, lang, onToken) {
+      if (!el || el.fgCaptcha) return
+      el.fgCaptcha = true
+      var w = window
+      var render = function () {
+        if (!el.isConnected) return
+        el.fgCaptchaId = w.turnstile.render(el, {
+          sitekey: siteKey,
+          language: lang,
+          callback: function (token) { onToken(token, false) },
+          'expired-callback': function () { onToken('', false) },
+          'error-callback': function () { onToken('', true) },
+        })
+      }
+      if (w.turnstile) { render(); return }
+      if (!fgTurnstileWaiting) {
+        fgTurnstileWaiting = []
+        var script = document.createElement('script')
+        // Cloudflare changes this file in place: no integrity hash is possible.
+        script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+        script.onload = function () {
+          var waiting = fgTurnstileWaiting
+          fgTurnstileWaiting = null
+          waiting.forEach(function (pair) { if (w.turnstile) pair[0](); else pair[1]() })
+        }
+        script.onerror = function () {
+          var waiting = fgTurnstileWaiting
+          fgTurnstileWaiting = null
+          waiting.forEach(function (pair) { pair[1]() })
+        }
+        document.head.appendChild(script)
+      }
+      fgTurnstileWaiting.push([render, function () { onToken('', true) }])
+    }
+    // A token works once: a new check for the next submission.
+    function fgCaptchaReset(el) {
+      var w = window
+      if (el && el.fgCaptchaId !== undefined && w.turnstile) w.turnstile.reset(el.fgCaptchaId)
+    }
+    // The submit button waits for a passed check.
+    var fgCaptchaToken = ''
+    var fgCaptchaEl = form.querySelector('[data-fg-captcha]')
+    function fgCaptchaPaint(failed) {
+      var waiting = fgCaptchaToken === ''
+      Array.prototype.forEach.call(form.querySelectorAll('[data-fg-submit]'), function (button) {
+        button.disabled = waiting
+        if (waiting && !failed) button.setAttribute('aria-describedby', 'fg_captcha_hint')
+        else button.removeAttribute('aria-describedby')
+      })
+      form.querySelector('[data-fg-captcha-hint]').hidden = !waiting || failed
+      form.querySelector('[data-fg-captcha-failed]').hidden = !failed
+    }
+    fgCaptchaPaint(false)
+    fgCaptcha(fgCaptchaEl, "1x00000000000000000000AA", "en", function (token, failed) {
+      fgCaptchaToken = token
+      fgCaptchaPaint(failed)
+    })
     function onFieldEvent(event) {
       updateConditions()
       var path = event.target.getAttribute && event.target.getAttribute('data-fg-path')
@@ -18701,7 +19175,16 @@ exports[`html target > snapshot (vanilla) 1`] = `
         })
         return
       }
+      if (fgCaptchaToken === '') {
+        fgAnnounce("The form can be sent once the check above has passed.")
+        return
+      }
       var data = buildPayload()
+      data["cf-turnstile-response"] = fgCaptchaToken
+      // A token works once: a new check for the next submission.
+      fgCaptchaToken = ''
+      fgCaptchaReset(fgCaptchaEl)
+      fgCaptchaPaint(false)
       var out = document.getElementById('fg-result')
       out.textContent = JSON.stringify(data, fgFileJson, 2)
       out.hidden = false
@@ -19323,6 +19806,48 @@ function fgLocSync(root: any, valueOf: (group: HTMLElement) => unknown) {
     var point = fgLocValue(valueOf(group))
     if (!fgLocSame(point, fgLocTyped(group))) fgLocShow(group, point, 'zoom')
   })
+}
+// Spam check (Cloudflare Turnstile): onToken(token, failed) runs when the
+// check passes, and with '' when it expires or fails.
+var fgTurnstileWaiting: any = null
+function fgCaptcha(el: any, siteKey: string, lang: string, onToken: (token: string, failed: boolean) => void) {
+  if (!el || el.fgCaptcha) return
+  el.fgCaptcha = true
+  var w: any = window
+  var render = function () {
+    if (!el.isConnected) return
+    el.fgCaptchaId = w.turnstile.render(el, {
+      sitekey: siteKey,
+      language: lang,
+      callback: function (token: string) { onToken(token, false) },
+      'expired-callback': function () { onToken('', false) },
+      'error-callback': function () { onToken('', true) },
+    })
+  }
+  if (w.turnstile) { render(); return }
+  if (!fgTurnstileWaiting) {
+    fgTurnstileWaiting = []
+    var script = document.createElement('script')
+    // Cloudflare changes this file in place: no integrity hash is possible.
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+    script.onload = function () {
+      var waiting = fgTurnstileWaiting
+      fgTurnstileWaiting = null
+      waiting.forEach(function (pair: any) { if (w.turnstile) pair[0](); else pair[1]() })
+    }
+    script.onerror = function () {
+      var waiting = fgTurnstileWaiting
+      fgTurnstileWaiting = null
+      waiting.forEach(function (pair: any) { pair[1]() })
+    }
+    document.head.appendChild(script)
+  }
+  fgTurnstileWaiting.push([render, function () { onToken('', true) }])
+}
+// A token works once: a new check for the next submission.
+function fgCaptchaReset(el: any) {
+  var w: any = window
+  if (el && el.fgCaptchaId !== undefined && w.turnstile) w.turnstile.reset(el.fgCaptchaId)
 }
 
 type FormData = {
@@ -19978,6 +20503,17 @@ export default function KitchenSinkForm({
     )
   })
 
+  // Spam check: the submit button waits for a passed check.
+  const fgCaptchaEl = useRef<HTMLDivElement>(null)
+  const [fgCaptchaToken, setFgCaptchaToken] = useState('')
+  const [fgCaptchaFailed, setFgCaptchaFailed] = useState(false)
+  useEffect(() => {
+    fgCaptcha(fgCaptchaEl.current, "1x00000000000000000000AA", "en", (token, failed) => {
+      setFgCaptchaToken(token)
+      setFgCaptchaFailed(failed)
+    })
+  }, [])
+
   function fgDualChange(path: string, current: FgRangeValue, side: 'from' | 'to', n: number): void {
     touched.current.add(path)
     setField(path, fgDualClamp(current, side, n))
@@ -20225,6 +20761,14 @@ export default function KitchenSinkForm({
       return
     }
     const data = buildPayload(form)
+    if (fgCaptchaToken === '') {
+      fgAnnounce("The form can be sent once the check above has passed.")
+      return
+    }
+    data["cf-turnstile-response"] = fgCaptchaToken
+    // A token works once: a new check for the next submission.
+    setFgCaptchaToken('')
+    fgCaptchaReset(fgCaptchaEl.current)
     setResult(data)
     fgAnnounce("Form submitted.")
     onSubmit?.(data)
@@ -21306,7 +21850,7 @@ export default function KitchenSinkForm({
             <div className="mt-3 d-flex justify-content-between gap-2">
               {fgSec_ks_wizard > 0 && <button type="button" className="btn btn-outline-secondary" onClick={() => fgGo_ks_wizard(fgSec_ks_wizard - 1)}>Back</button>}
               {fgSec_ks_wizard < 1 && <button type="button" className="btn btn-primary" onClick={fgNext_ks_wizard}>Next</button>}
-              {fgSec_ks_wizard === 1 && <button type="submit" className="btn btn-primary">Submit</button>}
+              {fgSec_ks_wizard === 1 && <button type="submit" className="btn btn-primary" disabled={fgCaptchaToken === ''} aria-describedby={fgCaptchaToken === '' && !fgCaptchaFailed ? 'fg_captcha_hint' : undefined}>Submit</button>}
             </div>
           </div>
         </div>
@@ -21331,6 +21875,10 @@ export default function KitchenSinkForm({
         <div className="col-12 col-md-12">
           <button type="button" className="btn btn-outline-secondary" onClick={fgReset}>Start over</button>
         </div>
+      </div>
+      <div className="mt-3 d-flex flex-column gap-1">
+        <div ref={fgCaptchaEl}></div>
+        {fgCaptchaFailed ? <p className="invalid-feedback d-block mt-0">{"The check didn't load. Reload the page to try again."}</p> : fgCaptchaToken === '' ? <p id="fg_captcha_hint" className="small text-body-secondary mb-0">{"The form can be sent once the check above has passed."}</p> : null}
       </div>
       <div className="visually-hidden" role="status" aria-live="polite" aria-atomic="true">{fgAnnouncement}</div>
       {result && <pre className="mt-3 p-3 bg-dark text-success rounded small overflow-auto">{JSON.stringify(result, fgFileJson, 2)}</pre>}
@@ -21945,6 +22493,48 @@ function fgLocSync(root: any, valueOf: (group: HTMLElement) => unknown) {
     var point = fgLocValue(valueOf(group))
     if (!fgLocSame(point, fgLocTyped(group))) fgLocShow(group, point, 'zoom')
   })
+}
+// Spam check (Cloudflare Turnstile): onToken(token, failed) runs when the
+// check passes, and with '' when it expires or fails.
+var fgTurnstileWaiting: any = null
+function fgCaptcha(el: any, siteKey: string, lang: string, onToken: (token: string, failed: boolean) => void) {
+  if (!el || el.fgCaptcha) return
+  el.fgCaptcha = true
+  var w: any = window
+  var render = function () {
+    if (!el.isConnected) return
+    el.fgCaptchaId = w.turnstile.render(el, {
+      sitekey: siteKey,
+      language: lang,
+      callback: function (token: string) { onToken(token, false) },
+      'expired-callback': function () { onToken('', false) },
+      'error-callback': function () { onToken('', true) },
+    })
+  }
+  if (w.turnstile) { render(); return }
+  if (!fgTurnstileWaiting) {
+    fgTurnstileWaiting = []
+    var script = document.createElement('script')
+    // Cloudflare changes this file in place: no integrity hash is possible.
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+    script.onload = function () {
+      var waiting = fgTurnstileWaiting
+      fgTurnstileWaiting = null
+      waiting.forEach(function (pair: any) { if (w.turnstile) pair[0](); else pair[1]() })
+    }
+    script.onerror = function () {
+      var waiting = fgTurnstileWaiting
+      fgTurnstileWaiting = null
+      waiting.forEach(function (pair: any) { pair[1]() })
+    }
+    document.head.appendChild(script)
+  }
+  fgTurnstileWaiting.push([render, function () { onToken('', true) }])
+}
+// A token works once: a new check for the next submission.
+function fgCaptchaReset(el: any) {
+  var w: any = window
+  if (el && el.fgCaptchaId !== undefined && w.turnstile) w.turnstile.reset(el.fgCaptchaId)
 }
 
 type FormData = {
@@ -22600,6 +23190,17 @@ export default function KitchenSinkForm({
     )
   })
 
+  // Spam check: the submit button waits for a passed check.
+  const fgCaptchaEl = useRef<HTMLDivElement>(null)
+  const [fgCaptchaToken, setFgCaptchaToken] = useState('')
+  const [fgCaptchaFailed, setFgCaptchaFailed] = useState(false)
+  useEffect(() => {
+    fgCaptcha(fgCaptchaEl.current, "1x00000000000000000000AA", "en", (token, failed) => {
+      setFgCaptchaToken(token)
+      setFgCaptchaFailed(failed)
+    })
+  }, [])
+
   function fgDualChange(path: string, current: FgRangeValue, side: 'from' | 'to', n: number): void {
     touched.current.add(path)
     setField(path, fgDualClamp(current, side, n))
@@ -22847,6 +23448,14 @@ export default function KitchenSinkForm({
       return
     }
     const data = buildPayload(form)
+    if (fgCaptchaToken === '') {
+      fgAnnounce("The form can be sent once the check above has passed.")
+      return
+    }
+    data["cf-turnstile-response"] = fgCaptchaToken
+    // A token works once: a new check for the next submission.
+    setFgCaptchaToken('')
+    fgCaptchaReset(fgCaptchaEl.current)
     setResult(data)
     fgAnnounce("Form submitted.")
     onSubmit?.(data)
@@ -23936,7 +24545,7 @@ export default function KitchenSinkForm({
             <div className="mt-4 flex justify-between gap-2">
               {fgSec_ks_wizard > 0 && <button type="button" className="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" onClick={() => fgGo_ks_wizard(fgSec_ks_wizard - 1)}>Back</button>}
               {fgSec_ks_wizard < 1 && <button type="button" className="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60" onClick={fgNext_ks_wizard}>Next</button>}
-              {fgSec_ks_wizard === 1 && <button type="submit" className="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60">Submit</button>}
+              {fgSec_ks_wizard === 1 && <button type="submit" className="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60" disabled={fgCaptchaToken === ''} aria-describedby={fgCaptchaToken === '' && !fgCaptchaFailed ? 'fg_captcha_hint' : undefined}>Submit</button>}
             </div>
           </div>
         </div>
@@ -23961,6 +24570,10 @@ export default function KitchenSinkForm({
         <div className="col-span-12 md:col-span-12">
           <button type="button" className="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" onClick={fgReset}>Start over</button>
         </div>
+      </div>
+      <div className="mt-4 flex flex-col gap-1">
+        <div ref={fgCaptchaEl}></div>
+        {fgCaptchaFailed ? <p className="text-xs text-red-600">{"The check didn't load. Reload the page to try again."}</p> : fgCaptchaToken === '' ? <p id="fg_captcha_hint" className="m-0 text-sm text-gray-600 dark:text-gray-400">{"The form can be sent once the check above has passed."}</p> : null}
       </div>
       <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">{fgAnnouncement}</div>
       {result && <pre className="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300">{JSON.stringify(result, fgFileJson, 2)}</pre>}
@@ -24575,6 +25188,48 @@ function fgLocSync(root: any, valueOf: (group: HTMLElement) => unknown) {
     var point = fgLocValue(valueOf(group))
     if (!fgLocSame(point, fgLocTyped(group))) fgLocShow(group, point, 'zoom')
   })
+}
+// Spam check (Cloudflare Turnstile): onToken(token, failed) runs when the
+// check passes, and with '' when it expires or fails.
+var fgTurnstileWaiting: any = null
+function fgCaptcha(el: any, siteKey: string, lang: string, onToken: (token: string, failed: boolean) => void) {
+  if (!el || el.fgCaptcha) return
+  el.fgCaptcha = true
+  var w: any = window
+  var render = function () {
+    if (!el.isConnected) return
+    el.fgCaptchaId = w.turnstile.render(el, {
+      sitekey: siteKey,
+      language: lang,
+      callback: function (token: string) { onToken(token, false) },
+      'expired-callback': function () { onToken('', false) },
+      'error-callback': function () { onToken('', true) },
+    })
+  }
+  if (w.turnstile) { render(); return }
+  if (!fgTurnstileWaiting) {
+    fgTurnstileWaiting = []
+    var script = document.createElement('script')
+    // Cloudflare changes this file in place: no integrity hash is possible.
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+    script.onload = function () {
+      var waiting = fgTurnstileWaiting
+      fgTurnstileWaiting = null
+      waiting.forEach(function (pair: any) { if (w.turnstile) pair[0](); else pair[1]() })
+    }
+    script.onerror = function () {
+      var waiting = fgTurnstileWaiting
+      fgTurnstileWaiting = null
+      waiting.forEach(function (pair: any) { pair[1]() })
+    }
+    document.head.appendChild(script)
+  }
+  fgTurnstileWaiting.push([render, function () { onToken('', true) }])
+}
+// A token works once: a new check for the next submission.
+function fgCaptchaReset(el: any) {
+  var w: any = window
+  if (el && el.fgCaptchaId !== undefined && w.turnstile) w.turnstile.reset(el.fgCaptchaId)
 }
 
 type FormData = {
@@ -25230,6 +25885,17 @@ export default function KitchenSinkForm({
     )
   })
 
+  // Spam check: the submit button waits for a passed check.
+  const fgCaptchaEl = useRef<HTMLDivElement>(null)
+  const [fgCaptchaToken, setFgCaptchaToken] = useState('')
+  const [fgCaptchaFailed, setFgCaptchaFailed] = useState(false)
+  useEffect(() => {
+    fgCaptcha(fgCaptchaEl.current, "1x00000000000000000000AA", "en", (token, failed) => {
+      setFgCaptchaToken(token)
+      setFgCaptchaFailed(failed)
+    })
+  }, [])
+
   function fgDualChange(path: string, current: FgRangeValue, side: 'from' | 'to', n: number): void {
     touched.current.add(path)
     setField(path, fgDualClamp(current, side, n))
@@ -25477,6 +26143,14 @@ export default function KitchenSinkForm({
       return
     }
     const data = buildPayload(form)
+    if (fgCaptchaToken === '') {
+      fgAnnounce("The form can be sent once the check above has passed.")
+      return
+    }
+    data["cf-turnstile-response"] = fgCaptchaToken
+    // A token works once: a new check for the next submission.
+    setFgCaptchaToken('')
+    fgCaptchaReset(fgCaptchaEl.current)
     setResult(data)
     fgAnnounce("Form submitted.")
     onSubmit?.(data)
@@ -26566,7 +27240,7 @@ export default function KitchenSinkForm({
             <div className="fg-step-actions">
               {fgSec_ks_wizard > 0 && <button type="button" className="fg-button fg-button--secondary" onClick={() => fgGo_ks_wizard(fgSec_ks_wizard - 1)}>Back</button>}
               {fgSec_ks_wizard < 1 && <button type="button" className="fg-button fg-button--primary" onClick={fgNext_ks_wizard}>Next</button>}
-              {fgSec_ks_wizard === 1 && <button type="submit" className="fg-button fg-button--primary">Submit</button>}
+              {fgSec_ks_wizard === 1 && <button type="submit" className="fg-button fg-button--primary" disabled={fgCaptchaToken === ''} aria-describedby={fgCaptchaToken === '' && !fgCaptchaFailed ? 'fg_captcha_hint' : undefined}>Submit</button>}
             </div>
           </div>
         </div>
@@ -26591,6 +27265,10 @@ export default function KitchenSinkForm({
         <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <button type="button" className="fg-button fg-button--secondary" onClick={fgReset}>Start over</button>
         </div>
+      </div>
+      <div className="fg-captcha">
+        <div ref={fgCaptchaEl}></div>
+        {fgCaptchaFailed ? <p className="fg-error">{"The check didn't load. Reload the page to try again."}</p> : fgCaptchaToken === '' ? <p id="fg_captcha_hint" className="fg-captcha-hint">{"The form can be sent once the check above has passed."}</p> : null}
       </div>
       <div className="fg-sr-only" role="status" aria-live="polite" aria-atomic="true">{fgAnnouncement}</div>
       {result && <pre className="fg-payload">{JSON.stringify(result, fgFileJson, 2)}</pre>}
@@ -27457,6 +28135,57 @@ onMounted(() => {
 watch(form, () => {
   void nextTick(() => fgLocSync(fgRoot.value, (group) => fgGet(group.getAttribute('data-fg-loc')!)))
 }, { deep: true })
+// Spam check (Cloudflare Turnstile): onToken(token, failed) runs when the
+// check passes, and with '' when it expires or fails.
+var fgTurnstileWaiting: any = null
+function fgCaptcha(el: any, siteKey: string, lang: string, onToken: (token: string, failed: boolean) => void) {
+  if (!el || el.fgCaptcha) return
+  el.fgCaptcha = true
+  var w: any = window
+  var render = function () {
+    if (!el.isConnected) return
+    el.fgCaptchaId = w.turnstile.render(el, {
+      sitekey: siteKey,
+      language: lang,
+      callback: function (token: string) { onToken(token, false) },
+      'expired-callback': function () { onToken('', false) },
+      'error-callback': function () { onToken('', true) },
+    })
+  }
+  if (w.turnstile) { render(); return }
+  if (!fgTurnstileWaiting) {
+    fgTurnstileWaiting = []
+    var script = document.createElement('script')
+    // Cloudflare changes this file in place: no integrity hash is possible.
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+    script.onload = function () {
+      var waiting = fgTurnstileWaiting
+      fgTurnstileWaiting = null
+      waiting.forEach(function (pair: any) { if (w.turnstile) pair[0](); else pair[1]() })
+    }
+    script.onerror = function () {
+      var waiting = fgTurnstileWaiting
+      fgTurnstileWaiting = null
+      waiting.forEach(function (pair: any) { pair[1]() })
+    }
+    document.head.appendChild(script)
+  }
+  fgTurnstileWaiting.push([render, function () { onToken('', true) }])
+}
+// A token works once: a new check for the next submission.
+function fgCaptchaReset(el: any) {
+  var w: any = window
+  if (el && el.fgCaptchaId !== undefined && w.turnstile) w.turnstile.reset(el.fgCaptchaId)
+}
+const fgCaptchaEl = ref<HTMLElement | null>(null)
+const fgCaptchaToken = ref('')
+const fgCaptchaFailed = ref(false)
+onMounted(() => {
+  fgCaptcha(fgCaptchaEl.value, "1x00000000000000000000AA", "en", (token, failed) => {
+    fgCaptchaToken.value = token
+    fgCaptchaFailed.value = failed
+  })
+})
 
 function fgVisible_attachments_note() {
   return ((!fgIsBlank(form.attachments)))
@@ -28067,6 +28796,14 @@ async function onSubmit(): Promise<void> {
     return
   }
   const data = buildPayload()
+  if (fgCaptchaToken.value === '') {
+    fgAnnounce("The form can be sent once the check above has passed.")
+    return
+  }
+  data["cf-turnstile-response"] = fgCaptchaToken.value
+  // A token works once: a new check for the next submission.
+  fgCaptchaToken.value = ''
+  fgCaptchaReset(fgCaptchaEl.value)
   result.value = data
   fgAnnounce("Form submitted.")
   emit('submit', data)
@@ -29122,7 +29859,7 @@ async function onSubmit(): Promise<void> {
           <div class="mt-3 d-flex justify-content-between gap-2">
             <button v-if="fgSec_ks_wizard > 0" type="button" class="btn btn-outline-secondary" @click="fgGo_ks_wizard(fgSec_ks_wizard - 1)">Back</button>
             <button v-if="fgSec_ks_wizard < 1" type="button" class="btn btn-primary" @click="fgNext_ks_wizard()">Next</button>
-            <button v-if="fgSec_ks_wizard === 1" type="submit" class="btn btn-primary">Submit</button>
+            <button v-if="fgSec_ks_wizard === 1" type="submit" class="btn btn-primary" :disabled="fgCaptchaToken === ''" :aria-describedby="fgCaptchaToken === '' && !fgCaptchaFailed ? 'fg_captcha_hint' : undefined">Submit</button>
           </div>
         </div>
       </div>
@@ -29147,6 +29884,11 @@ async function onSubmit(): Promise<void> {
       <div class="col-12 col-md-12">
         <button type="button" class="btn btn-outline-secondary" @click="fgReset">Start over</button>
       </div>
+    </div>
+    <div class="mt-3 d-flex flex-column gap-1">
+      <div ref="fgCaptchaEl"></div>
+      <p v-if="fgCaptchaFailed" class="invalid-feedback d-block mt-0">The check didn't load. Reload the page to try again.</p>
+      <p v-else-if="fgCaptchaToken === ''" id="fg_captcha_hint" class="small text-body-secondary mb-0">The form can be sent once the check above has passed.</p>
     </div>
     <div class="visually-hidden" role="status" aria-live="polite" aria-atomic="true">{{ fgAnnouncement }}</div>
     <pre v-if="result" class="mt-3 p-3 bg-dark text-success rounded small overflow-auto">{{ JSON.stringify(result, fgFileJson, 2) }}</pre>
@@ -30064,6 +30806,57 @@ onMounted(() => {
 watch(form, () => {
   void nextTick(() => fgLocSync(fgRoot.value, (group) => fgGet(group.getAttribute('data-fg-loc')!)))
 }, { deep: true })
+// Spam check (Cloudflare Turnstile): onToken(token, failed) runs when the
+// check passes, and with '' when it expires or fails.
+var fgTurnstileWaiting: any = null
+function fgCaptcha(el: any, siteKey: string, lang: string, onToken: (token: string, failed: boolean) => void) {
+  if (!el || el.fgCaptcha) return
+  el.fgCaptcha = true
+  var w: any = window
+  var render = function () {
+    if (!el.isConnected) return
+    el.fgCaptchaId = w.turnstile.render(el, {
+      sitekey: siteKey,
+      language: lang,
+      callback: function (token: string) { onToken(token, false) },
+      'expired-callback': function () { onToken('', false) },
+      'error-callback': function () { onToken('', true) },
+    })
+  }
+  if (w.turnstile) { render(); return }
+  if (!fgTurnstileWaiting) {
+    fgTurnstileWaiting = []
+    var script = document.createElement('script')
+    // Cloudflare changes this file in place: no integrity hash is possible.
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+    script.onload = function () {
+      var waiting = fgTurnstileWaiting
+      fgTurnstileWaiting = null
+      waiting.forEach(function (pair: any) { if (w.turnstile) pair[0](); else pair[1]() })
+    }
+    script.onerror = function () {
+      var waiting = fgTurnstileWaiting
+      fgTurnstileWaiting = null
+      waiting.forEach(function (pair: any) { pair[1]() })
+    }
+    document.head.appendChild(script)
+  }
+  fgTurnstileWaiting.push([render, function () { onToken('', true) }])
+}
+// A token works once: a new check for the next submission.
+function fgCaptchaReset(el: any) {
+  var w: any = window
+  if (el && el.fgCaptchaId !== undefined && w.turnstile) w.turnstile.reset(el.fgCaptchaId)
+}
+const fgCaptchaEl = ref<HTMLElement | null>(null)
+const fgCaptchaToken = ref('')
+const fgCaptchaFailed = ref(false)
+onMounted(() => {
+  fgCaptcha(fgCaptchaEl.value, "1x00000000000000000000AA", "en", (token, failed) => {
+    fgCaptchaToken.value = token
+    fgCaptchaFailed.value = failed
+  })
+})
 
 function fgVisible_attachments_note() {
   return ((!fgIsBlank(form.attachments)))
@@ -30674,6 +31467,14 @@ async function onSubmit(): Promise<void> {
     return
   }
   const data = buildPayload()
+  if (fgCaptchaToken.value === '') {
+    fgAnnounce("The form can be sent once the check above has passed.")
+    return
+  }
+  data["cf-turnstile-response"] = fgCaptchaToken.value
+  // A token works once: a new check for the next submission.
+  fgCaptchaToken.value = ''
+  fgCaptchaReset(fgCaptchaEl.value)
   result.value = data
   fgAnnounce("Form submitted.")
   emit('submit', data)
@@ -31737,7 +32538,7 @@ async function onSubmit(): Promise<void> {
           <div class="mt-4 flex justify-between gap-2">
             <button v-if="fgSec_ks_wizard > 0" type="button" class="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" @click="fgGo_ks_wizard(fgSec_ks_wizard - 1)">Back</button>
             <button v-if="fgSec_ks_wizard < 1" type="button" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60" @click="fgNext_ks_wizard()">Next</button>
-            <button v-if="fgSec_ks_wizard === 1" type="submit" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60">Submit</button>
+            <button v-if="fgSec_ks_wizard === 1" type="submit" class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60" :disabled="fgCaptchaToken === ''" :aria-describedby="fgCaptchaToken === '' && !fgCaptchaFailed ? 'fg_captcha_hint' : undefined">Submit</button>
           </div>
         </div>
       </div>
@@ -31762,6 +32563,11 @@ async function onSubmit(): Promise<void> {
       <div class="col-span-12 md:col-span-12">
         <button type="button" class="rounded-md border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50" @click="fgReset">Start over</button>
       </div>
+    </div>
+    <div class="mt-4 flex flex-col gap-1">
+      <div ref="fgCaptchaEl"></div>
+      <p v-if="fgCaptchaFailed" class="text-xs text-red-600">The check didn't load. Reload the page to try again.</p>
+      <p v-else-if="fgCaptchaToken === ''" id="fg_captcha_hint" class="m-0 text-sm text-gray-600 dark:text-gray-400">The form can be sent once the check above has passed.</p>
     </div>
     <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">{{ fgAnnouncement }}</div>
     <pre v-if="result" class="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300">{{ JSON.stringify(result, fgFileJson, 2) }}</pre>
@@ -32654,6 +33460,57 @@ onMounted(() => {
 watch(form, () => {
   void nextTick(() => fgLocSync(fgRoot.value, (group) => fgGet(group.getAttribute('data-fg-loc')!)))
 }, { deep: true })
+// Spam check (Cloudflare Turnstile): onToken(token, failed) runs when the
+// check passes, and with '' when it expires or fails.
+var fgTurnstileWaiting: any = null
+function fgCaptcha(el: any, siteKey: string, lang: string, onToken: (token: string, failed: boolean) => void) {
+  if (!el || el.fgCaptcha) return
+  el.fgCaptcha = true
+  var w: any = window
+  var render = function () {
+    if (!el.isConnected) return
+    el.fgCaptchaId = w.turnstile.render(el, {
+      sitekey: siteKey,
+      language: lang,
+      callback: function (token: string) { onToken(token, false) },
+      'expired-callback': function () { onToken('', false) },
+      'error-callback': function () { onToken('', true) },
+    })
+  }
+  if (w.turnstile) { render(); return }
+  if (!fgTurnstileWaiting) {
+    fgTurnstileWaiting = []
+    var script = document.createElement('script')
+    // Cloudflare changes this file in place: no integrity hash is possible.
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+    script.onload = function () {
+      var waiting = fgTurnstileWaiting
+      fgTurnstileWaiting = null
+      waiting.forEach(function (pair: any) { if (w.turnstile) pair[0](); else pair[1]() })
+    }
+    script.onerror = function () {
+      var waiting = fgTurnstileWaiting
+      fgTurnstileWaiting = null
+      waiting.forEach(function (pair: any) { pair[1]() })
+    }
+    document.head.appendChild(script)
+  }
+  fgTurnstileWaiting.push([render, function () { onToken('', true) }])
+}
+// A token works once: a new check for the next submission.
+function fgCaptchaReset(el: any) {
+  var w: any = window
+  if (el && el.fgCaptchaId !== undefined && w.turnstile) w.turnstile.reset(el.fgCaptchaId)
+}
+const fgCaptchaEl = ref<HTMLElement | null>(null)
+const fgCaptchaToken = ref('')
+const fgCaptchaFailed = ref(false)
+onMounted(() => {
+  fgCaptcha(fgCaptchaEl.value, "1x00000000000000000000AA", "en", (token, failed) => {
+    fgCaptchaToken.value = token
+    fgCaptchaFailed.value = failed
+  })
+})
 
 function fgVisible_attachments_note() {
   return ((!fgIsBlank(form.attachments)))
@@ -33264,6 +34121,14 @@ async function onSubmit(): Promise<void> {
     return
   }
   const data = buildPayload()
+  if (fgCaptchaToken.value === '') {
+    fgAnnounce("The form can be sent once the check above has passed.")
+    return
+  }
+  data["cf-turnstile-response"] = fgCaptchaToken.value
+  // A token works once: a new check for the next submission.
+  fgCaptchaToken.value = ''
+  fgCaptchaReset(fgCaptchaEl.value)
   result.value = data
   fgAnnounce("Form submitted.")
   emit('submit', data)
@@ -34327,7 +35192,7 @@ async function onSubmit(): Promise<void> {
           <div class="fg-step-actions">
             <button v-if="fgSec_ks_wizard > 0" type="button" class="fg-button fg-button--secondary" @click="fgGo_ks_wizard(fgSec_ks_wizard - 1)">Back</button>
             <button v-if="fgSec_ks_wizard < 1" type="button" class="fg-button fg-button--primary" @click="fgNext_ks_wizard()">Next</button>
-            <button v-if="fgSec_ks_wizard === 1" type="submit" class="fg-button fg-button--primary">Submit</button>
+            <button v-if="fgSec_ks_wizard === 1" type="submit" class="fg-button fg-button--primary" :disabled="fgCaptchaToken === ''" :aria-describedby="fgCaptchaToken === '' && !fgCaptchaFailed ? 'fg_captcha_hint' : undefined">Submit</button>
           </div>
         </div>
       </div>
@@ -34352,6 +35217,11 @@ async function onSubmit(): Promise<void> {
       <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <button type="button" class="fg-button fg-button--secondary" @click="fgReset">Start over</button>
       </div>
+    </div>
+    <div class="fg-captcha">
+      <div ref="fgCaptchaEl"></div>
+      <p v-if="fgCaptchaFailed" class="fg-error">The check didn't load. Reload the page to try again.</p>
+      <p v-else-if="fgCaptchaToken === ''" id="fg_captcha_hint" class="fg-captcha-hint">The form can be sent once the check above has passed.</p>
     </div>
     <div class="fg-sr-only" role="status" aria-live="polite" aria-atomic="true">{{ fgAnnouncement }}</div>
     <pre v-if="result" class="fg-payload">{{ JSON.stringify(result, fgFileJson, 2) }}</pre>

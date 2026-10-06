@@ -235,8 +235,9 @@ describe('tabs/steps across code targets', () => {
     expect(html).toContain('var FG_SUBMIT_GATE = ["ks_wizard"]')
     expect(html).not.toContain('<div class="fg-actions">')
     const blazor = generate('blazor')[0]!.content
+    // The kitchen sink has a spam check: the embedded button waits for it too.
     expect(blazor).toMatch(
-      /@if \(fgSec_ks_wizard == 1\)\s*\{\s*<button class="[^"]*" type="submit">Submit<\/button>/,
+      /@if \(fgSec_ks_wizard == 1\)\s*\{\s*<button class="[^"]*" type="submit" disabled='@\(fgCaptchaToken == ""\)'[^>]*>Submit<\/button>/,
     )
   })
 
