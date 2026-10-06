@@ -26,14 +26,30 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
 
 ## In flight
 
-- Nothing. No uncommitted work, no running checks.
+- **Phase 35 — backlog round (the review's deferred items), started
+  2026-10-06 on `main`.** Plan, in order; each lands as its own commit:
+  1. 35e `meta.captcha` in the kitchen-sink fixture (test site key); the
+     renderer form tests get a Turnstile stand-in; export snapshots update.
+  2. 35d entity parity: the renderer's cleaner decodes named entities like
+     the browser parser the exports use (DOM-backed when a DOM exists).
+  3. 35a rich-text toolbar roving tabindex (one tab stop, arrows/Home/End,
+     RTL-aware) in the renderer and the four code targets + scenario step.
+  4. 35c Blazor interop registries forget rich-text/location/signature
+     entries of elements no longer rendered (pruned after each render).
+  5. 35b no explicit `any` in the generated TypeScript (signature, rich
+     text, location, captcha runtimes): typed with small interfaces.
+  6. Handoff `phase-35-backlog-round.md`, INDEX row, this file; proofs:
+     `pnpm verify`, strict compiles (kitchen sink + demos), richtext and
+     wizard matrices through `tools/proof/`.
+- Deliberately still deferred: keyboard drawing on a signature pad when
+  typing is off; Bootstrap 5 contrast on tertiary backgrounds.
+- Uncommitted: nothing yet (plan only).
 
 ## Next steps (in order)
 
-1. Nothing is in progress. Pick the next item with the user: the open
-   backlog below, or a new phase (35) following the Phase Standard. For
-   any new feature, add a demo + scenario to `tools/proof/` and run the
-   four steps (README there).
+1. Work the Phase 35 list above; after each item: tests, commit, update
+   this file.
+2. Then pick the next phase with the user.
 
 ## Open backlog (pointer)
 
