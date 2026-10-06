@@ -1,0 +1,115 @@
+# Verification toolkit (`tools/proof/`)
+
+Everything needed to prove a FormsGen form in all **12 runtimes** (HTML,
+React, Vue standalone and Blazor Server, each in vanilla CSS, Tailwind and
+Bootstrap 5), to run the strict compilers on the exports, and to check the
+builder itself in a browser. It used to live in a session scratchpad and was
+rebuilt every time; now it is part of the repository (see `CLAUDE.md` §5).
+
+Nothing here is part of `pnpm verify`: it needs a browser, the .NET 8 SDK and
+network access to the CDNs the exports use (Leaflet, Tailwind, Turnstile).
+
+## One-time setup (per machine or container)
+
+```sh
+bash tools/proof/setup.sh
+```
+
+Installs React, esbuild, TypeScript and Playwright under
+`tools/proof/node_modules` (not part of the pnpm workspace; `npm install`),
+checks `node` (20+), `dotnet` (8.x) and the Chromium path, and prints the
+host and ports it will use. It never downloads a browser: Playwright uses
+the one named by `PLAYWRIGHT_CHROMIUM` (`/opt/pw-browsers/chromium` in the
+cloud container) or its own bundled one.
+
+## The flow for one demo
+
+```sh
+# 1. a sample server that stores what the form posts (multipart, JSON)
+node packages/submit-server/server.mjs --port 4280 --dir tools/proof/work/subs &
+
+# 2. the 12 exports of a schema (uses the builder's own export targets)
+bash tools/proof/export-demo.sh tools/proof/demos/wizard.json tools/proof/work/wizard
+
+# 3. strict compilers: React tsc, vue-tsc, .NET build (0 errors, 0 warnings)
+bash tools/proof/strict.sh tools/proof/work/wizard WizDemoForm
+
+# 4. drive every runtime with the scenario and compare with HTML vanilla
+bash tools/proof/run-matrix.sh tools/proof/work/wizard WizDemoForm wiz_demo tools/proof/e2e/wizard.mjs wiz
+```
+
+`run-matrix.sh` prints one line per runtime (`html-vanilla: IDENTICAL`,
+`blazor-tailwind: DIFFERS: …`) and `CHECK-DONE` at the end; it also writes
+`<outdir>/matrix.log`, `res-<run>.json` (what the scenario saw),
+`err-<run>.txt` and screenshots under `<outdir>/shots/`. `ONLY=web` runs
+the nine HTML/React/Vue runtimes, `ONLY=blazor` the three Blazor ones (each
+Blazor build takes one to three minutes).
+
+The component name is the form's name in PascalCase plus `Form`
+(`wiz_demo` → `WizDemoForm`); the HTML basename is the form's name.
+
+| Demo | Schema | Scenario | Component | HTML basename | Sample server |
+|---|---|---|---|---|---|
+| Signature pad | `demos/signature.json` | `e2e/signature.mjs` | `SignDemoForm` | `sign_demo` | 4280 |
+| Rich text | `demos/richtext.json` | `e2e/richtext.mjs` | `RichDemoForm` | `rich_demo` | 4280 |
+| Location (map) | `demos/location.json` | `e2e/location.mjs` | `LocDemoForm` | `loc_demo` | 4280 |
+| Spam check (Turnstile) | `demos/spam.json` | `e2e/spam.mjs` | `SpamDemoForm` | `spam_demo` | 4281 with `TURNSTILE_SECRET=1x0000000000000000000000000000000AA` |
+| Wizard (steps + all three fields, re-render, reset) | `demos/wizard.json` | `e2e/wizard.mjs` | `WizDemoForm` | `wiz_demo` | 4280 |
+
+The demo schemas carry the placeholder `FG_HOST` in their submit URL;
+`export-demo.sh` replaces it with the host the browser must use.
+
+Expected, harmless differences: file sizes are normalised before the
+comparison (a signature PNG's byte size depends on the pad's width in each
+CSS flavour and on stroke timing). In the wizard demo, Blazor shows the
+editor the cleaned markup after a re-render (`<strong>` for the typed
+`<b>`); the scenario normalises that too. Anything else that differs is a
+real difference between runtimes.
+
+## Checking the builder itself
+
+```sh
+pnpm --filter @formsgen/builder build
+pnpm --filter @formsgen/builder exec vite preview --port 4186 --host 0.0.0.0 --strictPort &
+node tools/proof/builder-check.mjs http://$FG_HOST:4186/ tools/proof/work/shots
+```
+
+The script prints a JSON object: typing in a canvas editor keeps the
+element, clicking a map selects it, number controls clamp, a bad spam-check
+key is not saved and the draft survives a reload, the preview's submit
+enables with the test key, and a new rich-text field in an Arabic form
+starts in Arabic.
+
+## Environment knobs (all optional; `lib.sh` picks defaults)
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `FG_HOST` | `192.0.2.2` when `HTTPS_PROXY` is set, else `127.0.0.1` | How the browser reaches servers on this machine. In the cloud container, localhost is not reachable from the browser. |
+| `FG_STATIC_PORT` | 4180 | `static-server.mjs` serving the exports |
+| `FG_BLAZOR_PORT` | 5139 | the Blazor host |
+| `FG_SUBMIT_PORT` / `FG_CAPTCHA_PORT` | 4280 / 4281 | the sample servers the scenarios read back from |
+| `PLAYWRIGHT_CHROMIUM` | `/opt/pw-browsers/chromium` when present | the browser binary |
+| `HTTPS_PROXY`, `PROXY_CA_SPKI` | from the environment / computed | when set, the browser uses the proxy for the CDNs and trusts its CA (`--ignore-certificate-errors-spki-list`), bypassing it for `FG_HOST` |
+
+## Layout
+
+- `lib.sh` — shared defaults and helpers (`start_bg`, `stop_bg`, `wait_http`); sourced by the scripts.
+- `setup.sh`, `export-demo.sh`, `strict.sh`, `run-matrix.sh` — the four steps above.
+- `static-server.mjs` — serves a directory and records `/submit` posts (`/last`, `/mode?delay=&fail=1`).
+- `react-harness/` — tsconfig and `*.css` module declaration for the React exports.
+- `vue-harness/` — Vite config (plugin-vue and Vue from the builder's `node_modules`), `main.ts`, `index.html` template.
+- `blazor-proof/FgProof/` — the .NET 8 Blazor Server host. Exports are copied into `Components/Proof/` (ignored); `App.razor` has a `<!-- FG_HEAD -->` marker and `Pages/Home.razor` a `__COMPONENT__` placeholder that the scripts fill.
+- `e2e/` — the scenarios and `_browser.mjs` (browser launch from the environment knobs).
+- `demos/` — the demo schemas.
+- `builder-check.mjs` — the builder's browser check.
+- `work/` — outputs, logs, pids, screenshots (ignored).
+
+## Adding a demo for a new feature
+
+1. Write `demos/<name>.json` (a small form around the feature, submit URL
+   `http://FG_HOST:4280/submit`).
+2. Write `e2e/<name>.mjs` with the same shape as the others: `argv = [url,
+   kind, shot]`, drive the scenario, print one JSON object of what you saw,
+   keep runtime-specific waits behind `kind === 'blazor'`.
+3. Run the four steps; the comparison against HTML vanilla is the proof.
+4. Record the scenario in the phase handoff's "How to verify".

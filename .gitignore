@@ -5,3 +5,7 @@ coverage/
 .DS_Store
 .eslintcache
 *.tsbuildinfo
+# verification toolkit work files (tools/proof)
+tools/proof/work/
+apps/builder/src/__proof__/
+apps/builder/src/export/targets/__proof_dump.test.ts

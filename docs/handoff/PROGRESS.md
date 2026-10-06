@@ -24,8 +24,13 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
 
 ## In flight
 
-- `tools/proof/` port in progress (this commit series). Nothing else is
-  uncommitted or running.
+- `tools/proof/` port in progress: `tools/proof/README.md`, the lint rule
+  for `tools/proof/**` and the ignore rules are written; the scripts,
+  harnesses, Blazor host template, e2e scenarios and demo schemas are being
+  ported from the scratchpad (sources were copied to the session scratchpad
+  `toolkit-src/`; if that is gone, the originals are described in
+  `phase-34-new-fields.md` → "How to verify" and the README's contract).
+  Then: cold-start proof on the wizard demo, `pnpm verify`, commit, push.
 
 ## Next steps (in order)
 
