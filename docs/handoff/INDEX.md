@@ -1,6 +1,7 @@
 # Phase Handoff Index
 
 Read the latest handoff before starting any phase (Phase Standard, REBUILD_PROMPT.md §11).
+Between handoffs, the live session memory is [PROGRESS.md](./PROGRESS.md) (what is in flight and the next step; see `CLAUDE.md`).
 
 | Phase | Name | Status | Handoff |
 |---|---|---|---|
