@@ -32,12 +32,49 @@ export const hasLocation = (nodes: ElementNode[]): boolean =>
 /** The location runtime (ES5; `ts` adds the annotations strict TypeScript needs). */
 export function locationRuntime(messages: MessageCatalog, ts: boolean): string {
   const t = (annotation: string): string => (ts ? annotation : '')
-  const any = ts ? ': any' : ''
+  const cast = (expr: string, type: string): string => (ts ? `(${expr} as ${type})` : expr)
   return `// Location fields: a map (Leaflet, OpenStreetMap tiles by default), the
 // coordinate boxes, "Use my location" and Clear; the value is { lat, lng } or null.
-var fgLeafletWaiting${any} = null
-function fgLoadLeaflet(done${t(': (L: any) => void')}, fail${t(': () => void')}) {
-  var w${any} = window
+${t(`// The small part of Leaflet used here.
+interface FgLeafletPoint { lat: number; lng: number; wrap(): FgLeafletPoint }
+interface FgLeafletLayer { addTo(map: FgLeafletMap): FgLeafletLayer }
+interface FgLeafletMarker extends FgLeafletLayer {
+  addTo(map: FgLeafletMap): FgLeafletMarker
+  setLatLng(point: [number, number]): FgLeafletMarker
+  getLatLng(): FgLeafletPoint
+  remove(): void
+  on(event: 'dragend', handler: () => void): void
+}
+interface FgLeafletMap {
+  on(event: 'click', handler: (event: { latlng: FgLeafletPoint }) => void): void
+  setView(point: [number, number], zoom: number): void
+  panTo(point: [number, number]): void
+  getZoom(): number
+  invalidateSize(): void
+  remove(): void
+}
+interface FgLeaflet {
+  map(el: HTMLElement, options: Record<string, unknown>): FgLeafletMap
+  tileLayer(url: string, options: Record<string, unknown>): FgLeafletLayer
+  divIcon(options: Record<string, unknown>): unknown
+  marker(point: [number, number], options: Record<string, unknown>): FgLeafletMarker
+}
+type FgLeafletWindow = Window & { L?: FgLeaflet }
+type FgLatLng = { lat: number; lng: number }
+interface FgLocState {
+  map: FgLeafletMap | null
+  marker: FgLeafletMarker | null
+  L?: FgLeaflet
+  start?: [number, number, number]
+  icon?: unknown
+  resizer?: ResizeObserver
+  pick?: (at: FgLeafletPoint) => void
+}
+type FgLocGroup = HTMLElement & { fgLocMap?: FgLocState | null }
+type FgLocRoot = HTMLElement & { fgLocWired?: boolean }
+`)}var fgLeafletWaiting${t(': [(L: FgLeaflet) => void, () => void][] | null')} = null
+function fgLoadLeaflet(done${t(': (L: FgLeaflet) => void')}, fail${t(': () => void')}) {
+  var w = window${t(' as FgLeafletWindow')}
   if (w.L) { done(w.L); return }
   if (!fgLeafletWaiting) {
     fgLeafletWaiting = []
@@ -57,7 +94,7 @@ function fgLoadLeaflet(done${t(': (L: any) => void')}, fail${t(': () => void')})
     var settle = function (ok${t(': boolean')}) {
       var waiting = fgLeafletWaiting
       fgLeafletWaiting = null
-      waiting.forEach(function (pair${any}) { if (ok && w.L) pair[0](w.L); else pair[1]() })
+      if (waiting) waiting.forEach(function (pair) { if (ok && w.L) pair[0](w.L); else pair[1]() })
     }
     script.onload = function () { settle(true) }
     script.onerror = function () { settle(false) }
@@ -66,10 +103,11 @@ function fgLoadLeaflet(done${t(': (L: any) => void')}, fail${t(': () => void')})
   fgLeafletWaiting.push([done, fail])
 }
 // A valid point, rounded to 6 decimals (about 10 cm); null for anything else.
-function fgLocValue(value${any})${t(': { lat: number; lng: number } | null')} {
+function fgLocValue(value${t(': unknown')})${t(': FgLatLng | null')} {
   if (!value || typeof value !== 'object') return null
-  var lat = value.lat
-  var lng = value.lng
+  var given = ${cast('value', '{ lat?: unknown; lng?: unknown }')}
+  var lat = given.lat
+  var lng = given.lng
   if (typeof lat !== 'number' || typeof lng !== 'number' || !isFinite(lat) || !isFinite(lng)) return null
   if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return null
   return { lat: Math.round(lat * 1e6) / 1e6, lng: Math.round(lng * 1e6) / 1e6 }
@@ -78,44 +116,47 @@ function fgLocParse(lat${t(': string')}, lng${t(': string')}) {
   if (lat.trim() === '' || lng.trim() === '') return null
   return fgLocValue({ lat: Number(lat), lng: Number(lng) })
 }
-function fgLocSame(a${any}, b${any})${t(': boolean')} {
+function fgLocSame(a${t(': FgLatLng | null')}, b${t(': FgLatLng | null')})${t(': boolean')} {
   return a === null ? b === null : b !== null && a.lat === b.lat && a.lng === b.lng
 }
-function fgLocParts(group${any})${any} {
+// The field's parts; the boxes and the status line are always in the markup.
+function fgLocParts(group${t(': HTMLElement')}) {
   return {
-    map: group.querySelector('[data-fg-loc-map]'),
-    lat: group.querySelector('[data-fg-loc-lat]'),
-    lng: group.querySelector('[data-fg-loc-lng]'),
-    status: group.querySelector('[data-fg-loc-status]'),
+    map: group.querySelector${t('<HTMLElement>')}('[data-fg-loc-map]'),
+    lat: group.querySelector${t('<HTMLInputElement>')}('[data-fg-loc-lat]')${t('!')},
+    lng: group.querySelector${t('<HTMLInputElement>')}('[data-fg-loc-lng]')${t('!')},
+    status: group.querySelector${t('<HTMLElement>')}('[data-fg-loc-status]')${t('!')},
   }
 }
-function fgLocTyped(group${any}) {
+function fgLocTyped(group${t(': HTMLElement')}) {
   var parts = fgLocParts(group)
   return fgLocParse(parts.lat.value, parts.lng.value)
 }
 // The pin (and the view): 'pan' keeps the zoom, 'zoom' comes closer (with
 // no point: back to the starting view, as after a reset).
-function fgLocPin(group${any}, point${any}, move${t(': string')}) {
+function fgLocPin(group${t(': FgLocGroup')}, point${t(': FgLatLng | null')}, move${t(': string')}) {
   var state = group.fgLocMap
-  if (!state || !state.map) return
+  if (!state || !state.map || !state.L) return
   if (!point) {
     if (state.marker) state.marker.remove()
     state.marker = null
-    if (move === 'zoom') state.map.setView([state.start[0], state.start[1]], state.start[2])
+    if (move === 'zoom' && state.start) state.map.setView([state.start[0], state.start[1]], state.start[2])
     return
   }
-  var at = [point.lat, point.lng]
+  var at${t(': [number, number]')} = [point.lat, point.lng]
   if (state.marker) state.marker.setLatLng(at)
   else {
     // Not a tab stop: the coordinate boxes are the keyboard way.
-    state.marker = state.L.marker(at, { icon: state.icon, draggable: true, keyboard: false }).addTo(state.map)
-    state.marker.on('dragend', function () { state.pick(state.marker.getLatLng()) })
+    var marker = state.L.marker(at, { icon: state.icon, draggable: true, keyboard: false }).addTo(state.map)
+    var pick = state.pick
+    marker.on('dragend', function () { if (pick) pick(marker.getLatLng()) })
+    state.marker = marker
   }
   if (move === 'zoom') state.map.setView(at, Math.max(state.map.getZoom(), ${LOCATION_CLOSE_ZOOM}))
   else if (move === 'pan') state.map.panTo(at)
 }
 // The boxes and the pin show the point; the status line clears.
-function fgLocShow(group${any}, point${any}, move${t(': string')}) {
+function fgLocShow(group${t(': FgLocGroup')}, point${t(': FgLatLng | null')}, move${t(': string')}) {
   var parts = fgLocParts(group)
   parts.lat.value = point ? String(point.lat) : ''
   parts.lng.value = point ? String(point.lng) : ''
@@ -127,28 +168,31 @@ function fgLocAttribution(text${t(': string')})${t(': string')} {
     ? ${JSON.stringify(attributionHtml(OSM_ATTRIBUTION))}
     : text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
-function fgLocMap(group${any}, onChange${t(': (group: HTMLElement, point: { lat: number; lng: number } | null, touch: boolean) => void')}) {
+function fgLocMap(group${t(': FgLocGroup')}, onChange${t(': (group: HTMLElement, point: FgLatLng | null, touch: boolean) => void')}) {
   if (group.fgLocMap) return
-  var state${any} = { map: null, marker: null }
+  var state${t(': FgLocState')} = { map: null, marker: null }
   group.fgLocMap = state
-  fgLoadLeaflet(function (L${any}) {
+  fgLoadLeaflet(function (L${t(': FgLeaflet')}) {
     var el = fgLocParts(group).map
     if (!el || !el.isConnected) return
-    var start = (group.getAttribute('data-fg-loc-start') || '20,0,2').split(',').map(Number)
+    var given = (group.getAttribute('data-fg-loc-start') || '20,0,2').split(',').map(Number)
+    var start${t(': [number, number, number]')} = [Number(given[0]), Number(given[1]), Number(given[2])]
     state.L = L
     state.start = start
-    state.map = L.map(el, { center: [start[0], start[1]], zoom: start[2], scrollWheelZoom: false })
-    L.tileLayer(group.getAttribute('data-fg-loc-tiles'), { attribution: fgLocAttribution(group.getAttribute('data-fg-loc-attribution') || ''), maxZoom: 19 }).addTo(state.map)
+    var map = L.map(el, { center: [start[0], start[1]], zoom: start[2], scrollWheelZoom: false })
+    state.map = map
+    L.tileLayer(group.getAttribute('data-fg-loc-tiles') || '', { attribution: fgLocAttribution(group.getAttribute('data-fg-loc-attribution') || ''), maxZoom: 19 }).addTo(map)
     state.icon = L.divIcon({ className: 'fg-location-pin', html: ${JSON.stringify(LOCATION_PIN)}, iconSize: [24, 36], iconAnchor: [12, 35] })
-    state.pick = function (at${any}) {
+    var pick = function (at${t(': FgLeafletPoint')}) {
       var point = fgLocValue({ lat: at.lat, lng: at.wrap().lng })
       if (!point) return
       fgLocShow(group, point, 'none')
       onChange(group, point, true)
     }
-    state.map.on('click', function (event${any}) { state.pick(event.latlng) })
+    state.pick = pick
+    map.on('click', function (event) { pick(event.latlng) })
     if (window.ResizeObserver) {
-      state.resizer = new ResizeObserver(function () { state.map.invalidateSize() })
+      state.resizer = new ResizeObserver(function () { map.invalidateSize() })
       state.resizer.observe(el)
     }
     fgLocPin(group, fgLocTyped(group), 'zoom')
@@ -157,11 +201,11 @@ function fgLocMap(group${any}, onChange${t(': (group: HTMLElement, point: { lat:
     if (status) status.textContent = ${JSON.stringify(messages.locationNoMap)}
   })
 }
-function fgWireLocations(root${any}, onChange${t(': (group: HTMLElement, point: { lat: number; lng: number } | null, touch: boolean) => void')}) {
+function fgWireLocations(root${t(': FgLocRoot | null')}, onChange${t(': (group: HTMLElement, point: FgLatLng | null, touch: boolean) => void')}) {
   if (!root || root.fgLocWired) return
   root.fgLocWired = true
   var start = function () {
-    Array.prototype.forEach.call(root.querySelectorAll('[data-fg-loc]'), function (group${any}) { fgLocMap(group, onChange) })
+    Array.prototype.forEach.call(root.querySelectorAll${t('<FgLocGroup>')}('[data-fg-loc]'), function (group${t(': FgLocGroup')}) { fgLocMap(group, onChange) })
   }
   start()
   // Fields that appear later (new items, shown by a condition) get their
@@ -170,13 +214,15 @@ function fgWireLocations(root${any}, onChange${t(': (group: HTMLElement, point: 
     new MutationObserver(function (records) {
       var added = false
       records.forEach(function (record) {
-        Array.prototype.forEach.call(record.addedNodes, function (node${any}) {
-          if (node.nodeType === 1 && !node.closest('[data-fg-loc-map]') && (node.matches('[data-fg-loc]') || node.querySelector('[data-fg-loc]'))) added = true
+        Array.prototype.forEach.call(record.addedNodes, function (node${t(': Node')}) {
+          var el = ${cast('node', 'Element')}
+          if (el.nodeType === 1 && !el.closest('[data-fg-loc-map]') && (el.matches('[data-fg-loc]') || el.querySelector('[data-fg-loc]'))) added = true
         })
-        Array.prototype.forEach.call(record.removedNodes, function (node${any}) {
-          if (node.nodeType !== 1 || node.closest('[data-fg-loc-map]')) return
-          var groups = node.matches('[data-fg-loc]') ? [node] : node.querySelectorAll('[data-fg-loc]')
-          Array.prototype.forEach.call(groups, function (group${any}) {
+        Array.prototype.forEach.call(record.removedNodes, function (node${t(': Node')}) {
+          var el = ${cast('node', 'Element')}
+          if (el.nodeType !== 1 || el.closest('[data-fg-loc-map]')) return
+          var groups = el.matches('[data-fg-loc]') ? [el] : el.querySelectorAll('[data-fg-loc]')
+          Array.prototype.forEach.call(groups, function (group${t(': FgLocGroup')}) {
             var state = group.fgLocMap
             if (!state || group.isConnected) return
             if (state.resizer) state.resizer.disconnect()
@@ -188,49 +234,54 @@ function fgWireLocations(root${any}, onChange${t(': (group: HTMLElement, point: 
       if (added) start()
     }).observe(root, { childList: true, subtree: true })
   }
-  var boxOf = function (event${any})${any} {
-    return event.target.matches && event.target.matches('[data-fg-loc-lat], [data-fg-loc-lng]') ? event.target.closest('[data-fg-loc]') : null
+  var boxOf = function (event${t(': Event')})${t(': FgLocGroup | null')} {
+    var target = event.target${t(' as Element | null')}
+    return target && target.matches && target.matches('[data-fg-loc-lat], [data-fg-loc-lng]') ? target.closest${t('<FgLocGroup>')}('[data-fg-loc]') : null
   }
-  root.addEventListener('input', function (event${any}) {
+  root.addEventListener('input', function (event${t(': Event')}) {
     var group = boxOf(event)
     if (!group) return
     var point = fgLocTyped(group)
     if (point) fgLocPin(group, point, 'pan')
     onChange(group, point, false)
   })
-  root.addEventListener('focusout', function (event${any}) {
+  root.addEventListener('focusout', function (event${t(': FocusEvent')}) {
     var group = boxOf(event)
     if (group) onChange(group, fgLocTyped(group), true)
   })
-  root.addEventListener('click', function (event${any}) {
-    var button = event.target.closest && event.target.closest('[data-fg-loc-mine], [data-fg-loc-clear]')
-    var group = button && button.closest('[data-fg-loc]')
-    if (!group) return
+  root.addEventListener('click', function (event${t(': MouseEvent')}) {
+    var target = event.target${t(' as Element | null')}
+    var button = target && target.closest && target.closest('[data-fg-loc-mine], [data-fg-loc-clear]')
+    var group = button && button.closest${t('<FgLocGroup>')}('[data-fg-loc]')
+    if (!button || !group) return
     if (button.hasAttribute('data-fg-loc-clear')) {
       fgLocShow(group, null, 'none')
       onChange(group, null, true)
       return
     }
-    var status = fgLocParts(group).status
-    if (!navigator.geolocation) {
-      status.textContent = ${JSON.stringify(messages.locationDenied)}
-      return
-    }
-    status.textContent = ${JSON.stringify(messages.locationFinding)}
-    navigator.geolocation.getCurrentPosition(function (position) {
-      var point = fgLocValue({ lat: position.coords.latitude, lng: position.coords.longitude })
-      fgLocShow(group, point, 'zoom')
-      onChange(group, point, true)
-    }, function () {
-      status.textContent = ${JSON.stringify(messages.locationDenied)}
-    }, { enableHighAccuracy: true, timeout: 15000 })
+    fgLocMine(group, fgLocParts(group).status, onChange)
   })
+}
+// "Use my location": the device's position into the field (or why not).
+function fgLocMine(group${t(': FgLocGroup')}, status${t(': HTMLElement')}, onChange${t(': (group: HTMLElement, point: FgLatLng | null, touch: boolean) => void')}) {
+  if (!navigator.geolocation) {
+    status.textContent = ${JSON.stringify(messages.locationDenied)}
+    return
+  }
+  status.textContent = ${JSON.stringify(messages.locationFinding)}
+  navigator.geolocation.getCurrentPosition(function (position) {
+    var point = fgLocValue({ lat: position.coords.latitude, lng: position.coords.longitude })
+    fgLocShow(group, point, 'zoom')
+    onChange(group, point, true)
+  }, function () {
+    status.textContent = ${JSON.stringify(messages.locationDenied)}
+  }, { enableHighAccuracy: true, timeout: 15000 })
 }
 // The pins follow the boxes (plain HTML: a reset, saved answers put back);
 // fields being typed in are left to their own input events.
-function fgLocPins(root${any}) {
+function fgLocPins(root${t(': HTMLElement | null')}) {
   if (!root) return
-  Array.prototype.forEach.call(root.querySelectorAll('[data-fg-loc]'), function (group${any}) {
+  Array.prototype.forEach.call(root.querySelectorAll${t('<FgLocGroup>')}('[data-fg-loc]'), function (group${t(': FgLocGroup')}) {
     var state = group.fgLocMap
     if (!state || !state.map || group.contains(document.activeElement)) return
     var at = state.marker ? state.marker.getLatLng() : null
@@ -239,9 +290,9 @@ function fgLocPins(root${any}) {
   })
 }
 // Values set elsewhere (a reset, saved answers) show in the boxes and on the map.
-function fgLocSync(root${any}, valueOf${t(': (group: HTMLElement) => unknown')}) {
+function fgLocSync(root${t(': HTMLElement | null')}, valueOf${t(': (group: HTMLElement) => unknown')}) {
   if (!root) return
-  Array.prototype.forEach.call(root.querySelectorAll('[data-fg-loc]'), function (group${any}) {
+  Array.prototype.forEach.call(root.querySelectorAll${t('<FgLocGroup>')}('[data-fg-loc]'), function (group${t(': FgLocGroup')}) {
     var point = fgLocValue(valueOf(group))
     if (!fgLocSame(point, fgLocTyped(group))) fgLocShow(group, point, 'zoom')
   })
@@ -320,14 +371,14 @@ window.fgLocSet = function (root, values) {
     public sealed record FgLatLng(double Lat, double Lng);
 
     private readonly Dictionary<string, (Action<FgLatLng?> Set, FgLatLng? Value)> fgLoc = new();
-    // The fields rendered this time; entries of elements no longer
-    // rendered (removed items, fields hidden again) go after each render.
-    private readonly HashSet<string> fgLocLive = new();
+    // The render that last showed each field; entries of elements no
+    // longer rendered (removed items, fields hidden again) go after a render.
+    private readonly Dictionary<string, int> fgLocSeen = new();
 
     private string FgLocKey(string key, Action<FgLatLng?> set, FgLatLng? value)
     {
         fgLoc[key] = (set, value);
-        fgLocLive.Add(key);
+        fgLocSeen[key] = fgRenderGen;
         return key;
     }
 
@@ -347,8 +398,7 @@ window.fgLocSet = function (root, values) {
 
     private async Task FgLocShowValues()
     {
-        foreach (var key in fgLoc.Keys.Where(key => !fgLocLive.Contains(key)).ToList()) fgLoc.Remove(key);
-        fgLocLive.Clear();
+        foreach (var key in fgLoc.Keys.Where(key => !fgLocSeen.TryGetValue(key, out var seen) || seen != fgRenderGen).ToList()) { fgLoc.Remove(key); fgLocSeen.Remove(key); }
         if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgLocSet", fgFormRoot, fgLoc.ToDictionary(entry => entry.Key, entry => entry.Value.Value is null ? null : (object)new { lat = entry.Value.Value.Lat, lng = entry.Value.Value.Lng }));
     }

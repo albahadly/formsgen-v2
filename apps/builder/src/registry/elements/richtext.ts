@@ -20,10 +20,10 @@ function editor(node: ElementNode, ctx: EmitCtx, lang: EmitterLang): string {
   const m = ctx.messages
   // One tab stop for the toolbar (the first button to begin with); the
   // script moves it with the arrow keys (export/richAnswer.ts).
-  const tabindex = lang === 'react' ? 'tabIndex' : 'tabindex'
+  const tabindex = (i: number): string => (lang === 'react' ? `tabIndex={${i === 0 ? 0 : -1}}` : `tabindex="${i === 0 ? 0 : -1}"`)
   const buttons = BUTTONS.map(
     ([command, key, face], i) =>
-      `<button type="button" ${c}="${ctx.css.classes('richtextButton')}" aria-label="${esc(m[key])}" title="${esc(m[key])}" data-fg-rt-cmd="${command}" ${tabindex}="${i === 0 ? 0 : -1}">${face}</button>`,
+      `<button type="button" ${c}="${ctx.css.classes('richtextButton')}" aria-label="${esc(m[key])}" title="${esc(m[key])}" data-fg-rt-cmd="${command}" ${tabindex(i)}>${face}</button>`,
   ).join('\n    ')
   const member = pascalMember(ctx.key)
   const value =

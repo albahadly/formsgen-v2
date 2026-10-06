@@ -54,10 +54,9 @@ describe('rich text in the exports', () => {
       expect(code, target).toContain('<span id="fg_about_label">About</span>')
       expect(code, target).toContain('data-fg-rt-cmd="insertOrderedList"')
       expect(code, target).toContain('function fgRichClean(')
-      // One tab stop per toolbar (React spells the attribute tabIndex).
-      const tabindex = target === 'react' ? 'tabIndex' : 'tabindex'
-      expect(code, target).toContain(`data-fg-rt-cmd="bold" ${tabindex}="0"`)
-      expect(code, target).toContain(`data-fg-rt-cmd="link" ${tabindex}="-1"`)
+      // One tab stop per toolbar (React takes tabIndex as a number).
+      expect(code, target).toContain(target === 'react' ? 'data-fg-rt-cmd="bold" tabIndex={0}' : 'data-fg-rt-cmd="bold" tabindex="0"')
+      expect(code, target).toContain(target === 'react' ? 'data-fg-rt-cmd="link" tabIndex={-1}' : 'data-fg-rt-cmd="link" tabindex="-1"')
     }
     expect(out('react')).toContain('contentEditable role="textbox"')
     expect(out('html')).toContain('data-fg-path="about" data-fg-kind="richtext"')
@@ -65,8 +64,8 @@ describe('rich text in the exports', () => {
     expect(razor).toContain(`data-fg-richtext='@FgRichKey("About", v => Model.About = v, Model.About)'`)
     expect(razor).toContain('public void FgRichChanged(string key, string html)')
     // Entries of editors no longer rendered go after each render.
-    expect(razor).toContain('fgRichLive.Add(key)')
-    expect(razor).toContain('foreach (var key in fgRich.Keys.Where(key => !fgRichLive.Contains(key)).ToList()) fgRich.Remove(key);')
+    expect(razor).toContain('fgRichSeen[key] = fgRenderGen')
+    expect(razor).toContain('foreach (var key in fgRich.Keys.Where(key => !fgRichSeen.TryGetValue(key, out var seen) || seen != fgRenderGen).ToList()) { fgRich.Remove(key); fgRichSeen.Remove(key); }')
     expect(razor).toContain('@(FgOr(FgRichPlain(Model.About), "nothing"))')
     expect(out('vue-standalone')).toContain(`{{ fgOr(fgRichPlain(form.about), 'nothing') }}`)
   })

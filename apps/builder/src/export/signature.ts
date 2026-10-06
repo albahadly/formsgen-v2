@@ -28,25 +28,41 @@ export const signatureTyping = (node: ElementNode): boolean => node.props['typin
 /** The pad runtime (ES5; `ts` adds the annotations strict TypeScript needs). */
 export function signatureRuntime(ts: boolean): string {
   const t = (annotation: string): string => (ts ? annotation : '')
-  const any = ts ? ': any' : ''
   return `// Signature pads: draw (mouse, finger, pen) or type a name; each change is
 // signature.png. Wired once on the form root (pads in new items included).
-function fgSignPad(canvas${any})${any} {
+${t(`interface FgSignPad {
+  ink: boolean
+  pending: number
+  drawing: boolean
+  loading: boolean
+  last: { x: number; y: number } | null
+  size(): void
+  wipe(): void
+  pen(): void
+  commit(done: (file: File | null) => void): void
+  point(event: PointerEvent): { x: number; y: number }
+  type(text: string, done: (file: File | null) => void): void
+  show(source: File | Blob | string): void
+}
+type FgSignCanvas = HTMLCanvasElement & { fgPad?: FgSignPad }
+type FgSignRoot = HTMLElement & { fgSignWired?: boolean }
+`)}function fgSignPad(canvas${t(': FgSignCanvas')})${t(': FgSignPad')} {
   if (canvas.fgPad) return canvas.fgPad
   var ctx = canvas.getContext('2d')
-  var pad${any} = { ink: false, pending: 0, drawing: false, last: null }
+  var pad = { ink: false, pending: 0, drawing: false, loading: false, last: null${t(' as { x: number; y: number } | null')} }${t(' as FgSignPad')}
   pad.size = function () {
     var ratio = window.devicePixelRatio || 1
     var width = Math.round(canvas.clientWidth * ratio)
     var height = Math.round(canvas.clientHeight * ratio)
     if (!ctx || width === 0 || (canvas.width === width && canvas.height === height)) return
     // Keep the ink through the resize (a phone turning, a panel opening).
-    var kept${any} = null
+    var kept${t(': HTMLCanvasElement | null')} = null
     if (pad.ink && canvas.width > 0 && canvas.height > 0) {
       kept = document.createElement('canvas')
       kept.width = canvas.width
       kept.height = canvas.height
-      kept.getContext('2d').drawImage(canvas, 0, 0)
+      var keptCtx = kept.getContext('2d')
+      if (keptCtx) keptCtx.drawImage(canvas, 0, 0)
     }
     canvas.width = width
     canvas.height = height
@@ -62,6 +78,7 @@ function fgSignPad(canvas${any})${any} {
     pad.ink = false
   }
   pad.pen = function () {
+    if (!ctx) return
     ctx.strokeStyle = ${JSON.stringify(SIGNATURE_INK)}
     ctx.fillStyle = ${JSON.stringify(SIGNATURE_INK)}
     ctx.lineWidth = 2.5
@@ -103,7 +120,7 @@ function fgSignPad(canvas${any})${any} {
     pad.commit(done)
   }
   // Draws a saved signature (a file, or a data URL) into a blank pad.
-  pad.show = function (source${any}) {
+  pad.show = function (source${t(': File | Blob | string')}) {
     if (pad.ink || pad.drawing || pad.loading) return
     pad.loading = true
     var url = typeof source === 'string' ? source : URL.createObjectURL(source)
@@ -125,60 +142,74 @@ function fgSignPad(canvas${any})${any} {
   canvas.fgPad = pad
   return pad
 }
-function fgSignGroup(el${any})${any} {
+function fgSignGroup(el${t(': Element')})${t(': { canvas: FgSignCanvas | null; typed: HTMLInputElement | null } | null')} {
   var group = el.closest('[data-fg-sign]')
-  return group ? { canvas: group.querySelector('canvas[data-fg-signature]'), typed: group.querySelector('[data-fg-sign-type]') } : null
+  return group ? { canvas: group.querySelector${t('<FgSignCanvas>')}('canvas[data-fg-signature]'), typed: group.querySelector${t('<HTMLInputElement>')}('[data-fg-sign-type]') } : null
 }
-function fgWireSignatures(root${any}, onChange${t(': (canvas: HTMLCanvasElement, file: File | null) => void')}) {
+// A commit callback bound to its pad.
+function fgSignDone(canvas${t(': HTMLCanvasElement')}, onChange${t(': (canvas: HTMLCanvasElement, file: File | null) => void')}) {
+  return function (file${t(': File | null')}) { onChange(canvas, file) }
+}
+function fgWireSignatures(root${t(': FgSignRoot | null')}, onChange${t(': (canvas: HTMLCanvasElement, file: File | null) => void')}) {
   if (!root || root.fgSignWired) return
   root.fgSignWired = true
-  root.addEventListener('pointerdown', function (event${any}) {
-    var canvas = event.target.closest && event.target.closest('canvas[data-fg-signature]')
+  var padOf = function (event${t(': Event')})${t(': FgSignCanvas | null')} {
+    var target = event.target${t(' as Element | null')}
+    return target && target.closest ? target.closest${t('<FgSignCanvas>')}('canvas[data-fg-signature]') : null
+  }
+  root.addEventListener('pointerdown', function (event${t(': PointerEvent')}) {
+    var canvas = padOf(event)
     if (!canvas || event.button !== 0) return
     var pad = fgSignPad(canvas)
     pad.size()
-    if (!canvas.getContext('2d')) return
+    var ctx = canvas.getContext('2d')
+    if (!ctx) return
     event.preventDefault()
     if (canvas.setPointerCapture) canvas.setPointerCapture(event.pointerId)
     pad.drawing = true
     pad.pen()
-    pad.last = pad.point(event)
-    var ctx = canvas.getContext('2d')
+    var at = pad.point(event)
+    pad.last = at
     ctx.beginPath()
-    ctx.arc(pad.last.x, pad.last.y, 1.25, 0, Math.PI * 2)
+    ctx.arc(at.x, at.y, 1.25, 0, Math.PI * 2)
     ctx.fill()
     pad.ink = true
   })
-  root.addEventListener('pointermove', function (event${any}) {
-    var canvas = event.target.closest && event.target.closest('canvas[data-fg-signature]')
+  root.addEventListener('pointermove', function (event${t(': PointerEvent')}) {
+    var canvas = padOf(event)
     var pad = canvas && canvas.fgPad
-    if (!pad || !pad.drawing) return
-    var next = pad.point(event)
+    if (!canvas || !pad || !pad.drawing) return
+    var last = pad.last
     var ctx = canvas.getContext('2d')
+    if (!last || !ctx) return
+    var next = pad.point(event)
     ctx.beginPath()
-    ctx.moveTo(pad.last.x, pad.last.y)
+    ctx.moveTo(last.x, last.y)
     ctx.lineTo(next.x, next.y)
     ctx.stroke()
     pad.last = next
   })
-  function up(event${any}) {
-    var canvas = event.target.closest && event.target.closest('canvas[data-fg-signature]')
+  function up(event${t(': PointerEvent')}) {
+    var canvas = padOf(event)
     var pad = canvas && canvas.fgPad
-    if (!pad || !pad.drawing) return
+    if (!canvas || !pad || !pad.drawing) return
     pad.drawing = false
     pad.last = null
-    pad.commit(function (file${any}) { onChange(canvas, file) })
+    pad.commit(fgSignDone(canvas, onChange))
   }
   root.addEventListener('pointerup', up)
   root.addEventListener('pointercancel', up)
-  root.addEventListener('input', function (event${any}) {
-    if (!event.target.matches || !event.target.matches('[data-fg-sign-type]')) return
-    var group = fgSignGroup(event.target)
-    if (!group || !group.canvas) return
-    fgSignPad(group.canvas).type(event.target.value, function (file${any}) { onChange(group.canvas, file) })
+  root.addEventListener('input', function (event${t(': Event')}) {
+    var input = event.target${t(' as HTMLInputElement | null')}
+    if (!input || !input.matches || !input.matches('[data-fg-sign-type]')) return
+    var group = fgSignGroup(input)
+    var canvas = group && group.canvas
+    if (!canvas) return
+    fgSignPad(canvas).type(input.value, fgSignDone(canvas, onChange))
   })
-  root.addEventListener('click', function (event${any}) {
-    var button = event.target.closest && event.target.closest('[data-fg-sign-clear]')
+  root.addEventListener('click', function (event${t(': MouseEvent')}) {
+    var target = event.target${t(' as Element | null')}
+    var button = target && target.closest && target.closest('[data-fg-sign-clear]')
     if (!button) return
     var group = fgSignGroup(button)
     if (!group || !group.canvas) return
@@ -192,9 +223,9 @@ function fgWireSignatures(root${any}, onChange${t(': (canvas: HTMLCanvasElement,
 // Pads follow their value: cleared when it went empty elsewhere (a reset),
 // typed name too; a blank pad draws the file its value holds (a pad shown
 // again by a step or a condition).
-function fgSignSync(root${any}, valueOf${t(': (canvas: HTMLCanvasElement) => File | Blob | string | null | undefined')}) {
+function fgSignSync(root${t(': HTMLElement | null')}, valueOf${t(': (canvas: HTMLCanvasElement) => File | Blob | string | null | undefined')}) {
   if (!root) return
-  Array.prototype.forEach.call(root.querySelectorAll('canvas[data-fg-signature]'), function (canvas${any}) {
+  Array.prototype.forEach.call(root.querySelectorAll${t('<FgSignCanvas>')}('canvas[data-fg-signature]'), function (canvas${t(': FgSignCanvas')}) {
     var pad = canvas.fgPad
     if (pad && (pad.pending || pad.drawing)) return
     var value = valueOf(canvas)
@@ -284,14 +315,14 @@ window.fgSignClear = function (root) { fgSignSync(root, function () { return nul
     // Signature pads: run by a script on the form's root (FgSignatureScript),
     // which reports each change here as a PNG data URL (null when cleared).
     private readonly Dictionary<string, List<FgUpload>> fgSignLists = new();
-    // The pads rendered this time; entries of elements no longer rendered
-    // (removed items, fields hidden again) go after each render.
-    private readonly HashSet<string> fgSignLive = new();
+    // The render that last showed each pad; entries of elements no longer
+    // rendered (removed items, fields hidden again) go after a render.
+    private readonly Dictionary<string, int> fgSignSeen = new();
 
     private string FgSignKey(List<FgUpload> list, string key)
     {
         fgSignLists[key] = list;
-        fgSignLive.Add(key);
+        fgSignSeen[key] = fgRenderGen;
         return key;
     }
 
@@ -325,8 +356,7 @@ window.fgSignClear = function (root) { fgSignSync(root, function () { return nul
 
     private async Task FgSignShowValues()
     {
-        foreach (var key in fgSignLists.Keys.Where(key => !fgSignLive.Contains(key)).ToList()) fgSignLists.Remove(key);
-        fgSignLive.Clear();
+        foreach (var key in fgSignLists.Keys.Where(key => !fgSignSeen.TryGetValue(key, out var seen) || seen != fgRenderGen).ToList()) { fgSignLists.Remove(key); fgSignSeen.Remove(key); }
         if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgSignSet", fgFormRoot, fgSelf, fgSignLists.Where(entry => entry.Value.Count > 0).Select(entry => entry.Key).ToArray());
     }

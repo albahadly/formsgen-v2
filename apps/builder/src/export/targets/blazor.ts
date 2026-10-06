@@ -193,7 +193,7 @@ ${calcLines.join('\n')}
 
     protected override bool ShouldRender()
     {
-        FgCalc();
+        FgCalc();${interop ? '\n        fgRenderGen++;' : ''}
         return true;
     }
 ${CALC_HELPERS_CS}
@@ -1449,7 +1449,16 @@ ${Object.entries(dialCodes(typedFields, schema.meta.locale)).map(([code, dial]) 
     private ElementReference fgFormRoot;
     private Microsoft.JSInterop.DotNetObjectReference<${name}>? fgSelf;
     private bool fgWire;
-
+    // One number per render (counted before each render): the interop
+    // registries keep the elements stamped with the latest one.
+    private int fgRenderGen;
+${steps.length ? '' : `
+    protected override bool ShouldRender()
+    {
+        fgRenderGen++;
+        return true;
+    }
+`}
     private async Task FgInteropInit()
     {
         fgSelf = Microsoft.JSInterop.DotNetObjectReference.Create(this);${sortable ? `

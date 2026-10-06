@@ -229,5 +229,5 @@ A project-wide review (12 reviewers, each finding judged independently) found th
 - Run-time scripts shared by the exports live in `apps/builder/src/export/{signature,richAnswer,location,captcha}.ts`; Blazor members (JSInvokable methods, show-after-render) sit beside them and are wired in `targets/blazor.ts` (`FgInteropInit`/`FgInteropWire`, `OnAfterRenderAsync`).
 - `OBJECT_VALUE_TYPES` (renderer `composite.ts`) decides which rules and conditions the builder offers for an object-valued type; add new object-valued types there.
 - `servicesReadme` (`apps/builder/src/export/readmeNotes.ts`) is where a new run-time dependency is documented for every target at once.
-- The review's demos and e2e scripts (`p34a`–`p34d`, the matrix runner) live in the session scratchpad, not in the repository; the Phase Standard's 12-runtime check needs them re-created from the handoff's scenarios.
+- The review's demos, scenario scripts and the matrix runner live in `tools/proof/` (moved there after the review; see its README).
 

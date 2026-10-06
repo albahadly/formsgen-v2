@@ -17,17 +17,24 @@ export { CAPTCHA_FIELD }
 /** Loads Cloudflare's script once and renders the widget (ES5; `ts` adds annotations). */
 export function captchaRuntime(ts: boolean): string {
   const t = (annotation: string): string => (ts ? annotation : '')
-  const any = ts ? ': any' : ''
   return `// Spam check (Cloudflare Turnstile): onToken(token, failed) runs when the
 // check passes, and with '' when it expires or fails.
-var fgTurnstileWaiting${any} = null
-function fgCaptcha(el${any}, siteKey${t(': string')}, lang${t(': string')}, onToken${t(': (token: string, failed: boolean) => void')}) {
+${t(`interface FgTurnstile {
+  render(el: HTMLElement, options: Record<string, unknown>): string
+  reset(widget?: string): void
+  remove(widget: string): void
+}
+type FgTurnstileWindow = Window & { turnstile?: FgTurnstile }
+type FgCaptchaEl = HTMLElement & { fgCaptcha?: boolean; fgCaptchaId?: string }
+`)}var fgTurnstileWaiting${t(': [() => void, () => void][] | null')} = null
+function fgCaptcha(el${t(': FgCaptchaEl | null')}, siteKey${t(': string')}, lang${t(': string')}, onToken${t(': (token: string, failed: boolean) => void')}) {
   if (!el || el.fgCaptcha) return
   el.fgCaptcha = true
-  var w${any} = window
+  var w = window${t(' as FgTurnstileWindow')}
   var render = function () {
-    if (!el.isConnected) return
-    el.fgCaptchaId = w.turnstile.render(el, {
+    var api = w.turnstile
+    if (!el.isConnected || !api) return
+    el.fgCaptchaId = api.render(el, {
       sitekey: siteKey,
       language: lang,
       callback: function (token${t(': string')}) { onToken(token, false) },
@@ -44,20 +51,20 @@ function fgCaptcha(el${any}, siteKey${t(': string')}, lang${t(': string')}, onTo
     script.onload = function () {
       var waiting = fgTurnstileWaiting
       fgTurnstileWaiting = null
-      waiting.forEach(function (pair${any}) { if (w.turnstile) pair[0](); else pair[1]() })
+      if (waiting) waiting.forEach(function (pair) { if (w.turnstile) pair[0](); else pair[1]() })
     }
     script.onerror = function () {
       var waiting = fgTurnstileWaiting
       fgTurnstileWaiting = null
-      waiting.forEach(function (pair${any}) { pair[1]() })
+      if (waiting) waiting.forEach(function (pair) { pair[1]() })
     }
     document.head.appendChild(script)
   }
   fgTurnstileWaiting.push([render, function () { onToken('', true) }])
 }
 // A token works once: a new check for the next submission.
-function fgCaptchaReset(el${any}) {
-  var w${any} = window
+function fgCaptchaReset(el${t(': FgCaptchaEl | null')}) {
+  var w = window${t(' as FgTurnstileWindow')}
   if (el && el.fgCaptchaId !== undefined && w.turnstile) w.turnstile.reset(el.fgCaptchaId)
 }`
 }

@@ -57,8 +57,8 @@ describe('location in the exports', () => {
     expect(razor).toContain('FgLatLng point => point.Lat.ToString(System.Globalization.CultureInfo.InvariantCulture) + ", "')
     expect(razor).toContain('public void FgLocated(string key, double? lat, double? lng, bool touch)')
     // Entries of fields no longer rendered go after each render.
-    expect(razor).toContain('fgLocLive.Add(key)')
-    expect(razor).toContain('foreach (var key in fgLoc.Keys.Where(key => !fgLocLive.Contains(key)).ToList()) fgLoc.Remove(key);')
+    expect(razor).toContain('fgLocSeen[key] = fgRenderGen')
+    expect(razor).toContain('foreach (var key in fgLoc.Keys.Where(key => !fgLocSeen.TryGetValue(key, out var seen) || seen != fgRenderGen).ToList()) { fgLoc.Remove(key); fgLocSeen.Remove(key); }')
     expect(out('html', [place()])).toContain("if (kind === 'location') return fgLocTyped(el.closest('[data-fg-loc]'))")
     expect(out('react', [place(), echo])).toContain("if (typeof r.lat === 'number' && typeof r.lng === 'number') return r.lat + ', ' + r.lng")
   })

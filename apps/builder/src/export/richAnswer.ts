@@ -17,15 +17,16 @@ export const hasRichText = (nodes: ElementNode[]): boolean =>
 /** The cleaner, link check and editor wiring (ES5; `ts` adds annotations). */
 export function richTextRuntime(linkPrompt: string, ts: boolean): string {
   const t = (annotation: string): string => (ts ? annotation : '')
-  const any = ts ? ': any' : ''
+  const cast = (expr: string, type: string): string => (ts ? `(${expr} as ${type})` : expr)
   return `// Rich text: the editor's HTML reduced to p, br, strong, em, u, s, lists and
 // http(s)/mailto links (the renderer's cleanRichText); '' when empty.
-var FG_RICH_TAGS${t(': Record<string, number>')} = ${JSON.stringify(Object.fromEntries([...RICH_TAGS].map((tag) => [tag, 1])))}
+${t(`type FgRichRoot = HTMLElement & { fgRichWired?: boolean }
+`)}var FG_RICH_TAGS${t(': Record<string, number>')} = ${JSON.stringify(Object.fromEntries([...RICH_TAGS].map((tag) => [tag, 1])))}
 var FG_RICH_RENAME${t(': Record<string, string>')} = { b: 'strong', i: 'em', div: 'p' }
 // A paragraph can't hold these (one that does is unwrapped).
-function fgRichHoldsBlock(node${any})${t(': boolean')} {
-  return Array.prototype.some.call(node.childNodes, function (child${any}) {
-    return child.nodeType === 1 && (/^(p|div|ul|ol|li)$/i.test(child.tagName) || fgRichHoldsBlock(child))
+function fgRichHoldsBlock(node${t(': Node')})${t(': boolean')} {
+  return Array.prototype.some.call(node.childNodes, function (child${t(': Node')}) {
+    return child.nodeType === 1 && (/^(p|div|ul|ol|li)$/i.test(${cast('child', 'Element')}.tagName) || fgRichHoldsBlock(child))
   })
 }
 // Kept by the HTML parser's rules as content-free (their text goes too).
@@ -36,19 +37,20 @@ function fgRichHref(href${t(': string')})${t(': boolean')} {
 function fgRichEsc(text${t(': string')})${t(': string')} {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
-function fgRichWrite(nodes${any}, inParagraph${t(': boolean')})${t(': string')} {
+function fgRichWrite(nodes${t(': ArrayLike<Node>')}, inParagraph${t(': boolean')})${t(': string')} {
   var out = ''
-  Array.prototype.forEach.call(nodes, function (node${any}) {
+  Array.prototype.forEach.call(nodes, function (node${t(': Node')}) {
     if (node.nodeType === 3) {
-      out += fgRichEsc(node.nodeValue.replace(/\\u00a0/g, ' '))
+      out += fgRichEsc((node.nodeValue || '').replace(/\\u00a0/g, ' '))
       return
     }
     if (node.nodeType !== 1) return
-    var tag = node.tagName.toLowerCase()
+    var el = ${cast('node', 'Element')}
+    var tag = el.tagName.toLowerCase()
     if (FG_RICH_DROP[tag]) return
     tag = FG_RICH_RENAME[tag] || tag
-    if (!FG_RICH_TAGS[tag] || (tag === 'p' && (inParagraph || fgRichHoldsBlock(node)))) {
-      out += fgRichWrite(node.childNodes, inParagraph)
+    if (!FG_RICH_TAGS[tag] || (tag === 'p' && (inParagraph || fgRichHoldsBlock(el)))) {
+      out += fgRichWrite(el.childNodes, inParagraph)
       return
     }
     if (tag === 'br') {
@@ -56,13 +58,13 @@ function fgRichWrite(nodes${any}, inParagraph${t(': boolean')})${t(': string')} 
       return
     }
     if (tag === 'a') {
-      var href = (node.getAttribute('href') || '').trim()
+      var href = (el.getAttribute('href') || '').trim()
       out += fgRichHref(href)
-        ? '<a href="' + fgRichEsc(href).replace(/"/g, '&quot;') + '">' + fgRichWrite(node.childNodes, inParagraph) + '</a>'
-        : fgRichWrite(node.childNodes, inParagraph)
+        ? '<a href="' + fgRichEsc(href).replace(/"/g, '&quot;') + '">' + fgRichWrite(el.childNodes, inParagraph) + '</a>'
+        : fgRichWrite(el.childNodes, inParagraph)
       return
     }
-    out += '<' + tag + '>' + fgRichWrite(node.childNodes, inParagraph || tag === 'p') + '</' + tag + '>'
+    out += '<' + tag + '>' + fgRichWrite(el.childNodes, inParagraph || tag === 'p') + '</' + tag + '>'
   })
   return out
 }
@@ -89,18 +91,22 @@ function fgRichPlain(html${t(': unknown')})${t(': string')} {
     .trim()
 }
 // Toolbars and editors, wired once on the form root.
-function fgWireRichText(root${any}, onChange${t(': (editor: HTMLElement, html: string) => void')}) {
+function fgWireRichText(root${t(': FgRichRoot | null')}, onChange${t(': (editor: HTMLElement, html: string) => void')}) {
   if (!root || root.fgRichWired) return
   root.fgRichWired = true
-  root.addEventListener('mousedown', function (event${any}) {
+  root.addEventListener('mousedown', function (event${t(': MouseEvent')}) {
     // Keep the editor's selection when a toolbar button is pressed.
-    if (event.target.closest && event.target.closest('[data-fg-rt-cmd]')) event.preventDefault()
+    var target = event.target${t(' as Element | null')}
+    if (target && target.closest && target.closest('[data-fg-rt-cmd]')) event.preventDefault()
   })
-  root.addEventListener('click', function (event${any}) {
-    var button = event.target.closest && event.target.closest('[data-fg-rt-cmd]')
+  root.addEventListener('click', function (event${t(': MouseEvent')}) {
+    var target = event.target${t(' as Element | null')}
+    var button = target && target.closest && target.closest('[data-fg-rt-cmd]')
     if (!button) return
-    var editor = button.closest('[data-fg-rich]').querySelector('[data-fg-richtext]')
+    var wrapper = button.closest('[data-fg-rich]')
+    var editor = wrapper && wrapper.querySelector${t('<HTMLElement>')}('[data-fg-richtext]')
     var command = button.getAttribute('data-fg-rt-cmd')
+    if (!editor || !command) return
     if (command === 'link') {
       var url = window.prompt(${JSON.stringify(linkPrompt)}, 'https://')
       if (url === null) return
@@ -115,43 +121,49 @@ function fgWireRichText(root${any}, onChange${t(': (editor: HTMLElement, html: s
   })
   // One tab stop per toolbar: the last used button; arrows, Home and End
   // move between the buttons (arrows follow the writing direction).
-  var toolbarButtons = function (button${any}) {
-    return Array.prototype.slice.call(button.closest('[role="toolbar"]').querySelectorAll('[data-fg-rt-cmd]'))
+  var toolbarButtons = function (button${t(': HTMLElement')})${t(': HTMLElement[]')} {
+    var toolbar = button.closest('[role="toolbar"]')
+    return toolbar ? Array.prototype.slice.call(toolbar.querySelectorAll('[data-fg-rt-cmd]')) : []
   }
-  root.addEventListener('focusin', function (event${any}) {
-    var button = event.target.closest && event.target.closest('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
+  root.addEventListener('focusin', function (event${t(': FocusEvent')}) {
+    var target = event.target${t(' as Element | null')}
+    var button = target && target.closest && target.closest${t('<HTMLElement>')}('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
     if (!button) return
-    toolbarButtons(button).forEach(function (other${any}) { other.setAttribute('tabindex', other === button ? '0' : '-1') })
+    toolbarButtons(button).forEach(function (other${t(': HTMLElement')}) { other.setAttribute('tabindex', other === button ? '0' : '-1') })
   })
-  root.addEventListener('keydown', function (event${any}) {
-    var button = event.target.closest && event.target.closest('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
+  root.addEventListener('keydown', function (event${t(': KeyboardEvent')}) {
+    var target = event.target${t(' as Element | null')}
+    var button = target && target.closest && target.closest${t('<HTMLElement>')}('[data-fg-rich] [role="toolbar"] [data-fg-rt-cmd]')
     if (!button) return
     var toolbar = button.closest('[role="toolbar"]')
     var buttons = toolbarButtons(button)
     var index = buttons.indexOf(button)
-    var dirHost = toolbar.closest('[dir]')
-    var rtl = (dirHost ? dirHost.getAttribute('dir') : getComputedStyle(toolbar).direction) === 'rtl'
+    var dirHost = toolbar && toolbar.closest('[dir]')
+    var rtl = (dirHost ? dirHost.getAttribute('dir') : toolbar ? getComputedStyle(toolbar).direction : '') === 'rtl'
     var next = -1
     if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') next = (index + ((event.key === 'ArrowRight') !== rtl ? 1 : -1) + buttons.length) % buttons.length
     else if (event.key === 'Home') next = 0
     else if (event.key === 'End') next = buttons.length - 1
-    if (next < 0) return
+    var to = next < 0 ? null : buttons[next]
+    if (!to) return
     event.preventDefault()
-    buttons[next].focus()
+    to.focus()
   })
-  root.addEventListener('input', function (event${any}) {
-    if (event.target.matches && event.target.matches('[data-fg-richtext]')) onChange(event.target, fgRichClean(event.target.innerHTML))
+  root.addEventListener('input', function (event${t(': Event')}) {
+    var editor = event.target${t(' as HTMLElement | null')}
+    if (editor && editor.matches && editor.matches('[data-fg-richtext]')) onChange(editor, fgRichClean(editor.innerHTML))
   })
-  root.addEventListener('paste', function (event${any}) {
-    if (!event.target.closest || !event.target.closest('[data-fg-richtext]')) return
+  root.addEventListener('paste', function (event${t(': ClipboardEvent')}) {
+    var target = event.target${t(' as Element | null')}
+    if (!target || !target.closest || !target.closest('[data-fg-richtext]')) return
     event.preventDefault()
     document.execCommand('insertText', false, event.clipboardData ? event.clipboardData.getData('text/plain') : '')
   })
 }
 // A value set elsewhere (a reset, saved answers) shows in editors not being typed in.
-function fgRichSync(root${any}, valueOf${t(': (editor: HTMLElement) => unknown')}) {
+function fgRichSync(root${t(': HTMLElement | null')}, valueOf${t(': (editor: HTMLElement) => unknown')}) {
   if (!root) return
-  Array.prototype.forEach.call(root.querySelectorAll('[data-fg-richtext]'), function (editor${any}) {
+  Array.prototype.forEach.call(root.querySelectorAll${t('<HTMLElement>')}('[data-fg-richtext]'), function (editor${t(': HTMLElement')}) {
     if (document.activeElement === editor) return
     var clean = fgRichClean(valueOf(editor))
     if (fgRichClean(editor.innerHTML) !== clean) editor.innerHTML = clean
@@ -213,14 +225,14 @@ window.fgRichSet = function (root, values) {
     // editors after every render (a reset, saved answers, an editor shown
     // again by a step or a condition).
     private readonly Dictionary<string, (Action<string> Set, string Value)> fgRich = new();
-    // The editors rendered this time; entries of elements no longer
-    // rendered (removed items, fields hidden again) go after each render.
-    private readonly HashSet<string> fgRichLive = new();
+    // The render that last showed each editor; entries of elements no
+    // longer rendered (removed items, fields hidden again) go after a render.
+    private readonly Dictionary<string, int> fgRichSeen = new();
 
     private string FgRichKey(string key, Action<string> set, string value)
     {
         fgRich[key] = (set, value);
-        fgRichLive.Add(key);
+        fgRichSeen[key] = fgRenderGen;
         return key;
     }
 
@@ -244,8 +256,7 @@ window.fgRichSet = function (root, values) {
 
     private async Task FgRichShowValues()
     {
-        foreach (var key in fgRich.Keys.Where(key => !fgRichLive.Contains(key)).ToList()) fgRich.Remove(key);
-        fgRichLive.Clear();
+        foreach (var key in fgRich.Keys.Where(key => !fgRichSeen.TryGetValue(key, out var seen) || seen != fgRenderGen).ToList()) { fgRich.Remove(key); fgRichSeen.Remove(key); }
         if (fgSelf is null) return;
         await FgJs.InvokeVoidAsync("fgRichSet", fgFormRoot, fgRich.ToDictionary(entry => entry.Key, entry => entry.Value.Value));
     }
