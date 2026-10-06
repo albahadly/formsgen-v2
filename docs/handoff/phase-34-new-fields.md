@@ -183,7 +183,7 @@ A project-wide review (12 reviewers, each finding judged independently) found th
 
 ## How to verify
 
-- **`pnpm verify` passes:** 195 renderer tests, 320 builder tests and 8 sample-server tests (after the review fixes; 191 / 316 / 7 at the phase commit).
+- **`pnpm verify` passes:** 195 renderer tests, 324 builder tests and 8 sample-server tests (after the review fixes; 191 / 316 / 7 at the phase commit).
   - New renderer tests: location values, settings and the field (with a stand-in Leaflet), the spam check (with a stand-in Turnstile), signatures, rich text, iframes.
   - New builder tests: each target's location and spam-check code, signatures, rich text.
   - New server tests: secret required, bad token refused, token not stored, multipart.
