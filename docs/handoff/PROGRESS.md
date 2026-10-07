@@ -27,27 +27,18 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
 
 ## In flight
 
-- **Phase 37: CSS parity** (user, 2026-10-07: "Vanilla CSS, Tailwind and
-  Bootstrap 5 is not fully identical in form"). The three flavours of an
-  export must render the same form (structure, sizes, spacing, typography,
-  states); colours stay the framework's unless themed. Done so far:
-  - `tools/proof/e2e/shots.mjs` (screenshots at 390/768/1200 + dark +
-    error state), `tools/proof/e2e/metrics.mjs` (computed-style metrics of a
-    page) and `tools/proof/metrics-compare.mjs` (diff across flavours).
-    Baseline: 237 differing metrics on the example form, 936 on the kitchen
-    sink (`tools/proof/work/metrics36/compare-*.md`; screenshots in
-    `tools/proof/work/shots36/`, pages in `tools/proof/work/ks36/pages/`).
-  - Draft spec `tools/proof/work/parity-spec.md` (scratch; the final one
-    goes to `docs/adr/0004-css-parity.md`).
-  - Audit workflow `css-parity-audit` running (run `wf_daaa79bc-384`,
-    9 finders → 18 verifiers → 3 judges → synthesis). Its result is the
-    final spec + per-file plan.
-- Next: implement the plan (vanilla + renderer styles.css, tailwind.ts +
-  themeBridge sync, bootstrap5.ts + parity CSS in composite.ts, heading
-  levels via SlotMods, html.ts page scaffold), update snapshots and
-  examples, re-run metrics (target: IDENTICAL within 1px) and screenshots,
-  examples check, handoff `phase-37-css-parity.md`.
-- Uncommitted: nothing after this commit (the three scripts and this file).
+- **Phase 37 (CSS parity) is implemented on branch `phase-37`** in the
+  worktree `/home/user/formsgen-parity` (commits `35ead35` adapters +
+  renderer + snapshots + examples, `821a977` parity check, `0909924` sized
+  selects, `022a8ef` docs: ADR-0004, handoff `phase-37-css-parity.md`).
+  `pnpm verify` is green there and `tools/proof/parity-check.sh` reports
+  IDENTICAL for both forms at 1200 and 390px. Still running there: the
+  examples check (`tools/proof/work/examples-p37b/check.log`) and the
+  review workflow `css-parity-verify` (`wf_d8fcae04-0b3`). When both are
+  green (findings fixed on the branch), `git merge --ff-only phase-37` into
+  `main`, push, `git worktree remove ../formsgen-parity`.
+- If the worktree is gone: `git fetch`, the branch may not be on origin;
+  the work is only local until merged.
 
 ## Next steps (in order)
 
