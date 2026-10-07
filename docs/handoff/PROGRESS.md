@@ -27,16 +27,35 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
 
 ## In flight
 
-- Nothing. No uncommitted work, no running checks, no servers.
+- **Phase 37: CSS parity** (user, 2026-10-07: "Vanilla CSS, Tailwind and
+  Bootstrap 5 is not fully identical in form"). The three flavours of an
+  export must render the same form (structure, sizes, spacing, typography,
+  states); colours stay the framework's unless themed. Done so far:
+  - `tools/proof/e2e/shots.mjs` (screenshots at 390/768/1200 + dark +
+    error state), `tools/proof/e2e/metrics.mjs` (computed-style metrics of a
+    page) and `tools/proof/metrics-compare.mjs` (diff across flavours).
+    Baseline: 237 differing metrics on the example form, 936 on the kitchen
+    sink (`tools/proof/work/metrics36/compare-*.md`; screenshots in
+    `tools/proof/work/shots36/`, pages in `tools/proof/work/ks36/pages/`).
+  - Draft spec `tools/proof/work/parity-spec.md` (scratch; the final one
+    goes to `docs/adr/0004-css-parity.md`).
+  - Audit workflow `css-parity-audit` running (run `wf_daaa79bc-384`,
+    9 finders → 18 verifiers → 3 judges → synthesis). Its result is the
+    final spec + per-file plan.
+- Next: implement the plan (vanilla + renderer styles.css, tailwind.ts +
+  themeBridge sync, bootstrap5.ts + parity CSS in composite.ts, heading
+  levels via SlotMods, html.ts page scaffold), update snapshots and
+  examples, re-run metrics (target: IDENTICAL within 1px) and screenshots,
+  examples check, handoff `phase-37-css-parity.md`.
+- Uncommitted: nothing after this commit (the three scripts and this file).
 
 ## Next steps (in order)
 
-1. Nothing is in progress. Pick the next phase with the user (37). For any
-   new feature, add a demo + scenario to `tools/proof/` and run the four
-   steps (README there); follow `CLAUDE.md` §1–§2 and the Phase Standard.
-   A new example stack goes under `examples/` + a `PLACES` row in
-   `apps/builder/src/export/examples.test.ts` + a run in
-   `tools/proof/examples-check.sh`.
+1. Finish Phase 37 as above. If this session died mid-way: read
+   `tools/proof/work/parity-spec.md`, re-run the metrics
+   (`node tools/proof/e2e/metrics.mjs <url> <out.json>` on the served
+   `ks36/pages`, then `metrics-compare.mjs`), and continue from the plan.
+2. Then pick the next phase with the user.
 
 ## Open backlog (pointer)
 
@@ -61,6 +80,8 @@ and, for the spam demo, `TURNSTILE_SECRET=1x0000000000000000000000000000000AA no
 
 ## Log (newest first)
 
+- **2026-10-07** — Phase 37 (CSS parity) started: measurement scripts,
+  baseline metrics and screenshots, draft spec, audit workflow launched.
 - **2026-10-07** — Phase 36 done: `examples/` (template, 4 projects, 5
   READMEs, drift test, `examples-check.sh` + scenario), ADR-0003 and the
   derived-id fix in every export (`c6f1b25`), the renderer export now
