@@ -61,6 +61,11 @@ expired session is continued, not repeated. So:
   (`--port`, `--dir`, `TURNSTILE_SECRET`).
 - `fixtures/kitchen-sink.formsgen.json` — every feature once; tests import it.
 - `docs/handoff/*` — one doc per phase; `docs/adr/*` — decisions.
+- `examples/` — one form in four stacks (HTML, React, Vue, .NET); the
+  exported files there are generated from `examples/form/` by
+  `apps/builder/src/export/examples.test.ts` (drift-checked by `pnpm test`;
+  `pnpm examples:update` regenerates). `tools/proof/examples-check.sh`
+  drives all 13 example runtimes.
 - `tools/proof/` — the verification toolkit (see §5).
 - CI: `.github/workflows/ci.yml` runs `pnpm verify`; Cloudflare build via
   `build.sh` + `wrangler.jsonc`.

@@ -19,6 +19,7 @@ every phase: `docs/handoff/INDEX.md`.
 | `docs/handoff` | Per-phase handoff documents — read the latest one first |
 | `docs/adr` | Architecture decision records |
 | `fixtures` | `kitchen-sink.formsgen.json` — every element type, rule and condition; test input, export-snapshot source and manual QA script in one |
+| `examples` | One form (event registration) implemented in HTML, React, Vue and .NET, each a runnable project around the files the builder exports; generated from `examples/form/` and drift-checked by the tests |
 
 ## Commands
 
@@ -91,6 +92,17 @@ cdnjs (pinned with integrity hashes) and map tiles from OpenStreetMap or the
 tile server set on the field; a **spam check** loads Cloudflare Turnstile and
 needs the receiving server to verify the token with the secret key; an
 **HTML block** may embed https pages in sandboxed iframes.
+
+## Examples
+
+`examples/` shows the same form, *Event registration*, integrated in each
+stack: three self-contained HTML pages, a Vite + React app, a Vite + Vue app
+(standalone exports and the `@formsgen/renderer` export) and a Blazor Web
+App. The exported files in them are generated from
+`examples/form/event-registration.formsgen.json` by the builder's own
+targets and checked by `pnpm test`; `pnpm examples:update` regenerates them
+after a change to the template or a target. `examples/README.md` has the
+map, each folder's README the steps and the integration notes.
 
 ## Deployment
 

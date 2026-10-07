@@ -66,6 +66,24 @@ editor the cleaned markup after a re-render (`<strong>` for the typed
 `<b>`); the scenario normalises that too. Anything else that differs is a
 real difference between runtimes.
 
+## Checking the examples
+
+```sh
+bash tools/proof/examples-check.sh            # ONLY=web or ONLY=blazor to split
+```
+
+Builds the example projects under `examples/` (React and Vue with their own
+Vite configs, the Blazor app with `dotnet build`), serves them
+(`static-server.mjs` on 4180 for the HTML pages, 4181 React, 4182 Vue; the
+Blazor app on 5139) and drives all 13 runtimes with
+`e2e/event-registration.mjs`: 3 HTML pages, 3 React variants, 4 Vue variants
+(the fourth uses `@formsgen/renderer`), 3 Blazor pages. The sample server on
+4280 is started when it is not already answering. The examples post to
+`http://localhost:4280/submit` exactly as a developer runs them; the scenario
+routes those requests to the sample server at `FG_HOST`. Output as for
+`run-matrix.sh` (`<run>: IDENTICAL`, `CHECK-DONE`, `res-*.json`, `shots/`),
+under `work/examples/` by default.
+
 ## Checking the builder itself
 
 ```sh
@@ -98,11 +116,12 @@ signature and location fields in an Arabic form start with Arabic labels
 
 - `lib.sh` — shared defaults and helpers (`start_bg`, `stop_bg`, `wait_http`); sourced by the scripts.
 - `setup.sh`, `export-demo.sh`, `strict.sh`, `run-matrix.sh` — the four steps above.
+- `examples-check.sh` — the 13-runtime check of the example projects (`examples/`).
 - `static-server.mjs` — serves a directory and records `/submit` posts (`/last`, `/mode?delay=&fail=1`).
 - `react-harness/` — tsconfig and `*.css` module declaration for the React exports.
 - `vue-harness/` — Vite config (plugin-vue and Vue from the builder's `node_modules`), `main.ts`, `index.html` template.
 - `blazor-proof/FgProof/` — the .NET 8 Blazor Server host. Exports are copied into `Components/Proof/` (ignored); `Components/App.razor` and `Pages/Home.razor` are rendered per run from their `.template` files (the `<!-- FG_HEAD -->` marker takes the framework's CDN tag, `__COMPONENT__` the form's name).
-- `e2e/` — the scenarios and `_browser.mjs` (browser launch from the environment knobs).
+- `e2e/` — the scenarios and `_browser.mjs` (browser launch from the environment knobs); `e2e/event-registration.mjs` drives the examples.
 - `demos/` — the demo schemas.
 - `builder-check.mjs` — the builder's browser check.
 - `work/` — outputs, logs, pids, screenshots (ignored).

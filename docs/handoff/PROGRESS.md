@@ -5,38 +5,38 @@ in flight, and the exact next step. A fresh session reads this first (see
 `CLAUDE.md` §1–§2), updates it at every milestone, and commits it with the
 work. Phase handoffs (`INDEX.md`) stay the long-form record.
 
-## Where we are (2026-10-06)
+## Where we are (2026-10-07)
 
-- **Branch / remote:** `main` of `albahadly/formsgen-v2`, pushed; Phase 35
-  commits `9dba1c7`, `0a9184c`, `691dfd7`, `62581ac` and the final one
-  (35b + handoff) on top of the toolkit/memory commits and Phase 34.
-- **State:** all planned phases (01–11) plus 10b and 12–34 are complete. A
-  project-wide review after Phase 34 (12 reviewers, 68 findings: 5 high,
-  11 medium, 36 low, 16 nits) is done: 60 fixed, 8 deliberately deferred
-  (listed in `phase-34-new-fields.md` → "What was intentionally NOT done").
-- **Gates:** `pnpm verify` green (197 renderer / 325 builder / 8 server
-  tests); strict compiles 0 errors 0 warnings for the kitchen sink and the
-  five demos; matrices identical for the signature, rich-text, location,
-  spam-check and wizard demos (Phase 35 proof run).
-- **Phase 35 (2026-10-06) complete:** the review's deferred items: spam
-  check in the kitchen sink (35e), entity-decoding parity (35d), one tab
-  stop for the rich-text toolbar (35a), Blazor registries forget removed
-  elements with a per-render stamp (35c), no `any` in generated TypeScript
-  (35b). Handoff: `phase-35-backlog-round.md`.
-- **Memory and toolkit (2026-10-06):** `CLAUDE.md` + this file are the
-  session memory; the verification toolkit lives in `tools/proof/` (see
-  its README), proven from a cold start and used for the Phase 35 proof
-  (18 strict builds clean, 51 matrix runs identical).
+- **Branch / remote:** `main` of `albahadly/formsgen-v2`, pushed. Phase 36
+  commits: `c6f1b25` (derived ids), `464de9b` (renderer export sends),
+  `08798ff` (examples) and the docs commit on top.
+- **State:** all planned phases (01–11) plus 10b and 12–36 are complete.
+  Phase 36 added `examples/` (one form in HTML, React, Vue and .NET, each
+  a runnable project; exported files generated from `examples/form/` and
+  drift-checked by `pnpm test`; `pnpm examples:update` regenerates) and
+  fixed two things the examples exposed: duplicate ids in every export
+  when a field is named `<field>_<option>` (ADR-0003) and the renderer
+  export ignoring the builder's submit URL. Handoff: `phase-36-examples.md`.
+- **Gates:** `pnpm verify` green (198 renderer / 340 builder / 8 server
+  tests; builds include `examples/react` and `examples/vue`); the Blazor
+  example builds with 0 errors 0 warnings; `tools/proof/examples-check.sh`
+  13/13 identical (HTML ×3, React ×3, Vue ×4 incl. the renderer variant,
+  Blazor ×3); location demo matrix 12/12 identical after the id change.
+- **Memory and toolkit:** `CLAUDE.md` + this file; `tools/proof/` (README
+  there) now also has `examples-check.sh` and `e2e/event-registration.mjs`.
 
 ## In flight
 
-- Nothing. No uncommitted work, no running checks.
+- Nothing. No uncommitted work, no running checks, no servers.
 
 ## Next steps (in order)
 
-1. Nothing is in progress. Pick the next phase with the user (36). For any
+1. Nothing is in progress. Pick the next phase with the user (37). For any
    new feature, add a demo + scenario to `tools/proof/` and run the four
    steps (README there); follow `CLAUDE.md` §1–§2 and the Phase Standard.
+   A new example stack goes under `examples/` + a `PLACES` row in
+   `apps/builder/src/export/examples.test.ts` + a run in
+   `tools/proof/examples-check.sh`.
 
 ## Open backlog (pointer)
 
@@ -60,6 +60,18 @@ Sample servers for the demos: `node packages/submit-server/server.mjs --port 428
 and, for the spam demo, `TURNSTILE_SECRET=1x0000000000000000000000000000000AA node packages/submit-server/server.mjs --port 4281 --dir /tmp/subs-captcha`.
 
 ## Log (newest first)
+
+- **2026-10-07** — Phase 36 done: `examples/` (template, 4 projects, 5
+  READMEs, drift test, `examples-check.sh` + scenario), ADR-0003 and the
+  derived-id fix in every export (`c6f1b25`), the renderer export now
+  sends to the submit URL with `sendSubmission` + headers (`464de9b`),
+  examples commit `108d2ed`. Checks: verify green (198/340/8), Blazor 0/0,
+  examples check 13/13 identical (three runs: the first caught the
+  duplicate-id bug, the second a stale renderer `dist`, the third was
+  clean), location demo matrix 12/12 identical with the renamed
+  `fg_place-lng` ids.
+- **2026-10-06** — Phase 36 (examples folder) started; plan under "In
+  flight".
 
 - **2026-10-06** — CI fix: `pnpm/action-setup@v4` refuses a `version` input
   when `package.json` has `packageManager` (added by the review fixes); the
