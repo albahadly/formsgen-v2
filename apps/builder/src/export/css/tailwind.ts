@@ -152,6 +152,8 @@ const CONTROL_SIZE = {
   lg: 'px-4 py-2 text-xl leading-normal',
 }
 const TAGS_SIZE = { md: 'px-2 py-1.5', sm: 'px-1.5 py-1 text-sm', lg: 'px-3 py-2 text-xl' }
+// A native select ignores line-height for its height; the class fixes it (38 / 31 / 48px).
+const SELECT_HEIGHT = { md: '[&:not([multiple])]:h-[2.375rem]', sm: '[&:not([multiple])]:h-[1.9375rem]', lg: '[&:not([multiple])]:h-12' }
 const TONE_TEXT = {
   muted: 'text-gray-500 dark:text-gray-400',
   primary: 'text-indigo-600 dark:text-indigo-400',
@@ -170,7 +172,11 @@ function tailwindClasses(slot: Slot, mods?: SlotMods): string {
   let base = CLASSES[slot]
   if (slot === 'heading' && mods?.level) base = swapClasses(base, 'text-2xl', HEADING_SIZE[mods.level])
   if (mods?.size) {
-    if (slot === 'input' || slot === 'textarea' || slot === 'select') {
+    if (slot === 'select') {
+      // Native selects take their height from the class (see SELECT_HEIGHT).
+      return swapClasses(swapClasses(base, CONTROL_SIZE.md, CONTROL_SIZE[mods.size]), SELECT_HEIGHT.md, SELECT_HEIGHT[mods.size])
+    }
+    if (slot === 'input' || slot === 'textarea') {
       return swapClasses(base, CONTROL_SIZE.md, CONTROL_SIZE[mods.size])
     }
     if (slot === 'tagsWrap') return swapClasses(base, TAGS_SIZE.md, TAGS_SIZE[mods.size])

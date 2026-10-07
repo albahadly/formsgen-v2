@@ -16546,6 +16546,8 @@ exports[`html target > snapshot (vanilla) 1`] = `
     outline: 2px solid var(--fg-color-primary); outline-offset: 1px; border-color: var(--fg-color-primary);
   }
   .fg-select:not([multiple]) { block-size: 2.375rem; }
+  .fg-select.fg-control--sm:not([multiple]) { block-size: 1.9375rem; }
+  .fg-select.fg-control--lg:not([multiple]) { block-size: 3rem; }
   .fg-input::-webkit-datetime-edit-fields-wrapper { padding: 0; }
   .fg-invalid { border-color: var(--fg-color-error); }
   .fg-checkbox-row { display: inline-flex; align-items: center; gap: 0.5rem; }
@@ -36669,6 +36671,8 @@ async function onSubmit(): Promise<void> {
   outline: 2px solid var(--fg-color-primary); outline-offset: 1px; border-color: var(--fg-color-primary);
 }
 .fg-select:not([multiple]) { block-size: 2.375rem; }
+.fg-select.fg-control--sm:not([multiple]) { block-size: 1.9375rem; }
+.fg-select.fg-control--lg:not([multiple]) { block-size: 3rem; }
 .fg-input::-webkit-datetime-edit-fields-wrapper { padding: 0; }
 .fg-invalid { border-color: var(--fg-color-error); }
 .fg-checkbox-row { display: inline-flex; align-items: center; gap: 0.5rem; }

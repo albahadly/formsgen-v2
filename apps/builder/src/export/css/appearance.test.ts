@@ -30,6 +30,10 @@ describe('appearance modifiers in every CSS adapter', () => {
     expect(small).toEqual(expect.arrayContaining(['px-2', 'py-1', 'text-sm']))
     expect(small).not.toContain('px-3')
     expect(small).not.toContain('text-base')
+    const smallSelect = tw.classes('select', { size: 'sm' })
+    expect(smallSelect).toContain('[&:not([multiple])]:h-[1.9375rem]')
+    expect(smallSelect).not.toContain('h-[2.375rem]')
+    expect(tw.classes('select', { size: 'lg' })).toContain('[&:not([multiple])]:h-12')
     const danger = tw.classes('paragraph', { tone: 'danger' }).split(' ')
     expect(danger).toContain('text-red-600')
     expect(danger).not.toContain('text-gray-600')
@@ -51,7 +55,7 @@ describe('appearance modifiers in every CSS adapter', () => {
     expect(vanilla.classes('input', { size: 'sm' })).toBe('fg-input fg-control--sm')
     expect(vanilla.classes('heading', { tone: 'primary' })).toBe('fg-heading fg-tone-primary')
     const css = vanilla.stylesheet!()
-    for (const rule of ['.fg-control--sm', '.fg-control--lg', '.fg-align-center', '.fg-align-end']) {
+    for (const rule of ['.fg-control--sm', '.fg-control--lg', '.fg-select.fg-control--sm:not([multiple])', '.fg-select.fg-control--lg:not([multiple])', '.fg-align-center', '.fg-align-end']) {
       expect(css).toContain(rule)
     }
     for (const tone of ['muted', 'primary', 'danger']) expect(css).toContain(`.fg-tone-${tone}`)

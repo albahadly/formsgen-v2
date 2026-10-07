@@ -110,6 +110,8 @@
 }
 
 .fg-select:not([multiple]) { block-size: 2.375rem; }
+.fg-select.fg-control--sm:not([multiple]) { block-size: 1.9375rem; }
+.fg-select.fg-control--lg:not([multiple]) { block-size: 3rem; }
 .fg-input::-webkit-datetime-edit-fields-wrapper { padding: 0; }
 .fg-field--error .fg-input,
 .fg-field--error .fg-textarea,
