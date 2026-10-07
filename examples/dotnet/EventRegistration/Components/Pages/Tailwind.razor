@@ -1,0 +1,12 @@
+@page "/tailwind"
+@using EventRegistration.Components.Forms.Tailwind
+
+<PageTitle>Event registration (Tailwind)</PageTitle>
+
+@* The Tailwind export needs Tailwind on the page. The Play CDN is the quickest
+   way to see it; a real app generates its CSS with the Tailwind CLI instead. *@
+<HeadContent>
+    <script src="https://cdn.tailwindcss.com"></script>
+</HeadContent>
+
+<EventRegistrationForm @rendermode="InteractiveServer" />

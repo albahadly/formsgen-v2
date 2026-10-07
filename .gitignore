@@ -9,3 +9,6 @@ coverage/
 tools/proof/work/
 apps/builder/src/__proof__/
 apps/builder/src/export/targets/__proof_dump.test.ts
+# example projects (examples/)
+examples/dotnet/**/bin/
+examples/dotnet/**/obj/

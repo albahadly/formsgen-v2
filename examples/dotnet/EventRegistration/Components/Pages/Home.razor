@@ -1,0 +1,8 @@
+@page "/"
+@using EventRegistration.Components.Forms.Vanilla
+
+<PageTitle>Event registration (vanilla CSS)</PageTitle>
+
+@* The vanilla export carries its own styles (EventRegistrationForm.razor.css,
+   bundled by the build into EventRegistration.styles.css). *@
+<EventRegistrationForm @rendermode="InteractiveServer" />

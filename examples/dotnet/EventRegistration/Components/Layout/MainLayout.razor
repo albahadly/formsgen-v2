@@ -1,0 +1,20 @@
+@inherits LayoutComponentBase
+
+<div class="example-main">
+    @* Full page loads (no enhanced navigation), so each page's <HeadContent>
+       brings in only the stylesheet its form variant needs. *@
+    <nav class="example-nav" aria-label="CSS framework">
+        <a href="/" data-enhance-nav="false">Vanilla CSS</a>
+        <a href="/tailwind" data-enhance-nav="false">Tailwind</a>
+        <a href="/bootstrap5" data-enhance-nav="false">Bootstrap 5</a>
+    </nav>
+    <main>
+        @Body
+    </main>
+</div>
+
+<div id="blazor-error-ui">
+    An unhandled error has occurred.
+    <a href="" class="reload">Reload</a>
+    <a class="dismiss">🗙</a>
+</div>

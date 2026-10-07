@@ -29,6 +29,8 @@ trap cleanup EXIT
 # are printed when they differ.
 norm='import json,sys,re;d=json.load(open(sys.argv[1]));e=d.pop("errors",[]);print("errors:",e,file=sys.stderr);s=re.sub(r"\s+","",json.dumps(d,indent=1));s=re.sub(r"\"size\":\d+","\"size\":N",s);print(s.replace(",",",\n"))'
 cmp() {
+  # A run that crashed leaves an empty result: never "identical" by accident.
+  if ! python3 -c "import json,sys;json.load(open(sys.argv[1]))" "$1" 2>/dev/null; then echo "NO RESULT (see err file)"; return; fi
   if diff <(python3 -c "$norm" "$OUT/res-html-vanilla.json" 2>/dev/null) <(python3 -c "$norm" "$1") > /dev/null; then
     echo "IDENTICAL"
   else

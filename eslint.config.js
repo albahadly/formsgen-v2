@@ -3,7 +3,7 @@ import tseslint from 'typescript-eslint'
 import pluginVue from 'eslint-plugin-vue'
 
 export default tseslint.config(
-  { ignores: ['**/dist/**', '**/coverage/**', '**/node_modules/**', 'tools/proof/work/**', 'apps/builder/src/__proof__/**'] },
+  { ignores: ['**/dist/**', '**/coverage/**', '**/node_modules/**', 'tools/proof/work/**', 'apps/builder/src/__proof__/**', 'examples/*/src/forms/**', 'examples/html/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   ...pluginVue.configs['flat/recommended'],
@@ -29,7 +29,7 @@ export default tseslint.config(
   },
   {
     // The verification toolkit: Node scripts that drive browsers and print results.
-    files: ['tools/proof/**/*.mjs', 'tools/proof/**/*.ts'],
+    files: ['tools/proof/**/*.mjs', 'tools/proof/**/*.ts', 'examples/update.mjs'],
     languageOptions: { globals: { Buffer: 'readonly', process: 'readonly', console: 'readonly', fetch: 'readonly', URL: 'readonly', setTimeout: 'readonly', document: 'readonly', window: 'readonly', localStorage: 'readonly', getComputedStyle: 'readonly', matchMedia: 'readonly' } },
     rules: { 'no-console': 'off', 'no-undef': 'off' },
   },

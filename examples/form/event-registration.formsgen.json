@@ -1,0 +1,43 @@
+{
+  "$schema": "formsgen/v2",
+  "meta": {
+    "name": "event_registration",
+    "title": "Event registration",
+    "description": "The one form every example implements: who is coming, which ticket, what they need.",
+    "locale": "en",
+    "dir": "ltr",
+    "submit": { "url": "http://localhost:4280/submit", "method": "POST" },
+    "submitButton": { "text": "Register" }
+  },
+  "tree": [
+    { "id": "er-heading", "type": "heading", "props": { "text": "Event registration", "level": 2 } },
+    { "id": "er-intro", "type": "paragraph", "props": { "text": "Tell us who is coming and what you need. Fields marked * are required." } },
+    {
+      "id": "er-name", "type": "columns", "props": { "count": 2 },
+      "children": [
+        { "id": "er-first-name", "type": "text", "name": "first_name", "props": { "label": "First name", "placeholder": "Ana" }, "validation": [{ "rule": "required" }, { "rule": "min", "value": 2 }] },
+        { "id": "er-last-name", "type": "text", "name": "last_name", "props": { "label": "Last name" }, "validation": [{ "rule": "required" }] }
+      ]
+    },
+    { "id": "er-email", "type": "email", "name": "email", "props": { "label": "Email", "placeholder": "ana@example.com", "description": "Your ticket is sent here." }, "validation": [{ "rule": "required" }, { "rule": "email" }] },
+    { "id": "er-phone", "type": "phone", "name": "phone", "props": { "label": "Phone" } },
+    {
+      "id": "er-ticket", "type": "select", "name": "ticket",
+      "props": { "label": "Ticket", "items": [{ "value": "standard", "label": "Standard" }, { "value": "vip", "label": "VIP" }, { "value": "student", "label": "Student" }] },
+      "validation": [{ "rule": "required" }]
+    },
+    { "id": "er-seats", "type": "number", "name": "seats", "props": { "label": "Seats", "min": 1, "max": 5, "suffix": "people", "description": "Including yourself, up to 5." }, "validation": [{ "rule": "required" }, { "rule": "min", "value": 1 }, { "rule": "max", "value": 5 }] },
+    {
+      "id": "er-diet", "type": "radiogroup", "name": "diet",
+      "props": { "label": "Dietary preference", "items": [{ "value": "none", "label": "No preference" }, { "value": "vegetarian", "label": "Vegetarian" }, { "value": "vegan", "label": "Vegan" }, { "value": "other", "label": "Other" }] }
+    },
+    { "id": "er-diet-other", "type": "textarea", "name": "diet_other", "props": { "label": "Tell us more", "rows": 2 }, "validation": [{ "rule": "required" }], "conditions": [[{ "field": "diet", "operator": "equals", "value": "other" }]] },
+    {
+      "id": "er-workshops", "type": "checkboxgroup", "name": "workshops",
+      "props": { "label": "Workshops", "items": [{ "value": "forms", "label": "Building forms" }, { "value": "exports", "label": "One form, four stacks" }, { "value": "a11y", "label": "Accessible by default" }] }
+    },
+    { "id": "er-arrival", "type": "date", "name": "arrival", "props": { "label": "Arrival date" } },
+    { "id": "er-notes", "type": "textarea", "name": "notes", "props": { "label": "Anything else?", "rows": 3 } },
+    { "id": "er-terms", "type": "checkbox", "name": "terms", "props": { "label": "I agree to the event terms" }, "validation": [{ "rule": "required" }] }
+  ]
+}

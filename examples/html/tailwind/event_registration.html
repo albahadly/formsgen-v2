@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Event registration</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+  [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <form id="fg-form" class="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" novalidate>
+    <div class="grid grid-cols-12 gap-4">
+      <div class="col-span-12 md:col-span-12">
+        <h2 class="font-semibold">Event registration</h2>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <p class="text-sm text-gray-600 dark:text-gray-300">Tell us who is coming and what you need. Fields marked * are required.</p>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="grid grid-cols-12 gap-4">
+          <div class="col-span-12 md:col-span-6">
+            <div class="flex flex-col gap-1.5">
+              <label class="text-sm font-semibold" for="fg_first_name">First name<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+              <input id="fg_first_name" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="first_name" data-fg-kind="text" placeholder="Ana">
+              <p id="fg_first_name-err" class="text-xs text-red-600" role="alert" hidden></p>
+            </div>
+          </div>
+          <div class="col-span-12 md:col-span-6">
+            <div class="flex flex-col gap-1.5">
+              <label class="text-sm font-semibold" for="fg_last_name">Last name<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+              <input id="fg_last_name" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="last_name" data-fg-kind="text">
+              <p id="fg_last_name-err" class="text-xs text-red-600" role="alert" hidden></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_email">Email<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+          <input id="fg_email" type="email" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="email" data-fg-kind="text" placeholder="ana&#64;example.com">
+          <p class="text-xs text-gray-500 dark:text-gray-400">Your ticket is sent here.</p>
+          <p id="fg_email-err" class="text-xs text-red-600" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_phone">Phone</label>
+          <input id="fg_phone" type="tel" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="phone" data-fg-kind="text">
+          <p id="fg_phone-err" class="text-xs text-red-600" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_ticket">Ticket<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+          <select id="fg_ticket" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="ticket" data-fg-kind="select">
+            <option value="" disabled selected>—</option>
+            <option value="standard">Standard</option>
+            <option value="vip">VIP</option>
+            <option value="student">Student</option>
+          </select>
+          <p id="fg_ticket-err" class="text-xs text-red-600" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_seats">Seats<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+          <div class="flex [&>:not(:first-child)]:-ms-px [&>:not(:first-child)]:rounded-s-none [&>:not(:last-child)]:rounded-e-none">
+            <input id="fg_seats" type="number" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="seats" data-fg-kind="number" min="1" max="5" aria-describedby="fg_seats-suffix">
+            <span id="fg_seats-suffix" class="inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">people</span>
+          </div>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Including yourself, up to 5.</p>
+          <p id="fg_seats-err" class="text-xs text-red-600" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <fieldset class="flex flex-col gap-1.5">
+          <legend class="text-sm font-semibold">Dietary preference</legend>
+          <div class="flex flex-col gap-1.5">
+            <label class="inline-flex items-center gap-2 text-sm" for="fg_diet-none">
+              <input id="fg_diet-none" type="radio" name="diet" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="none" data-fg-path="diet" data-fg-kind="radio">
+              <span>No preference</span>
+            </label>
+            <label class="inline-flex items-center gap-2 text-sm" for="fg_diet-vegetarian">
+              <input id="fg_diet-vegetarian" type="radio" name="diet" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="vegetarian" data-fg-path="diet" data-fg-kind="radio">
+              <span>Vegetarian</span>
+            </label>
+            <label class="inline-flex items-center gap-2 text-sm" for="fg_diet-vegan">
+              <input id="fg_diet-vegan" type="radio" name="diet" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="vegan" data-fg-path="diet" data-fg-kind="radio">
+              <span>Vegan</span>
+            </label>
+            <label class="inline-flex items-center gap-2 text-sm" for="fg_diet-other">
+              <input id="fg_diet-other" type="radio" name="diet" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="other" data-fg-path="diet" data-fg-kind="radio">
+              <span>Other</span>
+            </label>
+          </div>
+          <p id="fg_diet-err" class="text-xs text-red-600" role="alert" hidden></p>
+        </fieldset>
+      </div>
+      <div class="col-span-12 md:col-span-12" data-fg-cond="0">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_diet_other">Tell us more<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+          <textarea id="fg_diet_other" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="2" data-fg-path="diet_other" data-fg-kind="text"></textarea>
+          <p id="fg_diet_other-err" class="text-xs text-red-600" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <fieldset class="flex flex-col gap-1.5">
+          <legend class="text-sm font-semibold">Workshops</legend>
+          <div class="flex flex-col gap-1.5">
+            <label class="inline-flex items-center gap-2 text-sm" for="fg_workshops-forms">
+              <input id="fg_workshops-forms" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="forms" data-fg-path="workshops" data-fg-kind="checks">
+              <span>Building forms</span>
+            </label>
+            <label class="inline-flex items-center gap-2 text-sm" for="fg_workshops-exports">
+              <input id="fg_workshops-exports" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="exports" data-fg-path="workshops" data-fg-kind="checks">
+              <span>One form, four stacks</span>
+            </label>
+            <label class="inline-flex items-center gap-2 text-sm" for="fg_workshops-a11y">
+              <input id="fg_workshops-a11y" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="a11y" data-fg-path="workshops" data-fg-kind="checks">
+              <span>Accessible by default</span>
+            </label>
+          </div>
+          <p id="fg_workshops-err" class="text-xs text-red-600" role="alert" hidden></p>
+        </fieldset>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_arrival">Arrival date</label>
+          <input id="fg_arrival" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="arrival" data-fg-kind="text">
+          <p id="fg_arrival-err" class="text-xs text-red-600" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold" for="fg_notes">Anything else?</label>
+          <textarea id="fg_notes" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="3" data-fg-path="notes" data-fg-kind="text"></textarea>
+          <p id="fg_notes-err" class="text-xs text-red-600" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5">
+          <div class="flex items-center gap-2">
+            <input id="fg_terms" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" data-fg-path="terms" data-fg-kind="checkbox">
+            <label class="inline-flex items-center gap-2 text-sm" for="fg_terms">I agree to the event terms<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+          </div>
+          <p id="fg_terms-err" class="text-xs text-red-600" role="alert" hidden></p>
+        </div>
+      </div>
+    </div>
+    <div id="fg-live" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+    <div class="mt-4">
+      <button class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60" data-fg-submit type="submit">Register</button>
+    </div>
+    <pre id="fg-result" class="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300" hidden></pre>
+  </form>
+  <script>
+  (function () {
+    'use strict'
+    function fgIsEmpty(v) {
+      if (v === null || v === undefined) return true
+      if (typeof v === 'string') return v.trim() === ''
+      if (Array.isArray(v)) return v.length === 0
+      // Composite values ({ from, to }) are empty while any part is.
+      if (typeof v === 'object' && Object.getPrototypeOf(v) === Object.prototype) {
+        return Object.keys(v).some((k) => fgIsEmpty(v[k]))
+      }
+      return false
+    }
+    // Empty, or an unchecked checkbox/toggle (takes any type, so typed targets
+    // never compare a string field with false).
+    function fgIsBlank(v) {
+      return fgIsEmpty(v) || v === false
+    }
+    function fgSize(v) {
+      if (typeof v === 'number') return Number.isFinite(v) ? v : null
+      if (typeof v === 'string') return v.length
+      if (Array.isArray(v)) return v.length
+      return null
+    }
+    // A date range whose end comes before its start.
+    function fgDateOrder(v) {
+      var r = v || {}
+      return typeof r.from === 'string' && typeof r.to === 'string' && r.from !== '' && r.to !== '' && r.to < r.from
+    }
+    // The "contains" condition: a substring of text, or an item of a list.
+    function fgContains(v, x) {
+      if (typeof v === 'string') return v.includes(String(x))
+      return Array.isArray(v) && v.includes(x)
+    }
+
+    var fgTags = {}
+    /** Each element under root (root included) matching selector. */
+    function fgEach(root, selector, fn) {
+      if (root.matches && root.matches(selector)) fn(root)
+      Array.prototype.forEach.call(root.querySelectorAll(selector), fn)
+    }
+    function fgControl(path) {
+      return document.querySelector('[data-fg-path="' + path + '"]')
+    }
+    function fgGet(path) {
+      var el = fgControl(path)
+      if (!el) return undefined
+      var kind = el.getAttribute('data-fg-kind')
+      if (kind === 'checkbox') return el.checked
+      if (kind === 'select') return el.value === '' ? null : el.value
+      if (kind === 'number') return el.value === '' ? null : Number(el.value)
+      if (kind === 'radio') {
+        var checked = document.querySelector('[data-fg-path="' + path + '"]:checked')
+        return checked ? checked.value : null
+      }
+      if (kind === 'multiselect') {
+        return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
+      }
+      if (kind === 'range2' || kind === 'daterange') {
+        var parts = {}
+        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-path="' + path + '"][data-fg-part]'), function (input) {
+          parts[input.getAttribute('data-fg-part')] = kind === 'range2' ? Number(input.value) : input.value
+        })
+        return { from: parts.from, to: parts.to }
+      }
+      if (kind === 'dates') return (fgDates[path] || []).slice()
+      if (kind === 'tags') return (fgTags[path] || []).slice()
+      if (kind === 'checks') {
+        return Array.prototype.map.call(
+          document.querySelectorAll('[data-fg-path="' + path + '"]:checked'),
+          function (box) { return box.value },
+        )
+      }
+      return el.value
+    }
+
+    function fgVisible_diet_other() {
+      return ((fgGet("diet") === "other"))
+    }
+
+    var FG_CONDITIONS = [
+      { index: 0, test: function () { return (fgGet("diet") === "other") } },
+    ]
+
+    var FG_VALIDATORS = {
+      'first_name': function () {
+      const v = fgGet("first_name")
+      if (fgIsBlank(v)) return "This field is required"
+      if (!fgIsEmpty(v) && ((fgSize(v) ?? -Infinity) < 2)) return "Must be at least 2"
+      return null
+      },
+      'last_name': function () {
+      const v = fgGet("last_name")
+      if (fgIsBlank(v)) return "This field is required"
+      return null
+      },
+      'email': function () {
+      const v = fgGet("email")
+      if (fgIsBlank(v)) return "This field is required"
+      if (!fgIsEmpty(v) && ((typeof v !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)))) return "Must be a valid email address"
+      return null
+      },
+      'ticket': function () {
+      const v = fgGet("ticket")
+      if (fgIsBlank(v)) return "This field is required"
+      return null
+      },
+      'seats': function () {
+      const v = fgGet("seats")
+      if (fgIsBlank(v)) return "This field is required"
+      if (!fgIsEmpty(v) && ((fgSize(v) ?? -Infinity) < 1)) return "Must be at least 1"
+      if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 5)) return "Must be at most 5"
+      return null
+      },
+      'diet_other': function () {
+      if (!fgVisible_diet_other()) return null
+      const v = fgGet("diet_other")
+      if (fgIsBlank(v)) return "This field is required"
+      return null
+      },
+      'terms': function () {
+      const v = fgGet("terms")
+      if (fgIsBlank(v)) return "This field is required"
+      return null
+      },
+    }
+
+    var touched = {}
+
+    function fgKey(path) { return path.replace(/\./g, '_') }
+
+    function setError(path, message) {
+      var el = document.getElementById('fg_' + fgKey(path) + '-err')
+      var control = fgControl(path)
+      var invalid = "border-red-500 focus:ring-red-200".split(' ').filter(Boolean)
+      if (el) {
+        el.textContent = message || ''
+        el.hidden = !message
+      }
+      Array.prototype.forEach.call(control ? document.querySelectorAll('[data-fg-path="' + path + '"]') : [], function (box) {
+        invalid.forEach(function (cls) { box.classList.toggle(cls, Boolean(message)) })
+        if (message) box.setAttribute('aria-invalid', 'true')
+        else box.removeAttribute('aria-invalid')
+      })
+    }
+
+    function validateField(path) {
+      var validate = FG_VALIDATORS[path]
+      if (!validate) return true
+      var message = validate()
+      setError(path, message)
+      return !message
+    }
+
+    function fgHasError(path) {
+      var validate = FG_VALIDATORS[path]
+      return validate ? Boolean(validate()) : false
+    }
+
+    function updateConditions() {
+      FG_CONDITIONS.forEach(function (c) {
+        var el = document.querySelector('[data-fg-cond="' + c.index + '"]')
+        if (el) el.hidden = !c.test()
+      })
+    }
+
+
+    // Tags (chips) fields: value lives in fgTags, chips are painted into
+    // the [data-fg-tags-chips] span, Enter/comma/blur adds the draft. The
+    // path is read when used: an item's index changes when items move.
+    function fgWireTags(root) {
+      fgEach(root, '[data-fg-kind="tags"]', fgWireTagsField)
+    }
+    function fgWireTagsField(wrap) {
+      function fieldPath() { return wrap.getAttribute('data-fg-path') }
+      fgTags[fieldPath()] = []
+      var chips = wrap.querySelector('[data-fg-tags-chips]')
+      var input = wrap.querySelector('[data-fg-tags-input]')
+      if (!chips || !input) return
+      function paint() {
+        var path = fieldPath()
+        chips.textContent = ''
+        fgTags[path].forEach(function (tag, index) {
+          var chip = document.createElement('span')
+          chip.className = "inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700"
+          chip.appendChild(document.createTextNode(tag + ' '))
+          var remove = document.createElement('button')
+          remove.type = 'button'
+          remove.className = "text-gray-500 hover:text-red-600"
+          remove.setAttribute('aria-label', 'Remove ' + (tag))
+          remove.textContent = '\u00d7'
+          remove.addEventListener('click', function () {
+            var current = fieldPath()
+            fgTags[current].splice(index, 1)
+            paint()
+            if (touched[current]) validateField(current)
+            updateConditions()
+          })
+          chip.appendChild(remove)
+          chips.appendChild(chip)
+        })
+      }
+      function addDraft() {
+        var path = fieldPath()
+        var draft = input.value.trim()
+        if (draft !== '' && fgTags[path].indexOf(draft) === -1) {
+          fgTags[path].push(draft)
+          paint()
+        }
+        input.value = ''
+        if (touched[path]) validateField(path)
+        updateConditions()
+      }
+      wrap.fgPaint = paint
+      input.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ',') { event.preventDefault(); addDraft() }
+      })
+      input.addEventListener('blur', function () {
+        addDraft()
+        fgBlurValidate(fieldPath())
+      })
+    }
+
+    function fgWire(root) {
+      fgWireTags(root)
+    }
+    fgWire(document)
+
+    // Polite aria-live region; cleared first so repeated text re-announces.
+    function fgAnnounce(message) {
+      var live = document.getElementById('fg-live')
+      if (!live) return
+      live.textContent = ''
+      setTimeout(function () { live.textContent = message }, 50)
+    }
+    function fgErrorsText(count) {
+      const forms = { one: "1 error. Please fix the highlighted fields.", other: "{n} errors. Please fix the highlighted fields." }
+      const text = forms[count == 1 ? 'one' : 'other'] ?? forms.other
+      return text.split('{n}').join(String(count))
+    }
+
+    var FG_SECTIONS = []
+    var FG_SUBMIT_GATE = []
+    var fgSecState = {}
+    function fgUpdateSubmit() {
+      var btn = document.querySelector('[data-fg-submit]')
+      if (!btn || FG_SUBMIT_GATE.length === 0) return
+      var ready = FG_SUBMIT_GATE.every(function (key) {
+        var meta = null
+        FG_SECTIONS.forEach(function (m) { if (m.key === key) meta = m })
+        return !meta || (fgSecState[key] || 0) >= meta.count - 1
+      })
+      btn.hidden = !ready
+    }
+    function fgSetSec(meta, index, speak) {
+      fgSecState[meta.key] = index
+      if (speak && meta.announce[index]) fgAnnounce(meta.announce[index])
+      var panels = document.querySelectorAll('[data-fg-sec-panel]')
+      Array.prototype.forEach.call(panels, function (panel) {
+        var value = panel.getAttribute('data-fg-sec-panel')
+        if (value.indexOf(meta.key + ':') === 0) panel.hidden = value !== meta.key + ':' + index
+      })
+      Array.prototype.forEach.call(
+        document.querySelectorAll('[data-fg-sec-btn^="' + meta.key + ':"]'),
+        function (btn) {
+          var active = btn.getAttribute('data-fg-sec-btn') === meta.key + ':' + index
+          btn.className = active ? meta.tabActive : meta.tabBase
+          btn.setAttribute('aria-selected', active ? 'true' : 'false')
+        },
+      )
+      Array.prototype.forEach.call(
+        document.querySelectorAll('[data-fg-sec-item^="' + meta.key + ':"]'),
+        function (item) {
+          var active = item.getAttribute('data-fg-sec-item') === meta.key + ':' + index
+          item.className = active ? meta.stepActive : meta.stepBase
+        },
+      )
+      var back = document.querySelector('[data-fg-step-back="' + meta.key + '"]')
+      var nextBtn = document.querySelector('[data-fg-step-next="' + meta.key + '"]')
+      if (back) back.hidden = index === 0
+      if (nextBtn) nextBtn.hidden = index >= meta.count - 1
+      fgUpdateSubmit()
+    }
+    FG_SECTIONS.forEach(function (meta) {
+      fgSecState[meta.key] = 0
+      Array.prototype.forEach.call(
+        document.querySelectorAll('[data-fg-sec-btn^="' + meta.key + ':"]'),
+        function (btn) {
+          btn.addEventListener('click', function () {
+            fgSetSec(meta, Number(btn.getAttribute('data-fg-sec-btn').split(':')[1]))
+          })
+        },
+      )
+      var back = document.querySelector('[data-fg-step-back="' + meta.key + '"]')
+      var nextBtn = document.querySelector('[data-fg-step-next="' + meta.key + '"]')
+      if (back) back.addEventListener('click', function () {
+        fgSetSec(meta, Math.max(0, fgSecState[meta.key] - 1), true)
+      })
+      if (nextBtn) nextBtn.addEventListener('click', function () {
+        var ok = true
+        var paths = meta.stepPaths[fgSecState[meta.key]] || []
+        paths.forEach(function (path) {
+          touched[path] = true
+          if (!validateField(path)) ok = false
+        })
+        if (ok) fgSetSec(meta, Math.min(meta.count - 1, fgSecState[meta.key] + 1), true)
+      })
+      fgSetSec(meta, 0)
+    })
+
+    function buildPayload() {
+      return {
+        "first_name": fgGet("first_name"),
+        "last_name": fgGet("last_name"),
+        "email": fgGet("email"),
+        "phone": fgGet("phone"),
+        "ticket": fgGet("ticket"),
+        "seats": fgGet("seats"),
+        "diet": fgGet("diet"),
+        ...(fgVisible_diet_other() ? { "diet_other": fgGet("diet_other") } : {}),
+        "workshops": fgGet("workshops"),
+        "arrival": fgGet("arrival"),
+        "notes": fgGet("notes"),
+        "terms": fgGet("terms"),
+      }
+    }
+
+    var form = document.getElementById('fg-form')
+    // A blur error appearing while a pointer is held reflows the form and
+    // the release misses its target; defer blur validation until the press
+    // ends (after the click has been dispatched).
+    var fgPressing = false
+    var fgDeferred = []
+    function fgBlurValidate(path) {
+      touched[path] = true
+      if (fgPressing) {
+        if (fgDeferred.indexOf(path) === -1) fgDeferred.push(path)
+        return
+      }
+      validateField(path)
+    }
+    function fgFlushDeferred() {
+      var paths = fgDeferred
+      fgDeferred = []
+      paths.forEach(function (path) { validateField(path) })
+    }
+    function fgPointerEnd() {
+      if (!fgPressing) return
+      fgPressing = false
+      setTimeout(fgFlushDeferred, 0)
+    }
+    form.addEventListener('pointerdown', function () {
+      fgFlushDeferred()
+      fgPressing = true
+    }, true)
+    window.addEventListener('pointerup', fgPointerEnd)
+    window.addEventListener('pointercancel', fgPointerEnd)
+    form.addEventListener('focusout', function (event) {
+      var path = event.target.getAttribute && event.target.getAttribute('data-fg-path')
+      if (path) fgBlurValidate(path)
+    })
+    form.addEventListener('input', onFieldEvent)
+    form.addEventListener('change', onFieldEvent)
+    function onFieldEvent(event) {
+      updateConditions()
+      var path = event.target.getAttribute && event.target.getAttribute('data-fg-path')
+      if (path && touched[path]) validateField(path)
+    }
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault()
+      var failed = 0
+      Object.keys(FG_VALIDATORS).forEach(function (path) {
+        touched[path] = true
+        if (!validateField(path)) failed++
+      })
+      if (failed > 0) {
+        fgAnnounce(fgErrorsText(failed))
+        // Move each tabs/steps host to its first section holding an error
+        // (unless the visible one already shows one).
+        FG_SECTIONS.forEach(function (meta) {
+          var current = meta.stepPaths[fgSecState[meta.key]] || []
+          if (current.some(fgHasError)) return
+          for (var i = 0; i < meta.stepPaths.length; i++) {
+            if ((meta.stepPaths[i] || []).some(fgHasError)) { fgSetSec(meta, i); break }
+          }
+        })
+        return
+      }
+      var data = buildPayload()
+      var out = document.getElementById('fg-result')
+      out.textContent = JSON.stringify(data, null, 2)
+      out.hidden = false
+      fgAnnounce("Form submitted.")
+      console.log('Form submitted', data)
+      fetch("http://localhost:4280/submit", {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      }).catch(function (error) { console.error('Submit failed', error) })
+    })
+
+    updateConditions()
+  })()
+  </script>
+</body>
+</html>
+
+<!--
+  FormsGen project: to change this form, open this file in the FormsGen builder (Open).
+  formsgen-project:v1
+  eyIkc2NoZW1hIjoiZm9ybXNnZW4vdjIiLCJtZXRhIjp7Im5hbWUiOiJldmVudF9yZWdpc3RyYXRpb24iLCJ0aXRsZSI6IkV2ZW50
+  IHJlZ2lzdHJhdGlvbiIsImRlc2NyaXB0aW9uIjoiVGhlIG9uZSBmb3JtIGV2ZXJ5IGV4YW1wbGUgaW1wbGVtZW50czogd2hvIGlz
+  IGNvbWluZywgd2hpY2ggdGlja2V0LCB3aGF0IHRoZXkgbmVlZC4iLCJsb2NhbGUiOiJlbiIsImRpciI6Imx0ciIsInN1Ym1pdCI6
+  eyJ1cmwiOiJodHRwOi8vbG9jYWxob3N0OjQyODAvc3VibWl0IiwibWV0aG9kIjoiUE9TVCJ9LCJzdWJtaXRCdXR0b24iOnsidGV4
+  dCI6IlJlZ2lzdGVyIn19LCJ0cmVlIjpbeyJpZCI6ImVyLWhlYWRpbmciLCJ0eXBlIjoiaGVhZGluZyIsInByb3BzIjp7InRleHQi
+  OiJFdmVudCByZWdpc3RyYXRpb24iLCJsZXZlbCI6Mn19LHsiaWQiOiJlci1pbnRybyIsInR5cGUiOiJwYXJhZ3JhcGgiLCJwcm9w
+  cyI6eyJ0ZXh0IjoiVGVsbCB1cyB3aG8gaXMgY29taW5nIGFuZCB3aGF0IHlvdSBuZWVkLiBGaWVsZHMgbWFya2VkICogYXJlIHJl
+  cXVpcmVkLiJ9fSx7ImlkIjoiZXItbmFtZSIsInR5cGUiOiJjb2x1bW5zIiwicHJvcHMiOnsiY291bnQiOjJ9LCJjaGlsZHJlbiI6
+  W3siaWQiOiJlci1maXJzdC1uYW1lIiwidHlwZSI6InRleHQiLCJuYW1lIjoiZmlyc3RfbmFtZSIsInByb3BzIjp7ImxhYmVsIjoi
+  Rmlyc3QgbmFtZSIsInBsYWNlaG9sZGVyIjoiQW5hIn0sInZhbGlkYXRpb24iOlt7InJ1bGUiOiJyZXF1aXJlZCJ9LHsicnVsZSI6
+  Im1pbiIsInZhbHVlIjoyfV19LHsiaWQiOiJlci1sYXN0LW5hbWUiLCJ0eXBlIjoidGV4dCIsIm5hbWUiOiJsYXN0X25hbWUiLCJw
+  cm9wcyI6eyJsYWJlbCI6Ikxhc3QgbmFtZSJ9LCJ2YWxpZGF0aW9uIjpbeyJydWxlIjoicmVxdWlyZWQifV19XX0seyJpZCI6ImVy
+  LWVtYWlsIiwidHlwZSI6ImVtYWlsIiwibmFtZSI6ImVtYWlsIiwicHJvcHMiOnsibGFiZWwiOiJFbWFpbCIsInBsYWNlaG9sZGVy
+  IjoiYW5hQGV4YW1wbGUuY29tIiwiZGVzY3JpcHRpb24iOiJZb3VyIHRpY2tldCBpcyBzZW50IGhlcmUuIn0sInZhbGlkYXRpb24i
+  Olt7InJ1bGUiOiJyZXF1aXJlZCJ9LHsicnVsZSI6ImVtYWlsIn1dfSx7ImlkIjoiZXItcGhvbmUiLCJ0eXBlIjoicGhvbmUiLCJu
+  YW1lIjoicGhvbmUiLCJwcm9wcyI6eyJsYWJlbCI6IlBob25lIn19LHsiaWQiOiJlci10aWNrZXQiLCJ0eXBlIjoic2VsZWN0Iiwi
+  bmFtZSI6InRpY2tldCIsInByb3BzIjp7ImxhYmVsIjoiVGlja2V0IiwiaXRlbXMiOlt7InZhbHVlIjoic3RhbmRhcmQiLCJsYWJl
+  bCI6IlN0YW5kYXJkIn0seyJ2YWx1ZSI6InZpcCIsImxhYmVsIjoiVklQIn0seyJ2YWx1ZSI6InN0dWRlbnQiLCJsYWJlbCI6IlN0
+  dWRlbnQifV19LCJ2YWxpZGF0aW9uIjpbeyJydWxlIjoicmVxdWlyZWQifV19LHsiaWQiOiJlci1zZWF0cyIsInR5cGUiOiJudW1i
+  ZXIiLCJuYW1lIjoic2VhdHMiLCJwcm9wcyI6eyJsYWJlbCI6IlNlYXRzIiwibWluIjoxLCJtYXgiOjUsInN1ZmZpeCI6InBlb3Bs
+  ZSIsImRlc2NyaXB0aW9uIjoiSW5jbHVkaW5nIHlvdXJzZWxmLCB1cCB0byA1LiJ9LCJ2YWxpZGF0aW9uIjpbeyJydWxlIjoicmVx
+  dWlyZWQifSx7InJ1bGUiOiJtaW4iLCJ2YWx1ZSI6MX0seyJydWxlIjoibWF4IiwidmFsdWUiOjV9XX0seyJpZCI6ImVyLWRpZXQi
+  LCJ0eXBlIjoicmFkaW9ncm91cCIsIm5hbWUiOiJkaWV0IiwicHJvcHMiOnsibGFiZWwiOiJEaWV0YXJ5IHByZWZlcmVuY2UiLCJp
+  dGVtcyI6W3sidmFsdWUiOiJub25lIiwibGFiZWwiOiJObyBwcmVmZXJlbmNlIn0seyJ2YWx1ZSI6InZlZ2V0YXJpYW4iLCJsYWJl
+  bCI6IlZlZ2V0YXJpYW4ifSx7InZhbHVlIjoidmVnYW4iLCJsYWJlbCI6IlZlZ2FuIn0seyJ2YWx1ZSI6Im90aGVyIiwibGFiZWwi
+  OiJPdGhlciJ9XX19LHsiaWQiOiJlci1kaWV0LW90aGVyIiwidHlwZSI6InRleHRhcmVhIiwibmFtZSI6ImRpZXRfb3RoZXIiLCJw
+  cm9wcyI6eyJsYWJlbCI6IlRlbGwgdXMgbW9yZSIsInJvd3MiOjJ9LCJ2YWxpZGF0aW9uIjpbeyJydWxlIjoicmVxdWlyZWQifV0s
+  ImNvbmRpdGlvbnMiOltbeyJmaWVsZCI6ImRpZXQiLCJvcGVyYXRvciI6ImVxdWFscyIsInZhbHVlIjoib3RoZXIifV1dfSx7Imlk
+  IjoiZXItd29ya3Nob3BzIiwidHlwZSI6ImNoZWNrYm94Z3JvdXAiLCJuYW1lIjoid29ya3Nob3BzIiwicHJvcHMiOnsibGFiZWwi
+  OiJXb3Jrc2hvcHMiLCJpdGVtcyI6W3sidmFsdWUiOiJmb3JtcyIsImxhYmVsIjoiQnVpbGRpbmcgZm9ybXMifSx7InZhbHVlIjoi
+  ZXhwb3J0cyIsImxhYmVsIjoiT25lIGZvcm0sIGZvdXIgc3RhY2tzIn0seyJ2YWx1ZSI6ImExMXkiLCJsYWJlbCI6IkFjY2Vzc2li
+  bGUgYnkgZGVmYXVsdCJ9XX19LHsiaWQiOiJlci1hcnJpdmFsIiwidHlwZSI6ImRhdGUiLCJuYW1lIjoiYXJyaXZhbCIsInByb3Bz
+  Ijp7ImxhYmVsIjoiQXJyaXZhbCBkYXRlIn19LHsiaWQiOiJlci1ub3RlcyIsInR5cGUiOiJ0ZXh0YXJlYSIsIm5hbWUiOiJub3Rl
+  cyIsInByb3BzIjp7ImxhYmVsIjoiQW55dGhpbmcgZWxzZT8iLCJyb3dzIjozfX0seyJpZCI6ImVyLXRlcm1zIiwidHlwZSI6ImNo
+  ZWNrYm94IiwibmFtZSI6InRlcm1zIiwicHJvcHMiOnsibGFiZWwiOiJJIGFncmVlIHRvIHRoZSBldmVudCB0ZXJtcyJ9LCJ2YWxp
+  ZGF0aW9uIjpbeyJydWxlIjoicmVxdWlyZWQifV19XX0=
+-->
