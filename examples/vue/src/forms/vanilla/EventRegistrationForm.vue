@@ -386,6 +386,7 @@ async function onSubmit(): Promise<void> {
   --fg-space: 1rem;
   --fg-font: system-ui, sans-serif;
   font-family: var(--fg-font);
+  line-height: 1.5;
   color: var(--fg-color-text);
   background: var(--fg-color-bg);
   padding: var(--fg-space);
@@ -395,27 +396,35 @@ async function onSubmit(): Promise<void> {
 @media (min-width: 768px) { .fg-cell { grid-column: span var(--fg-span, 12) / span var(--fg-span, 12); } }
 @media (min-width: 1024px) { .fg-cell { grid-column: span var(--fg-span-lg, 12) / span var(--fg-span-lg, 12); } }
 .fg-field { display: flex; flex-direction: column; gap: 0.375rem; }
-.fg-label { font-size: 0.875rem; font-weight: 600; }
+.fg-label { font-size: 0.875rem; font-weight: 600; line-height: 1.25rem; }
 .fg-required { color: var(--fg-color-error); margin-inline-start: 0.125rem; }
 .fg-input, .fg-textarea, .fg-select {
-  inline-size: 100%; box-sizing: border-box; padding: 0.5rem 0.75rem; font: inherit;
+  inline-size: 100%; box-sizing: border-box; padding: 0.375rem 0.75rem; font: inherit; line-height: 1.5;
   color: inherit; background: var(--fg-color-bg);
   border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius);
 }
 .fg-input:focus-visible, .fg-textarea:focus-visible, .fg-select:focus-visible {
   outline: 2px solid var(--fg-color-primary); outline-offset: 1px; border-color: var(--fg-color-primary);
 }
+.fg-select:not([multiple]) { block-size: 2.375rem; }
+.fg-input::-webkit-datetime-edit-fields-wrapper { padding: 0; }
 .fg-invalid { border-color: var(--fg-color-error); }
 .fg-checkbox-row { display: inline-flex; align-items: center; gap: 0.5rem; }
-.fg-checkbox-label { font-size: 0.9375rem; }
-.fg-checkbox { inline-size: 1rem; block-size: 1rem; accent-color: var(--fg-color-primary); }
-.fg-description { margin: 0; font-size: 0.8125rem; color: var(--fg-color-muted); }
-.fg-error { margin: 0; font-size: 0.8125rem; color: var(--fg-color-error); }
+.fg-checkbox-label { font-size: 1rem; line-height: 1.5rem; }
+.fg-checkbox { inline-size: 1rem; block-size: 1rem; margin: 0; accent-color: var(--fg-color-primary); }
+.fg-description { margin: 0; font-size: 0.875rem; line-height: 1.25rem; color: var(--fg-color-muted); }
+.fg-error { margin: 0; font-size: 0.875rem; line-height: 1.25rem; color: var(--fg-color-error); }
 .fg-options { display: flex; flex-direction: column; gap: 0.375rem; }
-.fg-option { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.9375rem; }
-.fg-range { inline-size: 100%; accent-color: var(--fg-color-primary); }
-.fg-heading { margin: 0; }
-.fg-paragraph { margin: 0; color: var(--fg-color-muted); }
+.fg-option { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 1rem; line-height: 1.5rem; }
+.fg-range { inline-size: 100%; block-size: 1.5rem; margin: 0; accent-color: var(--fg-color-primary); }
+.fg-heading { margin: 0; font-weight: 600; line-height: 1.25; }
+h1.fg-heading { font-size: 1.875rem; }
+h2.fg-heading { font-size: 1.5rem; }
+h3.fg-heading { font-size: 1.25rem; }
+h4.fg-heading { font-size: 1.125rem; }
+h5.fg-heading { font-size: 1rem; }
+h6.fg-heading { font-size: 0.875rem; }
+.fg-paragraph { margin: 0; line-height: 1.5rem; color: var(--fg-color-muted); }
 /* HTML blocks: light defaults; the author's own classes and styles win */
 .fg-html { overflow-wrap: anywhere; }
 :where(.fg-html) > :first-child { margin-block-start: 0; }
@@ -430,28 +439,31 @@ async function onSubmit(): Promise<void> {
 :where(.fg-html) table { border-collapse: collapse; }
 :where(.fg-html) :where(th, td) { padding: 0.25rem 0.5rem; border: 1px solid var(--fg-color-border); text-align: start; }
 :where(.fg-html) img { max-inline-size: 100%; block-size: auto; }
+:where(.fg-html) iframe { display: block; border: 0; max-inline-size: 100%; }
 :where(.fg-html) a { color: var(--fg-color-primary); }
 /* Signature: a light pad (dark ink in any theme), the typing box and Clear */
 .fg-signature { display: flex; flex-direction: column; gap: 0.5rem; }
-.fg-signature-pad { display: block; inline-size: 100%; border: 1px dashed var(--fg-color-border); border-radius: var(--fg-radius); background: #fff; touch-action: none; cursor: crosshair; }
+.fg-signature-pad { display: block; box-sizing: border-box; inline-size: 100%; border: 1px dashed var(--fg-color-border); border-radius: var(--fg-radius); background: #fff; touch-action: none; cursor: crosshair; }
 .fg-signature-row { display: flex; gap: 0.5rem; justify-content: flex-end; }
 .fg-signature-row > input { flex: 1 1 auto; min-inline-size: 0; }
 /* Rich text: toolbar and editor */
 .fg-richtext { border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-bg); }
 .fg-richtext:focus-within { border-color: var(--fg-color-primary); outline: 2px solid var(--fg-color-primary); outline-offset: 2px; }
 .fg-richtext-toolbar { display: flex; flex-wrap: wrap; gap: 0.25rem; padding: 0.25rem; border-block-end: 1px solid var(--fg-color-border); }
-.fg-richtext-button { min-inline-size: 2rem; padding: 0.25rem 0.5rem; border: 1px solid transparent; border-radius: var(--fg-radius); background: none; color: inherit; font: inherit; cursor: pointer; }
+.fg-richtext-button { min-inline-size: 2rem; padding: 0.25rem 0.5rem; border: 1px solid transparent; border-radius: var(--fg-radius); background: none; color: inherit; font: inherit; font-size: 0.875rem; line-height: 1.25rem; cursor: pointer; }
 .fg-richtext-button:hover, .fg-richtext-button:focus-visible { border-color: var(--fg-color-border); background: var(--fg-color-surface); }
-.fg-richtext-editor { min-block-size: 6rem; padding: 0.5rem 0.75rem; outline: none; overflow-wrap: anywhere; }
+.fg-richtext-editor { box-sizing: border-box; min-block-size: 6rem; padding: 0.5rem 0.75rem; outline: none; overflow-wrap: anywhere; }
 .fg-richtext-editor :where(p, ul, ol) { margin: 0 0 0.5em; }
 .fg-richtext-editor :where(ul, ol) { padding-inline-start: 1.5em; }
 .fg-richtext-editor a { color: var(--fg-color-primary); }
 /* Location: the map (Leaflet), the coordinate boxes and buttons, messages */
 .fg-location { display: flex; flex-direction: column; gap: 0.5rem; }
-.fg-location-map { inline-size: 100%; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); isolation: isolate; z-index: 0; }
+.fg-location-map { box-sizing: border-box; inline-size: 100%; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); isolation: isolate; z-index: 0; }
 .fg-location-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: flex-end; }
 .fg-location-coord { display: flex; flex: 1 1 8rem; flex-direction: column; gap: 0.25rem; font-size: 0.875rem; }
-.fg-location-status { margin: 0; font-size: 0.875rem; min-block-size: 0; }
+.fg-location-coord > .fg-input { font-size: 1rem; }
+.fg-location-status { margin: 0; font-size: 0.875rem; line-height: 1.25rem; min-block-size: 0; }
+.fg-location-status:empty { display: none; }
 /* Spam check: the widget and its hint above the actions row */
 .fg-captcha { display: flex; flex-direction: column; gap: 0.25rem; margin-block-start: 1rem; }
 .fg-captcha-hint { margin: 0; font-size: 0.875rem; color: var(--fg-color-muted); }
@@ -473,23 +485,23 @@ async function onSubmit(): Promise<void> {
 .fg-rich-text ol { list-style: decimal; }
 .fg-divider { border: none; border-block-start: 1px solid var(--fg-color-border); margin-block: 0.25rem; }
 .fg-tab-list { display: flex; flex-wrap: wrap; gap: 0.25rem; border-block-end: 1px solid var(--fg-color-border); margin-block-end: var(--fg-space); }
-.fg-tab-button { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.5rem 0.875rem; font: inherit; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); background: none; border: none; border-block-end: 2px solid transparent; cursor: pointer; }
+.fg-tab-button { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.5rem 1rem; font: inherit; font-size: 0.875rem; line-height: 1.25rem; font-weight: 600; color: var(--fg-color-muted); background: none; border: none; border-block-end: 2px solid transparent; cursor: pointer; }
 .fg-tab-button--active { color: var(--fg-color-primary); border-block-end-color: var(--fg-color-primary); }
-.fg-step-list { display: flex; flex-wrap: wrap; gap: var(--fg-space); margin: 0 0 var(--fg-space); padding: 0; list-style: none; }
-.fg-step-item { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: var(--fg-color-muted); }
+.fg-step-list { display: flex; flex-wrap: wrap; gap: var(--fg-space); margin: 0 0 var(--fg-space); padding: 0; font-size: 0.875rem; list-style: none; }
+.fg-step-item { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; line-height: 1.25rem; color: var(--fg-color-muted); }
 .fg-step-item--active { color: var(--fg-color-text); font-weight: 600; }
 .fg-step-actions { display: flex; justify-content: space-between; gap: 0.5rem; margin-block-start: var(--fg-space); }
 .fg-button.fg-button--secondary { background: var(--fg-color-surface); color: var(--fg-color-text); border-color: var(--fg-color-border); }
 .fg-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 0.375rem; padding: 0.375rem 0.5rem; background: var(--fg-color-bg); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); }
 .fg-tags:focus-within { outline: 2px solid var(--fg-color-primary); outline-offset: 1px; }
-.fg-tag { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.125rem 0.5rem; font-size: 0.8125rem; background: var(--fg-color-surface); border: 1px solid var(--fg-color-border); border-radius: 999px; }
+.fg-tag { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.125rem 0.5rem; font-size: 0.75rem; line-height: 1rem; background: var(--fg-color-surface); border: 1px solid var(--fg-color-border); border-radius: 999px; }
 .fg-tag-remove { border: none; background: none; padding: 0; cursor: pointer; color: var(--fg-color-muted); font-size: 0.875rem; line-height: 1; }
-.fg-tags-input { flex: 1; min-inline-size: 6rem; border: none; background: none; font: inherit; color: inherit; padding: 0.125rem; }
+.fg-tags-input { flex: 1; min-inline-size: 6rem; border: none; background: none; font: inherit; line-height: 1.5; color: inherit; padding: 0; }
 .fg-tags-input:focus { outline: none; }
-.fg-control--sm { padding: 0.25rem 0.5rem; font-size: 0.8125rem; }
-.fg-control--lg { padding: 0.75rem 1rem; font-size: 1.0625rem; }
-.fg-tags.fg-control--sm { padding: 0.125rem 0.375rem; font-size: 0.8125rem; }
-.fg-tags.fg-control--lg { padding: 0.5rem 0.75rem; font-size: 1.0625rem; }
+.fg-control--sm { padding: 0.25rem 0.5rem; font-size: 0.875rem; }
+.fg-control--lg { padding: 0.5rem 1rem; font-size: 1.25rem; }
+.fg-tags.fg-control--sm { padding: 0.125rem 0.375rem; font-size: 0.875rem; }
+.fg-tags.fg-control--lg { padding: 0.5rem 0.75rem; font-size: 1.25rem; }
 .fg-align-center { text-align: center; }
 .fg-align-end { text-align: end; }
 .fg-tone-muted { color: var(--fg-color-muted); }
@@ -500,16 +512,16 @@ async function onSubmit(): Promise<void> {
 .fg-divider.fg-tone-danger { border-block-start-color: var(--fg-color-error); }
 .fg-sr-only { position: absolute; inline-size: 1px; block-size: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .fg-group { margin: 0; padding: var(--fg-space); border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
-.fg-group-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; color: var(--fg-color-muted); }
+.fg-group-label { padding-inline: 0.25rem; font-size: 0.875rem; line-height: 1.25rem; font-weight: 600; color: var(--fg-color-muted); }
 .fg-actions { margin-block-start: var(--fg-space); }
 .fg-upload { display: flex; flex-direction: column; gap: 0.375rem; margin-block-start: var(--fg-space); }
 .fg-progress { block-size: 0.5rem; overflow: hidden; background: var(--fg-color-border); border-radius: 999px; }
 .fg-progress-bar { block-size: 100%; background: var(--fg-color-primary); border-radius: inherit; transition: inline-size 0.2s ease; }
 .fg-progress-text { margin: 0; font-size: 0.875rem; color: var(--fg-color-muted); }
 .fg-button:disabled { opacity: 0.6; cursor: not-allowed; }
-.fg-button { padding: 0.5rem 1.25rem; font: inherit; font-weight: 600; border: 1px solid transparent; border-radius: var(--fg-radius); cursor: pointer; }
+.fg-button { padding: 0.375rem 1rem; font: inherit; line-height: 1.5; font-weight: 600; border: 1px solid transparent; border-radius: var(--fg-radius); cursor: pointer; }
 .fg-button--primary { background: var(--fg-color-primary); color: var(--fg-color-primary-contrast); }
-.fg-payload { margin-block-start: var(--fg-space); padding: var(--fg-space); background: #0f172a; color: #86efac; border-radius: var(--fg-radius); font-size: 0.8125rem; overflow-x: auto; }
+.fg-payload { margin-block-start: var(--fg-space); padding: var(--fg-space); background: #0f172a; color: #86efac; border-radius: var(--fg-radius); font-size: 0.875rem; overflow-x: auto; }
 /* Phase 23 elements: switch, choice blocks/buttons, vertical slider, image, link, quote, buttons */
 .fg-switch { appearance: none; position: relative; flex-shrink: 0; inline-size: 2.25rem; block-size: 1.25rem; margin: 0; border: 1px solid transparent; border-radius: 999px; background: var(--fg-color-border); cursor: pointer; transition: background-color 0.15s; }
 .fg-switch::before { content: ''; position: absolute; inset-block-start: 0.0625rem; inset-inline-start: 0.0625rem; inline-size: 1rem; block-size: 1rem; border-radius: 50%; background: #ffffff; box-shadow: 0 1px 2px rgb(0 0 0 / 0.3); transition: inset-inline-start 0.15s; }
@@ -517,10 +529,10 @@ async function onSubmit(): Promise<void> {
 .fg-switch:checked::before { inset-inline-start: 1.0625rem; }
 .fg-switch:focus-visible { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; }
 .fg-options--blocks { gap: 0.5rem; }
-.fg-option--block { display: flex; padding: 0.625rem 0.75rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-bg); cursor: pointer; }
+.fg-option--block { display: flex; gap: 0.75rem; padding: 0.5rem 0.75rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-bg); cursor: pointer; }
 .fg-option--block:has(:checked) { border-color: var(--fg-color-primary); box-shadow: 0 0 0 1px var(--fg-color-primary); }
 .fg-options--buttons { flex-direction: row; flex-wrap: wrap; gap: 0; }
-.fg-option--button { position: relative; padding: 0.5rem 1rem; margin-inline-start: -1px; font-size: 0.875rem; font-weight: 600; border: 1px solid var(--fg-color-border); background: var(--fg-color-bg); cursor: pointer; }
+.fg-option--button { position: relative; padding: 0.5rem 1rem; margin-inline-start: -1px; font-size: 0.875rem; line-height: 1.25rem; font-weight: 600; border: 1px solid var(--fg-color-border); background: var(--fg-color-bg); cursor: pointer; }
 .fg-option--button:first-child { margin-inline-start: 0; border-start-start-radius: var(--fg-radius); border-end-start-radius: var(--fg-radius); }
 .fg-option--button:last-child { border-start-end-radius: var(--fg-radius); border-end-end-radius: var(--fg-radius); }
 .fg-option--button:has(:checked) { z-index: 1; color: var(--fg-color-primary-contrast); background: var(--fg-color-primary); border-color: var(--fg-color-primary); }
@@ -529,24 +541,24 @@ async function onSubmit(): Promise<void> {
 .fg-image { display: block; max-inline-size: 100%; block-size: auto; border-radius: var(--fg-radius); }
 .fg-link { color: var(--fg-color-primary); text-decoration: underline; text-underline-offset: 2px; }
 .fg-quote { margin: 0; padding-inline-start: 1rem; border-inline-start: 4px solid var(--fg-color-border); }
-.fg-quote-text { margin: 0; font-size: 1.0625rem; font-style: italic; }
+.fg-quote-text { margin: 0; font-size: 1rem; line-height: 1.5rem; font-style: italic; }
 .fg-quote-text p { margin: 0; }
-.fg-quote-cite { margin-block-start: 0.375rem; font-size: 0.875rem; color: var(--fg-color-muted); }
+.fg-quote-cite { margin-block-start: 0.25rem; font-size: 0.875rem; line-height: 1.25rem; color: var(--fg-color-muted); }
 .fg-button--danger { background: var(--fg-color-error); color: var(--fg-color-error-contrast); }
 a.fg-button { display: inline-block; text-decoration: none; }
-.fg-input--color { inline-size: 4rem; block-size: 2.5rem; padding: 0.25rem; cursor: pointer; }
+.fg-input--color { inline-size: 3rem; block-size: 2.375rem; padding: 0.375rem; cursor: pointer; }
 fieldset.fg-field { margin: 0; padding: 0; border: 0; min-inline-size: 0; }
 fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
 /* Repeatable sections */
 .fg-repeater-items { display: flex; flex-direction: column; gap: var(--fg-space); }
 .fg-repeater-item { margin: 0; padding: var(--fg-space); min-inline-size: 0; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-bg); }
-.fg-repeater-item-label { padding-inline: 0.375rem; font-size: 0.875rem; font-weight: 600; }
-.fg-repeater-item-actions { display: flex; align-items: center; gap: 0.5rem; margin-block-start: 0.75rem; }
+.fg-repeater-item-label { padding-inline: 0.25rem; font-size: 0.875rem; line-height: 1.25rem; font-weight: 600; }
+.fg-repeater-item-actions { display: flex; align-items: center; gap: 0.5rem; margin-block-start: 0.5rem; }
 .fg-repeater-move { display: inline-flex; align-items: center; justify-content: center; inline-size: 2rem; block-size: 2rem; padding: 0; font: inherit; color: var(--fg-color-text); background: none; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); cursor: pointer; }
-.fg-repeater-remove { margin-inline-start: auto; padding: 0; font: inherit; font-size: 0.875rem; color: var(--fg-color-error); background: none; border: none; text-decoration: underline; cursor: pointer; }
+.fg-repeater-remove { margin-inline-start: auto; padding: 0; font: inherit; font-size: 0.875rem; line-height: 1.25rem; color: var(--fg-color-error); background: none; border: none; text-decoration: underline; cursor: pointer; }
 .fg-repeater-add { margin-block-start: var(--fg-space); }
 /* File uploads */
-.fg-file-drop { position: relative; display: flex; align-items: center; justify-content: center; min-block-size: 4.5rem; padding: 1rem; text-align: center; font-size: 0.875rem; color: var(--fg-color-muted); background: var(--fg-color-surface); border: 2px dashed var(--fg-color-border); border-radius: var(--fg-radius); }
+.fg-file-drop { position: relative; box-sizing: border-box; display: flex; align-items: center; justify-content: center; min-block-size: 4.5rem; padding: 1rem; text-align: center; font-size: 0.875rem; color: var(--fg-color-muted); background: var(--fg-color-surface); border: 2px dashed var(--fg-color-border); border-radius: var(--fg-radius); }
 .fg-file-drop:hover, .fg-file-drop[data-fg-dragging] { border-color: var(--fg-color-primary); color: var(--fg-color-text); }
 .fg-file-drop:has(:focus-visible) { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; }
 .fg-file-input { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; opacity: 0; cursor: pointer; }
@@ -555,7 +567,7 @@ fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
 .fg-file-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.5rem; font-size: 0.875rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); background: var(--fg-color-surface); }
 .fg-file-thumb { inline-size: 2.5rem; block-size: 2.5rem; object-fit: cover; border-radius: calc(var(--fg-radius) / 2); }
 .fg-file-name { flex: 1; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fg-file-size { color: var(--fg-color-muted); font-size: 0.8125rem; }
+.fg-file-size { color: var(--fg-color-muted); font-size: 0.875rem; }
 .fg-file-remove { padding: 0 0.375rem; font-size: 1.125rem; line-height: 1; color: var(--fg-color-muted); background: none; border: none; cursor: pointer; }
 .fg-file-remove:hover { color: var(--fg-color-error); }
 /* Composite fields (two-handle slider, date range, multiple dates).
@@ -579,9 +591,11 @@ fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
 .fg-phone-country { flex: 0 1 45%; inline-size: auto; min-inline-size: 0; max-inline-size: 45%; }
 .fg-matrix-scroll { overflow-x: auto; }
 .fg-matrix { inline-size: 100%; border-collapse: collapse; font-size: 0.875rem; }
-.fg-matrix th, .fg-matrix td { padding: 0.5rem; text-align: center; }
+.fg-matrix th, .fg-matrix td { padding: 0.5rem; line-height: 1.25rem; text-align: center; }
+.fg-matrix input { inline-size: 1rem; block-size: 1rem; margin: 0; vertical-align: middle; accent-color: var(--fg-color-primary, var(--bs-primary, #4f46e5)); }
 .fg-matrix thead th { font-weight: 600; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); }
 .fg-matrix tbody th { text-align: start; font-weight: 500; }
+.fg-matrix tbody tr { border-block-start: 1px solid var(--fg-color-border, var(--bs-border-color, #d1d5db)); }
 .fg-matrix tbody tr:nth-child(odd) { background: var(--fg-color-surface, var(--bs-tertiary-bg, #f9fafb)); }
 
 /* Field add-ons and help tooltips (framework-neutral: exports embed them). */
@@ -589,7 +603,7 @@ fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
 .fg-affix-group > input { flex: 1 1 auto; min-inline-size: 0; inline-size: auto; }
 .fg-affix-group > :not(:first-child) { margin-inline-start: -1px; border-start-start-radius: 0; border-end-start-radius: 0; }
 .fg-affix-group > :not(:last-child) { border-start-end-radius: 0; border-end-end-radius: 0; }
-.fg-affix { display: flex; align-items: center; padding-inline: 0.75rem; font-size: 0.875rem; white-space: nowrap; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); background: var(--fg-color-surface, var(--bs-tertiary-bg, #f9fafb)); border: 1px solid var(--fg-color-border, var(--bs-border-color, #d1d5db)); border-radius: var(--fg-radius, 0.375rem); }
+.fg-affix { display: flex; align-items: center; padding-inline: 0.75rem; font-size: 1rem; line-height: 1.5; white-space: nowrap; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); background: var(--fg-color-surface, var(--bs-tertiary-bg, #f9fafb)); border: 1px solid var(--fg-color-border, var(--bs-border-color, #d1d5db)); border-radius: var(--fg-radius, 0.375rem); }
 .fg-label-row { display: flex; align-items: center; gap: 0.375rem; }
 /* The bubble anchors to the row holding the tip (label row, checkbox row or
    legend), from its start edge, so it never runs off a narrow screen. */

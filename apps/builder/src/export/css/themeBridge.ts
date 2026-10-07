@@ -95,7 +95,7 @@ export function bootstrapThemeCss(theme: ThemeTokens | undefined): string | unde
     ])
     css += rule(`.${THEMED_CLASS} .form-range::-webkit-slider-thumb`, [`background-color: ${primary};`])
     css += rule(`.${THEMED_CLASS} .form-range::-moz-range-thumb`, [`background-color: ${primary};`])
-    css += rule(`.${THEMED_CLASS} .nav-tabs .nav-link.active`, [`color: ${primary};`])
+    css += rule(`.${THEMED_CLASS} .nav-underline .nav-link.active`, [`color: ${primary};`])
   }
   const text = t['color-text']
   if (text) {
@@ -239,7 +239,7 @@ export const TAILWIND_THEMED: Record<string, Record<string, string[]>> = {
     'accent-color': ['accent-indigo-600'],
   },
   'color-primary-contrast': { color: ['has-[:checked]:text-white', 'file:text-white'] },
-  'color-bg': { 'background-color': ['bg-white', 'dark:bg-gray-800'] },
+  'color-bg': { 'background-color': ['bg-white', 'dark:bg-gray-800', 'dark:bg-gray-900'] },
   'color-border': {
     'border-color': ['border-gray-200', 'border-gray-300', 'dark:border-gray-600', 'dark:border-gray-700'],
     // the switch track while off
@@ -265,6 +265,7 @@ export const TAILWIND_DARK_RESETS: Record<string, [property: string, value: stri
   'dark:text-indigo-400': ['color', '#4f46e5'],
   'dark:text-red-400': ['color', '#dc2626'],
   'dark:bg-gray-800': ['background-color', '#ffffff'],
+  'dark:bg-gray-900': ['background-color', '#ffffff'],
   'dark:bg-gray-800/50': ['background-color', '#f9fafb'],
   'dark:bg-gray-700': ['background-color', '#f3f4f6'],
   'dark:bg-gray-600': ['background-color', '#d1d5db'],

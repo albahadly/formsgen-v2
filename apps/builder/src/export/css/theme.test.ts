@@ -93,7 +93,7 @@ describe('theme bridges', () => {
     expect(css).toContain('.fg-themed.fg-themed {\n  color: #1c1917;\n  background-color: #fffbeb;\n  font-family: Georgia, "Times New Roman", serif;\n  color-scheme: light;\n}')
     // pinned light scheme: dark variants reset before token rules override them
     const reset = css.indexOf('.fg-themed .dark\\:bg-gray-800 {\n  background-color: #ffffff;')
-    const token = css.indexOf('.fg-themed .bg-white,\n.fg-themed .dark\\:bg-gray-800 {\n  background-color: #fffbeb;')
+    const token = css.indexOf('.fg-themed .bg-white,\n.fg-themed .dark\\:bg-gray-800,\n.fg-themed .dark\\:bg-gray-900 {\n  background-color: #fffbeb;')
     expect(reset).toBeGreaterThan(0)
     expect(token).toBeGreaterThan(reset)
   })
@@ -167,10 +167,10 @@ describe('vanilla theme', () => {
 
 describe('themed exports', () => {
   it.each([
-    ['html', '<form id="fg-form" class="container py-4 fg-themed" data-fg-theme="light" novalidate>'],
-    ['react', '<form ref={fgRoot} className="container py-4 fg-themed" data-fg-theme="light" dir="ltr"'],
-    ['vue-standalone', 'class="container py-4 fg-themed"\n    data-fg-theme="light"\n    dir="ltr"'],
-    ['blazor', '<div class="container py-4 fg-themed" data-fg-theme="light" @onpointerdown='],
+    ['html', '<form id="fg-form" class="p-3 fg-themed" data-fg-theme="light" novalidate>'],
+    ['react', '<form ref={fgRoot} className="p-3 fg-themed" data-fg-theme="light" dir="ltr"'],
+    ['vue-standalone', 'class="p-3 fg-themed"\n    data-fg-theme="light"\n    dir="ltr"'],
+    ['blazor', '<div class="p-3 fg-themed" data-fg-theme="light" @onpointerdown='],
   ])('%s marks the form root and ships the bridge', (target, root) => {
     const out = files(target, 'bootstrap5', THEME)
     const all = out.map((f) => f.content).join('\n')
@@ -182,11 +182,11 @@ describe('themed exports', () => {
     const ctx = { schema: schema(THEME), css: getCssAdapter('tailwind') }
     expect(getTarget('react')!.readme!(ctx)).toContain('.css`')
     expect(getTarget('blazor')!.readme!(ctx)).toContain('.razor.css')
-    // Unthemed, without a two-handle slider or tooltips (their rules ship as a file): none.
+    // Unthemed, without a two-handle slider, tooltips or HTML blocks (their rules ship as a file): none.
     const unthemed = schema()
     const strip = (nodes: typeof unthemed.tree): typeof unthemed.tree =>
       nodes
-        .filter((n) => n.type !== 'rangeslider')
+        .filter((n) => n.type !== 'rangeslider' && n.type !== 'html')
         .map((n) => ({ ...n, props: { ...n.props, tooltip: undefined }, children: n.children && strip(n.children) }))
     unthemed.tree = strip(unthemed.tree)
     const plain = { schema: unthemed, css: getCssAdapter('tailwind') }

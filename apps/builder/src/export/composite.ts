@@ -46,9 +46,11 @@ export const COMPOSITE_CSS = `/* Composite fields (two-handle slider, date range
 .fg-phone-country { flex: 0 1 45%; inline-size: auto; min-inline-size: 0; max-inline-size: 45%; }
 .fg-matrix-scroll { overflow-x: auto; }
 .fg-matrix { inline-size: 100%; border-collapse: collapse; font-size: 0.875rem; }
-.fg-matrix th, .fg-matrix td { padding: 0.5rem; text-align: center; }
+.fg-matrix th, .fg-matrix td { padding: 0.5rem; line-height: 1.25rem; text-align: center; }
+.fg-matrix input { inline-size: 1rem; block-size: 1rem; margin: 0; vertical-align: middle; accent-color: var(--fg-color-primary, var(--bs-primary, #4f46e5)); }
 .fg-matrix thead th { font-weight: 600; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); }
 .fg-matrix tbody th { text-align: start; font-weight: 500; }
+.fg-matrix tbody tr { border-block-start: 1px solid var(--fg-color-border, var(--bs-border-color, #d1d5db)); }
 .fg-matrix tbody tr:nth-child(odd) { background: var(--fg-color-surface, var(--bs-tertiary-bg, #f9fafb)); }
 
 /* Field add-ons and help tooltips (framework-neutral: exports embed them). */
@@ -56,7 +58,7 @@ export const COMPOSITE_CSS = `/* Composite fields (two-handle slider, date range
 .fg-affix-group > input { flex: 1 1 auto; min-inline-size: 0; inline-size: auto; }
 .fg-affix-group > :not(:first-child) { margin-inline-start: -1px; border-start-start-radius: 0; border-end-start-radius: 0; }
 .fg-affix-group > :not(:last-child) { border-start-end-radius: 0; border-end-end-radius: 0; }
-.fg-affix { display: flex; align-items: center; padding-inline: 0.75rem; font-size: 0.875rem; white-space: nowrap; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); background: var(--fg-color-surface, var(--bs-tertiary-bg, #f9fafb)); border: 1px solid var(--fg-color-border, var(--bs-border-color, #d1d5db)); border-radius: var(--fg-radius, 0.375rem); }
+.fg-affix { display: flex; align-items: center; padding-inline: 0.75rem; font-size: 1rem; line-height: 1.5; white-space: nowrap; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); background: var(--fg-color-surface, var(--bs-tertiary-bg, #f9fafb)); border: 1px solid var(--fg-color-border, var(--bs-border-color, #d1d5db)); border-radius: var(--fg-radius, 0.375rem); }
 .fg-label-row { display: flex; align-items: center; gap: 0.375rem; }
 /* The bubble anchors to the row holding the tip (label row, checkbox row or
    legend), from its start edge, so it never runs off a narrow screen. */
@@ -166,14 +168,80 @@ function fgPhoneFrom(value${t(': unknown')}, fallback${t(': string')})${t(': str
 }`
 }
 
+/**
+ * Metrics Bootstrap's utilities cannot express (its spacing scale has no
+ * 0.375rem step, its heading sizes are responsive, `.border` colours are
+ * !important): the rules that give a Bootstrap export the same shape as its
+ * vanilla and Tailwind flavours. Hook classes (`fg-*`) sit beside the
+ * Bootstrap classes in the adapter. Shipped with every Bootstrap export.
+ */
+export const BOOTSTRAP_PARITY_CSS = `.fg-field { gap: 0.375rem; }
+.fg-field > legend { margin-block-end: 0.375rem; }
+.fg-options { gap: 0.375rem; }
+.fg-required { margin-inline-start: 0.125rem; }
+.fg-label, .fg-description, .fg-error { line-height: 1.25rem; }
+.fg-heading { margin: 0; font-weight: 600; line-height: 1.25; }
+h1.fg-heading { font-size: 1.875rem; }
+h2.fg-heading { font-size: 1.5rem; }
+h3.fg-heading { font-size: 1.25rem; }
+h4.fg-heading { font-size: 1.125rem; }
+h5.fg-heading { font-size: 1rem; }
+h6.fg-heading { font-size: 0.875rem; }
+.fg-option-block { cursor: pointer; gap: 0.75rem; padding-inline: 0.75rem; }
+.fg-option-block:has(:checked) { border-color: var(--bs-primary) !important; box-shadow: 0 0 0 1px var(--bs-primary); }
+.fg-richtext-button { min-inline-size: 2rem; --bs-btn-line-height: 1.25rem; --bs-btn-border-radius: 0.375rem; }
+.fg-option-button { --bs-btn-font-size: 0.875rem; --bs-btn-line-height: 1.25rem; --bs-btn-padding-y: 0.5rem; --bs-btn-padding-x: 1rem; --bs-btn-font-weight: 600; }
+.fg-repeater-remove { --bs-btn-font-size: 0.875rem; --bs-btn-line-height: 1.25rem; --bs-btn-border-width: 0; --bs-btn-border-radius: 0; }
+.fg-tab-list { --bs-nav-link-font-size: 0.875rem; }
+.fg-tab-list .nav-link { line-height: 1.25rem; }
+.fg-switch-wrap { padding-inline-start: 2.75rem; min-block-size: 1.5rem; }
+.fg-switch-wrap .form-check-input.fg-switch { inline-size: 2.25rem; block-size: 1.25rem; margin-inline-start: -2.75rem; margin-block-start: 0.125rem; }
+.fg-matrix th, .fg-matrix td { line-height: 1.25rem; }
+.fg-matrix tbody tr { border-block-start: 1px solid var(--bs-border-color); }
+.fg-matrix .form-check-input { inline-size: 1rem; block-size: 1rem; margin: 0; vertical-align: middle; }
+.fg-rich-text > * { margin: 0; }
+.fg-rich-text > * + * { margin-block-start: 0.5em; }
+.fg-rich-text ul, .fg-rich-text ol { padding-inline-start: 1.25em; }
+.fg-pair > .form-control { flex: 1 1 10rem; inline-size: auto; min-inline-size: 0; }
+.fg-repeater-move { inline-size: 2rem; block-size: 2rem; padding: 0; }
+`
+
+function hasHtmlBlock(nodes: ElementNode[]): boolean {
+  return nodes.some((n) => n.type === 'html' || hasHtmlBlock(n.children ?? []))
+}
+
+/**
+ * The author's HTML in an HTML block keeps its usual shape in every flavour
+ * (Tailwind's preflight unstyles lists and headings, Bootstrap's reboot adds
+ * its own margins and sizes): the vanilla rules, anchored on the block's
+ * class so they beat the framework's element rules.
+ */
+export const HTML_BLOCK_CSS = `.fg-html { overflow-wrap: anywhere; }
+.fg-html > :first-child { margin-block-start: 0; }
+.fg-html > :last-child { margin-block-end: 0; }
+.fg-html :where(p, ul, ol, dl, table, blockquote, figure, pre, details) { margin-block: 0.5em; }
+.fg-html :where(h1, h2, h3, h4, h5, h6) { margin-block: 0.75em 0.375em; font-weight: 600; line-height: 1.3; }
+.fg-html :where(h1) { font-size: 1.5em; }
+.fg-html :where(h2) { font-size: 1.3em; }
+.fg-html :where(h3) { font-size: 1.15em; }
+.fg-html :where(ul) { list-style: disc; padding-inline-start: 1.25em; }
+.fg-html :where(ol) { list-style: decimal; padding-inline-start: 1.25em; }
+.fg-html :where(table) { border-collapse: collapse; }
+.fg-html :where(th, td) { padding: 0.25rem 0.5rem; border: 1px solid var(--fg-color-border, var(--bs-border-color, #d1d5db)); text-align: start; }
+.fg-html :where(img) { max-inline-size: 100%; block-size: auto; }
+.fg-html :where(iframe) { display: block; border: 0; max-inline-size: 100%; }
+.fg-html :where(a) { color: var(--fg-color-primary, var(--bs-primary, #4f46e5)); }
+`
+
 /** The target's stylesheet, plus the slider rules where the framework lacks them. */
 export function exportStylesheet(css: CssFrameworkAdapter, schema: FormSchema): string | undefined {
   const base = css.stylesheet?.(schema.meta.theme)
   if (css.id === 'vanilla') return base
   const extra = [
+    css.id === 'bootstrap5' ? `/* FormsGen parity: the same shape as the other flavours */\n${BOOTSTRAP_PARITY_CSS}` : '',
     hasRangeSlider(schema) ? `/* Two-handle range slider */\n${DUAL_RANGE_CSS}` : '',
     css.id === 'bootstrap5' && hasRichText(schema.tree)
-      ? '/* Rich text editors */\n.fg-richtext-editor { min-height: 6rem; outline: none; overflow-wrap: anywhere; }\n.fg-richtext-editor p { margin-bottom: 0.5rem; }\n[data-fg-rich]:focus-within { outline: 2px solid var(--bs-primary); outline-offset: 2px; }\n'
+      ? '/* Rich text editors */\n.fg-richtext-editor { min-height: 6rem; padding: 0.5rem 0.75rem; outline: none; overflow-wrap: anywhere; }\n.fg-richtext-editor p { margin-bottom: 0.5rem; }\n[data-fg-rich]:focus-within { outline: 2px solid var(--bs-primary); outline-offset: 2px; }\n'
       : '',
     css.id === 'bootstrap5' && hasLocation(schema.tree)
       ? '/* Location fields: the map under page overlays, coordinate boxes side by side */\n.fg-location-map { isolation: isolate; z-index: 0; }\n.fg-location-coord { flex: 1 1 8rem; }\n.fg-location-status:empty { display: none; }\n'
@@ -183,6 +251,7 @@ export function exportStylesheet(css: CssFrameworkAdapter, schema: FormSchema): 
       : '',
     css.id === 'bootstrap5' && hasSortableRepeater(schema.tree) ? `/* Sortable items: the dragged item, where it would land */\n${itemDragCss()}` : '',
     hasTooltips(schema) ? `/* Help tooltips */\n${TIP_CSS}` : '',
+    hasHtmlBlock(schema.tree) ? `/* HTML blocks */\n${HTML_BLOCK_CSS}` : '',
     css.id === 'bootstrap5' && hasUploadFields(schema.tree) ? `/* Upload drop zones */\n${BOOTSTRAP_UPLOAD_CSS}` : '',
     // Bootstrap hides floating-label placeholders even on focus; show the hint then.
     css.id === 'bootstrap5' && schema.meta.floatingLabels

@@ -219,7 +219,7 @@ async function onSubmit(): Promise<void> {
 
 <template>
   <form
-    class="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100"
+    class="bg-white p-4 font-sans text-gray-900 dark:bg-gray-900 dark:text-gray-100"
     dir="ltr"
     novalidate
     @submit.prevent="onSubmit"
@@ -227,147 +227,147 @@ async function onSubmit(): Promise<void> {
   >
     <div class="grid grid-cols-12 gap-4">
       <div class="col-span-12 md:col-span-12">
-        <h2 class="font-semibold">Event registration</h2>
+        <h2 class="text-2xl font-semibold leading-tight">Event registration</h2>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <p class="text-sm text-gray-600 dark:text-gray-300">Tell us who is coming and what you need. Fields marked * are required.</p>
+        <p class="text-base text-gray-600 dark:text-gray-300">Tell us who is coming and what you need. Fields marked * are required.</p>
       </div>
       <div class="col-span-12 md:col-span-12">
         <div class="grid grid-cols-12 gap-4">
           <div class="col-span-12 md:col-span-6">
-            <div class="flex flex-col gap-1.5">
+            <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
               <label class="text-sm font-semibold" for="fg_first_name">First name<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-              <input id="fg_first_name" v-model="form.first_name" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['first_name'] }" placeholder="Ana" @blur="touch('first_name')" @input="revalidate('first_name')">
-              <p v-if="errors['first_name']" class="text-xs text-red-600" role="alert">{{ errors['first_name'] }}</p>
+              <input id="fg_first_name" v-model="form.first_name" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" :class="{ 'border-red-500 focus:ring-red-200': !!errors['first_name'] }" placeholder="Ana" @blur="touch('first_name')" @input="revalidate('first_name')">
+              <p v-if="errors['first_name']" class="text-sm text-red-600" role="alert">{{ errors['first_name'] }}</p>
             </div>
           </div>
           <div class="col-span-12 md:col-span-6">
-            <div class="flex flex-col gap-1.5">
+            <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
               <label class="text-sm font-semibold" for="fg_last_name">Last name<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-              <input id="fg_last_name" v-model="form.last_name" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['last_name'] }" @blur="touch('last_name')" @input="revalidate('last_name')">
-              <p v-if="errors['last_name']" class="text-xs text-red-600" role="alert">{{ errors['last_name'] }}</p>
+              <input id="fg_last_name" v-model="form.last_name" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" :class="{ 'border-red-500 focus:ring-red-200': !!errors['last_name'] }" @blur="touch('last_name')" @input="revalidate('last_name')">
+              <p v-if="errors['last_name']" class="text-sm text-red-600" role="alert">{{ errors['last_name'] }}</p>
             </div>
           </div>
         </div>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <div class="flex flex-col gap-1.5">
+        <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
           <label class="text-sm font-semibold" for="fg_email">Email<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-          <input id="fg_email" v-model="form.email" type="email" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['email'] }" placeholder="ana&#64;example.com" @blur="touch('email')" @input="revalidate('email')">
-          <p class="text-xs text-gray-500 dark:text-gray-400">Your ticket is sent here.</p>
-          <p v-if="errors['email']" class="text-xs text-red-600" role="alert">{{ errors['email'] }}</p>
+          <input id="fg_email" v-model="form.email" type="email" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" :class="{ 'border-red-500 focus:ring-red-200': !!errors['email'] }" placeholder="ana&#64;example.com" @blur="touch('email')" @input="revalidate('email')">
+          <p class="text-sm text-gray-500 dark:text-gray-400">Your ticket is sent here.</p>
+          <p v-if="errors['email']" class="text-sm text-red-600" role="alert">{{ errors['email'] }}</p>
         </div>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <div class="flex flex-col gap-1.5">
+        <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
           <label class="text-sm font-semibold" for="fg_phone">Phone</label>
-          <input id="fg_phone" v-model="form.phone" type="tel" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['phone'] }" @blur="touch('phone')" @input="revalidate('phone')">
-          <p v-if="errors['phone']" class="text-xs text-red-600" role="alert">{{ errors['phone'] }}</p>
+          <input id="fg_phone" v-model="form.phone" type="tel" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" :class="{ 'border-red-500 focus:ring-red-200': !!errors['phone'] }" @blur="touch('phone')" @input="revalidate('phone')">
+          <p v-if="errors['phone']" class="text-sm text-red-600" role="alert">{{ errors['phone'] }}</p>
         </div>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <div class="flex flex-col gap-1.5">
+        <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
           <label class="text-sm font-semibold" for="fg_ticket">Ticket<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-          <select id="fg_ticket" v-model="form.ticket" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['ticket'] }" @blur="touch('ticket')" @change="revalidate('ticket')">
+          <select id="fg_ticket" v-model="form.ticket" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&:not([multiple])]:h-[2.375rem]" :class="{ 'border-red-500 focus:ring-red-200': !!errors['ticket'] }" @blur="touch('ticket')" @change="revalidate('ticket')">
             <option value="" disabled>—</option>
             <option value="standard">Standard</option>
             <option value="vip">VIP</option>
             <option value="student">Student</option>
           </select>
-          <p v-if="errors['ticket']" class="text-xs text-red-600" role="alert">{{ errors['ticket'] }}</p>
+          <p v-if="errors['ticket']" class="text-sm text-red-600" role="alert">{{ errors['ticket'] }}</p>
         </div>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <div class="flex flex-col gap-1.5">
+        <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
           <label class="text-sm font-semibold" for="fg_seats">Seats<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
           <div class="flex [&>:not(:first-child)]:-ms-px [&>:not(:first-child)]:rounded-s-none [&>:not(:last-child)]:rounded-e-none">
-            <input id="fg_seats" v-model.number="form.seats" type="number" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['seats'] }" min="1" max="5" aria-describedby="fg_seats-suffix" @blur="touch('seats')" @input="revalidate('seats')">
-            <span id="fg_seats-suffix" class="inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">people</span>
+            <input id="fg_seats" v-model.number="form.seats" type="number" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" :class="{ 'border-red-500 focus:ring-red-200': !!errors['seats'] }" min="1" max="5" aria-describedby="fg_seats-suffix" @blur="touch('seats')" @input="revalidate('seats')">
+            <span id="fg_seats-suffix" class="inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-base text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">people</span>
           </div>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Including yourself, up to 5.</p>
-          <p v-if="errors['seats']" class="text-xs text-red-600" role="alert">{{ errors['seats'] }}</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Including yourself, up to 5.</p>
+          <p v-if="errors['seats']" class="text-sm text-red-600" role="alert">{{ errors['seats'] }}</p>
         </div>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <fieldset class="flex flex-col gap-1.5">
+        <fieldset class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
           <legend class="text-sm font-semibold">Dietary preference</legend>
           <div class="flex flex-col gap-1.5">
-            <label class="inline-flex items-center gap-2 text-sm" for="fg_diet-none">
+            <label class="inline-flex items-center gap-2 text-base" for="fg_diet-none">
               <input id="fg_diet-none" v-model="form.diet" type="radio" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="none" @change="touch('diet')">
               <span>No preference</span>
             </label>
-            <label class="inline-flex items-center gap-2 text-sm" for="fg_diet-vegetarian">
+            <label class="inline-flex items-center gap-2 text-base" for="fg_diet-vegetarian">
               <input id="fg_diet-vegetarian" v-model="form.diet" type="radio" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="vegetarian" @change="touch('diet')">
               <span>Vegetarian</span>
             </label>
-            <label class="inline-flex items-center gap-2 text-sm" for="fg_diet-vegan">
+            <label class="inline-flex items-center gap-2 text-base" for="fg_diet-vegan">
               <input id="fg_diet-vegan" v-model="form.diet" type="radio" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="vegan" @change="touch('diet')">
               <span>Vegan</span>
             </label>
-            <label class="inline-flex items-center gap-2 text-sm" for="fg_diet-other">
+            <label class="inline-flex items-center gap-2 text-base" for="fg_diet-other">
               <input id="fg_diet-other" v-model="form.diet" type="radio" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="other" @change="touch('diet')">
               <span>Other</span>
             </label>
           </div>
-          <p v-if="errors['diet']" class="text-xs text-red-600" role="alert">{{ errors['diet'] }}</p>
+          <p v-if="errors['diet']" class="text-sm text-red-600" role="alert">{{ errors['diet'] }}</p>
         </fieldset>
       </div>
       <div class="col-span-12 md:col-span-12" v-if='(form.diet === "other")'>
-        <div class="flex flex-col gap-1.5">
+        <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
           <label class="text-sm font-semibold" for="fg_diet_other">Tell us more<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-          <textarea id="fg_diet_other" v-model="form.diet_other" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="2" :class="{ 'border-red-500 focus:ring-red-200': !!errors['diet_other'] }" @blur="touch('diet_other')" @input="revalidate('diet_other')"></textarea>
-          <p v-if="errors['diet_other']" class="text-xs text-red-600" role="alert">{{ errors['diet_other'] }}</p>
+          <textarea id="fg_diet_other" v-model="form.diet_other" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="2" :class="{ 'border-red-500 focus:ring-red-200': !!errors['diet_other'] }" @blur="touch('diet_other')" @input="revalidate('diet_other')"></textarea>
+          <p v-if="errors['diet_other']" class="text-sm text-red-600" role="alert">{{ errors['diet_other'] }}</p>
         </div>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <fieldset class="flex flex-col gap-1.5">
+        <fieldset class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
           <legend class="text-sm font-semibold">Workshops</legend>
           <div class="flex flex-col gap-1.5">
-            <label class="inline-flex items-center gap-2 text-sm" for="fg_workshops-forms">
+            <label class="inline-flex items-center gap-2 text-base" for="fg_workshops-forms">
               <input id="fg_workshops-forms" v-model="form.workshops" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="forms" @change="touch('workshops')">
               <span>Building forms</span>
             </label>
-            <label class="inline-flex items-center gap-2 text-sm" for="fg_workshops-exports">
+            <label class="inline-flex items-center gap-2 text-base" for="fg_workshops-exports">
               <input id="fg_workshops-exports" v-model="form.workshops" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="exports" @change="touch('workshops')">
               <span>One form, four stacks</span>
             </label>
-            <label class="inline-flex items-center gap-2 text-sm" for="fg_workshops-a11y">
+            <label class="inline-flex items-center gap-2 text-base" for="fg_workshops-a11y">
               <input id="fg_workshops-a11y" v-model="form.workshops" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="a11y" @change="touch('workshops')">
               <span>Accessible by default</span>
             </label>
           </div>
-          <p v-if="errors['workshops']" class="text-xs text-red-600" role="alert">{{ errors['workshops'] }}</p>
+          <p v-if="errors['workshops']" class="text-sm text-red-600" role="alert">{{ errors['workshops'] }}</p>
         </fieldset>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <div class="flex flex-col gap-1.5">
+        <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
           <label class="text-sm font-semibold" for="fg_arrival">Arrival date</label>
-          <input id="fg_arrival" v-model="form.arrival" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" :class="{ 'border-red-500 focus:ring-red-200': !!errors['arrival'] }" @blur="touch('arrival')" @input="revalidate('arrival')">
-          <p v-if="errors['arrival']" class="text-xs text-red-600" role="alert">{{ errors['arrival'] }}</p>
+          <input id="fg_arrival" v-model="form.arrival" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" :class="{ 'border-red-500 focus:ring-red-200': !!errors['arrival'] }" @blur="touch('arrival')" @input="revalidate('arrival')">
+          <p v-if="errors['arrival']" class="text-sm text-red-600" role="alert">{{ errors['arrival'] }}</p>
         </div>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <div class="flex flex-col gap-1.5">
+        <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
           <label class="text-sm font-semibold" for="fg_notes">Anything else?</label>
-          <textarea id="fg_notes" v-model="form.notes" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="3" :class="{ 'border-red-500 focus:ring-red-200': !!errors['notes'] }" @blur="touch('notes')" @input="revalidate('notes')"></textarea>
-          <p v-if="errors['notes']" class="text-xs text-red-600" role="alert">{{ errors['notes'] }}</p>
+          <textarea id="fg_notes" v-model="form.notes" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="3" :class="{ 'border-red-500 focus:ring-red-200': !!errors['notes'] }" @blur="touch('notes')" @input="revalidate('notes')"></textarea>
+          <p v-if="errors['notes']" class="text-sm text-red-600" role="alert">{{ errors['notes'] }}</p>
         </div>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <div class="flex flex-col gap-1.5">
+        <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
           <div class="flex items-center gap-2">
             <input id="fg_terms" v-model="form.terms" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" @change="touch('terms')">
-            <label class="inline-flex items-center gap-2 text-sm" for="fg_terms">I agree to the event terms<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+            <label class="text-base" for="fg_terms">I agree to the event terms<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
           </div>
-          <p v-if="errors['terms']" class="text-xs text-red-600" role="alert">{{ errors['terms'] }}</p>
+          <p v-if="errors['terms']" class="text-sm text-red-600" role="alert">{{ errors['terms'] }}</p>
         </div>
       </div>
     </div>
     <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">{{ fgAnnouncement }}</div>
     <div class="mt-4">
-      <button class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60" type="submit">Register</button>
+      <button class="rounded-md border border-transparent bg-indigo-600 px-4 py-1.5 text-base font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60" type="submit">Register</button>
     </div>
-    <pre v-if="result" class="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300">{{ JSON.stringify(result, null, 2) }}</pre>
+    <pre v-if="result" class="mt-4 overflow-x-auto rounded-md bg-gray-900 p-4 text-sm text-green-300">{{ JSON.stringify(result, null, 2) }}</pre>
   </form>
 </template>
 

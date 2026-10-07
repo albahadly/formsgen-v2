@@ -26,13 +26,13 @@ const generate = (targetId: string, framework: CssFrameworkId = 'vanilla') =>
 
 /**
  * The fixture without what ships framework-neutral CSS in every framework
- * (the two-handle slider, help tooltips).
+ * (the two-handle slider, help tooltips, HTML blocks).
  */
 const generateNoSlider = (targetId: string, framework: CssFrameworkId) => {
   const schema = fixture()
   const strip = (nodes: ElementNode[]): ElementNode[] =>
     nodes
-      .filter((n) => n.type !== 'rangeslider')
+      .filter((n) => n.type !== 'rangeslider' && n.type !== 'html')
       .map((n) => ({ ...n, props: { ...n.props, tooltip: undefined }, children: n.children && strip(n.children) }))
   schema.tree = strip(schema.tree)
   return getTarget(targetId)!.generate({ schema, css: getCssAdapter(framework) })
@@ -120,10 +120,12 @@ describe('vue-standalone target', () => {
     expect(file!.content).toContain('form-control')
     expect(file!.content).toContain('is-invalid')
     expect(file!.content).not.toContain('fg-input')
-    // The only stylesheet: what Bootstrap has no utilities for (rich-text
+    // The only stylesheet: the parity rules (the shape Bootstrap's utilities
+    // cannot express) and what Bootstrap has no utilities for (rich-text
     // editors, maps, signature pads, dragged items, upload drop zones).
     const style = file!.content.split('<style scoped>')[1] ?? ''
-    expect(style.trim().startsWith('/* Rich text editors */')).toBe(true)
+    expect(style.trim().startsWith('/* FormsGen parity')).toBe(true)
+    expect(style).toContain('/* Rich text editors */')
     for (const part of ['/* Location fields', '/* Signature pads', '/* Sortable items: the dragged item, where it would land */', '/* Upload drop zones */']) {
       expect(style).toContain(part)
     }
@@ -474,8 +476,8 @@ describe('element appearance (style) in every target and framework', () => {
   // divider primary, account group className "account-box"
   const expectations: Record<string, string[]> = {
     vanilla: ['fg-input fg-control--sm', 'fg-textarea fg-control--lg', 'fg-sr-only', 'fg-align-center', 'fg-heading fg-tone-primary', 'fg-divider fg-tone-primary', 'account-box'],
-    tailwind: ['px-2 py-1 text-xs', 'px-4 py-3 text-base', 'sr-only', 'text-center', 'text-indigo-600', 'border-indigo-500', 'account-box'],
-    bootstrap5: ['form-control form-control-sm', 'form-control form-control-lg', 'visually-hidden', 'text-center', 'fw-semibold text-primary', 'border-top border-primary opacity-100', 'account-box'],
+    tailwind: ['px-2 py-1 text-sm', 'px-4 py-2 text-xl', 'sr-only', 'text-center', 'text-indigo-600', 'border-indigo-500', 'account-box'],
+    bootstrap5: ['form-control form-control-sm', 'form-control form-control-lg', 'visually-hidden', 'text-center', 'fg-heading text-primary', 'border-top my-1 border-primary opacity-100', 'account-box'],
   }
 
   it.each(['vue-standalone', 'react', 'html', 'blazor'])('%s emits every style in all frameworks', (id) => {
@@ -625,9 +627,11 @@ describe('html target', () => {
   it('references CDN assets for tailwind instead of embedding CSS', () => {
     const [file] = generateNoSlider('html', 'tailwind')
     expect(file!.content).toContain('cdn.tailwindcss.com')
-    // only the runtime's hidden rule, no framework CSS
+    // only the page rules and the runtime's hidden rule, no framework CSS
     const style = /<style>([\s\S]*?)<\/style>/.exec(file!.content)?.[1] ?? ''
-    expect(style.trim()).toBe('[hidden] { display: none !important; }')
+    expect(style.replace(/^ +/gm, '').trim()).toBe(
+      'body { margin: 0; padding: 1.5rem 1rem; }\n#fg-form { box-sizing: border-box; max-inline-size: 42rem; margin-inline: auto; }\n[hidden] { display: none !important; }',
+    )
   })
 
   it('generated validator and payload code executes correctly', () => {

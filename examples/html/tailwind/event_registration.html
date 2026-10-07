@@ -6,154 +6,156 @@
   <title>Event registration</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+  body { margin: 0; padding: 1.5rem 1rem; }
+  #fg-form { box-sizing: border-box; max-inline-size: 42rem; margin-inline: auto; }
   [hidden] { display: none !important; }
   </style>
 </head>
 <body>
-  <form id="fg-form" class="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" novalidate>
+  <form id="fg-form" class="bg-white p-4 font-sans text-gray-900 dark:bg-gray-900 dark:text-gray-100" novalidate>
     <div class="grid grid-cols-12 gap-4">
       <div class="col-span-12 md:col-span-12">
-        <h2 class="font-semibold">Event registration</h2>
+        <h2 class="text-2xl font-semibold leading-tight">Event registration</h2>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <p class="text-sm text-gray-600 dark:text-gray-300">Tell us who is coming and what you need. Fields marked * are required.</p>
+        <p class="text-base text-gray-600 dark:text-gray-300">Tell us who is coming and what you need. Fields marked * are required.</p>
       </div>
       <div class="col-span-12 md:col-span-12">
         <div class="grid grid-cols-12 gap-4">
           <div class="col-span-12 md:col-span-6">
-            <div class="flex flex-col gap-1.5">
+            <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
               <label class="text-sm font-semibold" for="fg_first_name">First name<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-              <input id="fg_first_name" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="first_name" data-fg-kind="text" placeholder="Ana">
-              <p id="fg_first_name-err" class="text-xs text-red-600" role="alert" hidden></p>
+              <input id="fg_first_name" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" data-fg-path="first_name" data-fg-kind="text" placeholder="Ana">
+              <p id="fg_first_name-err" class="text-sm text-red-600" role="alert" hidden></p>
             </div>
           </div>
           <div class="col-span-12 md:col-span-6">
-            <div class="flex flex-col gap-1.5">
+            <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
               <label class="text-sm font-semibold" for="fg_last_name">Last name<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-              <input id="fg_last_name" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="last_name" data-fg-kind="text">
-              <p id="fg_last_name-err" class="text-xs text-red-600" role="alert" hidden></p>
+              <input id="fg_last_name" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" data-fg-path="last_name" data-fg-kind="text">
+              <p id="fg_last_name-err" class="text-sm text-red-600" role="alert" hidden></p>
             </div>
           </div>
         </div>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <div class="flex flex-col gap-1.5">
+        <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
           <label class="text-sm font-semibold" for="fg_email">Email<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-          <input id="fg_email" type="email" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="email" data-fg-kind="text" placeholder="ana&#64;example.com">
-          <p class="text-xs text-gray-500 dark:text-gray-400">Your ticket is sent here.</p>
-          <p id="fg_email-err" class="text-xs text-red-600" role="alert" hidden></p>
+          <input id="fg_email" type="email" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" data-fg-path="email" data-fg-kind="text" placeholder="ana&#64;example.com">
+          <p class="text-sm text-gray-500 dark:text-gray-400">Your ticket is sent here.</p>
+          <p id="fg_email-err" class="text-sm text-red-600" role="alert" hidden></p>
         </div>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <div class="flex flex-col gap-1.5">
+        <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
           <label class="text-sm font-semibold" for="fg_phone">Phone</label>
-          <input id="fg_phone" type="tel" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="phone" data-fg-kind="text">
-          <p id="fg_phone-err" class="text-xs text-red-600" role="alert" hidden></p>
+          <input id="fg_phone" type="tel" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" data-fg-path="phone" data-fg-kind="text">
+          <p id="fg_phone-err" class="text-sm text-red-600" role="alert" hidden></p>
         </div>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <div class="flex flex-col gap-1.5">
+        <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
           <label class="text-sm font-semibold" for="fg_ticket">Ticket<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-          <select id="fg_ticket" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="ticket" data-fg-kind="select">
+          <select id="fg_ticket" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&:not([multiple])]:h-[2.375rem]" data-fg-path="ticket" data-fg-kind="select">
             <option value="" disabled selected>—</option>
             <option value="standard">Standard</option>
             <option value="vip">VIP</option>
             <option value="student">Student</option>
           </select>
-          <p id="fg_ticket-err" class="text-xs text-red-600" role="alert" hidden></p>
+          <p id="fg_ticket-err" class="text-sm text-red-600" role="alert" hidden></p>
         </div>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <div class="flex flex-col gap-1.5">
+        <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
           <label class="text-sm font-semibold" for="fg_seats">Seats<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
           <div class="flex [&>:not(:first-child)]:-ms-px [&>:not(:first-child)]:rounded-s-none [&>:not(:last-child)]:rounded-e-none">
-            <input id="fg_seats" type="number" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="seats" data-fg-kind="number" min="1" max="5" aria-describedby="fg_seats-suffix">
-            <span id="fg_seats-suffix" class="inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">people</span>
+            <input id="fg_seats" type="number" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" data-fg-path="seats" data-fg-kind="number" min="1" max="5" aria-describedby="fg_seats-suffix">
+            <span id="fg_seats-suffix" class="inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-base text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">people</span>
           </div>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Including yourself, up to 5.</p>
-          <p id="fg_seats-err" class="text-xs text-red-600" role="alert" hidden></p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Including yourself, up to 5.</p>
+          <p id="fg_seats-err" class="text-sm text-red-600" role="alert" hidden></p>
         </div>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <fieldset class="flex flex-col gap-1.5">
+        <fieldset class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
           <legend class="text-sm font-semibold">Dietary preference</legend>
           <div class="flex flex-col gap-1.5">
-            <label class="inline-flex items-center gap-2 text-sm" for="fg_diet-none">
+            <label class="inline-flex items-center gap-2 text-base" for="fg_diet-none">
               <input id="fg_diet-none" type="radio" name="diet" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="none" data-fg-path="diet" data-fg-kind="radio">
               <span>No preference</span>
             </label>
-            <label class="inline-flex items-center gap-2 text-sm" for="fg_diet-vegetarian">
+            <label class="inline-flex items-center gap-2 text-base" for="fg_diet-vegetarian">
               <input id="fg_diet-vegetarian" type="radio" name="diet" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="vegetarian" data-fg-path="diet" data-fg-kind="radio">
               <span>Vegetarian</span>
             </label>
-            <label class="inline-flex items-center gap-2 text-sm" for="fg_diet-vegan">
+            <label class="inline-flex items-center gap-2 text-base" for="fg_diet-vegan">
               <input id="fg_diet-vegan" type="radio" name="diet" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="vegan" data-fg-path="diet" data-fg-kind="radio">
               <span>Vegan</span>
             </label>
-            <label class="inline-flex items-center gap-2 text-sm" for="fg_diet-other">
+            <label class="inline-flex items-center gap-2 text-base" for="fg_diet-other">
               <input id="fg_diet-other" type="radio" name="diet" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="other" data-fg-path="diet" data-fg-kind="radio">
               <span>Other</span>
             </label>
           </div>
-          <p id="fg_diet-err" class="text-xs text-red-600" role="alert" hidden></p>
+          <p id="fg_diet-err" class="text-sm text-red-600" role="alert" hidden></p>
         </fieldset>
       </div>
       <div class="col-span-12 md:col-span-12" data-fg-cond="0">
-        <div class="flex flex-col gap-1.5">
+        <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
           <label class="text-sm font-semibold" for="fg_diet_other">Tell us more<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-          <textarea id="fg_diet_other" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="2" data-fg-path="diet_other" data-fg-kind="text"></textarea>
-          <p id="fg_diet_other-err" class="text-xs text-red-600" role="alert" hidden></p>
+          <textarea id="fg_diet_other" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="2" data-fg-path="diet_other" data-fg-kind="text"></textarea>
+          <p id="fg_diet_other-err" class="text-sm text-red-600" role="alert" hidden></p>
         </div>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <fieldset class="flex flex-col gap-1.5">
+        <fieldset class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
           <legend class="text-sm font-semibold">Workshops</legend>
           <div class="flex flex-col gap-1.5">
-            <label class="inline-flex items-center gap-2 text-sm" for="fg_workshops-forms">
+            <label class="inline-flex items-center gap-2 text-base" for="fg_workshops-forms">
               <input id="fg_workshops-forms" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="forms" data-fg-path="workshops" data-fg-kind="checks">
               <span>Building forms</span>
             </label>
-            <label class="inline-flex items-center gap-2 text-sm" for="fg_workshops-exports">
+            <label class="inline-flex items-center gap-2 text-base" for="fg_workshops-exports">
               <input id="fg_workshops-exports" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="exports" data-fg-path="workshops" data-fg-kind="checks">
               <span>One form, four stacks</span>
             </label>
-            <label class="inline-flex items-center gap-2 text-sm" for="fg_workshops-a11y">
+            <label class="inline-flex items-center gap-2 text-base" for="fg_workshops-a11y">
               <input id="fg_workshops-a11y" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" value="a11y" data-fg-path="workshops" data-fg-kind="checks">
               <span>Accessible by default</span>
             </label>
           </div>
-          <p id="fg_workshops-err" class="text-xs text-red-600" role="alert" hidden></p>
+          <p id="fg_workshops-err" class="text-sm text-red-600" role="alert" hidden></p>
         </fieldset>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <div class="flex flex-col gap-1.5">
+        <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
           <label class="text-sm font-semibold" for="fg_arrival">Arrival date</label>
-          <input id="fg_arrival" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" data-fg-path="arrival" data-fg-kind="text">
-          <p id="fg_arrival-err" class="text-xs text-red-600" role="alert" hidden></p>
+          <input id="fg_arrival" type="date" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" data-fg-path="arrival" data-fg-kind="text">
+          <p id="fg_arrival-err" class="text-sm text-red-600" role="alert" hidden></p>
         </div>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <div class="flex flex-col gap-1.5">
+        <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
           <label class="text-sm font-semibold" for="fg_notes">Anything else?</label>
-          <textarea id="fg_notes" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="3" data-fg-path="notes" data-fg-kind="text"></textarea>
-          <p id="fg_notes-err" class="text-xs text-red-600" role="alert" hidden></p>
+          <textarea id="fg_notes" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="3" data-fg-path="notes" data-fg-kind="text"></textarea>
+          <p id="fg_notes-err" class="text-sm text-red-600" role="alert" hidden></p>
         </div>
       </div>
       <div class="col-span-12 md:col-span-12">
-        <div class="flex flex-col gap-1.5">
+        <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
           <div class="flex items-center gap-2">
             <input id="fg_terms" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" data-fg-path="terms" data-fg-kind="checkbox">
-            <label class="inline-flex items-center gap-2 text-sm" for="fg_terms">I agree to the event terms<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+            <label class="text-base" for="fg_terms">I agree to the event terms<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
           </div>
-          <p id="fg_terms-err" class="text-xs text-red-600" role="alert" hidden></p>
+          <p id="fg_terms-err" class="text-sm text-red-600" role="alert" hidden></p>
         </div>
       </div>
     </div>
     <div id="fg-live" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
     <div class="mt-4">
-      <button class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60" data-fg-submit type="submit">Register</button>
+      <button class="rounded-md border border-transparent bg-indigo-600 px-4 py-1.5 text-base font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60" data-fg-submit type="submit">Register</button>
     </div>
-    <pre id="fg-result" class="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300" hidden></pre>
+    <pre id="fg-result" class="mt-4 overflow-x-auto rounded-md bg-gray-900 p-4 text-sm text-green-300" hidden></pre>
   </form>
   <script>
   (function () {

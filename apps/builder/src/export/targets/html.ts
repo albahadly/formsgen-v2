@@ -186,7 +186,10 @@ ${indentBlock(r.itemHtml, 3)}
 
     // The runtime shows and hides parts with the hidden attribute; a class
     // setting display (flex rows, buttons) must not override it.
-    const stylesheet = [exportStylesheet(css, schema), '[hidden] { display: none !important; }\n'].filter(Boolean).join('\n')
+    // The page around the form: the same width and margins in every flavour
+    // (the form itself fills its container, as the component exports do).
+    const pageCss = 'body { margin: 0; padding: 1.5rem 1rem; }\n#fg-form { box-sizing: border-box; max-inline-size: 42rem; margin-inline: auto; }\n[hidden] { display: none !important; }\n'
+    const stylesheet = [exportStylesheet(css, schema), pageCss].filter(Boolean).join('\n')
     const styleTag = stylesheet ? `  <style>\n${indentBlock(stylesheet, 1)}  </style>` : ''
 
     // Bottom actions row: omitted when the wizard embeds the submit.

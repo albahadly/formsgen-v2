@@ -7,14 +7,15 @@ import { richTextMarkup } from '@/export/richText'
 import { esc, textMarkup } from '../emitters/shared'
 import { ANSWER_HINT, appearanceSection, type ElementDefinition, type EmitCtx, type EmitterLang } from '../types'
 
-function headingTag(node: ElementNode): string {
+function headingLevel(node: ElementNode): 1 | 2 | 3 | 4 {
   const level = Number(node.props['level'] ?? 2)
-  return `h${level >= 1 && level <= 4 ? level : 2}`
+  return level === 1 || level === 3 || level === 4 ? level : 2
 }
 
 const headingMarkup = (node: ElementNode, ctx: EmitCtx, classAttr: string): string => {
-  const tag = headingTag(node)
-  return `<${tag} ${classAttr}="${ctx.css.classes('heading')}">${textMarkup(node, ctx, 'text')}</${tag}>`
+  const level = headingLevel(node)
+  const tag = `h${level}`
+  return `<${tag} ${classAttr}="${ctx.css.classes('heading', { level })}">${textMarkup(node, ctx, 'text')}</${tag}>`
 }
 
 export const headingElement: ElementDefinition = {

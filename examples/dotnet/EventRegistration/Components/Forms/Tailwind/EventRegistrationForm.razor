@@ -7,157 +7,157 @@
 @inject HttpClient Http
 
 <EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate dir="ltr">
-    <div class="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
+    <div class="bg-white p-4 font-sans text-gray-900 dark:bg-gray-900 dark:text-gray-100" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
     <div class="grid grid-cols-12 gap-4">
         <div class="col-span-12 md:col-span-12">
-          <h2 class="font-semibold">Event registration</h2>
+          <h2 class="text-2xl font-semibold leading-tight">Event registration</h2>
         </div>
         <div class="col-span-12 md:col-span-12">
-          <p class="text-sm text-gray-600 dark:text-gray-300">Tell us who is coming and what you need. Fields marked * are required.</p>
+          <p class="text-base text-gray-600 dark:text-gray-300">Tell us who is coming and what you need. Fields marked * are required.</p>
         </div>
         <div class="col-span-12 md:col-span-12">
           <div class="grid grid-cols-12 gap-4">
             <div class="col-span-12 md:col-span-6">
-              <div class="flex flex-col gap-1.5">
+              <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
                 <label class="text-sm font-semibold" for="fg_first_name">First name<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-                <InputText id="fg_first_name" @bind-Value="Model.FirstName" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" placeholder="Ana" />
-                <ValidationMessage For="@(() => Model.FirstName)" class="text-xs text-red-600" />
+                <InputText id="fg_first_name" @bind-Value="Model.FirstName" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" placeholder="Ana" />
+                <ValidationMessage For="@(() => Model.FirstName)" class="text-sm text-red-600" />
               </div>
             </div>
             <div class="col-span-12 md:col-span-6">
-              <div class="flex flex-col gap-1.5">
+              <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
                 <label class="text-sm font-semibold" for="fg_last_name">Last name<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-                <InputText id="fg_last_name" @bind-Value="Model.LastName" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
-                <ValidationMessage For="@(() => Model.LastName)" class="text-xs text-red-600" />
+                <InputText id="fg_last_name" @bind-Value="Model.LastName" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" />
+                <ValidationMessage For="@(() => Model.LastName)" class="text-sm text-red-600" />
               </div>
             </div>
           </div>
         </div>
         <div class="col-span-12 md:col-span-12">
-          <div class="flex flex-col gap-1.5">
+          <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
             <label class="text-sm font-semibold" for="fg_email">Email<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-            <InputText id="fg_email" type="email" @bind-Value="Model.Email" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" placeholder="ana&#64;example.com" />
-            <p class="text-xs text-gray-500 dark:text-gray-400">Your ticket is sent here.</p>
-            <ValidationMessage For="@(() => Model.Email)" class="text-xs text-red-600" />
+            <InputText id="fg_email" type="email" @bind-Value="Model.Email" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" placeholder="ana&#64;example.com" />
+            <p class="text-sm text-gray-500 dark:text-gray-400">Your ticket is sent here.</p>
+            <ValidationMessage For="@(() => Model.Email)" class="text-sm text-red-600" />
           </div>
         </div>
         <div class="col-span-12 md:col-span-12">
-          <div class="flex flex-col gap-1.5">
+          <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
             <label class="text-sm font-semibold" for="fg_phone">Phone</label>
-            <InputText id="fg_phone" type="tel" @bind-Value="Model.Phone" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
-            <ValidationMessage For="@(() => Model.Phone)" class="text-xs text-red-600" />
+            <InputText id="fg_phone" type="tel" @bind-Value="Model.Phone" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" />
+            <ValidationMessage For="@(() => Model.Phone)" class="text-sm text-red-600" />
           </div>
         </div>
         <div class="col-span-12 md:col-span-12">
-          <div class="flex flex-col gap-1.5">
+          <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
             <label class="text-sm font-semibold" for="fg_ticket">Ticket<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-            <InputSelect id="fg_ticket" @bind-Value="Model.Ticket" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800">
+            <InputSelect id="fg_ticket" @bind-Value="Model.Ticket" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&:not([multiple])]:h-[2.375rem]">
               <option value="" disabled>—</option>
               <option value="standard">Standard</option>
               <option value="vip">VIP</option>
               <option value="student">Student</option>
             </InputSelect>
-            <ValidationMessage For="@(() => Model.Ticket)" class="text-xs text-red-600" />
+            <ValidationMessage For="@(() => Model.Ticket)" class="text-sm text-red-600" />
           </div>
         </div>
         <div class="col-span-12 md:col-span-12">
-          <div class="flex flex-col gap-1.5">
+          <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
             <label class="text-sm font-semibold" for="fg_seats">Seats<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
             <div class="flex [&>:not(:first-child)]:-ms-px [&>:not(:first-child)]:rounded-s-none [&>:not(:last-child)]:rounded-e-none">
-              <InputNumber id="fg_seats" @bind-Value="Model.Seats" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" aria-describedby="fg_seats-suffix" />
-              <span id="fg_seats-suffix" class="inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">people</span>
+              <InputNumber id="fg_seats" @bind-Value="Model.Seats" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" aria-describedby="fg_seats-suffix" />
+              <span id="fg_seats-suffix" class="inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-base text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">people</span>
             </div>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Including yourself, up to 5.</p>
-            <ValidationMessage For="@(() => Model.Seats)" class="text-xs text-red-600" />
+            <p class="text-sm text-gray-500 dark:text-gray-400">Including yourself, up to 5.</p>
+            <ValidationMessage For="@(() => Model.Seats)" class="text-sm text-red-600" />
           </div>
         </div>
         <div class="col-span-12 md:col-span-12">
-          <fieldset class="flex flex-col gap-1.5">
+          <fieldset class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
             <legend class="text-sm font-semibold">Dietary preference</legend>
             <InputRadioGroup Name="fg_diet" @bind-Value="Model.Diet">
               <div class="flex flex-col gap-1.5">
-                <label class="inline-flex items-center gap-2 text-sm" for="fg_diet-none">
+                <label class="inline-flex items-center gap-2 text-base" for="fg_diet-none">
                   <InputRadio id="fg_diet-none" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" Value="@("none")" />
                   <span>No preference</span>
                 </label>
-                <label class="inline-flex items-center gap-2 text-sm" for="fg_diet-vegetarian">
+                <label class="inline-flex items-center gap-2 text-base" for="fg_diet-vegetarian">
                   <InputRadio id="fg_diet-vegetarian" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" Value="@("vegetarian")" />
                   <span>Vegetarian</span>
                 </label>
-                <label class="inline-flex items-center gap-2 text-sm" for="fg_diet-vegan">
+                <label class="inline-flex items-center gap-2 text-base" for="fg_diet-vegan">
                   <InputRadio id="fg_diet-vegan" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" Value="@("vegan")" />
                   <span>Vegan</span>
                 </label>
-                <label class="inline-flex items-center gap-2 text-sm" for="fg_diet-other">
+                <label class="inline-flex items-center gap-2 text-base" for="fg_diet-other">
                   <InputRadio id="fg_diet-other" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" Value="@("other")" />
                   <span>Other</span>
                 </label>
               </div>
             </InputRadioGroup>
-            <ValidationMessage For="@(() => Model.Diet)" class="text-xs text-red-600" />
+            <ValidationMessage For="@(() => Model.Diet)" class="text-sm text-red-600" />
           </fieldset>
         </div>
         @if ((Equals(Model.Diet, "other")))
         {
             <div class="col-span-12 md:col-span-12">
-              <div class="flex flex-col gap-1.5">
+              <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
                 <label class="text-sm font-semibold" for="fg_diet_other">Tell us more<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-                <InputTextArea id="fg_diet_other" @bind-Value="Model.DietOther" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="2" />
-                <ValidationMessage For="@(() => Model.DietOther)" class="text-xs text-red-600" />
+                <InputTextArea id="fg_diet_other" @bind-Value="Model.DietOther" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="2" />
+                <ValidationMessage For="@(() => Model.DietOther)" class="text-sm text-red-600" />
               </div>
             </div>
         }
         <div class="col-span-12 md:col-span-12">
-          <fieldset class="flex flex-col gap-1.5">
+          <fieldset class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
             <legend class="text-sm font-semibold">Workshops</legend>
             <div class="flex flex-col gap-1.5">
-              <label class="inline-flex items-center gap-2 text-sm" for="fg_workshops-forms">
+              <label class="inline-flex items-center gap-2 text-base" for="fg_workshops-forms">
                 <input id="fg_workshops-forms" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" checked='@Model.Workshops.Contains("forms")' @onchange='e => FgToggle(Model.Workshops, "forms", e)' />
                 <span>Building forms</span>
               </label>
-              <label class="inline-flex items-center gap-2 text-sm" for="fg_workshops-exports">
+              <label class="inline-flex items-center gap-2 text-base" for="fg_workshops-exports">
                 <input id="fg_workshops-exports" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" checked='@Model.Workshops.Contains("exports")' @onchange='e => FgToggle(Model.Workshops, "exports", e)' />
                 <span>One form, four stacks</span>
               </label>
-              <label class="inline-flex items-center gap-2 text-sm" for="fg_workshops-a11y">
+              <label class="inline-flex items-center gap-2 text-base" for="fg_workshops-a11y">
                 <input id="fg_workshops-a11y" type="checkbox" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" checked='@Model.Workshops.Contains("a11y")' @onchange='e => FgToggle(Model.Workshops, "a11y", e)' />
                 <span>Accessible by default</span>
               </label>
             </div>
-            <ValidationMessage For="@(() => Model.Workshops)" class="text-xs text-red-600" />
+            <ValidationMessage For="@(() => Model.Workshops)" class="text-sm text-red-600" />
           </fieldset>
         </div>
         <div class="col-span-12 md:col-span-12">
-          <div class="flex flex-col gap-1.5">
+          <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
             <label class="text-sm font-semibold" for="fg_arrival">Arrival date</label>
-            <InputText id="fg_arrival" type="date" @bind-Value="Model.Arrival" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" />
-            <ValidationMessage For="@(() => Model.Arrival)" class="text-xs text-red-600" />
+            <InputText id="fg_arrival" type="date" @bind-Value="Model.Arrival" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" />
+            <ValidationMessage For="@(() => Model.Arrival)" class="text-sm text-red-600" />
           </div>
         </div>
         <div class="col-span-12 md:col-span-12">
-          <div class="flex flex-col gap-1.5">
+          <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
             <label class="text-sm font-semibold" for="fg_notes">Anything else?</label>
-            <InputTextArea id="fg_notes" @bind-Value="Model.Notes" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="3" />
-            <ValidationMessage For="@(() => Model.Notes)" class="text-xs text-red-600" />
+            <InputTextArea id="fg_notes" @bind-Value="Model.Notes" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800" rows="3" />
+            <ValidationMessage For="@(() => Model.Notes)" class="text-sm text-red-600" />
           </div>
         </div>
         <div class="col-span-12 md:col-span-12">
-          <div class="flex flex-col gap-1.5">
+          <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
             <div class="flex items-center gap-2">
               <InputCheckbox id="fg_terms" @bind-Value="Model.Terms" class="h-4 w-4 rounded border-gray-300 accent-indigo-600" />
-              <label class="inline-flex items-center gap-2 text-sm" for="fg_terms">I agree to the event terms<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+              <label class="text-base" for="fg_terms">I agree to the event terms<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
             </div>
-            <ValidationMessage For="@(() => Model.Terms)" class="text-xs text-red-600" />
+            <ValidationMessage For="@(() => Model.Terms)" class="text-sm text-red-600" />
           </div>
         </div>
     </div>
     <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">@fgAnnouncement</div>
     <div class="mt-4">
-        <button class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60" type="submit">Register</button>
+        <button class="rounded-md border border-transparent bg-indigo-600 px-4 py-1.5 text-base font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60" type="submit">Register</button>
     </div>
     @if (ResultJson is not null)
     {
-        <pre class="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300">@ResultJson</pre>
+        <pre class="mt-4 overflow-x-auto rounded-md bg-gray-900 p-4 text-sm text-green-300">@ResultJson</pre>
     }
     </div>
 </EditForm>

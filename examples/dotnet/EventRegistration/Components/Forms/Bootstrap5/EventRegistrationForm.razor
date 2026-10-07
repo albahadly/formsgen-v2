@@ -7,153 +7,153 @@
 @inject HttpClient Http
 
 <EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate dir="ltr">
-    <div class="container py-4" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
+    <div class="p-3" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd">
     <div class="row g-3">
         <div class="col-12 col-md-12">
-          <h2 class="fw-semibold">Event registration</h2>
+          <h2 class="fg-heading">Event registration</h2>
         </div>
         <div class="col-12 col-md-12">
-          <p class="text-secondary">Tell us who is coming and what you need. Fields marked * are required.</p>
+          <p class="text-secondary mb-0">Tell us who is coming and what you need. Fields marked * are required.</p>
         </div>
         <div class="col-12 col-md-12">
           <div class="row g-3">
             <div class="col-12 col-md-6">
-              <div class="d-flex flex-column gap-1">
-                <label class="form-label fw-semibold fs-6 mb-0" for="fg_first_name">First name<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+              <div class="d-flex flex-column fg-field">
+                <label class="form-label fw-semibold small mb-0 fg-label" for="fg_first_name">First name<span class="text-danger fg-required" aria-hidden="true">*</span></label>
                 <InputText id="fg_first_name" @bind-Value="Model.FirstName" class="form-control" placeholder="Ana" />
-                <ValidationMessage For="@(() => Model.FirstName)" class="invalid-feedback d-block mt-0" />
+                <ValidationMessage For="@(() => Model.FirstName)" class="invalid-feedback d-block mt-0 mb-0 fg-error" />
               </div>
             </div>
             <div class="col-12 col-md-6">
-              <div class="d-flex flex-column gap-1">
-                <label class="form-label fw-semibold fs-6 mb-0" for="fg_last_name">Last name<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+              <div class="d-flex flex-column fg-field">
+                <label class="form-label fw-semibold small mb-0 fg-label" for="fg_last_name">Last name<span class="text-danger fg-required" aria-hidden="true">*</span></label>
                 <InputText id="fg_last_name" @bind-Value="Model.LastName" class="form-control" />
-                <ValidationMessage For="@(() => Model.LastName)" class="invalid-feedback d-block mt-0" />
+                <ValidationMessage For="@(() => Model.LastName)" class="invalid-feedback d-block mt-0 mb-0 fg-error" />
               </div>
             </div>
           </div>
         </div>
         <div class="col-12 col-md-12">
-          <div class="d-flex flex-column gap-1">
-            <label class="form-label fw-semibold fs-6 mb-0" for="fg_email">Email<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+          <div class="d-flex flex-column fg-field">
+            <label class="form-label fw-semibold small mb-0 fg-label" for="fg_email">Email<span class="text-danger fg-required" aria-hidden="true">*</span></label>
             <InputText id="fg_email" type="email" @bind-Value="Model.Email" class="form-control" placeholder="ana&#64;example.com" />
-            <p class="form-text mt-0">Your ticket is sent here.</p>
-            <ValidationMessage For="@(() => Model.Email)" class="invalid-feedback d-block mt-0" />
+            <p class="form-text mt-0 mb-0 fg-description">Your ticket is sent here.</p>
+            <ValidationMessage For="@(() => Model.Email)" class="invalid-feedback d-block mt-0 mb-0 fg-error" />
           </div>
         </div>
         <div class="col-12 col-md-12">
-          <div class="d-flex flex-column gap-1">
-            <label class="form-label fw-semibold fs-6 mb-0" for="fg_phone">Phone</label>
+          <div class="d-flex flex-column fg-field">
+            <label class="form-label fw-semibold small mb-0 fg-label" for="fg_phone">Phone</label>
             <InputText id="fg_phone" type="tel" @bind-Value="Model.Phone" class="form-control" />
-            <ValidationMessage For="@(() => Model.Phone)" class="invalid-feedback d-block mt-0" />
+            <ValidationMessage For="@(() => Model.Phone)" class="invalid-feedback d-block mt-0 mb-0 fg-error" />
           </div>
         </div>
         <div class="col-12 col-md-12">
-          <div class="d-flex flex-column gap-1">
-            <label class="form-label fw-semibold fs-6 mb-0" for="fg_ticket">Ticket<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+          <div class="d-flex flex-column fg-field">
+            <label class="form-label fw-semibold small mb-0 fg-label" for="fg_ticket">Ticket<span class="text-danger fg-required" aria-hidden="true">*</span></label>
             <InputSelect id="fg_ticket" @bind-Value="Model.Ticket" class="form-select">
               <option value="" disabled>—</option>
               <option value="standard">Standard</option>
               <option value="vip">VIP</option>
               <option value="student">Student</option>
             </InputSelect>
-            <ValidationMessage For="@(() => Model.Ticket)" class="invalid-feedback d-block mt-0" />
+            <ValidationMessage For="@(() => Model.Ticket)" class="invalid-feedback d-block mt-0 mb-0 fg-error" />
           </div>
         </div>
         <div class="col-12 col-md-12">
-          <div class="d-flex flex-column gap-1">
-            <label class="form-label fw-semibold fs-6 mb-0" for="fg_seats">Seats<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+          <div class="d-flex flex-column fg-field">
+            <label class="form-label fw-semibold small mb-0 fg-label" for="fg_seats">Seats<span class="text-danger fg-required" aria-hidden="true">*</span></label>
             <div class="input-group">
               <InputNumber id="fg_seats" @bind-Value="Model.Seats" class="form-control" aria-describedby="fg_seats-suffix" />
               <span id="fg_seats-suffix" class="input-group-text">people</span>
             </div>
-            <p class="form-text mt-0">Including yourself, up to 5.</p>
-            <ValidationMessage For="@(() => Model.Seats)" class="invalid-feedback d-block mt-0" />
+            <p class="form-text mt-0 mb-0 fg-description">Including yourself, up to 5.</p>
+            <ValidationMessage For="@(() => Model.Seats)" class="invalid-feedback d-block mt-0 mb-0 fg-error" />
           </div>
         </div>
         <div class="col-12 col-md-12">
-          <fieldset class="d-flex flex-column gap-1">
-            <legend class="form-label fw-semibold fs-6 mb-0">Dietary preference</legend>
+          <fieldset class="d-flex flex-column fg-field">
+            <legend class="form-label fw-semibold small mb-0 fg-label">Dietary preference</legend>
             <InputRadioGroup Name="fg_diet" @bind-Value="Model.Diet">
-              <div class="d-flex flex-column gap-1">
-                <label class="form-check" for="fg_diet-none">
+              <div class="d-flex flex-column fg-options">
+                <label class="form-check mb-0" for="fg_diet-none">
                   <InputRadio id="fg_diet-none" class="form-check-input" Value="@("none")" />
                   <span>No preference</span>
                 </label>
-                <label class="form-check" for="fg_diet-vegetarian">
+                <label class="form-check mb-0" for="fg_diet-vegetarian">
                   <InputRadio id="fg_diet-vegetarian" class="form-check-input" Value="@("vegetarian")" />
                   <span>Vegetarian</span>
                 </label>
-                <label class="form-check" for="fg_diet-vegan">
+                <label class="form-check mb-0" for="fg_diet-vegan">
                   <InputRadio id="fg_diet-vegan" class="form-check-input" Value="@("vegan")" />
                   <span>Vegan</span>
                 </label>
-                <label class="form-check" for="fg_diet-other">
+                <label class="form-check mb-0" for="fg_diet-other">
                   <InputRadio id="fg_diet-other" class="form-check-input" Value="@("other")" />
                   <span>Other</span>
                 </label>
               </div>
             </InputRadioGroup>
-            <ValidationMessage For="@(() => Model.Diet)" class="invalid-feedback d-block mt-0" />
+            <ValidationMessage For="@(() => Model.Diet)" class="invalid-feedback d-block mt-0 mb-0 fg-error" />
           </fieldset>
         </div>
         @if ((Equals(Model.Diet, "other")))
         {
             <div class="col-12 col-md-12">
-              <div class="d-flex flex-column gap-1">
-                <label class="form-label fw-semibold fs-6 mb-0" for="fg_diet_other">Tell us more<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+              <div class="d-flex flex-column fg-field">
+                <label class="form-label fw-semibold small mb-0 fg-label" for="fg_diet_other">Tell us more<span class="text-danger fg-required" aria-hidden="true">*</span></label>
                 <InputTextArea id="fg_diet_other" @bind-Value="Model.DietOther" class="form-control" rows="2" />
-                <ValidationMessage For="@(() => Model.DietOther)" class="invalid-feedback d-block mt-0" />
+                <ValidationMessage For="@(() => Model.DietOther)" class="invalid-feedback d-block mt-0 mb-0 fg-error" />
               </div>
             </div>
         }
         <div class="col-12 col-md-12">
-          <fieldset class="d-flex flex-column gap-1">
-            <legend class="form-label fw-semibold fs-6 mb-0">Workshops</legend>
-            <div class="d-flex flex-column gap-1">
-              <label class="form-check" for="fg_workshops-forms">
+          <fieldset class="d-flex flex-column fg-field">
+            <legend class="form-label fw-semibold small mb-0 fg-label">Workshops</legend>
+            <div class="d-flex flex-column fg-options">
+              <label class="form-check mb-0" for="fg_workshops-forms">
                 <input id="fg_workshops-forms" type="checkbox" class="form-check-input" checked='@Model.Workshops.Contains("forms")' @onchange='e => FgToggle(Model.Workshops, "forms", e)' />
                 <span>Building forms</span>
               </label>
-              <label class="form-check" for="fg_workshops-exports">
+              <label class="form-check mb-0" for="fg_workshops-exports">
                 <input id="fg_workshops-exports" type="checkbox" class="form-check-input" checked='@Model.Workshops.Contains("exports")' @onchange='e => FgToggle(Model.Workshops, "exports", e)' />
                 <span>One form, four stacks</span>
               </label>
-              <label class="form-check" for="fg_workshops-a11y">
+              <label class="form-check mb-0" for="fg_workshops-a11y">
                 <input id="fg_workshops-a11y" type="checkbox" class="form-check-input" checked='@Model.Workshops.Contains("a11y")' @onchange='e => FgToggle(Model.Workshops, "a11y", e)' />
                 <span>Accessible by default</span>
               </label>
             </div>
-            <ValidationMessage For="@(() => Model.Workshops)" class="invalid-feedback d-block mt-0" />
+            <ValidationMessage For="@(() => Model.Workshops)" class="invalid-feedback d-block mt-0 mb-0 fg-error" />
           </fieldset>
         </div>
         <div class="col-12 col-md-12">
-          <div class="d-flex flex-column gap-1">
-            <label class="form-label fw-semibold fs-6 mb-0" for="fg_arrival">Arrival date</label>
+          <div class="d-flex flex-column fg-field">
+            <label class="form-label fw-semibold small mb-0 fg-label" for="fg_arrival">Arrival date</label>
             <InputText id="fg_arrival" type="date" @bind-Value="Model.Arrival" class="form-control" />
-            <ValidationMessage For="@(() => Model.Arrival)" class="invalid-feedback d-block mt-0" />
+            <ValidationMessage For="@(() => Model.Arrival)" class="invalid-feedback d-block mt-0 mb-0 fg-error" />
           </div>
         </div>
         <div class="col-12 col-md-12">
-          <div class="d-flex flex-column gap-1">
-            <label class="form-label fw-semibold fs-6 mb-0" for="fg_notes">Anything else?</label>
+          <div class="d-flex flex-column fg-field">
+            <label class="form-label fw-semibold small mb-0 fg-label" for="fg_notes">Anything else?</label>
             <InputTextArea id="fg_notes" @bind-Value="Model.Notes" class="form-control" rows="3" />
-            <ValidationMessage For="@(() => Model.Notes)" class="invalid-feedback d-block mt-0" />
+            <ValidationMessage For="@(() => Model.Notes)" class="invalid-feedback d-block mt-0 mb-0 fg-error" />
           </div>
         </div>
         <div class="col-12 col-md-12">
-          <div class="d-flex flex-column gap-1">
-            <div class="form-check">
+          <div class="d-flex flex-column fg-field">
+            <div class="form-check mb-0">
               <InputCheckbox id="fg_terms" @bind-Value="Model.Terms" class="form-check-input" />
-              <label class="form-check-label" for="fg_terms">I agree to the event terms<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+              <label class="form-check-label" for="fg_terms">I agree to the event terms<span class="text-danger fg-required" aria-hidden="true">*</span></label>
             </div>
-            <ValidationMessage For="@(() => Model.Terms)" class="invalid-feedback d-block mt-0" />
+            <ValidationMessage For="@(() => Model.Terms)" class="invalid-feedback d-block mt-0 mb-0 fg-error" />
           </div>
         </div>
     </div>
     <div class="visually-hidden" role="status" aria-live="polite" aria-atomic="true">@fgAnnouncement</div>
     <div class="mt-3">
-        <button class="btn btn-primary" type="submit">Register</button>
+        <button class="btn btn-primary fw-semibold px-3" type="submit">Register</button>
     </div>
     @if (ResultJson is not null)
     {

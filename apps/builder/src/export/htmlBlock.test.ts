@@ -35,8 +35,8 @@ describe('HTML blocks in every code target', () => {
     expect(react).toContain('<p>Line<br />two</p>')
     expect(react).toContain('<details open>')
     expect(out('blazor', s)).toContain('<p>Line<br />two</p>')
-    expect(out('html', s, 'tailwind')).toContain('<div class="text-sm [&_a]:underline')
-    expect(out('html', s, 'bootstrap5')).toContain('<div><h4 class="note">Hours</h4>')
+    expect(out('html', s, 'tailwind')).toContain('<div class="fg-html text-base [&_a]:underline')
+    expect(out('html', s, 'bootstrap5')).toContain('<div class="fg-html"><h4 class="note">Hours</h4>')
   })
 
   it('keeps hostile input inert in every language', () => {

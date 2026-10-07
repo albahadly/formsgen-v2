@@ -232,156 +232,156 @@ export default function EventRegistrationForm({
   }
 
   return (
-    <form className="mx-auto max-w-2xl p-6 font-sans text-gray-900 dark:text-gray-100" dir="ltr" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
+    <form className="bg-white p-4 font-sans text-gray-900 dark:bg-gray-900 dark:text-gray-100" dir="ltr" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-12 md:col-span-12">
-          <h2 className="font-semibold">Event registration</h2>
+          <h2 className="text-2xl font-semibold leading-tight">Event registration</h2>
         </div>
         <div className="col-span-12 md:col-span-12">
-          <p className="text-sm text-gray-600 dark:text-gray-300">Tell us who is coming and what you need. Fields marked * are required.</p>
+          <p className="text-base text-gray-600 dark:text-gray-300">Tell us who is coming and what you need. Fields marked * are required.</p>
         </div>
         <div className="col-span-12 md:col-span-12">
           <div className="grid grid-cols-12 gap-4">
             <div className="col-span-12 md:col-span-6">
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-1.5 [&>legend]:mb-1.5">
                 <label className="text-sm font-semibold" htmlFor="fg_first_name">First name<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-                <input id="fg_first_name" type="text" value={form.first_name} className={errors['first_name'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} placeholder="Ana" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('first_name', e.target.value)} onBlur={() => touch('first_name')} />
-                {errors['first_name'] && <p className="text-xs text-red-600" role="alert">{errors['first_name']}</p>}
+                <input id="fg_first_name" type="text" value={form.first_name} className={errors['first_name'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0"} placeholder="Ana" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('first_name', e.target.value)} onBlur={() => touch('first_name')} />
+                {errors['first_name'] && <p className="text-sm text-red-600" role="alert">{errors['first_name']}</p>}
               </div>
             </div>
             <div className="col-span-12 md:col-span-6">
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-1.5 [&>legend]:mb-1.5">
                 <label className="text-sm font-semibold" htmlFor="fg_last_name">Last name<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-                <input id="fg_last_name" type="text" value={form.last_name} className={errors['last_name'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('last_name', e.target.value)} onBlur={() => touch('last_name')} />
-                {errors['last_name'] && <p className="text-xs text-red-600" role="alert">{errors['last_name']}</p>}
+                <input id="fg_last_name" type="text" value={form.last_name} className={errors['last_name'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('last_name', e.target.value)} onBlur={() => touch('last_name')} />
+                {errors['last_name'] && <p className="text-sm text-red-600" role="alert">{errors['last_name']}</p>}
               </div>
             </div>
           </div>
         </div>
         <div className="col-span-12 md:col-span-12">
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 [&>legend]:mb-1.5">
             <label className="text-sm font-semibold" htmlFor="fg_email">Email<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-            <input id="fg_email" type="email" value={form.email} className={errors['email'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} placeholder="ana&#64;example.com" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('email', e.target.value)} onBlur={() => touch('email')} />
-            <p className="text-xs text-gray-500 dark:text-gray-400">Your ticket is sent here.</p>
-            {errors['email'] && <p className="text-xs text-red-600" role="alert">{errors['email']}</p>}
+            <input id="fg_email" type="email" value={form.email} className={errors['email'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0"} placeholder="ana&#64;example.com" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('email', e.target.value)} onBlur={() => touch('email')} />
+            <p className="text-sm text-gray-500 dark:text-gray-400">Your ticket is sent here.</p>
+            {errors['email'] && <p className="text-sm text-red-600" role="alert">{errors['email']}</p>}
           </div>
         </div>
         <div className="col-span-12 md:col-span-12">
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 [&>legend]:mb-1.5">
             <label className="text-sm font-semibold" htmlFor="fg_phone">Phone</label>
-            <input id="fg_phone" type="tel" value={form.phone} className={errors['phone'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('phone', e.target.value)} onBlur={() => touch('phone')} />
-            {errors['phone'] && <p className="text-xs text-red-600" role="alert">{errors['phone']}</p>}
+            <input id="fg_phone" type="tel" value={form.phone} className={errors['phone'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('phone', e.target.value)} onBlur={() => touch('phone')} />
+            {errors['phone'] && <p className="text-sm text-red-600" role="alert">{errors['phone']}</p>}
           </div>
         </div>
         <div className="col-span-12 md:col-span-12">
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 [&>legend]:mb-1.5">
             <label className="text-sm font-semibold" htmlFor="fg_ticket">Ticket<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-            <select id="fg_ticket" value={form.ticket ?? ''} className={errors['ticket'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setField('ticket', e.target.value === '' ? null : e.target.value)} onBlur={() => touch('ticket')}>
+            <select id="fg_ticket" value={form.ticket ?? ''} className={errors['ticket'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&:not([multiple])]:h-[2.375rem] border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&:not([multiple])]:h-[2.375rem]"} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setField('ticket', e.target.value === '' ? null : e.target.value)} onBlur={() => touch('ticket')}>
               <option value="" disabled>—</option>
               <option value="standard">Standard</option>
               <option value="vip">VIP</option>
               <option value="student">Student</option>
             </select>
-            {errors['ticket'] && <p className="text-xs text-red-600" role="alert">{errors['ticket']}</p>}
+            {errors['ticket'] && <p className="text-sm text-red-600" role="alert">{errors['ticket']}</p>}
           </div>
         </div>
         <div className="col-span-12 md:col-span-12">
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 [&>legend]:mb-1.5">
             <label className="text-sm font-semibold" htmlFor="fg_seats">Seats<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
             <div className="flex [&>:not(:first-child)]:-ms-px [&>:not(:first-child)]:rounded-s-none [&>:not(:last-child)]:rounded-e-none">
-              <input id="fg_seats" type="number" value={form.seats ?? ''} className={errors['seats'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} min="1" max="5" aria-describedby="fg_seats-suffix" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('seats', e.target.value === '' ? null : Number(e.target.value))} onBlur={() => touch('seats')} />
-              <span id="fg_seats-suffix" className="inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">people</span>
+              <input id="fg_seats" type="number" value={form.seats ?? ''} className={errors['seats'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0"} min="1" max="5" aria-describedby="fg_seats-suffix" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('seats', e.target.value === '' ? null : Number(e.target.value))} onBlur={() => touch('seats')} />
+              <span id="fg_seats-suffix" className="inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-base text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">people</span>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Including yourself, up to 5.</p>
-            {errors['seats'] && <p className="text-xs text-red-600" role="alert">{errors['seats']}</p>}
+            <p className="text-sm text-gray-500 dark:text-gray-400">Including yourself, up to 5.</p>
+            {errors['seats'] && <p className="text-sm text-red-600" role="alert">{errors['seats']}</p>}
           </div>
         </div>
         <div className="col-span-12 md:col-span-12">
-          <div className="flex flex-col gap-1.5">
-            <fieldset className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 [&>legend]:mb-1.5">
+            <fieldset className="flex flex-col gap-1.5 [&>legend]:mb-1.5">
             <legend className="text-sm font-semibold">Dietary preference</legend>
             <div className="flex flex-col gap-1.5">
-              <label className="inline-flex items-center gap-2 text-sm" htmlFor="fg_diet-none">
+              <label className="inline-flex items-center gap-2 text-base" htmlFor="fg_diet-none">
                 <input id="fg_diet-none" type="radio" className="h-4 w-4 rounded border-gray-300 accent-indigo-600" checked={form.diet === 'none'} onChange={() => { setField('diet', 'none'); touch('diet') }} />
                 <span>No preference</span>
               </label>
-              <label className="inline-flex items-center gap-2 text-sm" htmlFor="fg_diet-vegetarian">
+              <label className="inline-flex items-center gap-2 text-base" htmlFor="fg_diet-vegetarian">
                 <input id="fg_diet-vegetarian" type="radio" className="h-4 w-4 rounded border-gray-300 accent-indigo-600" checked={form.diet === 'vegetarian'} onChange={() => { setField('diet', 'vegetarian'); touch('diet') }} />
                 <span>Vegetarian</span>
               </label>
-              <label className="inline-flex items-center gap-2 text-sm" htmlFor="fg_diet-vegan">
+              <label className="inline-flex items-center gap-2 text-base" htmlFor="fg_diet-vegan">
                 <input id="fg_diet-vegan" type="radio" className="h-4 w-4 rounded border-gray-300 accent-indigo-600" checked={form.diet === 'vegan'} onChange={() => { setField('diet', 'vegan'); touch('diet') }} />
                 <span>Vegan</span>
               </label>
-              <label className="inline-flex items-center gap-2 text-sm" htmlFor="fg_diet-other">
+              <label className="inline-flex items-center gap-2 text-base" htmlFor="fg_diet-other">
                 <input id="fg_diet-other" type="radio" className="h-4 w-4 rounded border-gray-300 accent-indigo-600" checked={form.diet === 'other'} onChange={() => { setField('diet', 'other'); touch('diet') }} />
                 <span>Other</span>
               </label>
             </div>
           </fieldset>
-            {errors['diet'] && <p className="text-xs text-red-600" role="alert">{errors['diet']}</p>}
+            {errors['diet'] && <p className="text-sm text-red-600" role="alert">{errors['diet']}</p>}
           </div>
         </div>
         {((form.diet === "other")) && (
           <div className="col-span-12 md:col-span-12">
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5 [&>legend]:mb-1.5">
               <label className="text-sm font-semibold" htmlFor="fg_diet_other">Tell us more<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
-              <textarea id="fg_diet_other" rows={2} value={form.diet_other} className={errors['diet_other'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('diet_other', e.target.value)} onBlur={() => touch('diet_other')} />
-              {errors['diet_other'] && <p className="text-xs text-red-600" role="alert">{errors['diet_other']}</p>}
+              <textarea id="fg_diet_other" rows={2} value={form.diet_other} className={errors['diet_other'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('diet_other', e.target.value)} onBlur={() => touch('diet_other')} />
+              {errors['diet_other'] && <p className="text-sm text-red-600" role="alert">{errors['diet_other']}</p>}
             </div>
           </div>
         )}
         <div className="col-span-12 md:col-span-12">
-          <div className="flex flex-col gap-1.5">
-            <fieldset className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 [&>legend]:mb-1.5">
+            <fieldset className="flex flex-col gap-1.5 [&>legend]:mb-1.5">
             <legend className="text-sm font-semibold">Workshops</legend>
             <div className="flex flex-col gap-1.5">
-              <label className="inline-flex items-center gap-2 text-sm" htmlFor="fg_workshops-forms">
+              <label className="inline-flex items-center gap-2 text-base" htmlFor="fg_workshops-forms">
                 <input id="fg_workshops-forms" type="checkbox" className="h-4 w-4 rounded border-gray-300 accent-indigo-600" checked={form.workshops.includes('forms')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('workshops', e.target.checked ? [...form.workshops, 'forms'] : form.workshops.filter((v) => v !== 'forms')); touch('workshops') }} />
                 <span>Building forms</span>
               </label>
-              <label className="inline-flex items-center gap-2 text-sm" htmlFor="fg_workshops-exports">
+              <label className="inline-flex items-center gap-2 text-base" htmlFor="fg_workshops-exports">
                 <input id="fg_workshops-exports" type="checkbox" className="h-4 w-4 rounded border-gray-300 accent-indigo-600" checked={form.workshops.includes('exports')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('workshops', e.target.checked ? [...form.workshops, 'exports'] : form.workshops.filter((v) => v !== 'exports')); touch('workshops') }} />
                 <span>One form, four stacks</span>
               </label>
-              <label className="inline-flex items-center gap-2 text-sm" htmlFor="fg_workshops-a11y">
+              <label className="inline-flex items-center gap-2 text-base" htmlFor="fg_workshops-a11y">
                 <input id="fg_workshops-a11y" type="checkbox" className="h-4 w-4 rounded border-gray-300 accent-indigo-600" checked={form.workshops.includes('a11y')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('workshops', e.target.checked ? [...form.workshops, 'a11y'] : form.workshops.filter((v) => v !== 'a11y')); touch('workshops') }} />
                 <span>Accessible by default</span>
               </label>
             </div>
           </fieldset>
-            {errors['workshops'] && <p className="text-xs text-red-600" role="alert">{errors['workshops']}</p>}
+            {errors['workshops'] && <p className="text-sm text-red-600" role="alert">{errors['workshops']}</p>}
           </div>
         </div>
         <div className="col-span-12 md:col-span-12">
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 [&>legend]:mb-1.5">
             <label className="text-sm font-semibold" htmlFor="fg_arrival">Arrival date</label>
-            <input id="fg_arrival" type="date" value={form.arrival} className={errors['arrival'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('arrival', e.target.value)} onBlur={() => touch('arrival')} />
-            {errors['arrival'] && <p className="text-xs text-red-600" role="alert">{errors['arrival']}</p>}
+            <input id="fg_arrival" type="date" value={form.arrival} className={errors['arrival'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0"} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('arrival', e.target.value)} onBlur={() => touch('arrival')} />
+            {errors['arrival'] && <p className="text-sm text-red-600" role="alert">{errors['arrival']}</p>}
           </div>
         </div>
         <div className="col-span-12 md:col-span-12">
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 [&>legend]:mb-1.5">
             <label className="text-sm font-semibold" htmlFor="fg_notes">Anything else?</label>
-            <textarea id="fg_notes" rows={3} value={form.notes} className={errors['notes'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('notes', e.target.value)} onBlur={() => touch('notes')} />
-            {errors['notes'] && <p className="text-xs text-red-600" role="alert">{errors['notes']}</p>}
+            <textarea id="fg_notes" rows={3} value={form.notes} className={errors['notes'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setField('notes', e.target.value)} onBlur={() => touch('notes')} />
+            {errors['notes'] && <p className="text-sm text-red-600" role="alert">{errors['notes']}</p>}
           </div>
         </div>
         <div className="col-span-12 md:col-span-12">
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 [&>legend]:mb-1.5">
             <div className="flex items-center gap-2">
               <input id="fg_terms" type="checkbox" checked={form.terms} className="h-4 w-4 rounded border-gray-300 accent-indigo-600" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('terms', e.target.checked); touch('terms') }} />
-              <label className="inline-flex items-center gap-2 text-sm" htmlFor="fg_terms">I agree to the event terms<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
+              <label className="text-base" htmlFor="fg_terms">I agree to the event terms<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></label>
             </div>
-            {errors['terms'] && <p className="text-xs text-red-600" role="alert">{errors['terms']}</p>}
+            {errors['terms'] && <p className="text-sm text-red-600" role="alert">{errors['terms']}</p>}
           </div>
         </div>
       </div>
       <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">{fgAnnouncement}</div>
       <div className="mt-4">
-        <button className="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60" type="submit">Register</button>
+        <button className="rounded-md border border-transparent bg-indigo-600 px-4 py-1.5 text-base font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60" type="submit">Register</button>
       </div>
-      {result && <pre className="mt-4 overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-green-300">{JSON.stringify(result, null, 2)}</pre>}
+      {result && <pre className="mt-4 overflow-x-auto rounded-md bg-gray-900 p-4 text-sm text-green-300">{JSON.stringify(result, null, 2)}</pre>}
     </form>
   )
 }

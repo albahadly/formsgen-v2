@@ -32,7 +32,7 @@ describe('formatted paragraphs in every code target', () => {
       expect(code, target).toMatch(/<div (class|className)="fg-paragraph fg-rich-text"/)
     }
     expect(out('html', s, 'tailwind')).toContain('<ul class="list-disc ps-5">')
-    expect(out('html', s, 'bootstrap5')).toContain('<p class="mb-2">')
+    expect(out('html', s, 'bootstrap5')).toContain('class="text-secondary mb-0 fg-rich-text"')
   })
 
   it('keeps hostile text as text in every language', () => {

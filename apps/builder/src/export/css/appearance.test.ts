@@ -27,9 +27,9 @@ describe('appearance modifiers in every CSS adapter', () => {
   it('tailwind swaps utilities instead of stacking conflicting ones', () => {
     const tw = getCssAdapter('tailwind')
     const small = tw.classes('input', { size: 'sm' }).split(' ')
-    expect(small).toEqual(expect.arrayContaining(['px-2', 'py-1', 'text-xs']))
+    expect(small).toEqual(expect.arrayContaining(['px-2', 'py-1', 'text-sm']))
     expect(small).not.toContain('px-3')
-    expect(small).not.toContain('text-sm')
+    expect(small).not.toContain('text-base')
     const danger = tw.classes('paragraph', { tone: 'danger' }).split(' ')
     expect(danger).toContain('text-red-600')
     expect(danger).not.toContain('text-gray-600')
@@ -38,8 +38,8 @@ describe('appearance modifiers in every CSS adapter', () => {
 
   it('bootstrap uses its native size modifiers and one color utility', () => {
     const bs = getCssAdapter('bootstrap5')
-    expect(bs.classes('input', { size: 'sm' })).toBe('form-control form-control-sm')
-    expect(bs.classes('select', { size: 'lg' })).toBe('form-select form-select-lg')
+    expect(bs.classes('input', { size: 'sm' })).toBe('form-control form-control-sm rounded')
+    expect(bs.classes('select', { size: 'lg' })).toBe('form-select form-select-lg rounded')
     const muted = bs.classes('paragraph', { tone: 'primary' }).split(' ')
     expect(muted).toContain('text-primary')
     expect(muted).not.toContain('text-secondary')

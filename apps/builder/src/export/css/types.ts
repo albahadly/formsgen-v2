@@ -160,6 +160,8 @@ export interface SlotMods {
   /** Medium ('md') is the absence of a size modifier. */
   size?: Exclude<ControlSize, 'md'> | undefined
   tone?: TextTone | undefined
+  /** The heading element's level (h1–h6); only the 'heading' slot reads it. */
+  level?: 1 | 2 | 3 | 4 | 5 | 6 | undefined
 }
 
 export interface CssFrameworkAdapter {
@@ -173,9 +175,9 @@ export interface CssFrameworkAdapter {
   /**
    * Markup shape of block/button choice options: the input inside its
    * label ('wrap'), or input then label as siblings ('sibling', which
-   * Bootstrap's `.btn-check + .btn` pattern requires).
+   * Bootstrap's `.btn-check + .btn` pattern requires for buttons).
    */
-  choiceLayout: 'wrap' | 'sibling'
+  choiceLayout(display: 'blocks' | 'buttons'): 'wrap' | 'sibling'
   /** Class(es) added to a control while invalid. */
   invalidClass(): string
   /**

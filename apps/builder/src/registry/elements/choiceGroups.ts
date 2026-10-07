@@ -67,7 +67,7 @@ function optionsMarkup(node: ElementNode, ctx: EmitCtx, lang: EmitterLang, input
   const classAttr = lang === 'react' ? 'className' : 'class'
   const forAttr = lang === 'react' ? 'htmlFor' : 'for'
   // The plain list always nests; blocks/buttons follow the framework.
-  const layout = display === 'list' ? 'wrap' : ctx.css.choiceLayout
+  const layout = display === 'list' ? 'wrap' : ctx.css.choiceLayout(display)
   const options = items(node).map((item) => {
     const id = `${ctx.id}-${esc(item.value)}`
     const input = inputFor(item, id, ctx.css.classes(inputSlot))

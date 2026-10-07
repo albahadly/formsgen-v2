@@ -1,0 +1,30 @@
+/* FormsGen parity: the same shape as the other flavours */
+.fg-field { gap: 0.375rem; }
+.fg-field > legend { margin-block-end: 0.375rem; }
+.fg-options { gap: 0.375rem; }
+.fg-required { margin-inline-start: 0.125rem; }
+.fg-label, .fg-description, .fg-error { line-height: 1.25rem; }
+.fg-heading { margin: 0; font-weight: 600; line-height: 1.25; }
+h1.fg-heading { font-size: 1.875rem; }
+h2.fg-heading { font-size: 1.5rem; }
+h3.fg-heading { font-size: 1.25rem; }
+h4.fg-heading { font-size: 1.125rem; }
+h5.fg-heading { font-size: 1rem; }
+h6.fg-heading { font-size: 0.875rem; }
+.fg-option-block { cursor: pointer; gap: 0.75rem; padding-inline: 0.75rem; }
+.fg-option-block:has(:checked) { border-color: var(--bs-primary) !important; box-shadow: 0 0 0 1px var(--bs-primary); }
+.fg-richtext-button { min-inline-size: 2rem; --bs-btn-line-height: 1.25rem; --bs-btn-border-radius: 0.375rem; }
+.fg-option-button { --bs-btn-font-size: 0.875rem; --bs-btn-line-height: 1.25rem; --bs-btn-padding-y: 0.5rem; --bs-btn-padding-x: 1rem; --bs-btn-font-weight: 600; }
+.fg-repeater-remove { --bs-btn-font-size: 0.875rem; --bs-btn-line-height: 1.25rem; --bs-btn-border-width: 0; --bs-btn-border-radius: 0; }
+.fg-tab-list { --bs-nav-link-font-size: 0.875rem; }
+.fg-tab-list .nav-link { line-height: 1.25rem; }
+.fg-switch-wrap { padding-inline-start: 2.75rem; min-block-size: 1.5rem; }
+.fg-switch-wrap .form-check-input.fg-switch { inline-size: 2.25rem; block-size: 1.25rem; margin-inline-start: -2.75rem; margin-block-start: 0.125rem; }
+.fg-matrix th, .fg-matrix td { line-height: 1.25rem; }
+.fg-matrix tbody tr { border-block-start: 1px solid var(--bs-border-color); }
+.fg-matrix .form-check-input { inline-size: 1rem; block-size: 1rem; margin: 0; vertical-align: middle; }
+.fg-rich-text > * { margin: 0; }
+.fg-rich-text > * + * { margin-block-start: 0.5em; }
+.fg-rich-text ul, .fg-rich-text ol { padding-inline-start: 1.25em; }
+.fg-pair > .form-control { flex: 1 1 10rem; inline-size: auto; min-inline-size: 0; }
+.fg-repeater-move { inline-size: 2rem; block-size: 2rem; padding: 0; }

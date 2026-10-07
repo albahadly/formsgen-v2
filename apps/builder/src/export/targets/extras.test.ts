@@ -91,9 +91,9 @@ describe('the form-wide field size', () => {
 
   it('applies to every field unless one sets its own size (md = medium)', () => {
     const html = out('html', schema(tree, { fieldSize: 'lg' }), 'bootstrap5')
-    expect(html).toMatch(/id="fg_a" type="text" class="form-control form-control-lg"/)
+    expect(html).toMatch(/id="fg_a" type="text" class="form-control form-control-lg rounded"/)
     expect(html).toMatch(/id="fg_b" type="text" class="form-control"/)
-    expect(html).toMatch(/id="fg_c" type="text" class="form-control form-control-sm"/)
+    expect(html).toMatch(/id="fg_c" type="text" class="form-control form-control-sm rounded"/)
     const vanilla = out('vue-standalone', schema(tree, { fieldSize: 'sm' }))
     expect(vanilla).toMatch(/id="fg_a" v-model="form.a" type="text" class="fg-input fg-control--sm"/)
     expect(vanilla).toMatch(/id="fg_b" v-model="form.b" type="text" class="fg-input"/)

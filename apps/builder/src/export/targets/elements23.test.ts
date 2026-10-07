@@ -27,13 +27,13 @@ const items = [
 ]
 
 describe('choice display variants', () => {
-  it('Bootstrap uses its native btn-check + label pairs (siblings)', () => {
+  it('Bootstrap: buttons are btn-check + label siblings, blocks are rows with a visible check', () => {
     const html = out('html', [{ id: 'r', type: 'radiogroup', name: 'r', props: { label: 'R', items, display: 'buttons' } }], 'bootstrap5')
-    expect(html).toContain('<div class="btn-group flex-wrap">')
-    expect(html).toMatch(/<input id="fg_r-a" type="radio" name="r" class="btn-check"[^>]*>\n\s*<label class="btn btn-outline-primary" for="fg_r-a">A<\/label>/)
+    expect(html).toContain('<div class="btn-group flex-wrap align-self-start">')
+    expect(html).toMatch(/<input id="fg_r-a" type="radio" name="r" class="btn-check"[^>]*>\n\s*<label class="btn btn-outline-primary fg-option-button" for="fg_r-a">A<\/label>/)
     const razor = out('blazor', [{ id: 'c', type: 'checkboxgroup', name: 'c', props: { label: 'C', items, display: 'blocks' } }], 'bootstrap5')
-    expect(razor).toContain('<input id="fg_c-a" type="checkbox" class="btn-check"')
-    expect(razor).toContain('<label class="btn btn-outline-primary text-start" for="fg_c-a">A</label>')
+    expect(razor).toContain('<label class="fg-option-block d-flex align-items-center border rounded py-2 mb-0 bg-body" for="fg_c-a">')
+    expect(razor).toMatch(/<input id="fg_c-a" type="checkbox" class="form-check-input m-0 flex-shrink-0"/)
   })
 
   it('Tailwind and vanilla nest the input in its label', () => {
@@ -93,7 +93,7 @@ describe('static image, link, quote', () => {
     expect(razor).toContain('<a class="link-primary" href="mailto:team&#64;example.com" target="_blank" rel="noopener noreferrer">Mail &#64;team<span class="visually-hidden"> (opens in a new tab)</span></a>')
     expect(razor).toContain('<img class="img-fluid rounded" src="https://example.com/a.png" alt="Logo" width="120" loading="lazy">')
     expect(out('react', tree)).toContain('loading="lazy" />')
-    expect(razor).toContain('<figcaption class="blockquote-footer mb-0">Ann</figcaption>')
+    expect(razor).toContain('<figcaption class="small text-body-secondary mt-1 mb-0">Ann</figcaption>')
   })
 })
 
@@ -117,7 +117,7 @@ describe('reset button', () => {
 
   it('link buttons are anchors with the variant class', () => {
     const link: ElementNode[] = [{ id: 'k', type: 'button', props: { text: 'Help', action: 'link', href: '/help', variant: 'danger' } }]
-    expect(out('html', link, 'bootstrap5')).toContain('<a class="btn btn-danger" href="/help">Help</a>')
+    expect(out('html', link, 'bootstrap5')).toContain('<a class="btn btn-danger fw-semibold px-3" href="/help">Help</a>')
   })
 })
 

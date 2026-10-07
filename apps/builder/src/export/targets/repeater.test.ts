@@ -151,7 +151,7 @@ describe('sortable repeaters (move up / move down)', () => {
   })
 
   it('framework classes and Arabic labels', () => {
-    expect(gen('react', sortable, 'bootstrap5')).toContain('className="btn btn-outline-secondary btn-sm" data-fg-move="up"')
+    expect(gen('react', sortable, 'bootstrap5')).toContain('className="btn btn-outline-secondary fg-repeater-move" data-fg-move="up"')
     expect(gen('vue-standalone', sortable, 'tailwind')).toMatch(/class="inline-flex h-8 w-8[^"]*" data-fg-move="up"/)
     expect(gen('blazor', sortable, 'vanilla', 'ar')).toContain('نقل {label} إلى الأعلى')
   })

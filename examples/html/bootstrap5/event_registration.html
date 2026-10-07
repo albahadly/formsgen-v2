@@ -6,152 +6,185 @@
   <title>Event registration</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <style>
+  /* FormsGen parity: the same shape as the other flavours */
+  .fg-field { gap: 0.375rem; }
+  .fg-field > legend { margin-block-end: 0.375rem; }
+  .fg-options { gap: 0.375rem; }
+  .fg-required { margin-inline-start: 0.125rem; }
+  .fg-label, .fg-description, .fg-error { line-height: 1.25rem; }
+  .fg-heading { margin: 0; font-weight: 600; line-height: 1.25; }
+  h1.fg-heading { font-size: 1.875rem; }
+  h2.fg-heading { font-size: 1.5rem; }
+  h3.fg-heading { font-size: 1.25rem; }
+  h4.fg-heading { font-size: 1.125rem; }
+  h5.fg-heading { font-size: 1rem; }
+  h6.fg-heading { font-size: 0.875rem; }
+  .fg-option-block { cursor: pointer; gap: 0.75rem; padding-inline: 0.75rem; }
+  .fg-option-block:has(:checked) { border-color: var(--bs-primary) !important; box-shadow: 0 0 0 1px var(--bs-primary); }
+  .fg-richtext-button { min-inline-size: 2rem; --bs-btn-line-height: 1.25rem; --bs-btn-border-radius: 0.375rem; }
+  .fg-option-button { --bs-btn-font-size: 0.875rem; --bs-btn-line-height: 1.25rem; --bs-btn-padding-y: 0.5rem; --bs-btn-padding-x: 1rem; --bs-btn-font-weight: 600; }
+  .fg-repeater-remove { --bs-btn-font-size: 0.875rem; --bs-btn-line-height: 1.25rem; --bs-btn-border-width: 0; --bs-btn-border-radius: 0; }
+  .fg-tab-list { --bs-nav-link-font-size: 0.875rem; }
+  .fg-tab-list .nav-link { line-height: 1.25rem; }
+  .fg-switch-wrap { padding-inline-start: 2.75rem; min-block-size: 1.5rem; }
+  .fg-switch-wrap .form-check-input.fg-switch { inline-size: 2.25rem; block-size: 1.25rem; margin-inline-start: -2.75rem; margin-block-start: 0.125rem; }
+  .fg-matrix th, .fg-matrix td { line-height: 1.25rem; }
+  .fg-matrix tbody tr { border-block-start: 1px solid var(--bs-border-color); }
+  .fg-matrix .form-check-input { inline-size: 1rem; block-size: 1rem; margin: 0; vertical-align: middle; }
+  .fg-rich-text > * { margin: 0; }
+  .fg-rich-text > * + * { margin-block-start: 0.5em; }
+  .fg-rich-text ul, .fg-rich-text ol { padding-inline-start: 1.25em; }
+  .fg-pair > .form-control { flex: 1 1 10rem; inline-size: auto; min-inline-size: 0; }
+  .fg-repeater-move { inline-size: 2rem; block-size: 2rem; padding: 0; }
+
+  body { margin: 0; padding: 1.5rem 1rem; }
+  #fg-form { box-sizing: border-box; max-inline-size: 42rem; margin-inline: auto; }
   [hidden] { display: none !important; }
   </style>
 </head>
 <body>
-  <form id="fg-form" class="container py-4" novalidate>
+  <form id="fg-form" class="p-3" novalidate>
     <div class="row g-3">
       <div class="col-12 col-md-12">
-        <h2 class="fw-semibold">Event registration</h2>
+        <h2 class="fg-heading">Event registration</h2>
       </div>
       <div class="col-12 col-md-12">
-        <p class="text-secondary">Tell us who is coming and what you need. Fields marked * are required.</p>
+        <p class="text-secondary mb-0">Tell us who is coming and what you need. Fields marked * are required.</p>
       </div>
       <div class="col-12 col-md-12">
         <div class="row g-3">
           <div class="col-12 col-md-6">
-            <div class="d-flex flex-column gap-1">
-              <label class="form-label fw-semibold fs-6 mb-0" for="fg_first_name">First name<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+            <div class="d-flex flex-column fg-field">
+              <label class="form-label fw-semibold small mb-0 fg-label" for="fg_first_name">First name<span class="text-danger fg-required" aria-hidden="true">*</span></label>
               <input id="fg_first_name" type="text" class="form-control" data-fg-path="first_name" data-fg-kind="text" placeholder="Ana">
-              <p id="fg_first_name-err" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+              <p id="fg_first_name-err" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert" hidden></p>
             </div>
           </div>
           <div class="col-12 col-md-6">
-            <div class="d-flex flex-column gap-1">
-              <label class="form-label fw-semibold fs-6 mb-0" for="fg_last_name">Last name<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+            <div class="d-flex flex-column fg-field">
+              <label class="form-label fw-semibold small mb-0 fg-label" for="fg_last_name">Last name<span class="text-danger fg-required" aria-hidden="true">*</span></label>
               <input id="fg_last_name" type="text" class="form-control" data-fg-path="last_name" data-fg-kind="text">
-              <p id="fg_last_name-err" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+              <p id="fg_last_name-err" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert" hidden></p>
             </div>
           </div>
         </div>
       </div>
       <div class="col-12 col-md-12">
-        <div class="d-flex flex-column gap-1">
-          <label class="form-label fw-semibold fs-6 mb-0" for="fg_email">Email<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+        <div class="d-flex flex-column fg-field">
+          <label class="form-label fw-semibold small mb-0 fg-label" for="fg_email">Email<span class="text-danger fg-required" aria-hidden="true">*</span></label>
           <input id="fg_email" type="email" class="form-control" data-fg-path="email" data-fg-kind="text" placeholder="ana&#64;example.com">
-          <p class="form-text mt-0">Your ticket is sent here.</p>
-          <p id="fg_email-err" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+          <p class="form-text mt-0 mb-0 fg-description">Your ticket is sent here.</p>
+          <p id="fg_email-err" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert" hidden></p>
         </div>
       </div>
       <div class="col-12 col-md-12">
-        <div class="d-flex flex-column gap-1">
-          <label class="form-label fw-semibold fs-6 mb-0" for="fg_phone">Phone</label>
+        <div class="d-flex flex-column fg-field">
+          <label class="form-label fw-semibold small mb-0 fg-label" for="fg_phone">Phone</label>
           <input id="fg_phone" type="tel" class="form-control" data-fg-path="phone" data-fg-kind="text">
-          <p id="fg_phone-err" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+          <p id="fg_phone-err" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert" hidden></p>
         </div>
       </div>
       <div class="col-12 col-md-12">
-        <div class="d-flex flex-column gap-1">
-          <label class="form-label fw-semibold fs-6 mb-0" for="fg_ticket">Ticket<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+        <div class="d-flex flex-column fg-field">
+          <label class="form-label fw-semibold small mb-0 fg-label" for="fg_ticket">Ticket<span class="text-danger fg-required" aria-hidden="true">*</span></label>
           <select id="fg_ticket" class="form-select" data-fg-path="ticket" data-fg-kind="select">
             <option value="" disabled selected>—</option>
             <option value="standard">Standard</option>
             <option value="vip">VIP</option>
             <option value="student">Student</option>
           </select>
-          <p id="fg_ticket-err" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+          <p id="fg_ticket-err" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert" hidden></p>
         </div>
       </div>
       <div class="col-12 col-md-12">
-        <div class="d-flex flex-column gap-1">
-          <label class="form-label fw-semibold fs-6 mb-0" for="fg_seats">Seats<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+        <div class="d-flex flex-column fg-field">
+          <label class="form-label fw-semibold small mb-0 fg-label" for="fg_seats">Seats<span class="text-danger fg-required" aria-hidden="true">*</span></label>
           <div class="input-group">
             <input id="fg_seats" type="number" class="form-control" data-fg-path="seats" data-fg-kind="number" min="1" max="5" aria-describedby="fg_seats-suffix">
             <span id="fg_seats-suffix" class="input-group-text">people</span>
           </div>
-          <p class="form-text mt-0">Including yourself, up to 5.</p>
-          <p id="fg_seats-err" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+          <p class="form-text mt-0 mb-0 fg-description">Including yourself, up to 5.</p>
+          <p id="fg_seats-err" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert" hidden></p>
         </div>
       </div>
       <div class="col-12 col-md-12">
-        <fieldset class="d-flex flex-column gap-1">
-          <legend class="form-label fw-semibold fs-6 mb-0">Dietary preference</legend>
-          <div class="d-flex flex-column gap-1">
-            <label class="form-check" for="fg_diet-none">
+        <fieldset class="d-flex flex-column fg-field">
+          <legend class="form-label fw-semibold small mb-0 fg-label">Dietary preference</legend>
+          <div class="d-flex flex-column fg-options">
+            <label class="form-check mb-0" for="fg_diet-none">
               <input id="fg_diet-none" type="radio" name="diet" class="form-check-input" value="none" data-fg-path="diet" data-fg-kind="radio">
               <span>No preference</span>
             </label>
-            <label class="form-check" for="fg_diet-vegetarian">
+            <label class="form-check mb-0" for="fg_diet-vegetarian">
               <input id="fg_diet-vegetarian" type="radio" name="diet" class="form-check-input" value="vegetarian" data-fg-path="diet" data-fg-kind="radio">
               <span>Vegetarian</span>
             </label>
-            <label class="form-check" for="fg_diet-vegan">
+            <label class="form-check mb-0" for="fg_diet-vegan">
               <input id="fg_diet-vegan" type="radio" name="diet" class="form-check-input" value="vegan" data-fg-path="diet" data-fg-kind="radio">
               <span>Vegan</span>
             </label>
-            <label class="form-check" for="fg_diet-other">
+            <label class="form-check mb-0" for="fg_diet-other">
               <input id="fg_diet-other" type="radio" name="diet" class="form-check-input" value="other" data-fg-path="diet" data-fg-kind="radio">
               <span>Other</span>
             </label>
           </div>
-          <p id="fg_diet-err" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+          <p id="fg_diet-err" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert" hidden></p>
         </fieldset>
       </div>
       <div class="col-12 col-md-12" data-fg-cond="0">
-        <div class="d-flex flex-column gap-1">
-          <label class="form-label fw-semibold fs-6 mb-0" for="fg_diet_other">Tell us more<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+        <div class="d-flex flex-column fg-field">
+          <label class="form-label fw-semibold small mb-0 fg-label" for="fg_diet_other">Tell us more<span class="text-danger fg-required" aria-hidden="true">*</span></label>
           <textarea id="fg_diet_other" class="form-control" rows="2" data-fg-path="diet_other" data-fg-kind="text"></textarea>
-          <p id="fg_diet_other-err" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+          <p id="fg_diet_other-err" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert" hidden></p>
         </div>
       </div>
       <div class="col-12 col-md-12">
-        <fieldset class="d-flex flex-column gap-1">
-          <legend class="form-label fw-semibold fs-6 mb-0">Workshops</legend>
-          <div class="d-flex flex-column gap-1">
-            <label class="form-check" for="fg_workshops-forms">
+        <fieldset class="d-flex flex-column fg-field">
+          <legend class="form-label fw-semibold small mb-0 fg-label">Workshops</legend>
+          <div class="d-flex flex-column fg-options">
+            <label class="form-check mb-0" for="fg_workshops-forms">
               <input id="fg_workshops-forms" type="checkbox" class="form-check-input" value="forms" data-fg-path="workshops" data-fg-kind="checks">
               <span>Building forms</span>
             </label>
-            <label class="form-check" for="fg_workshops-exports">
+            <label class="form-check mb-0" for="fg_workshops-exports">
               <input id="fg_workshops-exports" type="checkbox" class="form-check-input" value="exports" data-fg-path="workshops" data-fg-kind="checks">
               <span>One form, four stacks</span>
             </label>
-            <label class="form-check" for="fg_workshops-a11y">
+            <label class="form-check mb-0" for="fg_workshops-a11y">
               <input id="fg_workshops-a11y" type="checkbox" class="form-check-input" value="a11y" data-fg-path="workshops" data-fg-kind="checks">
               <span>Accessible by default</span>
             </label>
           </div>
-          <p id="fg_workshops-err" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+          <p id="fg_workshops-err" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert" hidden></p>
         </fieldset>
       </div>
       <div class="col-12 col-md-12">
-        <div class="d-flex flex-column gap-1">
-          <label class="form-label fw-semibold fs-6 mb-0" for="fg_arrival">Arrival date</label>
+        <div class="d-flex flex-column fg-field">
+          <label class="form-label fw-semibold small mb-0 fg-label" for="fg_arrival">Arrival date</label>
           <input id="fg_arrival" type="date" class="form-control" data-fg-path="arrival" data-fg-kind="text">
-          <p id="fg_arrival-err" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+          <p id="fg_arrival-err" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert" hidden></p>
         </div>
       </div>
       <div class="col-12 col-md-12">
-        <div class="d-flex flex-column gap-1">
-          <label class="form-label fw-semibold fs-6 mb-0" for="fg_notes">Anything else?</label>
+        <div class="d-flex flex-column fg-field">
+          <label class="form-label fw-semibold small mb-0 fg-label" for="fg_notes">Anything else?</label>
           <textarea id="fg_notes" class="form-control" rows="3" data-fg-path="notes" data-fg-kind="text"></textarea>
-          <p id="fg_notes-err" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+          <p id="fg_notes-err" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert" hidden></p>
         </div>
       </div>
       <div class="col-12 col-md-12">
-        <div class="d-flex flex-column gap-1">
-          <div class="form-check">
+        <div class="d-flex flex-column fg-field">
+          <div class="form-check mb-0">
             <input id="fg_terms" type="checkbox" class="form-check-input" data-fg-path="terms" data-fg-kind="checkbox">
-            <label class="form-check-label" for="fg_terms">I agree to the event terms<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+            <label class="form-check-label" for="fg_terms">I agree to the event terms<span class="text-danger fg-required" aria-hidden="true">*</span></label>
           </div>
-          <p id="fg_terms-err" class="invalid-feedback d-block mt-0" role="alert" hidden></p>
+          <p id="fg_terms-err" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert" hidden></p>
         </div>
       </div>
     </div>
     <div id="fg-live" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></div>
     <div class="mt-3">
-      <button class="btn btn-primary" data-fg-submit type="submit">Register</button>
+      <button class="btn btn-primary fw-semibold px-3" data-fg-submit type="submit">Register</button>
     </div>
     <pre id="fg-result" class="mt-3 p-3 bg-dark text-success rounded small overflow-auto" hidden></pre>
   </form>

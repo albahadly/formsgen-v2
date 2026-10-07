@@ -219,7 +219,7 @@ async function onSubmit(): Promise<void> {
 
 <template>
   <form
-    class="container py-4"
+    class="p-3"
     dir="ltr"
     novalidate
     @submit.prevent="onSubmit"
@@ -227,149 +227,182 @@ async function onSubmit(): Promise<void> {
   >
     <div class="row g-3">
       <div class="col-12 col-md-12">
-        <h2 class="fw-semibold">Event registration</h2>
+        <h2 class="fg-heading">Event registration</h2>
       </div>
       <div class="col-12 col-md-12">
-        <p class="text-secondary">Tell us who is coming and what you need. Fields marked * are required.</p>
+        <p class="text-secondary mb-0">Tell us who is coming and what you need. Fields marked * are required.</p>
       </div>
       <div class="col-12 col-md-12">
         <div class="row g-3">
           <div class="col-12 col-md-6">
-            <div class="d-flex flex-column gap-1">
-              <label class="form-label fw-semibold fs-6 mb-0" for="fg_first_name">First name<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+            <div class="d-flex flex-column fg-field">
+              <label class="form-label fw-semibold small mb-0 fg-label" for="fg_first_name">First name<span class="text-danger fg-required" aria-hidden="true">*</span></label>
               <input id="fg_first_name" v-model="form.first_name" type="text" class="form-control" :class="{ 'is-invalid': !!errors['first_name'] }" placeholder="Ana" @blur="touch('first_name')" @input="revalidate('first_name')">
-              <p v-if="errors['first_name']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['first_name'] }}</p>
+              <p v-if="errors['first_name']" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{{ errors['first_name'] }}</p>
             </div>
           </div>
           <div class="col-12 col-md-6">
-            <div class="d-flex flex-column gap-1">
-              <label class="form-label fw-semibold fs-6 mb-0" for="fg_last_name">Last name<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+            <div class="d-flex flex-column fg-field">
+              <label class="form-label fw-semibold small mb-0 fg-label" for="fg_last_name">Last name<span class="text-danger fg-required" aria-hidden="true">*</span></label>
               <input id="fg_last_name" v-model="form.last_name" type="text" class="form-control" :class="{ 'is-invalid': !!errors['last_name'] }" @blur="touch('last_name')" @input="revalidate('last_name')">
-              <p v-if="errors['last_name']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['last_name'] }}</p>
+              <p v-if="errors['last_name']" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{{ errors['last_name'] }}</p>
             </div>
           </div>
         </div>
       </div>
       <div class="col-12 col-md-12">
-        <div class="d-flex flex-column gap-1">
-          <label class="form-label fw-semibold fs-6 mb-0" for="fg_email">Email<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+        <div class="d-flex flex-column fg-field">
+          <label class="form-label fw-semibold small mb-0 fg-label" for="fg_email">Email<span class="text-danger fg-required" aria-hidden="true">*</span></label>
           <input id="fg_email" v-model="form.email" type="email" class="form-control" :class="{ 'is-invalid': !!errors['email'] }" placeholder="ana&#64;example.com" @blur="touch('email')" @input="revalidate('email')">
-          <p class="form-text mt-0">Your ticket is sent here.</p>
-          <p v-if="errors['email']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['email'] }}</p>
+          <p class="form-text mt-0 mb-0 fg-description">Your ticket is sent here.</p>
+          <p v-if="errors['email']" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{{ errors['email'] }}</p>
         </div>
       </div>
       <div class="col-12 col-md-12">
-        <div class="d-flex flex-column gap-1">
-          <label class="form-label fw-semibold fs-6 mb-0" for="fg_phone">Phone</label>
+        <div class="d-flex flex-column fg-field">
+          <label class="form-label fw-semibold small mb-0 fg-label" for="fg_phone">Phone</label>
           <input id="fg_phone" v-model="form.phone" type="tel" class="form-control" :class="{ 'is-invalid': !!errors['phone'] }" @blur="touch('phone')" @input="revalidate('phone')">
-          <p v-if="errors['phone']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['phone'] }}</p>
+          <p v-if="errors['phone']" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{{ errors['phone'] }}</p>
         </div>
       </div>
       <div class="col-12 col-md-12">
-        <div class="d-flex flex-column gap-1">
-          <label class="form-label fw-semibold fs-6 mb-0" for="fg_ticket">Ticket<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+        <div class="d-flex flex-column fg-field">
+          <label class="form-label fw-semibold small mb-0 fg-label" for="fg_ticket">Ticket<span class="text-danger fg-required" aria-hidden="true">*</span></label>
           <select id="fg_ticket" v-model="form.ticket" class="form-select" :class="{ 'is-invalid': !!errors['ticket'] }" @blur="touch('ticket')" @change="revalidate('ticket')">
             <option value="" disabled>—</option>
             <option value="standard">Standard</option>
             <option value="vip">VIP</option>
             <option value="student">Student</option>
           </select>
-          <p v-if="errors['ticket']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['ticket'] }}</p>
+          <p v-if="errors['ticket']" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{{ errors['ticket'] }}</p>
         </div>
       </div>
       <div class="col-12 col-md-12">
-        <div class="d-flex flex-column gap-1">
-          <label class="form-label fw-semibold fs-6 mb-0" for="fg_seats">Seats<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+        <div class="d-flex flex-column fg-field">
+          <label class="form-label fw-semibold small mb-0 fg-label" for="fg_seats">Seats<span class="text-danger fg-required" aria-hidden="true">*</span></label>
           <div class="input-group">
             <input id="fg_seats" v-model.number="form.seats" type="number" class="form-control" :class="{ 'is-invalid': !!errors['seats'] }" min="1" max="5" aria-describedby="fg_seats-suffix" @blur="touch('seats')" @input="revalidate('seats')">
             <span id="fg_seats-suffix" class="input-group-text">people</span>
           </div>
-          <p class="form-text mt-0">Including yourself, up to 5.</p>
-          <p v-if="errors['seats']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['seats'] }}</p>
+          <p class="form-text mt-0 mb-0 fg-description">Including yourself, up to 5.</p>
+          <p v-if="errors['seats']" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{{ errors['seats'] }}</p>
         </div>
       </div>
       <div class="col-12 col-md-12">
-        <fieldset class="d-flex flex-column gap-1">
-          <legend class="form-label fw-semibold fs-6 mb-0">Dietary preference</legend>
-          <div class="d-flex flex-column gap-1">
-            <label class="form-check" for="fg_diet-none">
+        <fieldset class="d-flex flex-column fg-field">
+          <legend class="form-label fw-semibold small mb-0 fg-label">Dietary preference</legend>
+          <div class="d-flex flex-column fg-options">
+            <label class="form-check mb-0" for="fg_diet-none">
               <input id="fg_diet-none" v-model="form.diet" type="radio" class="form-check-input" value="none" @change="touch('diet')">
               <span>No preference</span>
             </label>
-            <label class="form-check" for="fg_diet-vegetarian">
+            <label class="form-check mb-0" for="fg_diet-vegetarian">
               <input id="fg_diet-vegetarian" v-model="form.diet" type="radio" class="form-check-input" value="vegetarian" @change="touch('diet')">
               <span>Vegetarian</span>
             </label>
-            <label class="form-check" for="fg_diet-vegan">
+            <label class="form-check mb-0" for="fg_diet-vegan">
               <input id="fg_diet-vegan" v-model="form.diet" type="radio" class="form-check-input" value="vegan" @change="touch('diet')">
               <span>Vegan</span>
             </label>
-            <label class="form-check" for="fg_diet-other">
+            <label class="form-check mb-0" for="fg_diet-other">
               <input id="fg_diet-other" v-model="form.diet" type="radio" class="form-check-input" value="other" @change="touch('diet')">
               <span>Other</span>
             </label>
           </div>
-          <p v-if="errors['diet']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['diet'] }}</p>
+          <p v-if="errors['diet']" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{{ errors['diet'] }}</p>
         </fieldset>
       </div>
       <div class="col-12 col-md-12" v-if='(form.diet === "other")'>
-        <div class="d-flex flex-column gap-1">
-          <label class="form-label fw-semibold fs-6 mb-0" for="fg_diet_other">Tell us more<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+        <div class="d-flex flex-column fg-field">
+          <label class="form-label fw-semibold small mb-0 fg-label" for="fg_diet_other">Tell us more<span class="text-danger fg-required" aria-hidden="true">*</span></label>
           <textarea id="fg_diet_other" v-model="form.diet_other" class="form-control" rows="2" :class="{ 'is-invalid': !!errors['diet_other'] }" @blur="touch('diet_other')" @input="revalidate('diet_other')"></textarea>
-          <p v-if="errors['diet_other']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['diet_other'] }}</p>
+          <p v-if="errors['diet_other']" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{{ errors['diet_other'] }}</p>
         </div>
       </div>
       <div class="col-12 col-md-12">
-        <fieldset class="d-flex flex-column gap-1">
-          <legend class="form-label fw-semibold fs-6 mb-0">Workshops</legend>
-          <div class="d-flex flex-column gap-1">
-            <label class="form-check" for="fg_workshops-forms">
+        <fieldset class="d-flex flex-column fg-field">
+          <legend class="form-label fw-semibold small mb-0 fg-label">Workshops</legend>
+          <div class="d-flex flex-column fg-options">
+            <label class="form-check mb-0" for="fg_workshops-forms">
               <input id="fg_workshops-forms" v-model="form.workshops" type="checkbox" class="form-check-input" value="forms" @change="touch('workshops')">
               <span>Building forms</span>
             </label>
-            <label class="form-check" for="fg_workshops-exports">
+            <label class="form-check mb-0" for="fg_workshops-exports">
               <input id="fg_workshops-exports" v-model="form.workshops" type="checkbox" class="form-check-input" value="exports" @change="touch('workshops')">
               <span>One form, four stacks</span>
             </label>
-            <label class="form-check" for="fg_workshops-a11y">
+            <label class="form-check mb-0" for="fg_workshops-a11y">
               <input id="fg_workshops-a11y" v-model="form.workshops" type="checkbox" class="form-check-input" value="a11y" @change="touch('workshops')">
               <span>Accessible by default</span>
             </label>
           </div>
-          <p v-if="errors['workshops']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['workshops'] }}</p>
+          <p v-if="errors['workshops']" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{{ errors['workshops'] }}</p>
         </fieldset>
       </div>
       <div class="col-12 col-md-12">
-        <div class="d-flex flex-column gap-1">
-          <label class="form-label fw-semibold fs-6 mb-0" for="fg_arrival">Arrival date</label>
+        <div class="d-flex flex-column fg-field">
+          <label class="form-label fw-semibold small mb-0 fg-label" for="fg_arrival">Arrival date</label>
           <input id="fg_arrival" v-model="form.arrival" type="date" class="form-control" :class="{ 'is-invalid': !!errors['arrival'] }" @blur="touch('arrival')" @input="revalidate('arrival')">
-          <p v-if="errors['arrival']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['arrival'] }}</p>
+          <p v-if="errors['arrival']" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{{ errors['arrival'] }}</p>
         </div>
       </div>
       <div class="col-12 col-md-12">
-        <div class="d-flex flex-column gap-1">
-          <label class="form-label fw-semibold fs-6 mb-0" for="fg_notes">Anything else?</label>
+        <div class="d-flex flex-column fg-field">
+          <label class="form-label fw-semibold small mb-0 fg-label" for="fg_notes">Anything else?</label>
           <textarea id="fg_notes" v-model="form.notes" class="form-control" rows="3" :class="{ 'is-invalid': !!errors['notes'] }" @blur="touch('notes')" @input="revalidate('notes')"></textarea>
-          <p v-if="errors['notes']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['notes'] }}</p>
+          <p v-if="errors['notes']" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{{ errors['notes'] }}</p>
         </div>
       </div>
       <div class="col-12 col-md-12">
-        <div class="d-flex flex-column gap-1">
-          <div class="form-check">
+        <div class="d-flex flex-column fg-field">
+          <div class="form-check mb-0">
             <input id="fg_terms" v-model="form.terms" type="checkbox" class="form-check-input" @change="touch('terms')">
-            <label class="form-check-label" for="fg_terms">I agree to the event terms<span class="text-danger ms-1" aria-hidden="true">*</span></label>
+            <label class="form-check-label" for="fg_terms">I agree to the event terms<span class="text-danger fg-required" aria-hidden="true">*</span></label>
           </div>
-          <p v-if="errors['terms']" class="invalid-feedback d-block mt-0" role="alert">{{ errors['terms'] }}</p>
+          <p v-if="errors['terms']" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{{ errors['terms'] }}</p>
         </div>
       </div>
     </div>
     <div class="visually-hidden" role="status" aria-live="polite" aria-atomic="true">{{ fgAnnouncement }}</div>
     <div class="mt-3">
-      <button class="btn btn-primary" type="submit">Register</button>
+      <button class="btn btn-primary fw-semibold px-3" type="submit">Register</button>
     </div>
     <pre v-if="result" class="mt-3 p-3 bg-dark text-success rounded small overflow-auto">{{ JSON.stringify(result, null, 2) }}</pre>
   </form>
 </template>
+
+<style scoped>
+/* FormsGen parity: the same shape as the other flavours */
+.fg-field { gap: 0.375rem; }
+.fg-field > legend { margin-block-end: 0.375rem; }
+.fg-options { gap: 0.375rem; }
+.fg-required { margin-inline-start: 0.125rem; }
+.fg-label, .fg-description, .fg-error { line-height: 1.25rem; }
+.fg-heading { margin: 0; font-weight: 600; line-height: 1.25; }
+h1.fg-heading { font-size: 1.875rem; }
+h2.fg-heading { font-size: 1.5rem; }
+h3.fg-heading { font-size: 1.25rem; }
+h4.fg-heading { font-size: 1.125rem; }
+h5.fg-heading { font-size: 1rem; }
+h6.fg-heading { font-size: 0.875rem; }
+.fg-option-block { cursor: pointer; gap: 0.75rem; padding-inline: 0.75rem; }
+.fg-option-block:has(:checked) { border-color: var(--bs-primary) !important; box-shadow: 0 0 0 1px var(--bs-primary); }
+.fg-richtext-button { min-inline-size: 2rem; --bs-btn-line-height: 1.25rem; --bs-btn-border-radius: 0.375rem; }
+.fg-option-button { --bs-btn-font-size: 0.875rem; --bs-btn-line-height: 1.25rem; --bs-btn-padding-y: 0.5rem; --bs-btn-padding-x: 1rem; --bs-btn-font-weight: 600; }
+.fg-repeater-remove { --bs-btn-font-size: 0.875rem; --bs-btn-line-height: 1.25rem; --bs-btn-border-width: 0; --bs-btn-border-radius: 0; }
+.fg-tab-list { --bs-nav-link-font-size: 0.875rem; }
+.fg-tab-list .nav-link { line-height: 1.25rem; }
+.fg-switch-wrap { padding-inline-start: 2.75rem; min-block-size: 1.5rem; }
+.fg-switch-wrap .form-check-input.fg-switch { inline-size: 2.25rem; block-size: 1.25rem; margin-inline-start: -2.75rem; margin-block-start: 0.125rem; }
+.fg-matrix th, .fg-matrix td { line-height: 1.25rem; }
+.fg-matrix tbody tr { border-block-start: 1px solid var(--bs-border-color); }
+.fg-matrix .form-check-input { inline-size: 1rem; block-size: 1rem; margin: 0; vertical-align: middle; }
+.fg-rich-text > * { margin: 0; }
+.fg-rich-text > * + * { margin-block-start: 0.5em; }
+.fg-rich-text ul, .fg-rich-text ol { padding-inline-start: 1.25em; }
+.fg-pair > .form-control { flex: 1 1 10rem; inline-size: auto; min-inline-size: 0; }
+.fg-repeater-move { inline-size: 2rem; block-size: 2rem; padding: 0; }
+</style>
 
 <!--
   FormsGen project: to change this form, open this file in the FormsGen builder (Open).
