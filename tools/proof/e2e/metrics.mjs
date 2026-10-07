@@ -34,7 +34,7 @@ const measure = () => page.evaluate(() => {
     return {
       height: px(b.height), width: px(b.width), fontSize: px(s.fontSize), fontWeight: s.fontWeight,
       paddingTop: px(s.paddingTop), paddingRight: px(s.paddingRight), paddingBottom: px(s.paddingBottom), paddingLeft: px(s.paddingLeft),
-      borderTop: px(s.borderTopWidth), radius: px(s.borderTopLeftRadius), borderStyle: s.borderTopStyle,
+      borderTop: px(s.borderTopWidth), radius: px(s.borderTopLeftRadius), borderStyle: parseFloat(s.borderTopWidth) > 0 ? s.borderTopStyle : 'none',
       color: s.color, background: s.backgroundColor, borderColor: s.borderTopColor,
     }
   }
@@ -51,22 +51,28 @@ const measure = () => page.evaluate(() => {
   }
   // Grid cells of the top-level grid, in order: their widths and the vertical gaps between them.
   const grid = form.querySelector('.fg-grid, .grid, .row')
-  const cells = grid ? [...grid.children].filter((c) => c.matches(CELL)) : []
+  const cells = grid ? [...grid.children].filter((c) => c.matches(CELL) && c.checkVisibility()) : []
   cells.forEach((cell, i) => {
     const b = box(cell)
     const next = cells[i + 1]
     const first = cell.querySelector('[data-fg-path], h1, h2, h3, h4, h5, h6, p, legend, label')
-    result.cells.push({ i, hint: text(first).slice(0, 24), width: px(b.width), height: px(b.height), gapAfter: next ? px(box(next).top - b.bottom) : null })
+    const cs0 = cs(cell)
+    result.cells.push({ i, hint: text(first).slice(0, 24), width: px(b.width - parseFloat(cs0.paddingLeft) - parseFloat(cs0.paddingRight)), height: px(b.height), gapAfter: next ? px(box(next).top - b.bottom) : null })
   })
   for (const el of form.querySelectorAll('[data-fg-path]')) {
     const path = el.getAttribute('data-fg-path')
     const kind = el.getAttribute('data-fg-kind') || el.type || el.tagName.toLowerCase()
     const key = `${path}:${kind}:${el.tagName.toLowerCase()}${el.type ? '[' + el.type + ']' : ''}`
     if (result.controls[key]) continue
-    const m = boxMetrics(el)
+    if (!el.checkVisibility() || cs(el).clip !== 'auto' || (cs(el).position === 'absolute' && cs(el).opacity === '0')) continue
+    const check = el.type === 'radio' || el.type === 'checkbox' || el.type === 'range'
+    const m = check ? { height: px(box(el).height), width: px(box(el).width) } : boxMetrics(el)
+    // A select's inline padding holds the framework's own chevron artwork.
+    if (el.tagName === 'SELECT') { delete m.paddingLeft; delete m.paddingRight }
     const label = el.id ? form.querySelector(`label[for="${CSS.escape(el.id)}"]`) : null
     const legend = el.closest('fieldset')?.querySelector('legend')
-    const labelEl = label && !label.contains(el) ? label : legend
+    const labelEl0 = label && !label.contains(el) ? label : legend
+    const labelEl = labelEl0 && labelEl0.offsetWidth > 1 ? labelEl0 : null
     const described = (el.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean).map((id) => document.getElementById(id)).filter(Boolean)
     const desc = described.find((d) => !/err/.test(d.id) && !d.hasAttribute('role'))
     const cell = cellOf(el)
@@ -76,7 +82,7 @@ const measure = () => page.evaluate(() => {
       labelText: text(labelEl).slice(0, 30),
       required: (() => { const r = labelEl?.querySelector('[aria-hidden="true"]'); return r ? { fontSize: px(cs(r).fontSize), marginLeft: px(cs(r).marginLeft), gapFromText: px(box(r).left - (box(labelEl).left + (labelEl.firstChild?.nodeType === 3 ? (() => { const range = document.createRange(); range.selectNodeContents(labelEl.firstChild); return range.getBoundingClientRect().width })() : 0))) } : null })(),
       description: desc ? { ...typo(desc), gap: px(box(desc).top - box(el).bottom) } : null,
-      cellWidth: cell ? px(box(cell).width) : null,
+      cellWidth: cell ? px(box(cell).width - parseFloat(cs(cell).paddingLeft) - parseFloat(cs(cell).paddingRight)) : null,
     }
   }
   for (const h of form.querySelectorAll('h1, h2, h3, h4, h5, h6')) {
@@ -85,6 +91,8 @@ const measure = () => page.evaluate(() => {
   }
   for (const p of form.querySelectorAll('p')) {
     if (p.closest('[hidden]') || p.hidden) continue
+    // The spam-check hint is hidden on a timer once the test key passes.
+    if (p.parentElement && p.parentElement.querySelector('[data-fg-captcha]')) continue
     const s = cs(p)
     const roleOrClass = p.getAttribute('role') || (p.id.includes('err') ? 'error' : p.closest('fieldset') ? 'in-fieldset' : 'p')
     const key = `${roleOrClass}:${text(p).slice(0, 22)}`
@@ -96,15 +104,18 @@ const measure = () => page.evaluate(() => {
     if (result.options[key]) continue
     const label = input.closest('label') || form.querySelector(`label[for="${CSS.escape(input.id)}"]`)
     const next = row?.nextElementSibling
+    const textNode = label ? [...label.childNodes].find((n) => (n.nodeType === 3 && n.textContent.trim()) || (n.nodeType === 1 && n.tagName === 'SPAN' && n.textContent.trim())) : null
+    const textLeft = textNode ? (() => { const range = document.createRange(); range.selectNodeContents(textNode); return range.getBoundingClientRect().left })() : null
+    const hidden = cs(input).position === 'absolute' || cs(input).opacity === '0' || cs(input).clipPath !== 'none' || cs(input).clip !== 'auto'
     result.options[key] = {
-      inputSize: px(box(input).width), inputHidden: cs(input).position === 'absolute' || cs(input).opacity === '0' || cs(input).clipPath !== 'none' || cs(input).clip !== 'auto',
-      rowHeight: row ? px(box(row).height) : null, rowWidth: row ? px(box(row).width) : null, rowPaddingLeft: row ? px(cs(row).paddingLeft) : null, rowBorder: row ? px(cs(row).borderTopWidth) : null, rowRadius: row ? px(cs(row).borderTopLeftRadius) : null,
-      label: typo(label), gapToNext: next && next.tagName === row.tagName ? px(box(next).top - box(row).bottom) : null,
-      labelOffset: label ? px(box(label).left - box(input).left) : null,
+      inputSize: hidden ? null : px(box(input).width), inputHidden: hidden,
+      rowHeight: row ? px(box(row).height) : null, rowBorder: row ? px(cs(row).borderTopWidth) : null, rowRadius: row ? px(cs(row).borderTopLeftRadius) : null,
+      label: typo(label), gapToNext: next && next.tagName === row.tagName && box(next).top >= box(row).bottom - 1 ? px(box(next).top - box(row).bottom) : null,
+      textOffset: textLeft !== null && !hidden ? px(textLeft - box(input).left) : null,
       labelColor: label ? cs(label).color : null,
     }
   }
-  for (const b of form.querySelectorAll('button, a[role=button], .btn, [type=submit]')) {
+  for (const b of form.querySelectorAll('button, a[role=button], [type=submit]')) {
     const key = `${(b.getAttribute('type') || 'button')}:${text(b).slice(0, 20) || b.getAttribute('aria-label') || b.className.slice(0, 20)}`
     if (result.buttons[key]) continue
     const m = boxMetrics(b)
@@ -114,8 +125,31 @@ const measure = () => page.evaluate(() => {
     const s = cs(g)
     const legend = g.querySelector(':scope > legend')
     const classes = g.className
-    result.groups.push({ legend: text(legend).slice(0, 20), classes: classes.slice(0, 40), padding: px(s.paddingTop), border: px(s.borderTopWidth), radius: px(s.borderTopLeftRadius), legendTypo: typo(legend), background: s.backgroundColor })
+    const kids = [...g.children].filter((k) => k !== legend && k.checkVisibility())
+    // A Bootstrap .row is placed by its negative margins and its columns' top
+    // margins: compare what is seen (the columns' extent), not the box.
+    const shown = (c) => c.checkVisibility() && cs(c).clip === 'auto' && !(cs(c).position === 'absolute' && cs(c).opacity === '0')
+    const extent = (el) => {
+      const inner = el.classList.contains('row') ? [...el.children].filter(shown) : []
+      if (inner.length === 0) return box(el)
+      return { top: Math.min(...inner.map((c) => box(c).top)), bottom: Math.max(...inner.map((c) => box(c).bottom)), height: 0 }
+    }
+    const content = (el) => px(box(el).width - parseFloat(cs(el).paddingLeft) - parseFloat(cs(el).paddingRight))
+    const children = kids.map((k, i) => {
+      const e = extent(k)
+      const prev = i === 0 ? null : extent(kids[i - 1])
+      return {
+        tag: k.tagName.toLowerCase(), height: px(e.bottom - e.top),
+        gapBefore: px(e.top - (prev ? prev.bottom : legend ? box(legend).bottom : box(g).top + parseFloat(s.paddingTop))),
+        parts: [...k.children].filter(shown).map((c) => ({ tag: c.tagName.toLowerCase(), height: px(box(c).height), width: c.tagName === 'LABEL' ? px(box(c).width) : content(c), marginBottom: px(cs(c).marginBottom) })),
+      }
+    })
+    result.groups.push({ hint: text(legend).slice(0, 16) || classes.slice(0, 16), legend: text(legend).slice(0, 20), classes: classes.slice(0, 40), height: px(box(g).height), padding: px(s.paddingTop), border: px(s.borderTopWidth), radius: px(s.borderTopLeftRadius), legendTypo: typo(legend), legendHeight: legend ? px(box(legend).height) : null, legendTop: legend ? px(box(legend).top - box(g).top) : null, background: s.backgroundColor, children })
   }
+  result.htmlBlocks = [...form.querySelectorAll('.fg-html')].map((blk) => ({
+    height: px(box(blk).height), lineHeight: cs(blk).lineHeight, fontSize: px(cs(blk).fontSize),
+    parts: [...blk.children].map((c) => ({ tag: c.tagName.toLowerCase(), height: px(box(c).height), fontSize: px(cs(c).fontSize), marginTop: px(cs(c).marginTop), marginBottom: px(cs(c).marginBottom), lineHeight: cs(c).lineHeight })),
+  }))
   const pre = form.querySelector('pre')
   if (pre) result.misc.payload = boxMetrics(pre)
   const hr = form.querySelector('hr')

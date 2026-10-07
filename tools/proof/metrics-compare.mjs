@@ -10,7 +10,7 @@ const tol = Number(args.includes('--tolerance') ? args[args.indexOf('--tolerance
 const files = args.filter((a) => a.endsWith('.json'))
 const names = files.map((f) => f.replace(/.*\//, '').replace(/\.json$/, ''))
 const data = files.map((f) => JSON.parse(readFileSync(f, 'utf8')))
-const SKIP = /color|background|fontFamily|^url$|classes|hint|labelText|text$|^key$|^tag$|^id$|^path$|inHtmlBlock|^i$/
+const SKIP = /color|background|fontFamily|^url$|classes|hint|labelText|text$|^key$|^tag$|^id$|^path$|inHtmlBlock|^i$/i
 const rows = []
 function walk(path, values) {
   const present = values.filter((v) => v !== undefined)
