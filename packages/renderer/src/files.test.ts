@@ -197,6 +197,16 @@ describe('sendSubmission', () => {
     expect(progress).toEqual([0.25])
   })
 
+  it("sends the form's own headers on top of the content type", async () => {
+    const { sent, xhr } = fakeXhr()
+    const done = sendSubmission('/api', { name: 'Ana' }, { method: 'PUT', headers: { 'X-Api-Key': 'k1' } })
+    expect(sent.method).toBe('PUT')
+    expect(sent.headers).toEqual({ 'Content-Type': 'application/json', 'X-Api-Key': 'k1' })
+    xhr().status = 200
+    xhr().onload!()
+    expect(await done).toEqual({ ok: true, status: 200 })
+  })
+
   it('sends JSON without files and resolves not ok on errors', async () => {
     const { sent, xhr } = fakeXhr()
     const failed = sendSubmission('/api', { name: 'Ana' }, { method: 'PUT' })

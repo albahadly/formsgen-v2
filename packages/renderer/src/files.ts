@@ -159,18 +159,19 @@ export interface UploadStatus {
 /**
  * Sends a submission (see toSubmission) and reports upload progress, which
  * fetch can't. Resolves with whether the server accepted it (2xx); network
- * errors resolve as not ok.
+ * errors resolve as not ok. `headers` are the form's own (meta.submit.headers:
+ * an API key, for instance) and are sent on top of the body's content type.
  */
 export function sendSubmission(
   url: string,
   payload: Record<string, unknown>,
-  options: { method?: string; multipart?: boolean; onProgress?: (progress: number) => void } = {},
+  options: { method?: string; multipart?: boolean; headers?: Record<string, string>; onProgress?: (progress: number) => void } = {},
 ): Promise<{ ok: boolean; status: number }> {
   const { body, headers } = toSubmission(payload, options.multipart === undefined ? {} : { multipart: options.multipart })
   return new Promise((resolve) => {
     const request = new XMLHttpRequest()
     request.open(options.method ?? 'POST', url)
-    for (const [name, value] of Object.entries(headers)) request.setRequestHeader(name, value)
+    for (const [name, value] of Object.entries({ ...headers, ...options.headers })) request.setRequestHeader(name, value)
     request.upload.onprogress = (event) => {
       if (event.lengthComputable && event.total > 0) options.onProgress?.(event.loaded / event.total)
     }

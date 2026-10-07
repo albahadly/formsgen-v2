@@ -78,6 +78,22 @@ describe('vue-lib target', () => {
     expect(file!.content).toContain("from '@formsgen/renderer'")
     expect(file!.content).toContain('"$schema": "formsgen/v2"')
     expect(file!.content).toContain('<FormsGenForm')
+    // No submit URL: sending is left to the host.
+    expect(file!.content).toContain('// Replace with your submit handling.')
+    expect(file!.content).not.toContain('sendSubmission')
+  })
+
+  it('sends to the submit URL with the renderer helper when one is set', () => {
+    const schema = fixture()
+    schema.meta.submit = { url: 'https://api.example.com/forms', method: 'PUT', headers: { 'X-Api-Key': 'k1' } }
+    const [file] = getTarget('vue-lib')!.generate({ schema, css: getCssAdapter('vanilla') })
+    const code = file!.content
+    expect(code).toContain("import { FormsGenForm, hasUploadFields, sendSubmission, type FormSchema } from '@formsgen/renderer'")
+    expect(code).toContain("await sendSubmission(\"https://api.example.com/forms\", payload, {")
+    expect(code).toContain('method: "PUT",')
+    expect(code).toContain('multipart: hasUploadFields(schema.tree),')
+    expect(code).toContain('headers: {"X-Api-Key":"k1"},')
+    expect(getTarget('vue-lib')!.readme({ schema, css: getCssAdapter('vanilla') })).toContain('sends the payload to `https://api.example.com/forms`')
   })
 })
 
