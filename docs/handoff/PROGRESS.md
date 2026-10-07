@@ -7,45 +7,32 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
 
 ## Where we are (2026-10-07)
 
-- **Branch / remote:** Phase 37 lives on branch `phase-37` in the worktree
-  `../formsgen-parity` (`35ead35` adapters, `821a977` parity check,
-  `0909924` sized selects, `022a8ef` docs, `e457f57` invalid state, then
-  the floating-labels commit); it is merged into `main` of
-  `albahadly/formsgen-v2` and pushed once the final `pnpm verify` is green.
+- **Branch / remote:** `main` of `albahadly/formsgen-v2`, pushed with
+  `git push -u origin main`. Phase 37 landed as `f3f73a6` (adapters),
+  `78845f8` (parity check), `5ae40ae` (sized selects), `9319fca` (docs),
+  `bf3902d` (invalid state), `0ca1735` (floating labels) plus this
+  memory commit; the `phase-37` worktree is removed.
 - **State:** all planned phases (01–11) plus 10b and 12–37 are complete.
   Phase 37 made the three CSS flavours render the same form (ADR-0004):
   `tools/proof/parity-check.sh` measures IDENTICAL within 1px on the
   kitchen sink, the examples form and the floating-labels demo at 1200 and
   390px (from 936 / 237 differing metrics). Handoff:
   `phase-37-css-parity.md`.
-- **Gates:** parity check IDENTICAL (ks, ex, fl × 1200, 390); builder
-  340/340, renderer 198/198; examples check 13/13 identical with Blazor
-  0/0 (run before the floating round; the examples have no floating
-  labels); final `pnpm verify` in the worktree: see "In flight".
+- **Gates:** `pnpm verify` green on `0ca1735` (198 renderer / 340
+  builder / 8 server tests, builds incl. the examples); parity check
+  IDENTICAL (ks, ex, fl × 1200, 390); examples check 13/13 identical with
+  Blazor 0/0 (run on the branch before the floating round; the examples
+  have no floating labels). CI on `main`: check the Actions run for the
+  memory commit.
 
 ## In flight
 
-- Phase 37 wrap-up, in the worktree `/home/user/formsgen-parity`:
-  - `pnpm verify` running on the floating-labels round (log
-    `scratchpad/verify-p37-final.log`, ends with `VERIFY-EXIT=<code>`).
-  - Then: commit the round on `phase-37`
-    (`feat(phase-37): floating labels share Bootstrap's geometry`), in
-    `/home/user/formsgen-v2`: `git fetch`, rebase or merge `phase-37`
-    onto `main` (`main` has `8a6459f` on top of the branch point),
-    `git push -u origin main`, confirm the CI workflow is green, remove
-    the worktree (`git worktree remove ../formsgen-parity`), set this
-    section to "Nothing".
-- Uncommitted on the branch: the floating-labels round (composite CSS and
-  `styles.css`, Tailwind strings, `SlotMods.floating`, `markup.ts`,
-  `metrics.mjs`, `parity-check.sh` form `fl`, `demos/floating.json`,
-  snapshots, examples, ADR/handoff/this file) until that commit lands.
+- Nothing. Uncommitted: nothing.
 
 ## Next steps (in order)
 
-1. Finish the wrap-up above. If this session died: `pnpm verify` and
-   `ONLY=metrics bash tools/proof/parity-check.sh tools/proof/work/p` in
-   the worktree must be green/IDENTICAL; commit, merge into `main`, push.
-2. Then pick the next phase with the user.
+1. Pick the next phase with the user. Candidates from the backlog below
+   and the handoffs' "pointers" sections.
 
 ## Open backlog (pointer)
 
@@ -72,7 +59,7 @@ and, for the spam demo, `TURNSTILE_SECRET=1x0000000000000000000000000000000AA no
 
 - **2026-10-07** — Phase 37 verification: the six-reviewer verify
   workflow failed on the session limit (no findings); states reviewed by
-  hand instead. Fixed the error state (`e457f57`: Bootstrap's invalid icon
+  hand instead. Fixed the error state (`bf3902d`: Bootstrap's invalid icon
   and padding, label colour) and floating labels (all three flavours on
   Bootstrap's geometry; new demo `tools/proof/demos/floating.json`, third
   form `fl` of the parity check). Parity check IDENTICAL for ks, ex, fl at

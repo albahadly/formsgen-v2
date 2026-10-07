@@ -2,7 +2,7 @@
 
 ## Status
 
-Phase complete. 2026-10-07, commits on `main`: `35ead35` (the adapters, renderer stylesheet, parity CSS, markup changes, snapshots and examples), `821a977` (the parity check in the toolkit), `0909924` (sized selects), `e457f57` (the invalid state), the floating-labels commit (`feat(phase-37): floating labels share Bootstrap's geometry`) and the `docs(handoff)` commits carrying this file; the earlier `6da8fac` added the screenshot and metrics scripts. Decision record: ADR-0004.
+Phase complete. 2026-10-07, commits on `main`: `f3f73a6` (the adapters, renderer stylesheet, parity CSS, markup changes, snapshots and examples), `78845f8` (the parity check in the toolkit), `5ae40ae` (sized selects), `bf3902d` (the invalid state), `0ca1735` (floating labels) and the `docs(handoff)` / `chore(progress)` commits carrying this file; the earlier `6da8fac` added the screenshot and metrics scripts. Decision record: ADR-0004.
 
 The user said "Vanilla CSS, Tailwind and Bootstrap 5 is not fully identical in form" after looking at the examples. They were right: measured, 936 computed-style metrics differed between the three flavours of the kitchen sink and 237 on the examples' event-registration form (page widths, type scales, control heights, line heights, gaps, choice buttons and blocks, tabs, matrix, HTML blocks, …). Now the flavours measure identical within 1px on both forms at 1200px and 390px, and look it. No schema change.
 
@@ -20,7 +20,7 @@ The user said "Vanilla CSS, Tailwind and Bootstrap 5 is not fully identical in f
 
 - **Bootstrap's colour mode.** Vanilla and Tailwind follow `prefers-color-scheme`; Bootstrap 5.3 switches only with `data-bs-theme`, which is the host page's choice. Making Bootstrap exports set it from the media query is a runtime feature in four targets; left out, documented as an accepted difference (ADR-0004). Deferred, not planned.
 - **Bootstrap's desktop breakpoint** stays at its `col-lg` 992px against 1024px; its select chevron padding and focus ring, and 1px rounding where its 14px texts keep a 1.5 line (21px against 20px), are accepted.
-- The audit workflow started for this phase (nine finder lenses) was stopped once the metric-driven loop overtook it, and the six-reviewer verify workflow died on the account's session limit before reporting. The states the metrics do not cover were reviewed by reading the adapters and the screenshots instead: the error state (fixed, `e457f57`) and floating labels (fixed, measured since) came out of that; focus rings, disabled and hover looks are the frameworks' own and stay so.
+- The audit workflow started for this phase (nine finder lenses) was stopped once the metric-driven loop overtook it, and the six-reviewer verify workflow died on the account's session limit before reporting. The states the metrics do not cover were reviewed by reading the adapters and the screenshots instead: the error state (fixed, `bf3902d`) and floating labels (fixed, measured since) came out of that; focus rings, disabled and hover looks are the frameworks' own and stay so.
 
 ## Key decisions & why
 
@@ -53,5 +53,5 @@ Manual check: open `examples/html/{vanilla,tailwind,bootstrap5}/event_registrati
 ## Pointers for the next phase
 
 - Any adapter change: run `bash tools/proof/parity-check.sh` and keep IDENTICAL; extend `e2e/metrics.mjs` when a new element type lands (a new slot without a measurement is a parity gap waiting to happen).
-- The error state is measured too (`errors.*` in the metrics: borders, the invalid icon Bootstrap used to draw, inline-end padding, label colour; fixed in `e457f57`), and floating labels have their own demo form. Still unmeasured: focus rings, disabled and hover states, sm/lg on slots other than inputs/selects/textareas, RTL; the verification pass of this phase (see the log in `PROGRESS.md`) reviewed them by reading the adapters; whatever it found fixed is in the follow-up commits, whatever was accepted is in ADR-0004.
+- The error state is measured too (`errors.*` in the metrics: borders, the invalid icon Bootstrap used to draw, inline-end padding, label colour; fixed in `bf3902d`), and floating labels have their own demo form. Still unmeasured: focus rings, disabled and hover states, sm/lg on slots other than inputs/selects/textareas, RTL; the verification pass of this phase (see the log in `PROGRESS.md`) reviewed them by reading the adapters; whatever it found fixed is in the follow-up commits, whatever was accepted is in ADR-0004.
 - Bootstrap automatic dark mode, if ever wanted, belongs with the captcha/draft runtimes (a `matchMedia` check at mount in the four targets).
