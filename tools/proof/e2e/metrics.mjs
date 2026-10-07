@@ -173,7 +173,10 @@ const errors = await page.evaluate(() => {
   }
   for (const el of document.querySelectorAll('[data-fg-path]')) {
     const s = getComputedStyle(el)
-    out.invalidControls.push({ path: el.getAttribute('data-fg-path'), borderColor: s.borderTopColor, borderWidth: px(s.borderTopWidth), classes: el.className.split(' ').filter((c) => /invalid|red/.test(c)).join(' ') })
+    if (!el.checkVisibility() || s.clip !== 'auto') continue
+    const check = el.type === 'radio' || el.type === 'checkbox' || el.type === 'range'
+    const label = el.id ? document.querySelector(`label[for="${CSS.escape(el.id)}"]`) : null
+    out.invalidControls.push({ path: el.getAttribute('data-fg-path'), borderColor: s.borderTopColor, borderWidth: px(s.borderTopWidth), paddingRight: check || el.tagName === 'SELECT' ? null : px(s.paddingRight), icon: check || el.tagName === 'SELECT' ? null : s.backgroundImage !== 'none', labelColor: label ? getComputedStyle(label).color : null, classes: el.className.split(' ').filter((c) => /invalid|red/.test(c)).join(' ') })
   }
   return out
 })

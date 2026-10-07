@@ -27,4 +27,7 @@
 ::deep .fg-rich-text > * + * { margin-block-start: 0.5em; }
 ::deep .fg-rich-text ul, ::deep .fg-rich-text ol { padding-inline-start: 1.25em; }
 ::deep .fg-pair > .form-control { flex: 1 1 10rem; inline-size: auto; min-inline-size: 0; }
+::deep .form-control.is-invalid, ::deep .was-validated .form-control:invalid { padding-inline-end: 0.75rem; background-image: none; }
+::deep .form-select.is-invalid { --bs-form-select-bg-icon: none; padding-inline-end: 2.25rem; }
+::deep .form-check-input.is-invalid ~ .form-check-label { color: inherit; }
 ::deep .fg-repeater-move { inline-size: 2rem; block-size: 2rem; padding: 0; }

@@ -10411,6 +10411,9 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
   .fg-rich-text > * + * { margin-block-start: 0.5em; }
   .fg-rich-text ul, .fg-rich-text ol { padding-inline-start: 1.25em; }
   .fg-pair > .form-control { flex: 1 1 10rem; inline-size: auto; min-inline-size: 0; }
+  .form-control.is-invalid, .was-validated .form-control:invalid { padding-inline-end: 0.75rem; background-image: none; }
+  .form-select.is-invalid { --bs-form-select-bg-icon: none; padding-inline-end: 2.25rem; }
+  .form-check-input.is-invalid ~ .form-check-label { color: inherit; }
   .fg-repeater-move { inline-size: 2rem; block-size: 2rem; padding: 0; }
 
   /* Two-handle range slider */
@@ -31009,6 +31012,9 @@ h6.fg-heading { font-size: 0.875rem; }
 .fg-rich-text > * + * { margin-block-start: 0.5em; }
 .fg-rich-text ul, .fg-rich-text ol { padding-inline-start: 1.25em; }
 .fg-pair > .form-control { flex: 1 1 10rem; inline-size: auto; min-inline-size: 0; }
+.form-control.is-invalid, .was-validated .form-control:invalid { padding-inline-end: 0.75rem; background-image: none; }
+.form-select.is-invalid { --bs-form-select-bg-icon: none; padding-inline-end: 2.25rem; }
+.form-check-input.is-invalid ~ .form-check-label { color: inherit; }
 .fg-repeater-move { inline-size: 2rem; block-size: 2rem; padding: 0; }
 
 /* Two-handle range slider */
