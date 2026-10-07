@@ -1,0 +1,11 @@
+{ "$schema": "formsgen/v2",
+  "meta": { "name": "float_demo", "title": "Floating", "locale": "en", "dir": "ltr", "floatingLabels": true },
+  "tree": [
+    { "id": "f1", "type": "text", "name": "name", "props": { "label": "Name", "placeholder": "Your name" }, "validation": [{ "rule": "required" }] },
+    { "id": "f2", "type": "email", "name": "email", "props": { "label": "Email", "description": "Where we write" } },
+    { "id": "f3", "type": "select", "name": "pick", "props": { "label": "Pick", "items": [{ "value": "a", "label": "A" }, { "value": "b", "label": "B" }] } },
+    { "id": "f4", "type": "textarea", "name": "notes", "props": { "label": "Notes", "rows": 3 } },
+    { "id": "f5", "type": "number", "name": "n", "props": { "label": "Amount", "prefix": "$" } },
+    { "id": "f6", "type": "text", "name": "small", "props": { "label": "Small" }, "style": { "size": "sm" } },
+    { "id": "f7", "type": "text", "name": "large", "props": { "label": "Large" }, "style": { "size": "lg" } }
+  ] }

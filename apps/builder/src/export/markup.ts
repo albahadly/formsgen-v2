@@ -162,7 +162,7 @@ function withFloatingControl(css: CssFrameworkAdapter): CssFrameworkAdapter {
   return {
     ...css,
     classes: (slot, mods) =>
-      slot === 'input' || slot === 'select' ? `${css.classes(slot, mods)} ${extra}` : css.classes(slot, mods),
+      slot === 'input' || slot === 'select' ? `${css.classes(slot, { ...mods, floating: true })} ${extra}` : css.classes(slot, mods),
   }
 }
 

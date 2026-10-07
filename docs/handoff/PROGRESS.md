@@ -7,38 +7,44 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
 
 ## Where we are (2026-10-07)
 
-- **Branch / remote:** work for Phase 37 is on branch `phase-37` in the
-  worktree `../formsgen-parity` (commits `35ead35` adapters, `821a977`
-  parity check, `0909924` sized selects, plus the docs commit); it is
-  merged fast-forward into `main` of `albahadly/formsgen-v2` and pushed
-  when the verification pass and the examples check are green.
+- **Branch / remote:** Phase 37 lives on branch `phase-37` in the worktree
+  `../formsgen-parity` (`35ead35` adapters, `821a977` parity check,
+  `0909924` sized selects, `022a8ef` docs, `e457f57` invalid state, then
+  the floating-labels commit); it is merged into `main` of
+  `albahadly/formsgen-v2` and pushed once the final `pnpm verify` is green.
 - **State:** all planned phases (01–11) plus 10b and 12–37 are complete.
   Phase 37 made the three CSS flavours render the same form (ADR-0004):
   `tools/proof/parity-check.sh` measures IDENTICAL within 1px on the
-  kitchen sink and the examples form at 1200 and 390px (from 936 / 237
-  differing metrics). Handoff: `phase-37-css-parity.md`.
-- **Gates:** `pnpm verify` green in the worktree (198 renderer / 340
-  builder / 8 server tests, builds incl. the examples); parity check
-  IDENTICAL; examples check and the review workflow: see "In flight".
+  kitchen sink, the examples form and the floating-labels demo at 1200 and
+  390px (from 936 / 237 differing metrics). Handoff:
+  `phase-37-css-parity.md`.
+- **Gates:** parity check IDENTICAL (ks, ex, fl × 1200, 390); builder
+  340/340, renderer 198/198; examples check 13/13 identical with Blazor
+  0/0 (run before the floating round; the examples have no floating
+  labels); final `pnpm verify` in the worktree: see "In flight".
 
 ## In flight
 
 - Phase 37 wrap-up, in the worktree `/home/user/formsgen-parity`:
-  - `tools/proof/examples-check.sh` running (log
-    `tools/proof/work/examples-p37b/check.log`; a stale static server on
-    4180 spoiled the first run).
-  - Review workflow `css-parity-verify` (run `wf_d8fcae04-0b3`; six
-    reviewers, each batch verified). Its confirmed findings get fixed on
-    the branch, then: re-run `parity-check.sh`, `pnpm verify`, commit,
-    `git merge --ff-only phase-37` into `main`, push, remove the worktree.
-- Uncommitted on the branch: nothing after the docs commit.
+  - `pnpm verify` running on the floating-labels round (log
+    `scratchpad/verify-p37-final.log`, ends with `VERIFY-EXIT=<code>`).
+  - Then: commit the round on `phase-37`
+    (`feat(phase-37): floating labels share Bootstrap's geometry`), in
+    `/home/user/formsgen-v2`: `git fetch`, rebase or merge `phase-37`
+    onto `main` (`main` has `8a6459f` on top of the branch point),
+    `git push -u origin main`, confirm the CI workflow is green, remove
+    the worktree (`git worktree remove ../formsgen-parity`), set this
+    section to "Nothing".
+- Uncommitted on the branch: the floating-labels round (composite CSS and
+  `styles.css`, Tailwind strings, `SlotMods.floating`, `markup.ts`,
+  `metrics.mjs`, `parity-check.sh` form `fl`, `demos/floating.json`,
+  snapshots, examples, ADR/handoff/this file) until that commit lands.
 
 ## Next steps (in order)
 
-1. Finish the wrap-up above. If this session died: read the review
-   result from the workflow journal (path in the log entry below) or
-   re-run a lighter review; make sure `parity-check.sh` says IDENTICAL and
-   `pnpm verify` is green; merge `phase-37` into `main` and push.
+1. Finish the wrap-up above. If this session died: `pnpm verify` and
+   `ONLY=metrics bash tools/proof/parity-check.sh tools/proof/work/p` in
+   the worktree must be green/IDENTICAL; commit, merge into `main`, push.
 2. Then pick the next phase with the user.
 
 ## Open backlog (pointer)
@@ -64,6 +70,13 @@ and, for the spam demo, `TURNSTILE_SECRET=1x0000000000000000000000000000000AA no
 
 ## Log (newest first)
 
+- **2026-10-07** — Phase 37 verification: the six-reviewer verify
+  workflow failed on the session limit (no findings); states reviewed by
+  hand instead. Fixed the error state (`e457f57`: Bootstrap's invalid icon
+  and padding, label colour) and floating labels (all three flavours on
+  Bootstrap's geometry; new demo `tools/proof/demos/floating.json`, third
+  form `fl` of the parity check). Parity check IDENTICAL for ks, ex, fl at
+  1200 and 390; builder 340/340, renderer 198/198.
 - **2026-10-07** — Phase 37 implemented: one spec for the three flavours
   (ADR-0004), renderer stylesheet mirrored, Bootstrap parity CSS, heading
   `level` modifier, per-display `choiceLayout`, HTML page scaffold,

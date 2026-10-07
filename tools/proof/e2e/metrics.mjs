@@ -78,7 +78,7 @@ const measure = () => page.evaluate(() => {
     const cell = cellOf(el)
     result.controls[key] = {
       ...m,
-      label: typo(labelEl), labelGap: labelEl ? px(box(el).top - box(labelEl).bottom) : null,
+      label: typo(labelEl), labelGap: labelEl && cs(labelEl).position !== 'absolute' ? px(box(el).top - box(labelEl).bottom) : null,
       labelText: text(labelEl).slice(0, 30),
       required: (() => { const r = labelEl?.querySelector('[aria-hidden="true"]'); return r ? { fontSize: px(cs(r).fontSize), marginLeft: px(cs(r).marginLeft), gapFromText: px(box(r).left - (box(labelEl).left + (labelEl.firstChild?.nodeType === 3 ? (() => { const range = document.createRange(); range.selectNodeContents(labelEl.firstChild); return range.getBoundingClientRect().width })() : 0))) } : null })(),
       description: desc ? { ...typo(desc), gap: px(box(desc).top - box(el).bottom) } : null,

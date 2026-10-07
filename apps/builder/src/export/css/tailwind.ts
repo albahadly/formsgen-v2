@@ -134,9 +134,11 @@ const CLASSES: Record<Slot, string> = {
   affix:
     'inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-base text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400',
   floating: 'relative',
+  // Bootstrap's floating geometry (58px control, 1rem padding, the label scaled to .85 when floated).
   floatingLabel:
-    'pointer-events-none absolute start-3 top-3.5 origin-[0] text-sm text-gray-500 transition-transform duration-150 peer-focus:-translate-y-2.5 peer-focus:scale-75 peer-[:not(:placeholder-shown)]:-translate-y-2.5 peer-[:not(:placeholder-shown)]:scale-75 rtl:origin-[100%_0] dark:text-gray-400',
-  floatingControl: 'peer pt-5 pb-1.5 placeholder-transparent focus:placeholder-gray-400',
+    'pointer-events-none absolute start-0 top-0 box-border h-full origin-[0] overflow-hidden text-ellipsis whitespace-nowrap border border-transparent px-3 py-4 text-base leading-normal text-gray-500 transition-transform duration-100 peer-focus:-translate-y-2 peer-focus:translate-x-[0.15rem] peer-focus:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-2 peer-[:not(:placeholder-shown)]:translate-x-[0.15rem] peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:is(select)]:-translate-y-2 peer-[:is(select)]:translate-x-[0.15rem] peer-[:is(select)]:scale-[0.85] rtl:origin-[100%_0] rtl:peer-focus:-translate-x-[0.15rem] rtl:peer-[:not(:placeholder-shown)]:-translate-x-[0.15rem] rtl:peer-[:is(select)]:-translate-x-[0.15rem] dark:text-gray-400',
+  floatingControl:
+    'peer h-[3.625rem] ps-3 pe-3 pt-4 pb-4 leading-tight placeholder-transparent focus:pt-[1.625rem] focus:pb-2.5 focus:placeholder-gray-400 [&:not(:placeholder-shown)]:pt-[1.625rem] [&:not(:placeholder-shown)]:pb-2.5 [&:is(select)]:pt-[1.625rem] [&:is(select)]:pb-2.5',
   pairSeparator: '',
   pairButton:
     'shrink-0 whitespace-nowrap rounded-md border border-gray-300 px-4 py-1.5 text-base font-semibold text-gray-700 shadow-sm hover:bg-gray-50',
@@ -173,14 +175,15 @@ function tailwindClasses(slot: Slot, mods?: SlotMods): string {
   if (slot === 'heading' && mods?.level) base = swapClasses(base, 'text-2xl', HEADING_SIZE[mods.level])
   if (mods?.size) {
     if (slot === 'select') {
-      // Native selects take their height from the class (see SELECT_HEIGHT).
-      return swapClasses(swapClasses(base, CONTROL_SIZE.md, CONTROL_SIZE[mods.size]), SELECT_HEIGHT.md, SELECT_HEIGHT[mods.size])
+      // Native selects take their height from the class (see SELECT_HEIGHT); a floating one from floatingControl.
+      return swapClasses(swapClasses(base, CONTROL_SIZE.md, CONTROL_SIZE[mods.size]), SELECT_HEIGHT.md, mods.floating ? '' : SELECT_HEIGHT[mods.size])
     }
     if (slot === 'input' || slot === 'textarea') {
       return swapClasses(base, CONTROL_SIZE.md, CONTROL_SIZE[mods.size])
     }
     if (slot === 'tagsWrap') return swapClasses(base, TAGS_SIZE.md, TAGS_SIZE[mods.size])
   }
+  if (slot === 'select' && mods?.floating) base = swapClasses(base, SELECT_HEIGHT.md, '')
   if (mods?.tone) {
     if (slot === 'heading') return `${base} ${TONE_TEXT[mods.tone]}`
     if (slot === 'paragraph') {

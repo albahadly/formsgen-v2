@@ -4,8 +4,8 @@
 #   env WIDTHS=1200,390   the widths to measure at (default)
 #
 # Proves that the three CSS flavours (vanilla, Tailwind, Bootstrap 5) render
-# the same form: exports the kitchen sink and the examples template with the
-# HTML target in each flavour, serves them, measures each page with
+# the same form: exports the kitchen sink, the examples template and the
+# floating-labels demo (demos/floating.json) with the HTML target in each flavour, serves them, measures each page with
 # e2e/metrics.mjs at every width and compares the flavours with
 # metrics-compare.mjs (colours and font families excluded). Prints
 # "<form>@<width>: IDENTICAL" or "<form>@<width>: N DIFFERING METRICS" (the
@@ -23,10 +23,11 @@ exec > >(tee -a "$OUT/parity.log") 2>&1
 cleanup() { stop_bg parity-static; }
 trap cleanup EXIT
 
-for form in ks ex; do
+for form in ks ex fl; do
   case $form in
     ks) schema=$ROOT/fixtures/kitchen-sink.formsgen.json; base=kitchen_sink ;;
     ex) schema=$ROOT/examples/form/event-registration.formsgen.json; base=event_registration ;;
+    fl) schema=$PROOF/demos/floating.json; base=float_demo ;;
   esac
   bash "$PROOF/export-demo.sh" "$schema" "$OUT/$form" > "$OUT/export-$form.log" 2>&1 || { echo "export of $form failed (log: $OUT/export-$form.log)"; exit 1; }
   for fw in vanilla tailwind bootstrap5; do cp "$OUT/$form/$fw-html-$base.html" "$OUT/pages/$form-$fw.html"; done
@@ -36,7 +37,7 @@ start_bg parity-static node "$PROOF/static-server.mjs" "$OUT/pages" "$FG_STATIC_
 wait_http "http://$FG_HOST:$FG_STATIC_PORT/ks-vanilla.html" 20 || { echo "static server did not start"; exit 1; }
 
 status=0
-for form in ks ex; do
+for form in ks ex fl; do
   for width in ${WIDTHS//,/ }; do
     for fw in vanilla tailwind bootstrap5; do
       (cd "$PROOF" && node e2e/metrics.mjs "http://$FG_HOST:$FG_STATIC_PORT/$form-$fw.html" "$OUT/metrics-$form-$fw-$width.json" "$width" > /dev/null 2> "$OUT/err-metrics-$form-$fw-$width.txt") || echo "$form-$fw@$width: METRICS FAILED (see err-metrics-$form-$fw-$width.txt)"
@@ -52,7 +53,7 @@ for form in ks ex; do
 done
 
 if [ "$ONLY" != metrics ]; then
-  for form in ks ex; do
+  for form in ks ex fl; do
     for fw in vanilla tailwind bootstrap5; do
       (cd "$PROOF" && node e2e/shots.mjs "http://$FG_HOST:$FG_STATIC_PORT/$form-$fw.html" "$OUT/shots" "$form-$fw" > /dev/null 2> "$OUT/err-shots-$form-$fw.txt") || echo "$form-$fw: SCREENSHOTS FAILED"
     done

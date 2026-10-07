@@ -162,6 +162,8 @@ export interface SlotMods {
   tone?: TextTone | undefined
   /** The heading element's level (h1–h6); only the 'heading' slot reads it. */
   level?: 1 | 2 | 3 | 4 | 5 | 6 | undefined
+  /** The control sits under a floating label (meta.floatingLabels). */
+  floating?: boolean | undefined
 }
 
 export interface CssFrameworkAdapter {

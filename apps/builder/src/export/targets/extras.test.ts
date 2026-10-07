@@ -123,7 +123,7 @@ describe('floating labels', () => {
   it('use each framework idiom', () => {
     expect(out('html', s, 'bootstrap5')).toMatch(/<div class="form-floating">\s*<input placeholder=" " id="fg_name" type="text" class="form-control"/)
     expect(out('html', s, 'tailwind')).toMatch(/class="[^"]*\bpeer\b[^"]*placeholder-transparent/)
-    expect(out('html', s, 'tailwind')).toContain('peer-[:not(:placeholder-shown)]:-translate-y-2.5')
+    expect(out('html', s, 'tailwind')).toContain('peer-[:not(:placeholder-shown)]:-translate-y-2 peer-[:not(:placeholder-shown)]:translate-x-[0.15rem] peer-[:not(:placeholder-shown)]:scale-[0.85]')
     expect(out('html', schema(tree))).not.toContain('class="fg-floating"')
   })
 })

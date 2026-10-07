@@ -33,6 +33,7 @@ renderer's `styles.css` are its reference and change together):
 | Label, legend, item label | 0.875rem / 1.25rem, weight 600; required marker 0.125rem after the text |
 | Control (input, textarea, select, tags, calculated, phone) | 1rem / 1.5, padding 0.375rem 0.75rem, 1px border, 0.375rem radius: 38px tall; sm 0.875rem with 0.25rem 0.5rem (31px), lg 1.25rem with 0.5rem 1rem (48px); native selects and date inputs forced to those heights |
 | Description, error, help texts | 0.875rem / 1.25rem, no margins |
+| Floating labels | Bootstrap's geometry: the control is 3.5rem + borders tall with 1rem 0.75rem padding on a 1.25 line (1.625rem 0.625rem when floated); the label fills the control (1rem / 1.5 inside 1rem 0.75rem padding and a 1px transparent border), scales to 0.85 and moves up 0.5rem and in 0.15rem once the control is focused, filled or a select; the placeholder shows only while focused |
 | Choice rows (lists, single check, switch) | 1rem / 1.5rem text, 1rem box, text 1.5rem from the row start, 0.375rem between rows; switch 2.25 × 1.25rem |
 | Choice blocks | bordered rows, 0.5rem 0.75rem padding, 0.75rem gap, visible check, selected = primary border + 1px ring, 0.5rem apart |
 | Choice buttons | hug their text, 0.875rem / 1.25rem, weight 600, 0.5rem 1rem padding, joined borders |
@@ -86,8 +87,8 @@ group, and its form root is `p-3` instead of `container`.
 ## Consequences
 
 - `tools/proof/parity-check.sh` reports IDENTICAL metrics (1px tolerance)
-  for the kitchen sink and the examples form at 1200px and 390px; it is the
-  regression check for any adapter change.
+  for the kitchen sink, the examples form and the floating-labels demo at
+  1200px and 390px; it is the regression check for any adapter change.
 - Bootstrap exports always carry a stylesheet (`<style>` in HTML, a
   `.css` file beside the React component, `<style scoped>` in Vue, a
   `.razor.css` in Blazor); the generated READMEs name it.

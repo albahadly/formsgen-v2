@@ -72,10 +72,13 @@ export const COMPOSITE_CSS = `/* Composite fields (two-handle slider, date range
 
 /* Floating labels (meta.floatingLabels): the label floats when the control is focused or filled. */
 .fg-floating { position: relative; }
-.fg-floating > .fg-input, .fg-floating > .fg-select { padding-block: 1.375rem 0.375rem; }
-.fg-floating > .fg-floating-label { position: absolute; inset-block-start: 0; inset-inline-start: 0; padding: 0.875rem 0.75rem 0; font-size: 0.875rem; color: var(--fg-color-muted); pointer-events: none; transform-origin: 0 0; transition: transform 0.12s ease, color 0.12s ease; }
+.fg-floating > .fg-input, .fg-floating > .fg-select { block-size: calc(3.5rem + 2px); padding: 1rem 0.75rem; line-height: 1.25; }
+.fg-floating > .fg-select:not([multiple]) { block-size: calc(3.5rem + 2px); }
+.fg-floating > :focus, .fg-floating > :not(:placeholder-shown), .fg-floating > select { padding-block: 1.625rem 0.625rem; }
+.fg-floating > .fg-floating-label { position: absolute; inset-block-start: 0; inset-inline-start: 0; box-sizing: border-box; block-size: 100%; padding: 1rem 0.75rem; border: 1px solid transparent; font-size: 1rem; line-height: 1.5; color: var(--fg-color-muted); pointer-events: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transform-origin: 0 0; transition: transform 0.1s ease-in-out, color 0.1s ease-in-out; }
 [dir='rtl'] .fg-floating > .fg-floating-label { transform-origin: 100% 0; }
-.fg-floating > :focus ~ .fg-floating-label, .fg-floating > :not(:placeholder-shown) ~ .fg-floating-label, .fg-floating > select ~ .fg-floating-label { transform: translateY(-0.5rem) scale(0.8); }
+.fg-floating > :focus ~ .fg-floating-label, .fg-floating > :not(:placeholder-shown) ~ .fg-floating-label, .fg-floating > select ~ .fg-floating-label { transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem); }
+[dir='rtl'] .fg-floating > :focus ~ .fg-floating-label, [dir='rtl'] .fg-floating > :not(:placeholder-shown) ~ .fg-floating-label, [dir='rtl'] .fg-floating > select ~ .fg-floating-label { transform: scale(0.85) translateY(-0.5rem) translateX(-0.15rem); }
 .fg-floating > :focus ~ .fg-floating-label { color: var(--fg-color-primary); }
 .fg-floating > :not(:focus)::placeholder { color: transparent; }
 `
