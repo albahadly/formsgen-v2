@@ -4,8 +4,8 @@
 rendering) that hosts the exported Razor component.
 `Components/Forms/<Css>/EventRegistrationForm.razor` are the files the
 builder's *Download* writes for the Blazor target, one per CSS framework
-(the vanilla variant also brings `EventRegistrationForm.razor.css`, scoped
-styles the build bundles into `EventRegistration.styles.css`); the rest is
+(the vanilla and Bootstrap variants also bring `EventRegistrationForm.razor.css`,
+scoped styles the build bundles into `EventRegistration.styles.css`); the rest is
 the host app.
 
 ## Run

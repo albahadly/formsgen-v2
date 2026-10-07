@@ -66,6 +66,23 @@ editor the cleaned markup after a re-render (`<strong>` for the typed
 `<b>`); the scenario normalises that too. Anything else that differs is a
 real difference between runtimes.
 
+## Checking that the three CSS flavours render the same form
+
+```sh
+bash tools/proof/parity-check.sh              # ONLY=metrics skips the screenshots; WIDTHS=1200,390
+```
+
+Exports the kitchen sink and the examples template with the HTML target in
+vanilla, Tailwind and Bootstrap 5, serves them, measures each page with
+`e2e/metrics.mjs` (computed sizes, spacing and typography of the form, its
+cells, controls, labels, headings, paragraphs, choice rows, buttons,
+fieldsets and HTML blocks, plus the error state) and compares the flavours
+with `metrics-compare.mjs`, which ignores colours, font families and the
+frameworks' own artefacts. Prints `<form>@<width>: IDENTICAL` or the number
+of differing metrics (table in `compare-<form>-<width>.md`), then takes the
+screenshots (`e2e/shots.mjs`: 390/768/1200, dark, error state) under
+`work/parity/shots/`. ADR-0004 is the spec it checks.
+
 ## Checking the examples
 
 ```sh
@@ -117,6 +134,7 @@ signature and location fields in an Arabic form start with Arabic labels
 - `lib.sh` — shared defaults and helpers (`start_bg`, `stop_bg`, `wait_http`); sourced by the scripts.
 - `setup.sh`, `export-demo.sh`, `strict.sh`, `run-matrix.sh` — the four steps above.
 - `examples-check.sh` — the 13-runtime check of the example projects (`examples/`).
+- `parity-check.sh`, `metrics-compare.mjs`, `e2e/metrics.mjs`, `e2e/shots.mjs` — the CSS-flavour parity check (ADR-0004).
 - `static-server.mjs` — serves a directory and records `/submit` posts (`/last`, `/mode?delay=&fail=1`).
 - `react-harness/` — tsconfig and `*.css` module declaration for the React exports.
 - `vue-harness/` — Vite config (plugin-vue and Vue from the builder's `node_modules`), `main.ts`, `index.html` template.

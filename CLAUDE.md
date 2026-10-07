@@ -88,6 +88,9 @@ Blazor × vanilla, Tailwind, Bootstrap 5) lives in `tools/proof/`; read its
 - `tools/proof/e2e/*.mjs` — the scenario scripts; `tools/proof/demos/*.json`
   — the demo schemas they drive (`FG_HOST` placeholder for the local host).
 - `tools/proof/builder-check.mjs` — browser check of the builder itself.
+- `tools/proof/parity-check.sh` — the three CSS flavours must measure
+  IDENTICAL (ADR-0004); run it after any change to `export/css/*`,
+  `composite.ts` or the renderer stylesheet.
 
 ## 6. Environment facts (cloud container)
 

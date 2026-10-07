@@ -2,8 +2,8 @@
 
 A Vite + React 18 + TypeScript app that mounts the exported component.
 `src/forms/<css>/EventRegistrationForm.tsx` are the files the builder's
-*Download* writes for the React target (the vanilla variant also brings
-`EventRegistrationForm.css`); everything else is the host app.
+*Download* writes for the React target (the vanilla and Bootstrap variants also bring an
+`EventRegistrationForm.css`: vanilla's whole stylesheet, Bootstrap's few parity rules); everything else is the host app.
 
 ## Run
 

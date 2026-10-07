@@ -48,10 +48,10 @@ produce, so the examples cannot drift from the builder.
 | Generated | Target |
 |---|---|
 | `html/<css>/event_registration.html` | HTML + JS |
-| `react/src/forms/<css>/EventRegistrationForm.tsx` (+ `.css` for vanilla) | React (standalone) |
+| `react/src/forms/<css>/EventRegistrationForm.tsx` (+ `.css` for vanilla and Bootstrap) | React (standalone) |
 | `vue/src/forms/<css>/EventRegistrationForm.vue` | Vue (standalone) |
 | `vue/src/forms/renderer/EventRegistrationForm.vue` | Vue (renderer package) |
-| `dotnet/EventRegistration/Components/Forms/<Css>/EventRegistrationForm.razor` (+ `.razor.css` for vanilla) | Blazor |
+| `dotnet/EventRegistration/Components/Forms/<Css>/EventRegistrationForm.razor` (+ `.razor.css` for vanilla and Bootstrap) | Blazor |
 
 To change the form: open `form/event-registration.formsgen.json` in the
 builder (*Open*), edit it, export the JSON over the same file, then

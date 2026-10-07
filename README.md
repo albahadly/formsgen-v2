@@ -79,13 +79,16 @@ compilers on them and drives each runtime with the same scenario
 | JSON schema | `<name>.formsgen.json` | `@formsgen/renderer`, or re-open in the builder |
 | Vue (renderer) | SFC wrapping `<FormsGenForm>` | the renderer package |
 | Vue (standalone) | one zero-dependency SFC | Vue 3 only |
-| React (standalone) | one typed `.tsx` (+ `.css` in vanilla mode) | React 18 only |
-| Blazor | `.razor` + optional scoped CSS | .NET 8 |
+| React (standalone) | one typed `.tsx` (+ `.css`: always for vanilla and Bootstrap, for Tailwind when the form needs framework-neutral rules) | React 18 only |
+| Blazor | `.razor` + scoped CSS (vanilla, Bootstrap; Tailwind when needed) | .NET 8 |
 | HTML + JS | one self-contained `.html` | a browser |
 
 Every code target generates for vanilla CSS, Tailwind, or Bootstrap 5, and
 the zip download bundles a README with exact install steps for the chosen
-combination. Exported forms have no npm dependencies, but three features
+combination. The three flavours render the same form (one spec for sizes,
+spacing and typography, ADR-0004); only colours and each framework's
+control skin differ, and a themed form colours all three alike.
+`tools/proof/parity-check.sh` measures it. Exported forms have no npm dependencies, but three features
 load outside services at run time, which the README lists with the hosts a
 Content-Security-Policy must allow: a **location field** loads Leaflet from
 cdnjs (pinned with integrity hashes) and map tiles from OpenStreetMap or the
