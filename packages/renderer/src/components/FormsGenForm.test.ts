@@ -48,7 +48,7 @@ async function fillValidForm(wrapper: ReturnType<typeof mountForm>) {
   await wrapper.get('#fg-ks-stay').setValue('2026-11-01') // date range
   await wrapper.get('#fg-ks-stay-to').setValue('2026-11-04')
   await wrapper.get('#fg-ks-rating').setValue(true) // matrix: speed = 1
-  await wrapper.get('#fg-ks-rating-1-2').setValue(true) // quality = 3
+  await wrapper.get('#fg-ks-rating-cell-1-2').setValue(true) // quality = 3
   const upload = wrapper.get('#fg-ks-attachments').element as HTMLInputElement
   Object.defineProperty(upload, 'files', { value: [attachment], configurable: true })
   upload.dispatchEvent(new Event('change'))

@@ -31,7 +31,7 @@ export function tipFor(node: ElementNode, ctx: EmitCtx, jsx = false): string {
   const text = textProp(node, 'tooltip')
   if (!text) return ''
   const c = jsx ? 'className' : 'class'
-  return `<span ${c}="fg-tip"><button type="button" ${c}="fg-tip-button" aria-label="${esc(ctx.messages.moreInfo)}" aria-describedby="${ctx.id}_tip">?</button><span role="tooltip" id="${ctx.id}_tip" ${c}="fg-tip-text">${esc(text)}</span></span>`
+  return `<span ${c}="fg-tip"><button type="button" ${c}="fg-tip-button" aria-label="${esc(ctx.messages.moreInfo)}" aria-describedby="${ctx.id}-tip">?</button><span role="tooltip" id="${ctx.id}-tip" ${c}="fg-tip-text">${esc(text)}</span></span>`
 }
 
 /** A label, wrapped in a row with the tooltip beside it when there is one. */
@@ -56,17 +56,17 @@ export function legendFor(node: ElementNode, ctx: EmitCtx, jsx = false): string 
   const text = textMarkup(node, ctx, 'label')
   const req = ctx.required ? `<span ${c}="${ctx.css.classes('required')}" aria-hidden="true">*</span>` : ''
   const tip = tipFor(node, ctx, jsx)
-  return `<legend ${c}="${ctx.css.classes('label')}">${tip ? `<span id="${ctx.id}_legend">${text}</span>` : text}${req}${tip}</legend>`
+  return `<legend ${c}="${ctx.css.classes('label')}">${tip ? `<span id="${ctx.id}-legend">${text}</span>` : text}${req}${tip}</legend>`
 }
 
 /** ` aria-labelledby` for a fieldset whose legend carries a tooltip. */
 export function legendLabelledBy(node: ElementNode, ctx: EmitCtx): string {
-  return textProp(node, 'tooltip') ? ` aria-labelledby="${ctx.id}_legend"` : ''
+  return textProp(node, 'tooltip') ? ` aria-labelledby="${ctx.id}-legend"` : ''
 }
 
 /** ` aria-describedby` naming the add-ons around a control, or nothing. */
 export function affixDescribedBy(node: ElementNode, ctx: EmitCtx): string {
-  const ids = [textProp(node, 'prefix') && `${ctx.id}_prefix`, textProp(node, 'suffix') && `${ctx.id}_suffix`].filter(Boolean)
+  const ids = [textProp(node, 'prefix') && `${ctx.id}-prefix`, textProp(node, 'suffix') && `${ctx.id}-suffix`].filter(Boolean)
   return ids.length ? ` aria-describedby="${ids.join(' ')}"` : ''
 }
 
@@ -78,7 +78,7 @@ export function affixWrap(node: ElementNode, ctx: EmitCtx, control: string, jsx 
   if (!prefix && !suffix) return floatWrap(node, ctx, control, jsx)
   const c = jsx ? 'className' : 'class'
   const affix = (text: string, part: string): string =>
-    `<span id="${ctx.id}_${part}" ${c}="${ctx.css.classes('affix')}">${esc(text)}</span>`
+    `<span id="${ctx.id}-${part}" ${c}="${ctx.css.classes('affix')}">${esc(text)}</span>`
   return `<div ${c}="${ctx.css.classes('affixGroup')}">\n    ${[prefix && affix(prefix, 'prefix'), control, suffix && affix(suffix, 'suffix')]
     .filter(Boolean)
     .join('\n    ')}\n  </div>`
@@ -122,7 +122,7 @@ export function vueError(ctx: EmitCtx): string {
 }
 
 export function htmlError(ctx: EmitCtx): string {
-  return `<p id="fg_err_${ctx.key}" class="${ctx.css.classes('error')}" role="alert" hidden></p>`
+  return `<p id="fg_${ctx.key}-err" class="${ctx.css.classes('error')}" role="alert" hidden></p>`
 }
 
 /** Vue class binding adding the adapter's invalid class while errored. */

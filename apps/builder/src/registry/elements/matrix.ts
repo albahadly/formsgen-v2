@@ -47,7 +47,7 @@ function table(node: ElementNode, ctx: EmitCtx, lang: Lang, radio: RadioFn): str
     .map((row, ri) => {
       const cells = columns
         .map((column, ci) => {
-          const id = ri === 0 && ci === 0 ? ctx.id : `${ctx.id}_${ri}_${ci}`
+          const id = ri === 0 && ci === 0 ? ctx.id : `${ctx.id}-${ri}-${ci}`
           return `<td${cls(ctx, 'matrixCell', lang)}>${radio(row.value, column.value, id, esc(`${row.label}: ${column.label}`))}</td>`
         })
         .join('')

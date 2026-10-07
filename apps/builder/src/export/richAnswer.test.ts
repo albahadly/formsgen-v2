@@ -50,8 +50,8 @@ describe('rich text in the exports', () => {
     for (const target of ['vue-standalone', 'react', 'html', 'blazor']) {
       const code = out(target)
       expect(code, target).toMatch(/role="toolbar" aria-label="Formatting" aria-controls="fg_about"/)
-      expect(code, target).toMatch(/<div id="fg_about" [^>]*role="textbox" aria-multiline="true" aria-labelledby="fg_about_label" aria-required="true"/)
-      expect(code, target).toContain('<span id="fg_about_label">About</span>')
+      expect(code, target).toMatch(/<div id="fg_about" [^>]*role="textbox" aria-multiline="true" aria-labelledby="fg_about-label" aria-required="true"/)
+      expect(code, target).toContain('<span id="fg_about-label">About</span>')
       expect(code, target).toContain('data-fg-rt-cmd="insertOrderedList"')
       expect(code, target).toContain('function fgRichClean(')
       // One tab stop per toolbar (React takes tabIndex as a number).

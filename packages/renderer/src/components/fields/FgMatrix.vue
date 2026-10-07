@@ -28,7 +28,7 @@ function isChosen(row: string, column: string): boolean {
   return Array.isArray(answer) ? answer.includes(column) : answer === column
 }
 
-const radioId = (ri: number, ci: number): string => (ri === 0 && ci === 0 ? fieldId.value : `${fieldId.value}-${ri}-${ci}`)
+const radioId = (ri: number, ci: number): string => (ri === 0 && ci === 0 ? fieldId.value : `${fieldId.value}-cell-${ri}-${ci}`)
 </script>
 
 <template>

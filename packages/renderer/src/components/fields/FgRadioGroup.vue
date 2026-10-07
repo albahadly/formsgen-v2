@@ -69,10 +69,10 @@ const selected = computed({
         :key="item.value"
         class="fg-option"
         :class="display === 'list' ? undefined : `fg-option--${display === 'blocks' ? 'block' : 'button'}`"
-        :for="`${fieldId}-${item.value}`"
+        :for="`${fieldId}-opt-${item.value}`"
       >
         <input
-          :id="`${fieldId}-${item.value}`"
+          :id="`${fieldId}-opt-${item.value}`"
           v-model="selected"
           type="radio"
           :class="display === 'buttons' ? 'fg-sr-only' : 'fg-checkbox'"

@@ -43,7 +43,7 @@ function editor(node: ElementNode, ctx: EmitCtx, lang: EmitterLang): string {
   <div ${c}="${ctx.css.classes('richtextToolbar')}" role="toolbar" aria-label="${esc(m.richToolbar)}" aria-controls="${ctx.id}">
     ${buttons}
   </div>
-  <div id="${ctx.id}" ${c}="${ctx.css.classes('richtextEditor')}" ${editable} role="textbox" aria-multiline="true" aria-labelledby="${ctx.id}_label"${ctx.required ? ' aria-required="true"' : ''} ${value}${extra}></div>
+  <div id="${ctx.id}" ${c}="${ctx.css.classes('richtextEditor')}" ${editable} role="textbox" aria-multiline="true" aria-labelledby="${ctx.id}-label"${ctx.required ? ' aria-required="true"' : ''} ${value}${extra}></div>
 </div>`
 }
 
@@ -51,7 +51,7 @@ function editor(node: ElementNode, ctx: EmitCtx, lang: EmitterLang): string {
 function label(node: ElementNode, ctx: EmitCtx, lang: EmitterLang): string {
   const c = lang === 'react' ? 'className' : 'class'
   const req = ctx.required ? `<span ${c}="${ctx.css.classes('required')}" aria-hidden="true">*</span>` : ''
-  return `<div ${c}="${ctx.css.classes('label')}"><span id="${ctx.id}_label">${textMarkup(node, ctx, 'label')}</span>${req}</div>`
+  return `<div ${c}="${ctx.css.classes('label')}"><span id="${ctx.id}-label">${textMarkup(node, ctx, 'label')}</span>${req}</div>`
 }
 
 function wrap(parts: string[], lang: EmitterLang, ctx: EmitCtx): string {

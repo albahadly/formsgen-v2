@@ -31,7 +31,7 @@ function pad(node: ElementNode, ctx: EmitCtx, lang: EmitterLang): string {
 
 function fieldset(parts: string[], lang: EmitterLang, ctx: EmitCtx): string {
   const c = lang === 'react' ? 'className' : 'class'
-  const labelledBy = parts.some((p) => p.includes(`id="${ctx.id}_legend"`)) ? ` aria-labelledby="${ctx.id}_legend"` : ''
+  const labelledBy = parts.some((p) => p.includes(`id="${ctx.id}-legend"`)) ? ` aria-labelledby="${ctx.id}-legend"` : ''
   return `<fieldset ${c}="${ctx.css.classes('field')}"${labelledBy}>\n  ${parts
     .filter(Boolean)
     .map((part) => part.split('\n').join('\n  '))

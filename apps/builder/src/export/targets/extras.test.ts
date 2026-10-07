@@ -31,8 +31,8 @@ describe('help tooltips in every target', () => {
   it('sits beside the label, never inside it, and describes its button', () => {
     for (const target of TARGETS) {
       const code = out(target, s)
-      expect(code, target).toContain(`aria-label="${MESSAGES.en.moreInfo}" aria-describedby="fg_price_tip">?</button>`)
-      expect(code, target).toMatch(/role="tooltip" id="fg_price_tip" class(Name)?="fg-tip-text">Before tax</)
+      expect(code, target).toContain(`aria-label="${MESSAGES.en.moreInfo}" aria-describedby="fg_price-tip">?</button>`)
+      expect(code, target).toMatch(/role="tooltip" id="fg_price-tip" class(Name)?="fg-tip-text">Before tax</)
       // the label closes before the tip begins
       expect(code, target).toMatch(/Price<\/label><span class(Name)?="fg-tip">/)
       expect(code, target).toMatch(/I agree<\/label><span class(Name)?="fg-tip">/)
@@ -42,8 +42,8 @@ describe('help tooltips in every target', () => {
   it('names a group by its legend text only', () => {
     for (const target of TARGETS) {
       const code = out(target, s)
-      expect(code, target).toContain('aria-labelledby="fg_plan_legend"')
-      expect(code, target).toContain('<span id="fg_plan_legend">Plan</span>')
+      expect(code, target).toContain('aria-labelledby="fg_plan-legend"')
+      expect(code, target).toContain('<span id="fg_plan-legend">Plan</span>')
     }
   })
 
@@ -67,11 +67,11 @@ describe('text add-ons', () => {
   it('wrap the control and describe it in every target and framework', () => {
     for (const target of TARGETS) {
       const code = out(target, s)
-      expect(code, target).toContain('aria-describedby="fg_price_prefix fg_price_suffix"')
-      expect(code, target).toContain('aria-describedby="fg_user_prefix"')
-      expect(code, target).toMatch(/<span id="fg_price_prefix" class(Name)?="fg-affix">\$<\/span>/)
+      expect(code, target).toContain('aria-describedby="fg_price-prefix fg_price-suffix"')
+      expect(code, target).toContain('aria-describedby="fg_user-prefix"')
+      expect(code, target).toMatch(/<span id="fg_price-prefix" class(Name)?="fg-affix">\$<\/span>/)
       expect(out(target, s, 'bootstrap5'), target).toMatch(/class(Name)?="input-group"/)
-      expect(out(target, s, 'bootstrap5'), target).toMatch(/<span id="fg_price_suffix" class(Name)?="input-group-text">USD<\/span>/)
+      expect(out(target, s, 'bootstrap5'), target).toMatch(/<span id="fg_price-suffix" class(Name)?="input-group-text">USD<\/span>/)
     }
   })
 

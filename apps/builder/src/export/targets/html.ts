@@ -862,7 +862,7 @@ ${conditionTests.map((expr, i) => `      { index: ${i}, test: function () { retu
     function fgKey(path) { return path.replace(/\\./g, '_') }
 
     function setError(path, message) {
-      var el = document.getElementById('fg_err_' + fgKey(path))
+      var el = document.getElementById('fg_' + fgKey(path) + '-err')
       var control = fgControl(path)
       var invalid = ${JSON.stringify('INVALID_CLASS_PLACEHOLDER')}.split(' ').filter(Boolean)
       if (el) {

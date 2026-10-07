@@ -30,17 +30,17 @@ describe('choice display variants', () => {
   it('Bootstrap uses its native btn-check + label pairs (siblings)', () => {
     const html = out('html', [{ id: 'r', type: 'radiogroup', name: 'r', props: { label: 'R', items, display: 'buttons' } }], 'bootstrap5')
     expect(html).toContain('<div class="btn-group flex-wrap">')
-    expect(html).toMatch(/<input id="fg_r_a" type="radio" name="r" class="btn-check"[^>]*>\n\s*<label class="btn btn-outline-primary" for="fg_r_a">A<\/label>/)
+    expect(html).toMatch(/<input id="fg_r-a" type="radio" name="r" class="btn-check"[^>]*>\n\s*<label class="btn btn-outline-primary" for="fg_r-a">A<\/label>/)
     const razor = out('blazor', [{ id: 'c', type: 'checkboxgroup', name: 'c', props: { label: 'C', items, display: 'blocks' } }], 'bootstrap5')
-    expect(razor).toContain('<input id="fg_c_a" type="checkbox" class="btn-check"')
-    expect(razor).toContain('<label class="btn btn-outline-primary text-start" for="fg_c_a">A</label>')
+    expect(razor).toContain('<input id="fg_c-a" type="checkbox" class="btn-check"')
+    expect(razor).toContain('<label class="btn btn-outline-primary text-start" for="fg_c-a">A</label>')
   })
 
   it('Tailwind and vanilla nest the input in its label', () => {
     const tw = out('react', [{ id: 'r', type: 'radiogroup', name: 'r', props: { label: 'R', items, display: 'buttons' } }], 'tailwind')
-    expect(tw).toMatch(/<label className="relative -ms-px[^"]*" htmlFor="fg_r_a">\n\s*<input id="fg_r_a" type="radio" className="sr-only"/)
+    expect(tw).toMatch(/<label className="relative -ms-px[^"]*" htmlFor="fg_r-a">\n\s*<input id="fg_r-a" type="radio" className="sr-only"/)
     const vue = out('vue-standalone', [{ id: 'c', type: 'checkboxgroup', name: 'c', props: { label: 'C', items, display: 'blocks' } }])
-    expect(vue).toContain('<label class="fg-option fg-option--block" for="fg_c_a">')
+    expect(vue).toContain('<label class="fg-option fg-option--block" for="fg_c-a">')
   })
 })
 

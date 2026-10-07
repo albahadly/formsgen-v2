@@ -38,7 +38,7 @@ function picker(node: ElementNode, ctx: EmitCtx, lang: EmitterLang): string {
   <div ${c}="${ctx.css.classes('locationMap')}" ${style} role="group" aria-label="${attr(`${textProp(node, 'label') ?? ''}: ${m.locationMap}`)}" data-fg-loc-map></div>
   <div ${c}="${ctx.css.classes('locationRow')}">
     ${input('lat', ctx.id, 90)}
-    ${input('lng', `${ctx.id}_lng`, 180)}${mine}
+    ${input('lng', `${ctx.id}-lng`, 180)}${mine}
     <button type="button" ${c}="${ctx.css.classes('buttonSecondary')}" data-fg-loc-clear>${text(m.locationClear)}</button>
   </div>
   <p ${c}="${ctx.css.classes('locationStatus')}" aria-live="polite" data-fg-loc-status></p>
@@ -47,7 +47,7 @@ function picker(node: ElementNode, ctx: EmitCtx, lang: EmitterLang): string {
 
 function fieldset(parts: string[], lang: EmitterLang, ctx: EmitCtx): string {
   const c = lang === 'react' ? 'className' : 'class'
-  const labelledBy = parts.some((p) => p.includes(`id="${ctx.id}_legend"`)) ? ` aria-labelledby="${ctx.id}_legend"` : ''
+  const labelledBy = parts.some((p) => p.includes(`id="${ctx.id}-legend"`)) ? ` aria-labelledby="${ctx.id}-legend"` : ''
   return `<fieldset ${c}="${ctx.css.classes('field')}"${labelledBy}>\n  ${parts
     .filter(Boolean)
     .map((part) => part.split('\n').join('\n  '))

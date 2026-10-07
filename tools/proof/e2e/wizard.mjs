@@ -33,7 +33,7 @@ const state = async () => ({
   ink: (await inkOf('fg_signature')) > 200,
   // Blazor shows the editor the cleaned markup of the same bold text after a re-render (<strong> for the typed <b>).
   editor: (await page.evaluate(() => document.getElementById('fg_about')?.innerHTML ?? null))?.replace(/<b>/g, '<strong>').replace(/<\/b>/g, '</strong>') ?? null,
-  boxes: await page.evaluate(() => [document.getElementById('fg_place')?.value ?? null, document.getElementById('fg_place_lng')?.value ?? null]),
+  boxes: await page.evaluate(() => [document.getElementById('fg_place')?.value ?? null, document.getElementById('fg_place-lng')?.value ?? null]),
   pin: await page.evaluate(() => document.getElementById('fg_place')?.closest('[data-fg-loc]')?.querySelectorAll('.fg-location-pin').length ?? null),
   signed: await page.getByText('Thanks for signing.').isVisible().catch(() => false),
   extra: await page.evaluate(() => { const el = document.getElementById('fg_extra_place'); return el ? (el.checkVisibility() ? 1 : 0) : 0 }),
@@ -73,7 +73,7 @@ await page.locator('[data-fg-rt-cmd="bold"]').first().click()
 await page.keyboard.type('forms')
 await page.locator('#fg_full_name').click(); await wait()
 await page.locator('#fg_place').fill('23.6')
-await page.locator('#fg_place_lng').fill('58.45')
+await page.locator('#fg_place-lng').fill('58.45')
 await page.locator('#fg_full_name').click(); await wait(); await wait()
 r.filled = await state()
 // Next, then Back: step 1 is rendered again and must show the same values.
@@ -87,15 +87,15 @@ r.back = await state()
 await page.locator('#fg_more').check(); await wait()
 await mapReady('fg_extra_place')
 await page.locator('#fg_extra_place').fill('51.51')
-await page.locator('#fg_extra_place_lng').fill('-0.1')
+await page.locator('#fg_extra_place-lng').fill('-0.1')
 await page.locator('#fg_full_name').click(); await wait()
-r.extraShown = { maps: await visible('.leaflet-container'), boxes: await page.evaluate(() => [document.getElementById('fg_extra_place').value, document.getElementById('fg_extra_place_lng').value]) }
+r.extraShown = { maps: await visible('.leaflet-container'), boxes: await page.evaluate(() => [document.getElementById('fg_extra_place').value, document.getElementById('fg_extra_place-lng').value]) }
 await page.locator('#fg_more').uncheck(); await wait(); await wait()
 r.extraHidden = { maps: await visible('.leaflet-container'), field: await visible('#fg_extra_place') }
 await page.locator('#fg_more').check(); await wait()
 await mapReady('fg_extra_place')
 await page.waitForTimeout(kind === 'blazor' ? 1500 : 600)
-r.extraAgain = { maps: await visible('.leaflet-container'), boxes: await page.evaluate(() => [document.getElementById('fg_extra_place').value, document.getElementById('fg_extra_place_lng').value]), pins: await page.evaluate(() => document.getElementById('fg_extra_place').closest('[data-fg-loc]').querySelectorAll('.fg-location-pin').length) }
+r.extraAgain = { maps: await visible('.leaflet-container'), boxes: await page.evaluate(() => [document.getElementById('fg_extra_place').value, document.getElementById('fg_extra_place-lng').value]), pins: await page.evaluate(() => document.getElementById('fg_extra_place').closest('[data-fg-loc]').querySelectorAll('.fg-location-pin').length) }
 if (shot) await page.screenshot({ path: shot, fullPage: true })
 // Submit from step 2.
 await page.getByRole('button', { name: 'Next', exact: true }).click(); await wait(); await wait()

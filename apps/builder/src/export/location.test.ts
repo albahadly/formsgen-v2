@@ -27,7 +27,7 @@ describe('location in the exports', () => {
       expect(code, target).toContain('data-fg-loc-start="23.6,58.4,11" data-fg-loc-tiles="https://tile.openstreetmap.org/{z}/{x}/{y}.png" data-fg-loc-attribution="© OpenStreetMap contributors"')
       expect(code, target).toContain('role="group" aria-label="Where?: Map: click or tap to place the pin, drag the pin to move it" data-fg-loc-map')
       expect(code, target).toMatch(/<input id="fg_place" type="number" [^>]*step="any" min="-90" max="90"/)
-      expect(code, target).toContain('<input id="fg_place_lng" type="number"')
+      expect(code, target).toContain('<input id="fg_place-lng" type="number"')
       expect(code, target).toContain('data-fg-loc-mine>Use my location</button>')
       expect(code, target).toContain('data-fg-loc-clear>Clear</button>')
       // Leaflet from cdnjs, with its integrity hash.

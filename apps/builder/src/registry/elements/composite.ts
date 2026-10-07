@@ -72,7 +72,7 @@ export const rangeSliderElement: ElementDefinition = {
       return fieldWrap(
         [
           labelFor(node, ctx),
-          `${DUAL_TRACK_OPEN}<div class="fg-dual-fill" :style="fgDualFill(${v}, ${min}, ${max})"></div></div>\n    ${input('from', ctx.id, partLabel(node, ctx.messages.rangeFrom), `fgDualFromOnTop(${v}, ${min}, ${max}) ? 3 : 1`)}\n    ${input('to', `${ctx.id}_to`, partLabel(node, ctx.messages.rangeTo), '2')}\n  </div>`,
+          `${DUAL_TRACK_OPEN}<div class="fg-dual-fill" :style="fgDualFill(${v}, ${min}, ${max})"></div></div>\n    ${input('from', ctx.id, partLabel(node, ctx.messages.rangeFrom), `fgDualFromOnTop(${v}, ${min}, ${max}) ? 3 : 1`)}\n    ${input('to', `${ctx.id}-to`, partLabel(node, ctx.messages.rangeTo), '2')}\n  </div>`,
           `<p class="${ctx.css.classes('description')}">{{ ${v}.from }} – {{ ${v}.to }}</p>`,
           descriptionFor(node, ctx),
           vueError(ctx),
@@ -87,7 +87,7 @@ export const rangeSliderElement: ElementDefinition = {
       return fieldWrap(
         [
           labelFor(node, ctx),
-          `<div class="fg-dual" data-fg-dual="${ctx.path}">\n    <div class="fg-dual-track"><div class="fg-dual-fill" data-fg-dual-fill></div></div>\n    ${input('from', ctx.id, partLabel(node, ctx.messages.rangeFrom))}\n    ${input('to', `${ctx.id}_to`, partLabel(node, ctx.messages.rangeTo))}\n  </div>`,
+          `<div class="fg-dual" data-fg-dual="${ctx.path}">\n    <div class="fg-dual-track"><div class="fg-dual-fill" data-fg-dual-fill></div></div>\n    ${input('from', ctx.id, partLabel(node, ctx.messages.rangeFrom))}\n    ${input('to', `${ctx.id}-to`, partLabel(node, ctx.messages.rangeTo))}\n  </div>`,
           `<p class="${ctx.css.classes('description')}" data-fg-dual-text="${ctx.path}">${initial.from} – ${initial.to}</p>`,
           descriptionFor(node, ctx),
           htmlError(ctx),
@@ -103,7 +103,7 @@ export const rangeSliderElement: ElementDefinition = {
       return reactFieldWrap(
         [
           reactLabelFor(node, ctx),
-          `<div className="fg-dual">\n    <div className="fg-dual-track"><div className="fg-dual-fill" style={fgDualFill(${v}, ${min}, ${max})}></div></div>\n    ${input('from', ctx.id, partLabel(node, ctx.messages.rangeFrom), `fgDualFromOnTop(${v}, ${min}, ${max}) ? 3 : 1`)}\n    ${input('to', `${ctx.id}_to`, partLabel(node, ctx.messages.rangeTo), '2')}\n  </div>`,
+          `<div className="fg-dual">\n    <div className="fg-dual-track"><div className="fg-dual-fill" style={fgDualFill(${v}, ${min}, ${max})}></div></div>\n    ${input('from', ctx.id, partLabel(node, ctx.messages.rangeFrom), `fgDualFromOnTop(${v}, ${min}, ${max}) ? 3 : 1`)}\n    ${input('to', `${ctx.id}-to`, partLabel(node, ctx.messages.rangeTo), '2')}\n  </div>`,
           `<p className="${ctx.css.classes('description')}">{${v}.from} – {${v}.to}</p>`,
           reactDescription(node, ctx),
           reactError(ctx),
@@ -120,7 +120,7 @@ export const rangeSliderElement: ElementDefinition = {
       return fieldWrap(
         [
           labelFor(node, ctx),
-          `${DUAL_TRACK_OPEN}<div class="fg-dual-fill" style="@FgDualFill(${m}, ${min}, ${max})"></div></div>\n    ${input('From', ctx.id, partLabel(node, ctx.messages.rangeFrom), `@(FgDualFromOnTop(${m}, ${min}, ${max}) ? 3 : 1)`)}\n    ${input('To', `${ctx.id}_to`, partLabel(node, ctx.messages.rangeTo), '2')}\n  </div>`,
+          `${DUAL_TRACK_OPEN}<div class="fg-dual-fill" style="@FgDualFill(${m}, ${min}, ${max})"></div></div>\n    ${input('From', ctx.id, partLabel(node, ctx.messages.rangeFrom), `@(FgDualFromOnTop(${m}, ${min}, ${max}) ? 3 : 1)`)}\n    ${input('To', `${ctx.id}-to`, partLabel(node, ctx.messages.rangeTo), '2')}\n  </div>`,
           `<p class="${ctx.css.classes('description')}">@FgNum(${m}.From) – @FgNum(${m}.To)</p>`,
           descriptionFor(node, ctx),
           blazorValidationMessage(ctx),
@@ -156,7 +156,7 @@ export const dateRangeElement: ElementDefinition = {
       return fieldWrap(
         [
           labelFor(node, ctx),
-          `<div class="${ctx.css.classes('pair')}">\n    ${input('from', ctx.id, partLabel(node, ctx.messages.dateFrom))}\n    ${separator(ctx)}\n    ${input('to', `${ctx.id}_to`, partLabel(node, ctx.messages.dateTo), ` :min="${v}.from || undefined"`)}\n  </div>`,
+          `<div class="${ctx.css.classes('pair')}">\n    ${input('from', ctx.id, partLabel(node, ctx.messages.dateFrom))}\n    ${separator(ctx)}\n    ${input('to', `${ctx.id}-to`, partLabel(node, ctx.messages.dateTo), ` :min="${v}.from || undefined"`)}\n  </div>`,
           descriptionFor(node, ctx),
           vueError(ctx),
         ],
@@ -169,7 +169,7 @@ export const dateRangeElement: ElementDefinition = {
       return fieldWrap(
         [
           labelFor(node, ctx),
-          `<div class="${ctx.css.classes('pair')}">\n    ${input('from', ctx.id, partLabel(node, ctx.messages.dateFrom))}\n    ${separator(ctx)}\n    ${input('to', `${ctx.id}_to`, partLabel(node, ctx.messages.dateTo))}\n  </div>`,
+          `<div class="${ctx.css.classes('pair')}">\n    ${input('from', ctx.id, partLabel(node, ctx.messages.dateFrom))}\n    ${separator(ctx)}\n    ${input('to', `${ctx.id}-to`, partLabel(node, ctx.messages.dateTo))}\n  </div>`,
           descriptionFor(node, ctx),
           htmlError(ctx),
         ],
@@ -183,7 +183,7 @@ export const dateRangeElement: ElementDefinition = {
       return reactFieldWrap(
         [
           reactLabelFor(node, ctx),
-          `<div className="${ctx.css.classes('pair')}">\n    ${input('from', ctx.id, partLabel(node, ctx.messages.dateFrom))}\n    ${separator(ctx, 'className')}\n    ${input('to', `${ctx.id}_to`, partLabel(node, ctx.messages.dateTo), ` min={${v}.from || undefined}`)}\n  </div>`,
+          `<div className="${ctx.css.classes('pair')}">\n    ${input('from', ctx.id, partLabel(node, ctx.messages.dateFrom))}\n    ${separator(ctx, 'className')}\n    ${input('to', `${ctx.id}-to`, partLabel(node, ctx.messages.dateTo), ` min={${v}.from || undefined}`)}\n  </div>`,
           reactDescription(node, ctx),
           reactError(ctx),
         ],
@@ -199,7 +199,7 @@ export const dateRangeElement: ElementDefinition = {
       return fieldWrap(
         [
           labelFor(node, ctx),
-          `<div class="${ctx.css.classes('pair')}">\n    ${input('From', ctx.id, partLabel(node, ctx.messages.dateFrom))}\n    ${separator(ctx)}\n    ${input('To', `${ctx.id}_to`, partLabel(node, ctx.messages.dateTo), ` min="@${m}.From"`)}\n  </div>`,
+          `<div class="${ctx.css.classes('pair')}">\n    ${input('From', ctx.id, partLabel(node, ctx.messages.dateFrom))}\n    ${separator(ctx)}\n    ${input('To', `${ctx.id}-to`, partLabel(node, ctx.messages.dateTo), ` min="@${m}.From"`)}\n  </div>`,
           descriptionFor(node, ctx),
           blazorValidationMessage(ctx),
         ],

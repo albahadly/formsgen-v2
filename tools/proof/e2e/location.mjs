@@ -88,7 +88,7 @@ r.a11y = await page.evaluate(() => {
   return {
     map: [map.getAttribute('role'), map.getAttribute('aria-label'), Math.round(map.clientHeight / 10) * 10],
     lat: [lat.type, lat.closest('label').textContent.trim(), lat.getAttribute('min'), lat.getAttribute('max'), lat.getAttribute('step')],
-    lng: [document.getElementById('fg_place_lng').closest('label').textContent.trim()],
+    lng: [document.getElementById('fg_place-lng').closest('label').textContent.trim()],
     buttons: [...group.querySelectorAll('button')].map((b) => b.textContent.trim()),
     status: group.querySelector('[data-fg-loc-status]').getAttribute('aria-live'),
     tiles: !!document.querySelector('.leaflet-tile-pane'),
@@ -103,7 +103,7 @@ r.clickOk = await clickMap('fg_place', 60, -40)
 const clicked = await state()
 r.clicked = { pins: clicked.pins, pinMatches: clicked.pinMatches, zoom: clicked.zoom, required: await requiredShown(), echoMatches: (await echo()).echo === `Meet at: ${clicked.boxes[0]}, ${clicked.boxes[1]}`, chosen: (await echo()).chosen }
 await page.locator('#fg_place').fill('23.6')
-await page.locator('#fg_place_lng').fill('58.45')
+await page.locator('#fg_place-lng').fill('58.45')
 await page.locator('#fg_full_name').click(); await wait()
 r.typed = { ...(await state()), ...(await echo()) }
 await page.locator('#fg_place').locator('xpath=ancestor::*[@data-fg-loc][1]').locator('[data-fg-loc-mine]').click()
@@ -125,7 +125,7 @@ const item = await state('fg_stops_0_spot')
 r.item = { pins: item.pins, pinMatches: item.pinMatches, zoom: item.zoom }
 // Saved answers come back after a reload (boxes and pins).
 await page.locator('#fg_place').fill('-33.8568')
-await page.locator('#fg_place_lng').fill('151.2153')
+await page.locator('#fg_place-lng').fill('151.2153')
 await page.locator('#fg_full_name').click(); await wait(); await wait()
 await open()
 await mapReady('fg_stops_0_spot').catch(() => {})
@@ -138,7 +138,7 @@ await page.waitForTimeout(500)
 r.reset = { ...(await state()), ...(await echo()), items: await page.locator('[data-fg-loc]').count() }
 await page.locator('#fg_full_name').fill('Bo')
 await page.locator('#fg_place').fill('48.858')
-await page.locator('#fg_place_lng').fill('2.2945')
+await page.locator('#fg_place-lng').fill('2.2945')
 await page.locator('#fg_full_name').click(); await wait()
 const before = await lastId()
 await page.locator('button[type=submit]').click()

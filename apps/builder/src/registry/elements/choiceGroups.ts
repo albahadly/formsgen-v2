@@ -69,7 +69,7 @@ function optionsMarkup(node: ElementNode, ctx: EmitCtx, lang: EmitterLang, input
   // The plain list always nests; blocks/buttons follow the framework.
   const layout = display === 'list' ? 'wrap' : ctx.css.choiceLayout
   const options = items(node).map((item) => {
-    const id = `${ctx.id}_${esc(item.value)}`
+    const id = `${ctx.id}-${esc(item.value)}`
     const input = inputFor(item, id, ctx.css.classes(inputSlot))
     const labelOpen = `<label ${classAttr}="${ctx.css.classes(optionSlot)}" ${forAttr}="${id}">`
     return layout === 'wrap'
@@ -81,7 +81,7 @@ function optionsMarkup(node: ElementNode, ctx: EmitCtx, lang: EmitterLang, input
 
 function fieldset(parts: string[], classAttr: 'class' | 'className', ctx: EmitCtx): string {
   // A legend with a tooltip names the group by its text span only.
-  const labelledBy = parts.some((p) => p.includes(`id="${ctx.id}_legend"`)) ? ` aria-labelledby="${ctx.id}_legend"` : ''
+  const labelledBy = parts.some((p) => p.includes(`id="${ctx.id}-legend"`)) ? ` aria-labelledby="${ctx.id}-legend"` : ''
   return `<fieldset ${classAttr}="${ctx.css.classes('field')}"${labelledBy}>\n  ${parts
     .filter(Boolean)
     .map((part) => part.split('\n').join('\n  '))
