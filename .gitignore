@@ -12,3 +12,4 @@ apps/builder/src/export/targets/__proof_dump.test.ts
 # example projects (examples/)
 examples/dotnet/**/bin/
 examples/dotnet/**/obj/
+/.vs
