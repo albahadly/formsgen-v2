@@ -87,7 +87,9 @@ Blazor × vanilla, Tailwind, Bootstrap 5) lives in `tools/proof/`; read its
   and compares with the HTML vanilla result (`ONLY=web` / `ONLY=blazor`).
 - `tools/proof/e2e/*.mjs` — the scenario scripts; `tools/proof/demos/*.json`
   — the demo schemas they drive (`FG_HOST` placeholder for the local host).
-- `tools/proof/builder-check.mjs` — browser check of the builder itself.
+- `tools/proof/builder-check.mjs` — browser check of the builder itself;
+  `tools/proof/canvas-parity.mjs` — the design canvas lays every template
+  out like the preview (run it after touching the canvas or `FgNode`).
 - `tools/proof/parity-check.sh` — the three CSS flavours must measure
   IDENTICAL (ADR-0004); run it after any change to `export/css/*`,
   `composite.ts` or the renderer stylesheet.
@@ -119,7 +121,7 @@ Blazor × vanilla, Tailwind, Bootstrap 5) lives in `tools/proof/`; read its
 - A stop hook expects the work committed and pushed before a turn ends.
 - **Local Windows checkout** (`D:\Projects\formsgen-v2`, since 2026-10-21):
   no proxy, `127.0.0.1` works; `pnpm` is not on PATH, use
-  `npx --yes pnpm@10 <script>`; no Playwright harness, so browser checks use
-  Edge through `playwright-core` (`chromium.launch({ channel: 'msedge' })`)
-  installed in the scratchpad. `.gitattributes` pins LF: the byte-exact
-  tests (examples drift, stylesheet mirror) fail on a CRLF tree.
+  `npx --yes pnpm@10 <script>`; no Chromium is downloaded, so after
+  `npm install` in `tools/proof` the browser checks run with
+  `PLAYWRIGHT_CHANNEL=msedge` (Edge). `.gitattributes` pins LF: the
+  byte-exact tests (examples drift, stylesheet mirror) fail on a CRLF tree.

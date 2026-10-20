@@ -118,6 +118,18 @@ reload, the preview's submit enables with the test key, and new rich-text,
 signature and location fields in an Arabic form start with Arabic labels
 (`arabicLabels`). Screenshots go to the shots directory.
 
+The design canvas must lay fields out like the preview (the renderer's
+12-column grid with the element's `colSpan`, `colSpanSm`, `colSpanLg`):
+
+```sh
+node tools/proof/canvas-parity.mjs http://$FG_HOST:4186/
+```
+
+loads every template, and for each device measures every named field's cell
+as a share of its own grid on the canvas and in the preview. It prints the
+counts per template and device, `mismatches` (empty when the two agree
+within 2.5%) and page `errors`, and exits 1 when either is not empty.
+
 ## Environment knobs (all optional; `lib.sh` picks defaults)
 
 | Variable | Default | Meaning |
@@ -127,6 +139,7 @@ signature and location fields in an Arabic form start with Arabic labels
 | `FG_BLAZOR_PORT` | 5139 | the Blazor host |
 | `FG_SUBMIT_PORT` / `FG_CAPTCHA_PORT` | 4280 / 4281 | the sample servers the scenarios read back from |
 | `PLAYWRIGHT_CHROMIUM` | `/opt/pw-browsers/chromium` when present | the browser binary |
+| `PLAYWRIGHT_CHANNEL` | unset | a browser installed on the machine (`msedge` on Windows) when no Chromium is downloaded; `PLAYWRIGHT_CHROMIUM` wins when both are set |
 | `HTTPS_PROXY`, `PROXY_CA_SPKI` | from the environment / computed | when set, the browser uses the proxy for the CDNs and trusts its CA (`--ignore-certificate-errors-spki-list`), bypassing it for `FG_HOST` |
 
 ## Layout
@@ -142,6 +155,7 @@ signature and location fields in an Arabic form start with Arabic labels
 - `e2e/` — the scenarios and `_browser.mjs` (browser launch from the environment knobs); `e2e/event-registration.mjs` drives the examples.
 - `demos/` — the demo schemas.
 - `builder-check.mjs` — the builder's browser check.
+- `canvas-parity.mjs` — the design canvas lays every template out like the preview.
 - `work/` — outputs, logs, pids, screenshots (ignored).
 
 ## Adding a demo for a new feature
