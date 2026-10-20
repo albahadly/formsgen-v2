@@ -7,7 +7,7 @@ import { useBuilderStore } from '@/stores/builder'
 import { useUiStore } from '@/stores/ui'
 import BuilderNode from './BuilderNode.vue'
 import { provideDesignContext } from './designContext'
-import { useDropList } from './useDropList'
+import { dropDirection, useDropList } from './useDropList'
 
 const store = useBuilderStore()
 const ui = useUiStore()
@@ -95,6 +95,7 @@ function onKeydown(event: KeyboardEvent): void {
         class="fg-grid min-h-24"
         data-parent-id=""
         ghost-class="opacity-40"
+        :direction="dropDirection"
         :move="onMove"
         @add="onAdd"
       >

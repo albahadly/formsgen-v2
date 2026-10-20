@@ -16,7 +16,7 @@ import { t, tOr } from '@/i18n'
 import { getElement } from '@/registry'
 import { useBuilderStore } from '@/stores/builder'
 import { useUiStore } from '@/stores/ui'
-import { useDropList } from './useDropList'
+import { dropDirection, useDropList } from './useDropList'
 
 const props = withDefaults(
   defineProps<{
@@ -254,6 +254,7 @@ function onDuplicate(): void {
         class="fg-grid min-h-12"
         :data-parent-id="activeSection.id"
         ghost-class="opacity-40"
+        :direction="dropDirection"
         :move="sectionDrop.onMove"
         @add="sectionDrop.onAdd"
       >
@@ -295,6 +296,7 @@ function onDuplicate(): void {
         class="fg-grid min-h-12"
         :data-parent-id="node.id"
         ghost-class="opacity-40"
+        :direction="dropDirection"
         :move="onMove"
         @add="onAdd"
       >

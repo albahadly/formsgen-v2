@@ -11,6 +11,18 @@ interface MoveEvent {
   to: HTMLElement
 }
 
+/**
+ * SortableJS `direction` for the canvas lists. They are the renderer's
+ * 12-column grid, which Sortable reads as horizontal and would then place a
+ * drop by the pointer's x; a target that fills its row is a vertical stack,
+ * one that shares its row (a half-width cell) is a horizontal one.
+ */
+export function dropDirection(_event: Event, target: HTMLElement | null): 'vertical' | 'horizontal' {
+  const grid = target?.parentElement
+  if (!target || !grid) return 'vertical'
+  return target.getBoundingClientRect().width < grid.clientWidth * 0.9 ? 'horizontal' : 'vertical'
+}
+
 export function useDropList(parentId: () => string | null) {
   const store = useBuilderStore()
 
