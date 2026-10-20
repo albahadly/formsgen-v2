@@ -57,6 +57,17 @@ and, for the spam demo, `TURNSTILE_SECRET=1x0000000000000000000000000000000AA no
 
 ## Log (newest first)
 
+- **2026-10-21** — Fix: the design canvas ignored `layout.colSpan*` (every
+  drop list was a flex column), so half-width fields such as the
+  registration template's two passwords stacked in the editor while the
+  preview put them side by side. Canvas drop lists are now the renderer's
+  `.fg-grid`, each `BuilderNode` is an `.fg-cell` with the same
+  `--fg-span*` properties (columns children default to 12 / count), and the
+  canvas card carries `data-fg-viewport` like the preview. Builder test
+  added. On the Windows checkout (`core.autocrlf=true`) 15 builder tests
+  that compare files on disk (examples drift, stylesheet mirror) fail on
+  CRLF only; unrelated to this change.
+
 - **2026-10-07** — Phase 37 verification: the six-reviewer verify
   workflow failed on the session limit (no findings); states reviewed by
   hand instead. Fixed the error state (`bf3902d`: Bootstrap's invalid icon

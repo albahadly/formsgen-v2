@@ -6,6 +6,7 @@ import {
   fieldComponentFor,
   fill,
   joinPath,
+  type ColSpan,
   resolveMessages,
   type ElementNode,
 } from '@formsgen/renderer'
@@ -17,10 +18,15 @@ import { useBuilderStore } from '@/stores/builder'
 import { useUiStore } from '@/stores/ui'
 import { useDropList } from './useDropList'
 
-const props = defineProps<{
-  node: ElementNode
-  parentPath: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    node: ElementNode
+    parentPath: string
+    /** Span when the node sets no colSpan (a columns child: 12 / count). */
+    defaultSpan?: number
+  }>(),
+  { defaultSpan: 12 },
+)
 
 const store = useBuilderStore()
 const ui = useUiStore()
@@ -44,11 +50,20 @@ const path = computed(() =>
   props.node.name ? joinPath(props.parentPath, props.node.name) : props.parentPath,
 )
 
-const columnsClass = computed(() => {
-  if (props.node.type !== 'columns') return ''
-  const count = Number(props.node.props['count'] ?? 2)
-  return { 2: 'sm:grid-cols-2', 3: 'sm:grid-cols-3', 4: 'sm:grid-cols-4' }[count] ?? 'sm:grid-cols-2'
+// The canvas lays cells out like the renderer (FgNode): a 12-column grid with
+// the node's spans per screen size, so the editor matches the preview.
+const span = computed<number>(() => (props.node.layout?.colSpan as ColSpan | undefined) ?? props.defaultSpan)
+const cellStyle = computed(() => {
+  const layout = props.node.layout
+  return {
+    '--fg-span': String(span.value),
+    '--fg-span-sm': String(layout?.colSpanSm ?? 12),
+    '--fg-span-lg': String(layout?.colSpanLg ?? span.value),
+  }
 })
+const childSpan = computed(() =>
+  props.node.type === 'columns' ? Math.max(1, Math.round(12 / Number(props.node.props['count'] ?? 2))) : 12,
+)
 
 const { list, onMove, onAdd } = useDropList(() => props.node.id)
 
@@ -114,7 +129,8 @@ function onDuplicate(): void {
 
 <template>
   <div
-    class="group relative rounded-md border p-2 transition-colors"
+    class="fg-cell group relative rounded-md border p-2 transition-colors"
+    :style="cellStyle"
     :class="[
       selected ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-transparent hover:border-indigo-300',
       node.style?.align ? `fg-align-${node.style.align}` : '',
@@ -235,7 +251,7 @@ function onDuplicate(): void {
         :delay-on-touch-only="true"
         item-key="id"
         group="canvas"
-        class="flex min-h-12 flex-col gap-2"
+        class="fg-grid min-h-12"
         :data-parent-id="activeSection.id"
         ghost-class="opacity-40"
         :move="sectionDrop.onMove"
@@ -276,8 +292,7 @@ function onDuplicate(): void {
         :delay-on-touch-only="true"
         item-key="id"
         group="canvas"
-        class="flex min-h-12 flex-col gap-2"
-        :class="columnsClass ? `sm:grid ${columnsClass}` : ''"
+        class="fg-grid min-h-12"
         :data-parent-id="node.id"
         ghost-class="opacity-40"
         :move="onMove"
@@ -287,6 +302,7 @@ function onDuplicate(): void {
           <BuilderNode
             :node="element"
             :parent-path="path"
+            :default-span="childSpan"
           />
         </template>
         <template #footer>

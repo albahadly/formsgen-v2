@@ -154,6 +154,22 @@ describe('palette → canvas → properties workflow', () => {
     expect(canvasCard.attributes('style')).toContain('max-width: 375px')
   })
 
+  it('canvas cells take the same column spans as the preview', async () => {
+    const { wrapper, store } = mountApp()
+    await wrapper.get('[data-testid="palette-item-text"]').trigger('click')
+    const node = store.schema.tree[0]!
+    store.setColSpan(node.id, 6)
+    await flushPromises()
+    const cell = wrapper.get(`[data-testid="canvas-node-${node.id}"]`)
+    expect(cell.classes()).toContain('fg-cell')
+    expect(cell.attributes('style')).toContain('--fg-span: 6')
+    expect(cell.attributes('style')).toContain('--fg-span-lg: 6')
+    expect(cell.element.parentElement?.classList.contains('fg-grid')).toBe(true)
+    await wrapper.get('[data-testid="device-tablet"]').trigger('click')
+    const canvasCard = wrapper.get('[data-testid="panel-canvas"] .fg-form')
+    expect(canvasCard.attributes('data-fg-viewport')).toBe('md')
+  })
+
   it('theme toggle flips the design-canvas form theme', async () => {
     const { wrapper } = mountApp()
     await wrapper.get('[data-testid="preview-theme-toggle"]').trigger('click')

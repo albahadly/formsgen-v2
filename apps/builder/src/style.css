@@ -1,1 +1,11 @@
 @import 'tailwindcss';
+
+/* Design canvas drop lists are the renderer's 12-column grid (BuilderNode).
+   They keep the canvas's tighter gap, and anything that is not a node cell
+   (an empty-list hint, a palette item being dragged in) spans the full row. */
+.fg-form .fg-grid[data-parent-id] {
+  gap: 0.5rem;
+}
+.fg-form .fg-grid[data-parent-id] > :not(.fg-cell) {
+  grid-column: 1 / -1;
+}

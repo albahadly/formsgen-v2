@@ -83,6 +83,7 @@ function onKeydown(event: KeyboardEvent): void {
       class="fg-form mx-auto rounded-lg p-6 shadow-sm transition-all"
       :style="[themeVars, { maxWidth: ui.deviceWidth === '100%' ? '42rem' : ui.deviceWidth }]"
       :data-fg-theme="pinsLightScheme(store.schema.meta.theme) ? 'light' : ui.previewTheme"
+      :data-fg-viewport="ui.device === 'mobile' ? 'sm' : ui.device === 'tablet' ? 'md' : undefined"
       :dir="store.schema.meta.dir"
     >
       <draggable
@@ -91,7 +92,7 @@ function onKeydown(event: KeyboardEvent): void {
         :delay-on-touch-only="true"
         item-key="id"
         group="canvas"
-        class="flex min-h-24 flex-col gap-2"
+        class="fg-grid min-h-24"
         data-parent-id=""
         ghost-class="opacity-40"
         :move="onMove"
