@@ -117,3 +117,9 @@ Blazor × vanilla, Tailwind, Bootstrap 5) lives in `tools/proof/`; read its
   (`git worktree add ../formsgen-fix -b <branch>`), then
   `git merge --ff-only` into `main` and remove the worktree.
 - A stop hook expects the work committed and pushed before a turn ends.
+- **Local Windows checkout** (`D:\Projects\formsgen-v2`, since 2026-10-21):
+  no proxy, `127.0.0.1` works; `pnpm` is not on PATH, use
+  `npx --yes pnpm@10 <script>`; no Playwright harness, so browser checks use
+  Edge through `playwright-core` (`chromium.launch({ channel: 'msedge' })`)
+  installed in the scratchpad. `.gitattributes` pins LF: the byte-exact
+  tests (examples drift, stylesheet mirror) fail on a CRLF tree.

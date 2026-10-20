@@ -5,13 +5,18 @@ in flight, and the exact next step. A fresh session reads this first (see
 `CLAUDE.md` §1–§2), updates it at every milestone, and commits it with the
 work. Phase handoffs (`INDEX.md`) stay the long-form record.
 
-## Where we are (2026-10-07)
+## Where we are (2026-10-21)
 
 - **Branch / remote:** `main` of `albahadly/formsgen-v2`, pushed with
   `git push -u origin main`. Phase 37 landed as `f3f73a6` (adapters),
   `78845f8` (parity check), `5ae40ae` (sized selects), `9319fca` (docs),
-  `bf3902d` (invalid state), `0ca1735` (floating labels) plus this
-  memory commit; the `phase-37` worktree is removed.
+  `bf3902d` (invalid state), `0ca1735` (floating labels); the `phase-37`
+  worktree is removed. Since then on `main`: `d5b7ac1` (design canvas on
+  the renderer's column grid) and `2c9f4fe` (`.gitattributes` pins LF).
+- **Where sessions run now:** the user's local Windows checkout
+  (`CLAUDE.md` §6, last bullet), not the cloud container. `pnpm verify`
+  via `npx --yes pnpm@10 verify` is green there on `2c9f4fe` (198 renderer /
+  341 builder / 8 server tests, all builds).
 - **State:** all planned phases (01–11) plus 10b and 12–37 are complete.
   Phase 37 made the three CSS flavours render the same form (ADR-0004):
   `tools/proof/parity-check.sh` measures IDENTICAL within 1px on the
@@ -57,6 +62,17 @@ and, for the spam demo, `TURNSTILE_SECRET=1x0000000000000000000000000000000AA no
 
 ## Log (newest first)
 
+- **2026-10-21** — Review round after the canvas fix. Verified `d5b7ac1`
+  in Edge (playwright-core, `channel: 'msedge'`): the Registration
+  template's two password cells measure the same in the editor and the
+  preview at desktop (290 vs 356px wide on a narrower card, both half
+  width), tablet (`md`, side by side) and mobile (`sm`, stacked); drag
+  and drop on the grid list still reorders. Fixed the 15 CRLF-only test
+  failures for good: `.gitattributes` (`* text=auto eol=lf`) and
+  `.editorconfig` (`2c9f4fe`), index already LF so nothing renormalised;
+  the tree was re-checked out (`git rm -r --cached . && git reset --hard`
+  on a clean tree) and `verify` is fully green on Windows. `CLAUDE.md` §6
+  gained a local-Windows bullet.
 - **2026-10-21** — Fix: the design canvas ignored `layout.colSpan*` (every
   drop list was a flex column), so half-width fields such as the
   registration template's two passwords stacked in the editor while the
