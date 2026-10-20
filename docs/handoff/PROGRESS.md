@@ -12,7 +12,9 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
   `78845f8` (parity check), `5ae40ae` (sized selects), `9319fca` (docs),
   `bf3902d` (invalid state), `0ca1735` (floating labels); the `phase-37`
   worktree is removed. Since then on `main`: `d5b7ac1` (design canvas on
-  the renderer's column grid) and `2c9f4fe` (`.gitattributes` pins LF).
+  the renderer's column grid), `2c9f4fe` (`.gitattributes` pins LF), then
+  the review round of 2026-10-21 (drop direction fix,
+  `tools/proof/canvas-parity.mjs`, `PLAYWRIGHT_CHANNEL`).
 - **Where sessions run now:** the user's local Windows checkout
   (`CLAUDE.md` §6, last bullet), not the cloud container. `pnpm verify`
   via `npx --yes pnpm@10 verify` is green there on `2c9f4fe` (198 renderer /
@@ -72,7 +74,19 @@ and, for the spam demo, `TURNSTILE_SECRET=1x0000000000000000000000000000000AA no
   `.editorconfig` (`2c9f4fe`), index already LF so nothing renormalised;
   the tree was re-checked out (`git rm -r --cached . && git reset --hard`
   on a clean tree) and `verify` is fully green on Windows. `CLAUDE.md` §6
-  gained a local-Windows bullet.
+  gained a local-Windows bullet. A reviewer pass over `d5b7ac1` found no
+  correctness bug but one behaviour change, reproduced in Edge: SortableJS
+  reads the 12-column grid as horizontal, so a palette item dropped on the
+  lower-left of the last field landed *before* it. Fixed with a `direction`
+  callback (`dropDirection` in `useDropList.ts`, unit-tested) on the three
+  canvas lists: full-row targets are vertical, cells sharing a row are
+  horizontal. New toolkit script `tools/proof/canvas-parity.mjs` compares
+  every template's cells between canvas and preview per device (102
+  fields, 0 mismatches); `_browser.mjs` gained `PLAYWRIGHT_CHANNEL` so the
+  toolkit runs on Edge without a Chromium download. Not changed on
+  purpose: the canvas does not apply `style.className` to the cell as
+  `FgNode` does (a user class such as `hidden` would make the element
+  unselectable on the canvas).
 - **2026-10-21** — Fix: the design canvas ignored `layout.colSpan*` (every
   drop list was a flex column), so half-width fields such as the
   registration template's two passwords stacked in the editor while the
