@@ -36,10 +36,14 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
 
 ## In flight
 
-- Nothing. Uncommitted: nothing. Phase 44 shipped: `verify` green
-  (renderer 221 / builder 383 / cli 12 / server 9 tests, all builds),
-  reviewed in Edge, pushed to `main`. Next: phase 45 (field types: star
-  rating, NPS scale, address autocomplete, currency).
+- **Phase 45 — field types (started 2026-10-21, on `main`).** Four new
+  element types, each through the renderer, the registry, the four code
+  targets in three CSS flavours (ADR-0004 parity), the validation export,
+  the kitchen sink and a template, with a matrix demo: 45a a star
+  `rating` and an `nps` scale (choice-like, radios underneath), 45b a
+  `currency` amount with locale formatting and an `address` field with
+  suggestions. Phase 44 shipped before it (`f5318ef`): verify green
+  (renderer 218 / builder 379 / cli 12 / server 9), reviewed in Edge.
 
 ## Next steps (in order) — the roadmap the user chose on 2026-10-21
 

@@ -4,7 +4,7 @@
 
 Complete (2026-10-21), on `main`; commits in `PROGRESS.md`. Gate:
 `pnpm verify` green on the Windows checkout (lint, typecheck, renderer
-221 / builder 383 / cli 12 / server 9 tests, all builds); the builder
+218 / builder 379 / cli 12 / server 9 tests, all builds); the builder
 reviewed in Edge in each language with the new templates previewed.
 
 ## What was built
