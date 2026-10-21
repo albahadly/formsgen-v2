@@ -1,7 +1,8 @@
 // @formsgen/renderer public entry point.
 import './styles.css'
 
-export const RENDERER_VERSION = '0.0.1'
+// Kept equal to package.json's version by version.test.ts.
+export const RENDERER_VERSION = '0.1.0'
 
 export { default as FormsGenForm } from './components/FormsGenForm.vue'
 

@@ -1,6 +1,6 @@
 {
   "name": "@formsgen/renderer",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
   "description": "Standalone Vue 3 renderer for FormsGen JSON form schemas",
   "files": [
