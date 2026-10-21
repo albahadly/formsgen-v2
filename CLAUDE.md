@@ -57,6 +57,9 @@ expired session is continued, not repeated. So:
 - `apps/builder` — the builder. Element registry `src/registry/elements/*`;
   export targets `src/export/targets/{html,react,vue-standalone,vue-lib,blazor,json}.ts`
   with shared emitters in `src/export/*.ts`; CSS adapters `src/export/css/*`.
+- `packages/cli` — `@formsgen/cli`, bin `formsgen`: `export | validate |
+  targets` from a `.formsgen.json`, one Vite-bundled Node script
+  (`pnpm --filter @formsgen/cli build` → `dist/formsgen.mjs`).
 - `packages/submit-server/server.mjs` — sample submission server
   (`--port`, `--dir`, `TURNSTILE_SECRET`).
 - `fixtures/kitchen-sink.formsgen.json` — every feature once; tests import it.

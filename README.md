@@ -78,6 +78,14 @@ compilers on them and drives each runtime with the same scenario
 |---|---|---|
 | JSON schema | `<name>.formsgen.json` | `@formsgen/renderer`, or re-open in the builder |
 | Validation | `<name>.zod.ts`, `<name>.schema.json` | a server: zod (Node/TypeScript) or any JSON Schema validator, the form's rules mirrored |
+
+The same exports from the command line, for CI and scripts (`packages/cli`):
+
+```sh
+pnpm --filter @formsgen/cli build
+node packages/cli/dist/formsgen.mjs export form.formsgen.json --target react --css tailwind --out src/forms
+node packages/cli/dist/formsgen.mjs validate form.formsgen.json
+```
 | Vue (renderer) | SFC wrapping `<FormsGenForm>` | the renderer package |
 | Vue (standalone) | one zero-dependency SFC | Vue 3 only |
 | React (standalone) | one typed `.tsx` (+ `.css`: always for vanilla and Bootstrap, for Tailwind when the form needs framework-neutral rules) | React 18 only |

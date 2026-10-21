@@ -16,7 +16,7 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
   the review round of 2026-10-21 (drop direction fix,
   `tools/proof/canvas-parity.mjs`, `PLAYWRIGHT_CHANNEL`), then **phase 38**
   (builder light/dark mode, version `0.1.0` beside the title).
-- **State:** phases 01–11, 10b and 12–41 are complete.
+- **State:** phases 01–11, 10b and 12–42 are complete.
 - **Where sessions run now:** the user's local Windows checkout
   (`CLAUDE.md` §6, last bullet), not the cloud container. `pnpm verify`
   via `npx --yes pnpm@10 verify` is green there on `2c9f4fe` (198 renderer /
@@ -36,9 +36,9 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
 
 ## In flight
 
-- Nothing. Uncommitted: nothing. Phase 41 shipped: `verify` green
-  (renderer 212 / builder 376 / server 9 tests, all builds), proof 12 + 24
-  real submissions valid, pushed to `main`. Next: phase 42 (CLI).
+- Nothing. Uncommitted: nothing. Phase 42 shipped: `verify` green
+  (renderer 212 / builder 375 / cli 12 / server 9 tests, all builds),
+  pushed to `main`. Next: phase 43 (Web Component export).
 
 ## Next steps (in order) — the roadmap the user chose on 2026-10-21
 
@@ -86,6 +86,13 @@ and, for the spam demo, `TURNSTILE_SECRET=1x0000000000000000000000000000000AA no
 
 ## Log (newest first)
 
+- **2026-10-21** — **Phase 42: the command line** (handoff `phase-42-cli.md`).
+  `packages/cli`: Vite SSR bundle of the builder's export code + renderer +
+  Vue (`ssr.noExternal`), `commands.ts` (`packageFiles` mirrors the Export
+  dialog's ZIP: files with the project, project file, README, optional
+  `server/`), `run.ts` (`parseArgs`, exit 0/1/2), tests with a temp
+  folder. `formsgen export|validate|targets`. Joined `pnpm -r
+  build/typecheck/test`; README and CLAUDE.md repo map updated.
 - **2026-10-21** — **Phase 41: server-side validation export** (handoff
   `phase-41-server-validation.md`). New target `validation`:
   `export/validation.ts` builds a typed property tree (`validationModel`)
