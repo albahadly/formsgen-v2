@@ -2,11 +2,15 @@
 
 ## Status
 
-Repo side complete (2026-10-21), on `main`. Gate: `pnpm verify` green on
-the Windows checkout (lint, typecheck, renderer 228 / builder 395 / cli 12 / server 9 tests, all builds); `npm pack --dry-run` and
-`pnpm publish --dry-run` clean for both packages. **Nothing goes live from the
-workflow alone: it stages each version, and the user approves it on
-npmjs.com with 2FA** (see "How to verify").
+Complete (2026-10-21), on `main`. **`@albahadly/formsgen-renderer@0.1.0`
+and `@albahadly/formsgen-cli@0.1.0` are live on npm** (`latest`, MIT):
+staged by Release run 39549631364, approved by the user with 2FA,
+checked from a fresh folder (`npx @albahadly/formsgen-cli targets`
+answers; `npm i @albahadly/formsgen-renderer vue` imports with
+`parseFormSchema`). Gate: `pnpm verify` green on the Windows checkout
+(lint, typecheck, renderer 228 / builder 395 / cli 12 / server 9 tests,
+all builds). The workflow alone never goes live: it stages, the user
+approves (see "How to verify").
 
 ## What was built
 

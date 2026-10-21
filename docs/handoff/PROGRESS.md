@@ -79,9 +79,11 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
   versions with the user's stage-only token — renderer stage
   `559d507c-3bc5-473a-b4c8-4bb3c8e136cb`, cli stage
   `b5c9928c-49cc-4568-b8ac-e5316b2be57a` (status "validating", public
-  `0.0.0-stage` placeholders created). **What only the user can do:**
-  approve them on npmjs.com (*Staged Packages* → *Approve*, 2FA) or
-  `npm stage approve <id>`. Nothing is live until then.
+  `0.0.0-stage` placeholders created). **The user approved both with
+  2FA; 0.1.0 is `latest` for both packages** — verified from the registry
+  and from a fresh folder (`npx @albahadly/formsgen-cli targets`,
+  `npm i @albahadly/formsgen-renderer vue` + import). Phase 47 complete;
+  nothing in flight.
 
 ## Next steps (in order) — the roadmap the user chose on 2026-10-21
 
