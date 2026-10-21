@@ -178,20 +178,60 @@ describe('palette → canvas → properties workflow', () => {
     expect(canvasCard.attributes('data-fg-theme')).toBe('dark')
   })
 
-  it('builder theme: the header toggle darkens the chrome and is remembered', async () => {
+  it('builder theme: the header control darkens the chrome and is remembered; "system" follows the OS again', async () => {
     const { wrapper } = mountApp()
     expect(document.documentElement.getAttribute('data-theme')).toBe('light')
-    await wrapper.get('[data-testid="theme-toggle"]').trigger('click')
+    await wrapper.get('[data-testid="theme-select"]').setValue('dark')
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
     expect(document.documentElement.style.colorScheme).toBe('dark')
     expect(localStorage.getItem('formsgen.theme')).toBe('dark')
-    expect(wrapper.get('[data-testid="theme-toggle"]').attributes('aria-pressed')).toBe('true')
     // the form on the canvas keeps its own theme
     expect(wrapper.get('[data-testid="panel-canvas"] .fg-form').attributes('data-fg-theme')).toBe('light')
     // a new session starts with the stored choice
     document.documentElement.setAttribute('data-theme', 'light')
-    mountApp()
+    const second = mountApp()
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+    expect((second.wrapper.get('[data-testid="theme-select"]').element as HTMLSelectElement).value).toBe('dark')
+    // back to the OS: nothing stored; light here (no matchMedia in this test browser)
+    await second.wrapper.get('[data-testid="theme-select"]').setValue('system')
+    expect(localStorage.getItem('formsgen.theme')).toBeNull()
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+  })
+
+  it('copy, cut and paste of the selected element go through the clipboard', async () => {
+    const { wrapper } = mountApp()
+    const store = useBuilderStore()
+    await wrapper.get('[data-testid="palette-item-text"]').trigger('click')
+    expect(store.schema.tree).toHaveLength(1)
+    let text = ''
+    const clipboardData = { getData: () => text, setData: (_type: string, value: string) => { text = value } }
+    const fire = (type: string): Event => {
+      const event = new Event(type, { bubbles: true, cancelable: true })
+      Object.defineProperty(event, 'clipboardData', { value: clipboardData })
+      document.dispatchEvent(event)
+      return event
+    }
+    expect(fire('copy').defaultPrevented).toBe(true)
+    expect(JSON.parse(text).formsgen).toBe('formsgen/element')
+    expect(fire('paste').defaultPrevented).toBe(true)
+    expect(store.schema.tree).toHaveLength(2)
+    expect(store.schema.tree[1]!.name).toBe(`${store.schema.tree[0]!.name}_2`)
+    expect(store.selectedId).toBe(store.schema.tree[1]!.id)
+    await flushPromises()
+    expect(wrapper.get('[data-testid="notice-toast"]').text()).toBe('Pasted Text Input')
+    // cut copies, then removes
+    expect(fire('cut').defaultPrevented).toBe(true)
+    expect(store.schema.tree).toHaveLength(1)
+    // keys inside an input are the browser's
+    const input = document.createElement('input')
+    document.body.appendChild(input)
+    input.focus()
+    expect(fire('paste').defaultPrevented).toBe(false)
+    expect(store.schema.tree).toHaveLength(1)
+    input.remove()
+    // text that is not an element is left alone
+    text = 'just words'
+    expect(fire('paste').defaultPrevented).toBe(false)
   })
 
   it('the header shows the builder version beside the title', () => {

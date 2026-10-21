@@ -223,23 +223,36 @@ export const useBuilderStore = defineStore('builder', {
     duplicateElement(id: string): ElementNode | null {
       const source = findNodeById(this.schema.tree, id)
       if (!source) return null
-      const taken = new Set(this.takenNames)
-      const cloneNode = (node: ElementNode): ElementNode => {
-        // JSON clone: schema nodes are JSON-safe, and the source is a Vue
-        // reactive proxy that structuredClone refuses.
-        const copy = JSON.parse(JSON.stringify(node)) as ElementNode
-        copy.id = nanoid(10)
-        if (copy.name) {
-          copy.name = uniqueName(copy.name, taken)
-          taken.add(copy.name)
-        }
-        if (copy.children) copy.children = copy.children.map(cloneNode)
-        return copy
-      }
-      const copy = cloneNode(source)
+      const copy = cloneFresh(source, this.takenNames)
       const parent = findParent(this.schema.tree, id)
       const siblings = parent ? (parent.children ??= []) : this.schema.tree
       siblings.splice(siblings.findIndex((n) => n.id === id) + 1, 0, copy)
+      this.selectedId = copy.id
+      return copy
+    },
+
+    /**
+     * Inserts a copy of `source` (fresh ids, unique names; from the
+     * clipboard): inside the anchor when it is a container that takes it,
+     * else after the anchor, else at the end of the form; null when it can
+     * go nowhere (a section on its own). Selects it.
+     */
+    insertElement(source: ElementNode, anchorId: string | null): ElementNode | null {
+      const copy = cloneFresh(source, this.takenNames)
+      const anchor = anchorId ? findNodeById(this.schema.tree, anchorId) : null
+      if (anchor && getCoreElement(anchor.type)?.isContainer && canDropInto(this.schema.tree, copy, anchor.id)) {
+        ;(anchor.children ??= []).push(copy)
+      } else {
+        const parent = anchor ? findParent(this.schema.tree, anchor.id) : null
+        if (anchor && canDropInto(this.schema.tree, copy, parent?.id ?? null)) {
+          const siblings = parent ? (parent.children ??= []) : this.schema.tree
+          siblings.splice(siblings.findIndex((n) => n.id === anchor.id) + 1, 0, copy)
+        } else if (canDropInto(this.schema.tree, copy, null)) {
+          this.schema.tree.push(copy)
+        } else {
+          return null
+        }
+      }
       this.selectedId = copy.id
       return copy
     },
@@ -369,6 +382,24 @@ export function repeaterDepthAt(tree: ElementNode[], parentId: string | null): n
  * Whether a subtree may sit `depth` repeaters deep: no tabs/steps in items,
  * repeaters at most two levels, no named groups inside items.
  */
+/** A JSON deep clone with fresh ids and names made unique against `taken`. */
+function cloneFresh(source: ElementNode, takenNames: readonly string[]): ElementNode {
+  const taken = new Set(takenNames)
+  const cloneNode = (node: ElementNode): ElementNode => {
+    // JSON clone: schema nodes are JSON-safe, and the source may be a Vue
+    // reactive proxy that structuredClone refuses.
+    const copy = JSON.parse(JSON.stringify(node)) as ElementNode
+    copy.id = nanoid(10)
+    if (copy.name) {
+      copy.name = uniqueName(copy.name, taken)
+      taken.add(copy.name)
+    }
+    if (copy.children) copy.children = copy.children.map(cloneNode)
+    return copy
+  }
+  return cloneNode(source)
+}
+
 export function fitsInItems(node: ElementNode, depth: number): boolean {
   if (itemPlacementProblem(node, depth)) return false
   const inner = depth + (isRepeater(node) ? 1 : 0)

@@ -20,7 +20,8 @@ import { useBuilderStore } from '@/stores/builder'
 import { startConditionPathTracking } from '@/stores/conditionPaths'
 import { useHistoryStore } from '@/stores/history'
 import { useUiStore, type MobilePanel } from '@/stores/ui'
-import { initTheme, startThemeTracking, theme, toggleTheme } from '@/composables/theme'
+import { THEME_CHOICES, initTheme, setThemeChoice, startThemeTracking, themeChoice, type ThemeChoice } from '@/composables/theme'
+import { installElementClipboard } from '@/composables/elementClipboard'
 import { storeToRefs } from 'pinia'
 
 const builder = useBuilderStore()
@@ -75,6 +76,8 @@ function startFresh(): void {
   showDraftToast.value = false
 }
 
+let stopClipboard: () => void = () => {}
+
 function onNotice(message: string): void {
   notice.value = message
   setTimeout(() => {
@@ -99,9 +102,11 @@ onMounted(() => {
   window.addEventListener('keydown', onKeydown)
   narrowQuery?.addEventListener('change', onNarrowChange)
   stopThemeTracking = startThemeTracking()
+  stopClipboard = installElementClipboard(onNotice)
 })
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown)
+  stopClipboard()
   narrowQuery?.removeEventListener('change', onNarrowChange)
   stopThemeTracking?.()
 })
@@ -138,16 +143,22 @@ onBeforeUnmount(() => {
             {{ item.name }}
           </option>
         </select>
-        <button
-          type="button"
-          class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-          data-testid="theme-toggle"
-          :aria-pressed="theme === 'dark'"
-          :title="t(theme === 'dark' ? 'app.theme.toLight' : 'app.theme.toDark')"
-          @click="toggleTheme()"
+        <select
+          class="rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300"
+          :aria-label="t('app.theme.label')"
+          :title="t('app.theme.label')"
+          :value="themeChoice"
+          data-testid="theme-select"
+          @change="setThemeChoice(($event.target as HTMLSelectElement).value as ThemeChoice)"
         >
-          {{ theme === 'dark' ? '🌙' : '☀️' }} {{ t(theme === 'dark' ? 'app.theme.dark' : 'app.theme.light') }}
-        </button>
+          <option
+            v-for="choice in THEME_CHOICES"
+            :key="choice"
+            :value="choice"
+          >
+            {{ t(`app.theme.${choice}`) }}
+          </option>
+        </select>
         <button
           v-if="!narrow"
           type="button"

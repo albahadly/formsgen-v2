@@ -30,7 +30,7 @@ await tid('template-use').click(); await page.waitForTimeout(300)
 await page.locator('[data-testid^="canvas-node-"]').nth(1).click(); await page.waitForTimeout(150)
 const r = { themes: {}, card: [] }
 for (const theme of ['light', 'dark']) {
-  if ((await htmlTheme()) !== theme) await tid('theme-toggle').click()
+  if ((await htmlTheme()) !== theme) await tid('theme-select').selectOption(theme)
   await page.waitForTimeout(200)
   await setFormTheme('light')
   r.themes[theme] = {
