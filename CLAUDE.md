@@ -41,11 +41,12 @@ expired session is continued, not repeated. So:
 - No pull requests unless asked. Work lands on `main` of
   `albahadly/formsgen-v2` (the user's standing practice), pushed with
   `git push -u origin main`.
-- npm: `@albahadly/formsgen-renderer` and `@albahadly/formsgen-cli` publish
-  through `.github/workflows/release.yml` (manual run or a `v*` tag) by
-  npm trusted publishing (OIDC, no token); a release = version bump in
-  both package.json files + the workflow. The first version of a package
-  is the user's manual publish with 2FA. Never publish from a session.
+- npm: `.github/workflows/release.yml` (manual run or a `v*` tag) *stages*
+  `@albahadly/formsgen-renderer` and `@albahadly/formsgen-cli` with the
+  user's stage-only `NPM_TOKEN`; the user approves each staged version
+  on npmjs.com with 2FA — that is the deliberate human step. A release =
+  version bump in both package.json files + the workflow + the approval.
+  Never publish or approve from a session.
 - Every phase meets the Phase Standard: `pnpm verify` green, strict compiles
   (React `tsc`, `vue-tsc`, .NET 8 build with 0 errors 0 warnings), the
   12-runtime matrix for new behaviour, handoff doc + INDEX row, ADR for

@@ -144,10 +144,11 @@ same Definition of Done checklist.
 `@albahadly/formsgen-renderer` and `@albahadly/formsgen-cli` are published
 by `.github/workflows/release.yml` (Actions → Release → Run workflow, or a
 `v*` tag). It runs `pnpm verify`, then publishes each package whose
-version is not on npm yet through npm's trusted publishing (GitHub OIDC;
-no token). The first version of a package is published by hand with
-2FA, then the workflow is named as the package's trusted publisher on
-npmjs.com — `docs/handoff/phase-47-npm-release.md` has the steps. To
-release: bump `version` in `packages/renderer/package.json` and
-`packages/cli/package.json`, commit, run the workflow. Both packages are
-MIT licensed (`LICENSE`).
+version is not live on npm yet — *staged* with a stage-only npm token
+(the repository secret `NPM_TOKEN`); nothing goes live until a
+maintainer approves the staged version on npmjs.com with 2FA (the
+package → *Staged Packages* → *Approve*). `docs/handoff/phase-47-npm-release.md`
+has the steps. To release: bump `version` in
+`packages/renderer/package.json` and `packages/cli/package.json`,
+commit, run the workflow, approve. Both packages are MIT licensed
+(`LICENSE`).

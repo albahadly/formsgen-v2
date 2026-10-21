@@ -1,14 +1,16 @@
-# Publishes @albahadly/formsgen-renderer and @albahadly/formsgen-cli to npm
-# through npm's trusted publishing (GitHub OIDC): no token, no secret. Each
-# package's settings page on npmjs.com names this repository and this
-# workflow file as its trusted publisher (docs/handoff/phase-47-npm-release.md
-# has the steps; the first version of a package is published by hand, since
-# a trusted publisher can only be configured for a package that exists).
+# Stages @albahadly/formsgen-renderer and @albahadly/formsgen-cli on npm;
+# a maintainer then approves each staged version with 2FA (on npmjs.com →
+# the package → "Staged Packages" → Approve, or `npm stage approve
+# <stage-id>`). Nothing goes live from this workflow alone.
 #
 # Run it by hand (Actions → Release → Run workflow) or push a tag like
-# v0.1.0. A version that is already on npm is skipped, so re-running after
-# a failure is safe; bump "version" in the package.json files for a new
-# release.
+# v0.1.0. It needs one repository secret, NPM_TOKEN: a granular access
+# token with "Read and write (stage only)" on packages — such a token can
+# stage but never publish directly, which is the point. A version that is
+# already live on npm is skipped, so re-running is safe; bump "version" in
+# the package.json files for a new release. Staging needs npm 11.15+ and
+# Node 22.14+, hence the npm upgrade step. For a package that does not
+# exist yet npm first publishes a public placeholder, 0.0.0-stage.
 name: Release
 
 on:
@@ -18,10 +20,9 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
-  publish:
+  stage:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,23 +33,31 @@ jobs:
           node-version: 22
           cache: pnpm
           registry-url: https://registry.npmjs.org
-      # Trusted publishing needs npm 11.5 or later; Node 22 ships an older one.
+      # Staged publishing needs npm 11.15 or later; Node 22 ships an older one.
       - run: npm install -g npm@latest && npm --version
       - run: pnpm install --frozen-lockfile
       - run: pnpm verify
-      - name: Publish what is not on npm yet
+      - name: Stage what is not live on npm yet
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -eu
-          mkdir -p .release
           for dir in packages/renderer packages/cli; do
             name=$(node -p "require('./$dir/package.json').name")
             version=$(node -p "require('./$dir/package.json').version")
             if npm view "$name@$version" version >/dev/null 2>&1; then
-              echo "$name@$version is already on npm — skipped"
+              echo "$name@$version is already live on npm — skipped"
               continue
             fi
-            # pnpm pack resolves workspace: specs; npm publish does the OIDC exchange.
-            tarball=$(cd "$dir" && pnpm pack --pack-destination ../../.release | tail -1)
-            npm publish ".release/$(basename "$tarball")" --access public
-            echo "published $name@$version"
+            # pnpm pack resolves the workspace: specs and keeps only the
+            # published files; npm stage publish packs a directory, so the
+            # tarball is unpacked first.
+            out=".release/$(basename "$dir")"
+            rm -rf "$out" && mkdir -p "$out"
+            tarball=$(cd "$dir" && pnpm pack --pack-destination "../../$out" | tail -1)
+            tar -xzf "$out/$(basename "$tarball")" -C "$out"
+            (cd "$out/package" && npm stage publish --access public)
+            echo "staged $name@$version — approve it with 2FA on npmjs.com (Staged Packages) or: npm stage approve <stage-id>"
           done
+          echo "Pending stages:"
+          npm stage list || true
