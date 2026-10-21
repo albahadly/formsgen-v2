@@ -91,7 +91,9 @@ Blazor × vanilla, Tailwind, Bootstrap 5) lives in `tools/proof/`; read its
   `tools/proof/canvas-parity.mjs` — the design canvas lays every template
   out like the preview (run it after touching the canvas or `FgNode`);
   `tools/proof/theme-shots.mjs` — the builder in light and dark (run it
-  after adding or restyling a builder component; ADR-0005).
+  after adding or restyling a builder component; ADR-0005);
+  `tools/proof/server-validate.mjs` — the Validation export (zod + JSON
+  Schema) against the sample server's stored submissions.
 - `tools/proof/parity-check.sh` — the three CSS flavours must measure
   IDENTICAL (ADR-0004); run it after any change to `export/css/*`,
   `composite.ts` or the renderer stylesheet.

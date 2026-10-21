@@ -16,7 +16,7 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
   the review round of 2026-10-21 (drop direction fix,
   `tools/proof/canvas-parity.mjs`, `PLAYWRIGHT_CHANNEL`), then **phase 38**
   (builder light/dark mode, version `0.1.0` beside the title).
-- **State:** phases 01–11, 10b and 12–40 are complete.
+- **State:** phases 01–11, 10b and 12–41 are complete.
 - **Where sessions run now:** the user's local Windows checkout
   (`CLAUDE.md` §6, last bullet), not the cloud container. `pnpm verify`
   via `npx --yes pnpm@10 verify` is green there on `2c9f4fe` (198 renderer /
@@ -36,10 +36,11 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
 
 ## In flight
 
-- Nothing. Uncommitted: nothing. Phase 40 shipped: `verify` green
-  (renderer 212 / builder 364 / server 9 tests, all builds), matrices
-  `thanks` and `redirect` 12 × IDENTICAL, pushed to `main`. Next: phase 41
-  (server-side validation export: zod + JSON Schema).
+- **Phase 41 — server-side validation export**: target, tests, toolkit
+  proof (12 + 24 real submissions, 0 failures) and docs committed; the
+  final `pnpm verify` is running (session `scratchpad/verify7.log`); the
+  push to `main` (= production deploy) follows a green result.
+  Uncommitted: nothing.
 
 ## Next steps (in order) — the roadmap the user chose on 2026-10-21
 
@@ -87,6 +88,19 @@ and, for the spam demo, `TURNSTILE_SECRET=1x0000000000000000000000000000000AA no
 
 ## Log (newest first)
 
+- **2026-10-21** — **Phase 41: server-side validation export** (handoff
+  `phase-41-server-validation.md`). New target `validation`:
+  `export/validation.ts` builds a typed property tree (`validationModel`)
+  and emits `zodSource` (refinements that skip empty values, the exports'
+  own `fgIsEmpty`/`fgSize` helpers pruned in, `superRefine` for
+  conditional required / same-as / date order, compiled conditions over
+  `data?.x`) and `jsonSchemaOf` (draft 2020-12; `anyOf [{maxLength:0},…]`
+  for optional sized values; limitations in the description). Tests
+  transpile and run the zod with real zod and the JSON Schema with ajv.
+  Toolkit `server-validate.mjs` validates stored submissions (prefill 12,
+  thanks 24, 0 failures); `export-demo.sh` writes the validation files.
+  Builder devDeps: zod, ajv, ajv-formats. The reopen test now counts `.ts`
+  among the code files that carry the project.
 - **2026-10-21** — **Phase 40: after submit** (handoff
   `phase-40-after-submit.md`, ADR-0002 log). Renderer `afterSubmit.ts`
   (`afterSubmitOf`, `isRedirectUrl`), `FormsGenForm` prop `sent` + event
