@@ -15,6 +15,8 @@ node packages/submit-server/server.mjs --port 4180 --dir ./submissions
   `201 {"ok": true, "id": "…"}`. CORS is open (`--origin` narrows it).
 - `GET /` lists submissions, `GET /submissions` returns them as JSON,
   `GET /submissions/<id>/files/<n>` downloads a file.
+- `GET /suggest?q=<text>` answers an `address` field's suggestions from a
+  short built-in list of places (for demos and the toolkit).
 - `--max-mb 25` caps the request size (413 above it).
 
 The builder's export dialog can add this file to a code export's ZIP

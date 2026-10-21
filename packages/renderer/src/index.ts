@@ -264,4 +264,6 @@ export {
   type LocationSettings,
 } from './location'
 export { prefillKind, prefillValue, queryPrefill, type PrefillEntry, type PrefillKind } from './prefill'
+export { currencyCode, currencySymbol, formatMoney, moneyDecimals, moneySeparators, parseMoney, type MoneySeparators } from './money'
+export { DEFAULT_SUGGEST_URL, SUGGEST_MAX, suggestMinChars, suggestUrl, suggestionTexts } from './suggest'
 export { afterSubmitOf, isRedirectUrl, type AfterSubmit } from './afterSubmit'

@@ -98,6 +98,7 @@ function fgPrefill() {
     }
     if (first.multiple) Array.prototype.forEach.call(first.options, function (option) { option.selected = value.indexOf(option.value) !== -1 })
     else if (first.type === 'checkbox') first.checked = value === true
+    else if (kind === 'currency') first.value = fgMoneyFormat(value, Number(first.getAttribute('data-fg-decimals')))
     else first.value = String(value)
     changed.push(first)
   })

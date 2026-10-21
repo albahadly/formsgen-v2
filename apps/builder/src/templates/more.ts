@@ -181,6 +181,14 @@ export function order(lang: TemplateLocale): FormSchema {
       props: { label: L(tx('Items in your order', 'عدد القطع في طلبك')), formula: 'sum({items.quantity})', decimals: 0 },
     },
     {
+      id: 'tpl-order-tip',
+      type: 'currency',
+      name: 'tip',
+      props: { label: L(tx('Tip for the courier', 'إكرامية للمندوب')), currency: 'USD', decimals: 2 },
+      conditions: [[{ field: 'delivery', operator: 'equals', value: 'courier' }]],
+      layout: { colSpan: 6 },
+    },
+    {
       id: 'tpl-order-delivery',
       type: 'radiogroup',
       name: 'delivery',
@@ -202,7 +210,7 @@ export function order(lang: TemplateLocale): FormSchema {
       children: [
         {
           id: 'tpl-order-street',
-          type: 'text',
+          type: 'address',
           name: 'street',
           props: { label: L(tx('Street and number', 'الشارع والرقم')) },
           validation: [{ rule: 'required' }],

@@ -15,6 +15,9 @@
 import { randomBytes, createHmac } from 'node:crypto'
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:http'
+
+// What GET /suggest?q= answers an address field with: a few places, for demos.
+const PLACES = ['Muscat, Oman', 'Musandam, Oman', 'Salalah, Oman', 'Dubai, United Arab Emirates', 'London, United Kingdom', 'Berlin, Germany', 'Paris, France', 'Madrid, Spain', 'Cairo, Egypt', 'Mumbai, India']
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -268,6 +271,10 @@ ${rows || '<p>Nothing yet.</p>'}
       if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, { ok: false, error: 'method not allowed' })
       if (url.pathname === '/') return send(res, 200, page(await list()), 'text/html; charset=utf-8')
       if (url.pathname === '/submissions') return send(res, 200, await list())
+      if (url.pathname === '/suggest') {
+        const q = (url.searchParams.get('q') ?? '').trim().toLowerCase()
+        return send(res, 200, q === '' ? [] : PLACES.filter((place) => place.toLowerCase().includes(q)).slice(0, 8).map((display_name) => ({ display_name })))
+      }
       const file = /^\/submissions\/([^/]+)\/files\/(\d+)$/.exec(url.pathname)
       if (file && ID.test(file[1])) {
         const record = JSON.parse(await readFile(join(root, file[1], 'submission.json'), 'utf8'))

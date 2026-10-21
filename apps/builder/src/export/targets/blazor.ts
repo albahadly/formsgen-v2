@@ -64,6 +64,7 @@ function tokenPath(r: ExportRepeater): string {
 }
 import { scopeForBlazor } from '../css/blazorScope'
 import { dialCodes, exportStylesheet, hasDateRange, hasMatrix, hasMultiMatrix, hasRangeSlider, phoneCountryFields, phoneDefaults } from '../composite'
+import { hasMoney, hasSuggest, moneyMembers, suggestMembers } from '../money'
 import { formRootClass, pinnedSchemeAttr } from '../css/themeBridge'
 import { componentName, type ExportTarget } from './types'
 
@@ -153,12 +154,15 @@ export const blazorTarget: ExportTarget = {
     const rich = hasRichText(schema.tree)
     // Location fields: maps run by a script on the form root as well.
     const locations = hasLocation(schema.tree)
+    // Address suggestions: one script on the form root too; money fields keep drafts.
+    const suggests = hasSuggest(schema)
+    const money = hasMoney(schema)
     // Scripts run through IJSRuntime on the form's root: dragging items,
     // signature pads, rich-text editors, maps. A new EditContext (start,
     // reset, saved answers) makes EditForm rebuild the form's elements, so
     // they are wired again after the next render.
     const sortable = repeaters.some((r) => r.node.props['sortable'] === true)
-    const interop = sortable || signatures || rich || locations || captchaKeyOf(schema) !== null
+    const interop = sortable || signatures || rich || locations || suggests || captchaKeyOf(schema) !== null
     const calcLines = steps.map((step) => {
       const access = (itemVar: string): FormulaAccess => ({
         read: (path) =>
@@ -823,7 +827,7 @@ ${fields.map((f) => `        ${csStr(pascalMember(f.key))},`).join('\n')}
     const resetLines = `        Model = new();
         FgInitEdit();${steps.length ? '\n        FgCalc();' : ''}${hasRepeaters ? '\n        fgItemRefs.Clear();' : ''}
         fgDeferredFields.Clear();
-        ResultJson = null;${tagsKeys.length ? '\n        foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";' : ''}${typedFields.some((f) => f.node.type === 'dates') ? '\n        foreach (var key in fgDateDrafts.Keys.ToList()) fgDateDrafts[key] = "";' : ''}${phoneCountryFields(typedFields).length ? '\n        fgPhoneCountry.Clear();' : ''}${signatures ? '\n        await FgJs.InvokeVoidAsync("fgSignClear", fgFormRoot);' : ''}`
+        ResultJson = null;${tagsKeys.length ? '\n        foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";' : ''}${typedFields.some((f) => f.node.type === 'dates') ? '\n        foreach (var key in fgDateDrafts.Keys.ToList()) fgDateDrafts[key] = "";' : ''}${phoneCountryFields(typedFields).length ? '\n        fgPhoneCountry.Clear();' : ''}${money ? '\n        fgMoneyDraft.Clear();' : ''}${signatures ? '\n        await FgJs.InvokeVoidAsync("fgSignClear", fgFormRoot);' : ''}`
     const resetBlock = hasResetButton(schema) || thanks
       ? `
     private async Task FgReset()
@@ -1311,7 +1315,7 @@ ${progress ? `
     }
 `
         : '',
-      hasRange || dateMembers.length || hasGrid || phoneFields.length || hasUploads || tagsKeys.length || rich || locations
+      hasRange || dateMembers.length || hasGrid || phoneFields.length || hasUploads || tagsKeys.length || rich || locations || money
         ? `
     // Field keys: a member name ("Stay"), or for a field inside a repeater
     // item its template member plus the item ("CrewIStay#2"). Drafts and
@@ -1352,7 +1356,7 @@ ${
     }
 `
         : '',
-      hasRange || dateMembers.length || hasGrid || phoneFields.length || hasUploads || tagsKeys.length
+      hasRange || dateMembers.length || hasGrid || phoneFields.length || hasUploads || tagsKeys.length || money
         ? `
     private void FgChanged(string member) => fgEdit.NotifyFieldChanged(FgField(member));
 `
@@ -1474,7 +1478,8 @@ ${steps.length ? '' : `
         await FgJs.InvokeVoidAsync("eval", FgItemDragScript);` : ''}${signatures ? `
         await FgJs.InvokeVoidAsync("eval", FgSignatureScript);` : ''}${rich ? `
         await FgJs.InvokeVoidAsync("eval", FgRichTextScript);` : ''}${locations ? `
-        await FgJs.InvokeVoidAsync("eval", FgLocationScript);` : ''}${captchaKey ? `
+        await FgJs.InvokeVoidAsync("eval", FgLocationScript);` : ''}${suggests ? `
+        await FgJs.InvokeVoidAsync("eval", FgSuggestScript);` : ''}${captchaKey ? `
         await FgJs.InvokeVoidAsync("eval", FgCaptchaScript);` : ''}
     }
 
@@ -1485,12 +1490,13 @@ ${steps.length ? '' : `
         await FgJs.InvokeVoidAsync("fgItemDrag", fgFormRoot, fgSelf);` : ''}${signatures ? `
         await FgJs.InvokeVoidAsync("fgSignatures", fgFormRoot, fgSelf);` : ''}${rich ? `
         await FgJs.InvokeVoidAsync("fgRich", fgFormRoot, fgSelf);` : ''}${locations ? `
-        await FgJs.InvokeVoidAsync("fgLocations", fgFormRoot, fgSelf);` : ''}${captchaKey ? `
+        await FgJs.InvokeVoidAsync("fgLocations", fgFormRoot, fgSelf);` : ''}${suggests ? `
+        await FgJs.InvokeVoidAsync("fgWireSuggest", fgFormRoot);` : ''}${captchaKey ? `
         await FgJs.InvokeVoidAsync("fgCaptchaWire", fgCaptchaEl, fgSelf);` : ''}
     }
 
     public void Dispose() => fgSelf?.Dispose();
-${signatures ? blazorSignature().members : ''}${rich ? blazorRichText(messages.richLinkPrompt).members : ''}${locations ? blazorLocation(messages).members : ''}${captchaKey ? blazorCaptcha(captchaKey, schema.meta.locale).members : ''}`
+${signatures ? blazorSignature().members : ''}${rich ? blazorRichText(messages.richLinkPrompt).members : ''}${locations ? blazorLocation(messages).members : ''}${money ? moneyMembers(schema.meta.locale) : ''}${suggests ? suggestMembers() : ''}${captchaKey ? blazorCaptcha(captchaKey, schema.meta.locale).members : ''}`
       : ''
     const afterRenderBlock =
       hasRepeaters || hasUploads || hasSlider || saveDraft || interop

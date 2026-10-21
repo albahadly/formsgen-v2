@@ -8,6 +8,7 @@ import { errorsTextFunction, stepAnnouncementsLiteral, submittedText, jsString }
 import { FILE_HELPERS_TS, RUNTIME_HELPERS_TS, pruneUnusedHelpers } from '../compile'
 import { postsUploads, uploadFields, uploadStatusMarkup, uploadTextHelper, vueUploadRuntime } from '../uploadRuntime'
 import { ADD_DATE_TS, DUAL_RANGE_HELPERS_TS, MATRIX_TOGGLE_TS, exportStylesheet, hasMultiMatrix, hasRangeSlider, phoneCountryFields, phoneDefaults, phoneHelpers } from '../composite'
+import { hasMoney, hasSuggest, moneyRuntime, suggestRuntime } from '../money'
 import { compileConditions } from '../compile'
 import { calcSteps, vueCalcBlock } from '../calc'
 import { answerHelpers, usesAnswers } from '../answers'
@@ -252,6 +253,8 @@ function fgRemoveTag(path: string, index: number): void {
     // Composite fields: slider handles, and the multiple-dates draft store.
     const datesFields = typedFields.filter((f) => f.node.type === 'dates')
     const phoneFields = phoneCountryFields(typedFields)
+    const money = hasMoney(schema)
+    const suggest = hasSuggest(schema)
     const compositeLogic = [
       hasRangeSlider(schema)
         ? `${DUAL_RANGE_HELPERS_TS}
@@ -294,6 +297,28 @@ function fgPhoneInput(path: string, event: Event): void {
   fgSet(path, fgComposePhone(fgPhoneCountryOf(path), (event.target as HTMLInputElement).value))
   revalidate(path)
 }`
+        : '',
+      money
+        ? `${moneyRuntime(schema.meta.locale, true)}
+// The text of a money field while it is being edited (else the value, formatted).
+const fgMoneyDraft = reactive<Record<string, string>>({})
+function fgMoneyText(path: string, value: unknown, decimals: number): string {
+  return fgMoneyDraft[path] ?? fgMoneyFormat(value, decimals)
+}
+function fgMoneyInput(path: string, event: Event, decimals: number): void {
+  const text = (event.target as HTMLInputElement).value
+  fgMoneyDraft[path] = text
+  fgSet(path, fgMoneyParse(text, decimals))
+  revalidate(path)
+}
+function fgMoneyBlur(path: string): void {
+  delete fgMoneyDraft[path]
+  touch(path)
+}`
+        : '',
+      suggest
+        ? `${suggestRuntime(true)}
+onMounted(() => fgWireSuggest(fgRoot.value))`
         : '',
     ]
       .filter(Boolean)
@@ -469,7 +494,7 @@ ${vueItemDrag(messages)}
 
     // Reset buttons: back to the defaults, no errors, announced.
     // Per-field UI state a reset (or clearing saved answers) also empties.
-    const resetExtras = `${tagsFields.length > 0 ? `\n  for (const key of Object.keys(tagDrafts)) tagDrafts[key] = ''` : ''}${datesFields.length > 0 ? `\n  for (const key of Object.keys(fgDateDrafts)) fgDateDrafts[key] = ''` : ''}${phoneFields.length > 0 ? '\n  for (const key of Object.keys(fgPhoneCountry)) delete fgPhoneCountry[key]' : ''}`
+    const resetExtras = `${tagsFields.length > 0 ? `\n  for (const key of Object.keys(tagDrafts)) tagDrafts[key] = ''` : ''}${datesFields.length > 0 ? `\n  for (const key of Object.keys(fgDateDrafts)) fgDateDrafts[key] = ''` : ''}${phoneFields.length > 0 ? '\n  for (const key of Object.keys(fgPhoneCountry)) delete fgPhoneCountry[key]' : ''}${money ? '\n  for (const key of Object.keys(fgMoneyDraft)) delete fgMoneyDraft[key]' : ''}`
     const resetLogic = hasResetButton(schema) || thanks
       ? `function fgReset(): void {
   Object.assign(form, ${indentBlock(toJsLiteral(defaultsObject(schema)), 1).trimStart()})
@@ -483,7 +508,7 @@ ${vueItemDrag(messages)}
     const hasUploads = uploadFields(typedFields).length > 0
     // Path helpers for the per-type handlers (unused ones are pruned).
     const pathHelpers =
-      hasUploads || tagsFields.length > 0 || datesFields.length > 0 || phoneFields.length > 0 || repeaters.length > 0 || hasRichText(schema.tree) || hasLocation(schema.tree)
+      hasUploads || tagsFields.length > 0 || datesFields.length > 0 || phoneFields.length > 0 || money || repeaters.length > 0 || hasRichText(schema.tree) || hasLocation(schema.tree)
         ? `${tplHelper(true)}
 function fgGet(path: string): unknown {
   return path.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], form)
@@ -558,7 +583,7 @@ function fgAnnounce(message: string): void {
 ${errorsTextFunction(messages, true)}
 
 ${RUNTIME_HELPERS_TS}${hasMultiMatrix(schema) ? `\n${MATRIX_TOGGLE_TS}` : ''}${steps.length ? `\n${vueCalcBlock(steps)}` : ''}${usesAnswers(schema.tree) || thanksPipes(schema) ? `\n${answerHelpers(true)}` : ''}
-${pathHelpers}${hasUploads ? `${FILE_HELPERS_TS}\n${vueUploadRuntime(typedFields, messages)}\n` : ''}${draft ? `${draftHelpers(schema, 'vue', true)}\n${vueDraftBlock(messages, resetExtras)}\n` : ''}${prefill.length ? `${tsPrefillHelpers()}\n${vuePrefillBlock(prefill)}\n` : ''}${afterSubmit ? `${vueAfterSubmit(schema)}\n` : ''}${!repeaters.length && (signatures || rich || locations) ? 'const fgRoot = ref<HTMLElement | null>(null)\n' : ''}${signatures ? `${vueSignature()}\n` : ''}${rich ? `${vueRichText(messages.richLinkPrompt)}\n` : ''}${locations ? `${vueLocation(messages)}\n` : ''}${captchaKey ? `${vueCaptcha(captchaKey, schema.meta.locale)}\n` : ''}
+${pathHelpers}${hasUploads ? `${FILE_HELPERS_TS}\n${vueUploadRuntime(typedFields, messages)}\n` : ''}${draft ? `${draftHelpers(schema, 'vue', true)}\n${vueDraftBlock(messages, resetExtras)}\n` : ''}${prefill.length ? `${tsPrefillHelpers()}\n${vuePrefillBlock(prefill)}\n` : ''}${afterSubmit ? `${vueAfterSubmit(schema)}\n` : ''}${!repeaters.length && (signatures || rich || locations || suggest) ? 'const fgRoot = ref<HTMLElement | null>(null)\n' : ''}${signatures ? `${vueSignature()}\n` : ''}${rich ? `${vueRichText(messages.richLinkPrompt)}\n` : ''}${locations ? `${vueLocation(messages)}\n` : ''}${captchaKey ? `${vueCaptcha(captchaKey, schema.meta.locale)}\n` : ''}
 ${visibilityFunctions(fields, accessor)}
 
 const validators: Record<string, () => string | null> = ${validatorsLiteral(fields, accessor, '', undefined, messages)}
@@ -660,7 +685,7 @@ ${submitBlock}}
     </div>`
 
     const template = `<template>
-  <form${repeaters.length || signatures || rich || locations ? '\n    ref="fgRoot"' : ''}
+  <form${repeaters.length || signatures || rich || locations || suggest ? '\n    ref="fgRoot"' : ''}
     class="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme).replace(' ', '\n    ')}
     dir="${schema.meta.dir}"
     novalidate

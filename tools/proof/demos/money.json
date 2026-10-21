@@ -1,0 +1,9 @@
+{
+ "$schema": "formsgen/v2",
+ "meta": { "name": "money_demo", "title": "Money", "locale": "de", "dir": "ltr", "prefillFromQuery": true, "submit": { "url": "http://FG_HOST:4280/submit", "method": "POST" } },
+ "tree": [
+  { "id": "price", "type": "currency", "name": "price", "props": { "label": "Preis", "currency": "EUR", "decimals": 2 }, "validation": [{ "rule": "required" }] },
+  { "id": "place", "type": "address", "name": "place", "props": { "label": "Ort", "suggestUrl": "http://FG_HOST:4280/suggest?q={q}", "minChars": 3 } },
+  { "id": "name", "type": "text", "name": "full_name", "props": { "label": "Name" } }
+ ]
+}

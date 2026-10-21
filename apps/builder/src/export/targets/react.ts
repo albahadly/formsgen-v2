@@ -29,6 +29,7 @@ import {
   phoneDefaults,
   phoneHelpers,
 } from '../composite'
+import { hasMoney, hasSuggest, moneyRuntime, suggestRuntime } from '../money'
 import {
   collectExportRepeaters,
   itemValidatorsLiteral,
@@ -297,18 +298,23 @@ ${indentBlock(itemMarkup, 4)}
     const hasSlider = hasRangeSlider(schema)
     const hasDateList = hasDates(schema)
     const hasPhone = phoneCountryFields(typedFields).length > 0
+    const money = hasMoney(schema)
+    const suggest = hasSuggest(schema)
     const compositeModule = [
       hasSlider ? DUAL_RANGE_HELPERS_TS : '',
       hasDateList ? ADD_DATE_TS : '',
       hasPhone
         ? `${phoneHelpers(typedFields, schema.meta.locale, true)}\n// Starting country per field (template path).\nconst FG_PHONE_DEFAULTS: Record<string, string> = ${JSON.stringify(phoneDefaults(typedFields, schema.meta.locale, (f) => f.path))}`
         : '',
+      money ? moneyRuntime(schema.meta.locale, true) : '',
+      suggest ? suggestRuntime(true) : '',
     ]
       .filter(Boolean)
       .join('\n')
     const compositeState = [
       hasDateList ? `  const [dateDrafts, setDateDrafts] = useState<Record<string, string>>({})` : '',
       hasPhone ? `  // The chosen country per field path (else the field's default).\n  const [phoneCountry, setPhoneCountry] = useState<Record<string, string>>({})` : '',
+      money ? `  // The text of a money field while it is being edited (else the value, formatted).\n  const [fgMoney, setFgMoney] = useState<Record<string, string>>({})` : '',
     ]
       .filter(Boolean)
       .join('\n')
@@ -575,13 +581,43 @@ ${reactItemDrag(messages)}
     const resetLines = `    setForm(${steps.length ? 'fgCalc(INITIAL)' : 'INITIAL'})
     setErrors({})
     touched.current.clear()${hasRepeaters ? '\n    fgKeys.current = {}' : ''}
-    setResult(null)${hasTags ? '\n    setTagDrafts({})' : ''}${hasDateList ? '\n    setDateDrafts({})' : ''}${hasPhone ? '\n    setPhoneCountry({})' : ''}`
+    setResult(null)${hasTags ? '\n    setTagDrafts({})' : ''}${hasDateList ? '\n    setDateDrafts({})' : ''}${hasPhone ? '\n    setPhoneCountry({})' : ''}${money ? '\n    setFgMoney({})' : ''}`
     const resetHandler = hasResetButton(schema) || thanks
       ? `  function fgReset(): void {
 ${resetLines}
     fgAnnounce(${JSON.stringify(messages.formReset)})
   }`
       : ''
+
+    // Money fields keep the typed text until blur; address fields are wired once.
+    const moneyHandlers = [
+      money
+        ? `  function fgMoneyText(path: string, value: unknown, decimals: number): string {
+    return fgMoney[path] ?? fgMoneyFormat(value, decimals)
+  }
+
+  function fgMoneyInput(path: string, text: string, decimals: number): void {
+    setFgMoney((d) => ({ ...d, [path]: text }))
+    setField(path, fgMoneyParse(text, decimals))
+  }
+
+  function fgMoneyBlur(path: string): void {
+    setFgMoney((d) => {
+      const next = { ...d }
+      delete next[path]
+      return next
+    })
+    touch(path)
+  }`
+        : '',
+      suggest
+        ? `  useEffect(() => {
+    fgWireSuggest(fgRoot.current)
+  }, [])`
+        : '',
+    ]
+      .filter(Boolean)
+      .join('\n\n')
 
     const hasUploads = uploadFields(typedFields).length > 0
     const submitUrl = schema.meta.submit?.url
@@ -746,7 +782,7 @@ ${stepHandlers ? `\n${stepHandlers}\n` : ''}
     touched.current.add(path)
     validateField(path, formRef.current)
   }
-${tagsHandlers ? `\n${tagsHandlers}\n` : ''}${!hasRepeaters && (signatures || rich || locations) ? '\n  const fgRoot = useRef<HTMLFormElement>(null)\n' : ''}${signatures ? `\n${reactSignatureHooks()}\n` : ''}${rich ? `\n${reactRichTextHooks()}\n` : ''}${locations ? `\n${reactLocationHooks()}\n` : ''}${captchaKey ? `\n${reactCaptchaHooks(captchaKey, schema.meta.locale)}\n` : ''}${compositeHandlers ? `\n${compositeHandlers}\n` : ''}${hasUploads ? `\n${reactUploadHandlers(typedFields)}\n` : ''}${repeaterHandlers ? `\n${repeaterHandlers}\n` : ''}${resetHandler ? `\n${resetHandler}\n` : ''}${afterSubmitCode.handlers ? `\n${afterSubmitCode.handlers}\n` : ''}${draft ? `\n${reactDraftHandlers(messages, resetLines)}\n` : ''}
+${tagsHandlers ? `\n${tagsHandlers}\n` : ''}${!hasRepeaters && (signatures || rich || locations || suggest) ? '\n  const fgRoot = useRef<HTMLFormElement>(null)\n' : ''}${signatures ? `\n${reactSignatureHooks()}\n` : ''}${rich ? `\n${reactRichTextHooks()}\n` : ''}${locations ? `\n${reactLocationHooks()}\n` : ''}${captchaKey ? `\n${reactCaptchaHooks(captchaKey, schema.meta.locale)}\n` : ''}${compositeHandlers ? `\n${compositeHandlers}\n` : ''}${moneyHandlers ? `\n${moneyHandlers}\n` : ''}${hasUploads ? `\n${reactUploadHandlers(typedFields)}\n` : ''}${repeaterHandlers ? `\n${repeaterHandlers}\n` : ''}${resetHandler ? `\n${resetHandler}\n` : ''}${afterSubmitCode.handlers ? `\n${afterSubmitCode.handlers}\n` : ''}${draft ? `\n${reactDraftHandlers(messages, resetLines)}\n` : ''}
   function handleSubmit(event: React.FormEvent): void {
     event.preventDefault()${progress ? "\n    if (fgUpload.state === 'uploading') return" : ''}
     const nextErrors: Record<string, string> = {}
@@ -775,7 +811,7 @@ ${jumpBlock ? `${jumpBlock}\n` : ''}      fgAnnounce(fgErrorsText(Object.keys(ne
 ${submitBlock}  }
 
   return (
-    <form${hasRepeaters || signatures || rich || locations ? ' ref={fgRoot}' : ''} className="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} dir="${schema.meta.dir}"${thanks ? " data-fg-sent={fgSent ? '' : undefined}" : ''} noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>${thanks ? `\n      <style>{${JSON.stringify(SENT_RULE)}}</style>\n${indentBlock(thanksMarkup('react', schema, css, messages, formAccessor), 3)}` : ''}${draft ? `\n${indentBlock(draftBar('react', schema, css, messages), 3)}` : ''}
+    <form${hasRepeaters || signatures || rich || locations || suggest ? ' ref={fgRoot}' : ''} className="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} dir="${schema.meta.dir}"${thanks ? " data-fg-sent={fgSent ? '' : undefined}" : ''} noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>${thanks ? `\n      <style>{${JSON.stringify(SENT_RULE)}}</style>\n${indentBlock(thanksMarkup('react', schema, css, messages, formAccessor), 3)}` : ''}${draft ? `\n${indentBlock(draftBar('react', schema, css, messages), 3)}` : ''}
       <div className="${css.classes('grid')}">
 ${indentBlock(markup, 4)}
       </div>

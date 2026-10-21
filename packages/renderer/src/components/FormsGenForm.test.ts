@@ -113,6 +113,8 @@ describe('FormsGenForm', () => {
       satisfaction: 5,
       stars: 4,
       nps: null,
+      price: null,
+      address: '',
       city: '',
       zip: '',
       account: { username: 'jane', password: '', bio: '', birthday: '', avatar: [] },

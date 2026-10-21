@@ -471,6 +471,7 @@ const FIELD_TS_TYPES: Record<string, string> = {
   range: 'number',
   rating: 'number | null',
   nps: 'number | null',
+  currency: 'number | null',
   file: 'File[]',
   imageupload: 'File[]',
   signature: 'File[]',

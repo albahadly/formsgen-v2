@@ -90,6 +90,8 @@ export const coreElements: Record<string, CoreElementMeta> = {
   // Scores: a number or null, radios underneath (rating 1..stars, nps 0..10).
   rating: meta('rating', true, false, () => null),
   nps: meta('nps', true, false, () => null),
+  currency: meta('currency', true, false, () => null),
+  address: meta('address', true, false, () => ''),
   // Composite values (see composite.ts).
   rangeslider: meta('rangeslider', true, false, rangeSliderDefault),
   daterange: meta('daterange', true, false, () => ({ from: '', to: '' })),

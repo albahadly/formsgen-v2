@@ -19,6 +19,8 @@ import FgPhone from './fields/FgPhone.vue'
 import FgRadioGroup from './fields/FgRadioGroup.vue'
 import FgRange from './fields/FgRange.vue'
 import FgScore from './fields/FgScore.vue'
+import FgCurrency from './fields/FgCurrency.vue'
+import FgAddress from './fields/FgAddress.vue'
 import FgRangeSlider from './fields/FgRangeSlider.vue'
 import FgSelect from './fields/FgSelect.vue'
 import FgTags from './fields/FgTags.vue'
@@ -39,6 +41,8 @@ export const FIELD_COMPONENTS: Readonly<Record<string, Component>> = {
   range: FgRange,
   rating: FgScore,
   nps: FgScore,
+  currency: FgCurrency,
+  address: FgAddress,
   rangeslider: FgRangeSlider,
   daterange: FgDateRange,
   dates: FgDates,

@@ -72,6 +72,7 @@ export function csFieldKind(node: ElementNode): CsFieldKind {
     case 'calculated':
     case 'rating':
     case 'nps':
+    case 'currency':
       return 'number'
     case 'range':
       return 'numberValue'

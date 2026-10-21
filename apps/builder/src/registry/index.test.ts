@@ -6,12 +6,14 @@ import { getElement, listElements } from './index'
 describe('element registry', () => {
   it('registers the full catalog', () => {
     expect(listElements().map((d) => d.type).sort()).toEqual([
+      'address',
       'button',
       'calculated',
       'checkbox',
       'checkboxgroup',
       'color',
       'columns',
+      'currency',
       'date',
       'daterange',
       'dates',
@@ -79,7 +81,7 @@ describe('element registry', () => {
       'paragraph',
       'quote',
     ])
-    expect(listElements('fields')).toHaveLength(35)
+    expect(listElements('fields')).toHaveLength(37)
   })
 
   it('every definition matches its core semantics in the renderer', () => {

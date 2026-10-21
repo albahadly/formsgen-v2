@@ -20,6 +20,7 @@ import { SENT_RULE, afterSubmitOf, htmlAfterSubmitRuntime, thanksMarkup, thanksP
 import { fieldsByPath, listSeparator } from '@formsgen/renderer'
 import { dropFirstHelper, postsUploads, uploadFields, uploadStatusMarkup, uploadTextHelper } from '../uploadRuntime'
 import { exportStylesheet, hasDateRange, hasDates, hasMatrix, hasRangeSlider, phoneCountryFields } from '../composite'
+import { hasMoney, hasSuggest, moneyRuntime, suggestRuntime } from '../money'
 import {
   collectExportFields,
   collectExportRepeaters,
@@ -251,6 +252,8 @@ ${indentBlock(r.itemHtml, 3)}
     const hasDateList = hasDates(schema)
     const hasGrid = hasMatrix(schema)
     const hasPhone = phoneCountryFields(typedFields).length > 0
+    const money = hasMoney(schema)
+    const suggest = hasSuggest(schema)
     // Wiring per root: the page at start, then each new repeater item.
     const wires: string[] = ['fgWireTags']
     const hasComposite = hasSlider || hasRange || hasDateList || hasPhone
@@ -787,6 +790,26 @@ ${htmlItemDrag(messages)}
     const uploadRuntime = hasUploads ? htmlUploadRuntime() : ''
     if (hasUploads) wires.push('fgWireFiles')
     const compositeRuntime = hasComposite ? htmlCompositeRuntime() : ''
+    // Money and address suggestions (phase 45b): the shared helpers, wired per root.
+    const extraParts: string[] = []
+    if (money) {
+      extraParts.push(`${moneyRuntime(schema.meta.locale, false)}
+// Leaving a money field shows the amount formatted.
+function fgWireMoney(root) {
+  fgEach(root, '[data-fg-kind="currency"]', function (input) {
+    input.addEventListener('blur', function () {
+      var decimals = Number(input.getAttribute('data-fg-decimals'))
+      input.value = fgMoneyFormat(fgMoneyParse(input.value, decimals), decimals)
+    })
+  })
+}`)
+      wires.push('fgWireMoney')
+    }
+    if (suggest) {
+      extraParts.push(suggestRuntime(false))
+      wires.push('fgWireSuggest')
+    }
+    const extraRuntime = extraParts.join('\n')
     const script = `  <script>
   (function () {
     'use strict'
@@ -819,7 +842,8 @@ ${htmlItemDrag(messages)}
       if (kind === 'score') {
         var picked = document.querySelector('[data-fg-path="' + path + '"]:checked')
         return picked ? Number(picked.value) : null
-      }
+      }${money ? `
+      if (kind === 'currency') return fgMoneyParse(el.value, Number(el.getAttribute('data-fg-decimals')))` : ''}
       if (kind === 'multiselect') {
         return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }
@@ -977,7 +1001,7 @@ ${indentBlock(repeaterRuntime(), 2)}
       })
     }
 
-${uploadRuntime ? indentBlock(uploadRuntime, 2) + '\n\n' : ''}${compositeRuntime ? indentBlock(compositeRuntime, 2) + '\n\n' : ''}    function fgWire(root) {
+${uploadRuntime ? indentBlock(uploadRuntime, 2) + '\n\n' : ''}${compositeRuntime ? indentBlock(compositeRuntime, 2) + '\n\n' : ''}${extraRuntime ? indentBlock(extraRuntime, 2) + '\n\n' : ''}    function fgWire(root) {
 ${wires.map((w) => `      ${w}(root)`).join('\n')}
     }
     fgWire(document)

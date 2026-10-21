@@ -138,6 +138,24 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
           </fieldset>
         </div>
         <div class="col-12 col-md-12">
+          <div class="d-flex flex-column fg-field">
+            <label class="form-label fw-semibold small mb-0 fg-label" for="fg_price">Price</label>
+            <div class="input-group">
+              <span id="fg_price-prefix" class="input-group-text">€</span>
+              <input id="fg_price" type="text" inputmode="decimal" autocomplete="off" class="form-control" aria-describedby="fg_price-prefix" value='@FgMoneyText("Price", Model.Price, 2)' @oninput='e => Model.Price = FgMoneyInput("Price", e, 2)' @onblur='() => FgMoneyBlur("Price")' />
+            </div>
+            <ValidationMessage For="@(() => Model.Price)" class="invalid-feedback d-block mt-0 mb-0 fg-error" />
+          </div>
+        </div>
+        <div class="col-12 col-md-12">
+          <div class="d-flex flex-column fg-field">
+            <label class="form-label fw-semibold small mb-0 fg-label" for="fg_address">Address</label>
+            <InputText id="fg_address" @bind-Value="Model.Address" class="form-control" list="fg_address-list" autocomplete="off" data-fg-suggest="https://nominatim.openstreetmap.org/search?format=json&amp;limit=6&amp;q={q}" data-fg-suggest-min="3" />
+            <datalist id="fg_address-list"></datalist>
+            <ValidationMessage For="@(() => Model.Address)" class="invalid-feedback d-block mt-0 mb-0 fg-error" />
+          </div>
+        </div>
+        <div class="col-12 col-md-12">
           <hr class="border-top my-1 border-primary opacity-100" />
         </div>
         <div class="col-12 col-md-12">
@@ -1413,6 +1431,8 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
             "Satisfaction" => Model.Satisfaction,
             "Stars" => Model.Stars,
             "Nps" => Model.Nps,
+            "Price" => Model.Price,
+            "Address" => Model.Address,
             "City" => Model.City,
             "Zip" => Model.Zip,
             "AccountUsername" => Model.AccountUsername,
@@ -1523,6 +1543,8 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         "Satisfaction",
         "Stars",
         "Nps",
+        "Price",
+        "Address",
         "City",
         "Zip",
         "AccountUsername",
@@ -2444,6 +2466,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";
         foreach (var key in fgDateDrafts.Keys.ToList()) fgDateDrafts[key] = "";
         fgPhoneCountry.Clear();
+        fgMoneyDraft.Clear();
         await FgJs.InvokeVoidAsync("fgSignClear", fgFormRoot);
         await FgAnnounce("The form was reset.");
     }
@@ -2461,6 +2484,8 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         { var v = FgQueryNumber(query, "satisfaction"); if (v is not null) Model.Satisfaction = v.Value; }
         { var v = FgQueryNumber(query, "stars"); if (v is not null) Model.Stars = v; }
         { var v = FgQueryNumber(query, "nps"); if (v is not null) Model.Nps = v; }
+        { var v = FgQueryNumber(query, "price"); if (v is not null) Model.Price = v; }
+        { var v = FgQueryString(query, "address"); if (v is not null) Model.Address = v; }
         { var v = FgQueryString(query, "city"); if (v is not null) Model.City = v; }
         { var v = FgQueryString(query, "zip"); if (v is not null) Model.Zip = v; }
         { var v = FgQueryString(query, "account.username"); if (v is not null) Model.AccountUsername = v; }
@@ -2542,6 +2567,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         await FgJs.InvokeVoidAsync("eval", FgSignatureScript);
         await FgJs.InvokeVoidAsync("eval", FgRichTextScript);
         await FgJs.InvokeVoidAsync("eval", FgLocationScript);
+        await FgJs.InvokeVoidAsync("eval", FgSuggestScript);
         await FgJs.InvokeVoidAsync("eval", FgCaptchaScript);
     }
 
@@ -2553,6 +2579,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         await FgJs.InvokeVoidAsync("fgSignatures", fgFormRoot, fgSelf);
         await FgJs.InvokeVoidAsync("fgRich", fgFormRoot, fgSelf);
         await FgJs.InvokeVoidAsync("fgLocations", fgFormRoot, fgSelf);
+        await FgJs.InvokeVoidAsync("fgWireSuggest", fgFormRoot);
         await FgJs.InvokeVoidAsync("fgCaptchaWire", fgCaptchaEl, fgSelf);
     }
 
@@ -3300,6 +3327,111 @@ window.fgLocSet = function (root, values) {
         await FgJs.InvokeVoidAsync("fgLocSet", fgFormRoot, fgLoc.ToDictionary(entry => entry.Key, entry => entry.Value.Value is null ? null : (object)new { lat = entry.Value.Value.Lat, lng = entry.Value.Value.Lng }));
     }
 
+    // Money: the form's separators (en); parsing takes the last '.' or ','
+    // followed by one to <decimals> digits as the decimal mark, the rest as
+    // grouping. While a field is being edited its text is kept as typed.
+    private readonly Dictionary<string, string> fgMoneyDraft = new();
+
+    private static string FgMoneyFormat(double? value, int decimals)
+    {
+        if (value is not { } v || double.IsNaN(v) || double.IsInfinity(v)) return "";
+        var parts = Math.Abs(v).ToString("F" + decimals, System.Globalization.CultureInfo.InvariantCulture).Split('.');
+        var whole = parts[0];
+        for (var i = whole.Length - 3; i > 0; i -= 3) whole = whole.Insert(i, ",");
+        return (v < 0 ? "-" : "") + whole + (parts.Length > 1 ? "." + parts[1] : "");
+    }
+
+    private static double? FgMoneyParse(string text, int decimals)
+    {
+        var trimmed = text.Trim();
+        var digits = new string(trimmed.Where(c => (c >= '0' && c <= '9') || c == '.' || c == ',').ToArray());
+        if (!digits.Any(c => c >= '0' && c <= '9')) return null;
+        var mark = Math.Max(digits.LastIndexOf('.'), digits.LastIndexOf(','));
+        var tail = mark == -1 ? "" : digits[(mark + 1)..];
+        var isDecimal = mark != -1 && decimals > 0 && tail.Length >= 1 && tail.Length <= decimals && tail.All(c => c >= '0' && c <= '9');
+        var whole = (isDecimal ? digits[..mark] : digits).Replace(".", "").Replace(",", "");
+        var scale = Math.Pow(10, decimals);
+        var amount = Math.Round(double.Parse((whole == "" ? "0" : whole) + "." + (isDecimal ? tail : "0"), System.Globalization.CultureInfo.InvariantCulture) * scale, MidpointRounding.AwayFromZero) / scale;
+        return trimmed.StartsWith('-') ? -amount : amount;
+    }
+
+    private string FgMoneyText(string member, double? value, int decimals) =>
+        fgMoneyDraft.TryGetValue(member, out var text) ? text : FgMoneyFormat(value, decimals);
+
+    private double? FgMoneyInput(string member, ChangeEventArgs e, int decimals)
+    {
+        var text = Convert.ToString(e.Value) ?? "";
+        fgMoneyDraft[member] = text;
+        return FgMoneyParse(text, decimals);
+    }
+
+    private void FgMoneyBlur(string member)
+    {
+        fgMoneyDraft.Remove(member);
+        FgChanged(member);
+    }
+
+    private const string FgSuggestScript = @"// Address suggestions: the provider named by data-fg-suggest ({q} = the
+// typed text) fills the input's datalist after a pause; its JSON is read loosely.
+function fgSuggestText(item) {
+  if (typeof item === 'string') return item.trim() || null
+  if (!item || typeof item !== 'object') return null
+  var record = item
+  if (record['properties'] && typeof record['properties'] === 'object') return fgSuggestText(record['properties'])
+  var keys = ['display_name', 'label', 'name', 'text', 'address']
+  for (var i = 0; i < keys.length; i++) {
+    var v = record[keys[i]]
+    if (typeof v === 'string' && v.trim() !== '') return v.trim()
+  }
+  return null
+}
+function fgSuggestTexts(data) {
+  var list = data
+  if (list && typeof list === 'object' && !Array.isArray(list)) {
+    var record = list
+    list = record['features'] || record['results'] || record['items'] || []
+  }
+  if (!Array.isArray(list)) return []
+  var out = []
+  list.forEach(function (item) {
+    var text = fgSuggestText(item)
+    if (text && out.indexOf(text) === -1 && out.length < 8) out.push(text)
+  })
+  return out
+}
+function fgWireSuggest(root) {
+  if (!root) return
+  Array.prototype.forEach.call(root.querySelectorAll('[data-fg-suggest]:not([data-fg-suggested])'), function (input) {
+    input.setAttribute('data-fg-suggested', '')
+    var url = input.getAttribute('data-fg-suggest') || ''
+    var min = Number(input.getAttribute('data-fg-suggest-min')) || 3
+    var timer
+    var request = 0
+    input.addEventListener('input', function () {
+      if (timer !== undefined) clearTimeout(timer)
+      var q = input.value.trim()
+      const target = input.list
+      if (!target) return
+      if (q.length < min) { target.innerHTML = ''; return }
+      timer = setTimeout(function () {
+        var mine = ++request
+        fetch(url.replace('{q}', encodeURIComponent(q)))
+          .then(function (response) { return response.json() })
+          .then(function (data) {
+            if (mine !== request) return
+            target.innerHTML = ''
+            fgSuggestTexts(data).forEach(function (text) {
+              var option = document.createElement('option')
+              option.value = text
+              target.appendChild(option)
+            })
+          })
+          .catch(function () {})
+      }, 300)
+    })
+  })
+}";
+
     // Spam check (Cloudflare Turnstile): the widget is run by a script
     // (FgCaptchaScript) that reports each token here; the submit button
     // waits for one, and each submission sends it once.
@@ -3413,6 +3545,8 @@ window.fgCaptchaWire = function (el, dotnet) {
         payload["satisfaction"] = Model.Satisfaction;
         payload["stars"] = Model.Stars;
         payload["nps"] = Model.Nps;
+        payload["price"] = Model.Price;
+        payload["address"] = Model.Address;
         payload["city"] = Model.City;
         payload["zip"] = Model.Zip;
         var dict0 = new Dictionary<string, object?>();
@@ -3489,6 +3623,10 @@ window.fgCaptchaWire = function (el, dotnet) {
         public double? Stars { get; set; }
 
         public double? Nps { get; set; }
+
+        public double? Price { get; set; }
+
+        public string Address { get; set; } = "";
 
         public string City { get; set; } = "";
 
@@ -3742,6 +3880,24 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
             </InputRadioGroup>
             <ValidationMessage For="@(() => Model.Nps)" class="text-sm text-red-600" />
           </fieldset>
+        </div>
+        <div class="col-span-12 md:col-span-12">
+          <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
+            <label class="text-sm font-semibold" for="fg_price">Price</label>
+            <div class="flex [&>:not(:first-child)]:-ms-px [&>:not(:first-child)]:rounded-s-none [&>:not(:last-child)]:rounded-e-none">
+              <span id="fg_price-prefix" class="inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-base text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">€</span>
+              <input id="fg_price" type="text" inputmode="decimal" autocomplete="off" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" aria-describedby="fg_price-prefix" value='@FgMoneyText("Price", Model.Price, 2)' @oninput='e => Model.Price = FgMoneyInput("Price", e, 2)' @onblur='() => FgMoneyBlur("Price")' />
+            </div>
+            <ValidationMessage For="@(() => Model.Price)" class="text-sm text-red-600" />
+          </div>
+        </div>
+        <div class="col-span-12 md:col-span-12">
+          <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
+            <label class="text-sm font-semibold" for="fg_address">Address</label>
+            <InputText id="fg_address" @bind-Value="Model.Address" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" list="fg_address-list" autocomplete="off" data-fg-suggest="https://nominatim.openstreetmap.org/search?format=json&amp;limit=6&amp;q={q}" data-fg-suggest-min="3" />
+            <datalist id="fg_address-list"></datalist>
+            <ValidationMessage For="@(() => Model.Address)" class="text-sm text-red-600" />
+          </div>
         </div>
         <div class="col-span-12 md:col-span-12">
           <hr class="my-1 border-t border-indigo-500" />
@@ -5023,6 +5179,8 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
             "Satisfaction" => Model.Satisfaction,
             "Stars" => Model.Stars,
             "Nps" => Model.Nps,
+            "Price" => Model.Price,
+            "Address" => Model.Address,
             "City" => Model.City,
             "Zip" => Model.Zip,
             "AccountUsername" => Model.AccountUsername,
@@ -5133,6 +5291,8 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         "Satisfaction",
         "Stars",
         "Nps",
+        "Price",
+        "Address",
         "City",
         "Zip",
         "AccountUsername",
@@ -6054,6 +6214,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";
         foreach (var key in fgDateDrafts.Keys.ToList()) fgDateDrafts[key] = "";
         fgPhoneCountry.Clear();
+        fgMoneyDraft.Clear();
         await FgJs.InvokeVoidAsync("fgSignClear", fgFormRoot);
         await FgAnnounce("The form was reset.");
     }
@@ -6071,6 +6232,8 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         { var v = FgQueryNumber(query, "satisfaction"); if (v is not null) Model.Satisfaction = v.Value; }
         { var v = FgQueryNumber(query, "stars"); if (v is not null) Model.Stars = v; }
         { var v = FgQueryNumber(query, "nps"); if (v is not null) Model.Nps = v; }
+        { var v = FgQueryNumber(query, "price"); if (v is not null) Model.Price = v; }
+        { var v = FgQueryString(query, "address"); if (v is not null) Model.Address = v; }
         { var v = FgQueryString(query, "city"); if (v is not null) Model.City = v; }
         { var v = FgQueryString(query, "zip"); if (v is not null) Model.Zip = v; }
         { var v = FgQueryString(query, "account.username"); if (v is not null) Model.AccountUsername = v; }
@@ -6152,6 +6315,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         await FgJs.InvokeVoidAsync("eval", FgSignatureScript);
         await FgJs.InvokeVoidAsync("eval", FgRichTextScript);
         await FgJs.InvokeVoidAsync("eval", FgLocationScript);
+        await FgJs.InvokeVoidAsync("eval", FgSuggestScript);
         await FgJs.InvokeVoidAsync("eval", FgCaptchaScript);
     }
 
@@ -6163,6 +6327,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         await FgJs.InvokeVoidAsync("fgSignatures", fgFormRoot, fgSelf);
         await FgJs.InvokeVoidAsync("fgRich", fgFormRoot, fgSelf);
         await FgJs.InvokeVoidAsync("fgLocations", fgFormRoot, fgSelf);
+        await FgJs.InvokeVoidAsync("fgWireSuggest", fgFormRoot);
         await FgJs.InvokeVoidAsync("fgCaptchaWire", fgCaptchaEl, fgSelf);
     }
 
@@ -6910,6 +7075,111 @@ window.fgLocSet = function (root, values) {
         await FgJs.InvokeVoidAsync("fgLocSet", fgFormRoot, fgLoc.ToDictionary(entry => entry.Key, entry => entry.Value.Value is null ? null : (object)new { lat = entry.Value.Value.Lat, lng = entry.Value.Value.Lng }));
     }
 
+    // Money: the form's separators (en); parsing takes the last '.' or ','
+    // followed by one to <decimals> digits as the decimal mark, the rest as
+    // grouping. While a field is being edited its text is kept as typed.
+    private readonly Dictionary<string, string> fgMoneyDraft = new();
+
+    private static string FgMoneyFormat(double? value, int decimals)
+    {
+        if (value is not { } v || double.IsNaN(v) || double.IsInfinity(v)) return "";
+        var parts = Math.Abs(v).ToString("F" + decimals, System.Globalization.CultureInfo.InvariantCulture).Split('.');
+        var whole = parts[0];
+        for (var i = whole.Length - 3; i > 0; i -= 3) whole = whole.Insert(i, ",");
+        return (v < 0 ? "-" : "") + whole + (parts.Length > 1 ? "." + parts[1] : "");
+    }
+
+    private static double? FgMoneyParse(string text, int decimals)
+    {
+        var trimmed = text.Trim();
+        var digits = new string(trimmed.Where(c => (c >= '0' && c <= '9') || c == '.' || c == ',').ToArray());
+        if (!digits.Any(c => c >= '0' && c <= '9')) return null;
+        var mark = Math.Max(digits.LastIndexOf('.'), digits.LastIndexOf(','));
+        var tail = mark == -1 ? "" : digits[(mark + 1)..];
+        var isDecimal = mark != -1 && decimals > 0 && tail.Length >= 1 && tail.Length <= decimals && tail.All(c => c >= '0' && c <= '9');
+        var whole = (isDecimal ? digits[..mark] : digits).Replace(".", "").Replace(",", "");
+        var scale = Math.Pow(10, decimals);
+        var amount = Math.Round(double.Parse((whole == "" ? "0" : whole) + "." + (isDecimal ? tail : "0"), System.Globalization.CultureInfo.InvariantCulture) * scale, MidpointRounding.AwayFromZero) / scale;
+        return trimmed.StartsWith('-') ? -amount : amount;
+    }
+
+    private string FgMoneyText(string member, double? value, int decimals) =>
+        fgMoneyDraft.TryGetValue(member, out var text) ? text : FgMoneyFormat(value, decimals);
+
+    private double? FgMoneyInput(string member, ChangeEventArgs e, int decimals)
+    {
+        var text = Convert.ToString(e.Value) ?? "";
+        fgMoneyDraft[member] = text;
+        return FgMoneyParse(text, decimals);
+    }
+
+    private void FgMoneyBlur(string member)
+    {
+        fgMoneyDraft.Remove(member);
+        FgChanged(member);
+    }
+
+    private const string FgSuggestScript = @"// Address suggestions: the provider named by data-fg-suggest ({q} = the
+// typed text) fills the input's datalist after a pause; its JSON is read loosely.
+function fgSuggestText(item) {
+  if (typeof item === 'string') return item.trim() || null
+  if (!item || typeof item !== 'object') return null
+  var record = item
+  if (record['properties'] && typeof record['properties'] === 'object') return fgSuggestText(record['properties'])
+  var keys = ['display_name', 'label', 'name', 'text', 'address']
+  for (var i = 0; i < keys.length; i++) {
+    var v = record[keys[i]]
+    if (typeof v === 'string' && v.trim() !== '') return v.trim()
+  }
+  return null
+}
+function fgSuggestTexts(data) {
+  var list = data
+  if (list && typeof list === 'object' && !Array.isArray(list)) {
+    var record = list
+    list = record['features'] || record['results'] || record['items'] || []
+  }
+  if (!Array.isArray(list)) return []
+  var out = []
+  list.forEach(function (item) {
+    var text = fgSuggestText(item)
+    if (text && out.indexOf(text) === -1 && out.length < 8) out.push(text)
+  })
+  return out
+}
+function fgWireSuggest(root) {
+  if (!root) return
+  Array.prototype.forEach.call(root.querySelectorAll('[data-fg-suggest]:not([data-fg-suggested])'), function (input) {
+    input.setAttribute('data-fg-suggested', '')
+    var url = input.getAttribute('data-fg-suggest') || ''
+    var min = Number(input.getAttribute('data-fg-suggest-min')) || 3
+    var timer
+    var request = 0
+    input.addEventListener('input', function () {
+      if (timer !== undefined) clearTimeout(timer)
+      var q = input.value.trim()
+      const target = input.list
+      if (!target) return
+      if (q.length < min) { target.innerHTML = ''; return }
+      timer = setTimeout(function () {
+        var mine = ++request
+        fetch(url.replace('{q}', encodeURIComponent(q)))
+          .then(function (response) { return response.json() })
+          .then(function (data) {
+            if (mine !== request) return
+            target.innerHTML = ''
+            fgSuggestTexts(data).forEach(function (text) {
+              var option = document.createElement('option')
+              option.value = text
+              target.appendChild(option)
+            })
+          })
+          .catch(function () {})
+      }, 300)
+    })
+  })
+}";
+
     // Spam check (Cloudflare Turnstile): the widget is run by a script
     // (FgCaptchaScript) that reports each token here; the submit button
     // waits for one, and each submission sends it once.
@@ -7023,6 +7293,8 @@ window.fgCaptchaWire = function (el, dotnet) {
         payload["satisfaction"] = Model.Satisfaction;
         payload["stars"] = Model.Stars;
         payload["nps"] = Model.Nps;
+        payload["price"] = Model.Price;
+        payload["address"] = Model.Address;
         payload["city"] = Model.City;
         payload["zip"] = Model.Zip;
         var dict0 = new Dictionary<string, object?>();
@@ -7099,6 +7371,10 @@ window.fgCaptchaWire = function (el, dotnet) {
         public double? Stars { get; set; }
 
         public double? Nps { get; set; }
+
+        public double? Price { get; set; }
+
+        public string Address { get; set; } = "";
 
         public string City { get; set; } = "";
 
@@ -7352,6 +7628,24 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             </InputRadioGroup>
             <ValidationMessage For="@(() => Model.Nps)" class="fg-error" />
           </fieldset>
+        </div>
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
+          <div class="fg-field">
+            <label class="fg-label" for="fg_price">Price</label>
+            <div class="fg-affix-group">
+              <span id="fg_price-prefix" class="fg-affix">€</span>
+              <input id="fg_price" type="text" inputmode="decimal" autocomplete="off" class="fg-input" aria-describedby="fg_price-prefix" value='@FgMoneyText("Price", Model.Price, 2)' @oninput='e => Model.Price = FgMoneyInput("Price", e, 2)' @onblur='() => FgMoneyBlur("Price")' />
+            </div>
+            <ValidationMessage For="@(() => Model.Price)" class="fg-error" />
+          </div>
+        </div>
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
+          <div class="fg-field">
+            <label class="fg-label" for="fg_address">Address</label>
+            <InputText id="fg_address" @bind-Value="Model.Address" class="fg-input" list="fg_address-list" autocomplete="off" data-fg-suggest="https://nominatim.openstreetmap.org/search?format=json&amp;limit=6&amp;q={q}" data-fg-suggest-min="3" />
+            <datalist id="fg_address-list"></datalist>
+            <ValidationMessage For="@(() => Model.Address)" class="fg-error" />
+          </div>
         </div>
         <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <hr class="fg-divider fg-tone-primary" />
@@ -8633,6 +8927,8 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             "Satisfaction" => Model.Satisfaction,
             "Stars" => Model.Stars,
             "Nps" => Model.Nps,
+            "Price" => Model.Price,
+            "Address" => Model.Address,
             "City" => Model.City,
             "Zip" => Model.Zip,
             "AccountUsername" => Model.AccountUsername,
@@ -8743,6 +9039,8 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         "Satisfaction",
         "Stars",
         "Nps",
+        "Price",
+        "Address",
         "City",
         "Zip",
         "AccountUsername",
@@ -9664,6 +9962,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";
         foreach (var key in fgDateDrafts.Keys.ToList()) fgDateDrafts[key] = "";
         fgPhoneCountry.Clear();
+        fgMoneyDraft.Clear();
         await FgJs.InvokeVoidAsync("fgSignClear", fgFormRoot);
         await FgAnnounce("The form was reset.");
     }
@@ -9681,6 +9980,8 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         { var v = FgQueryNumber(query, "satisfaction"); if (v is not null) Model.Satisfaction = v.Value; }
         { var v = FgQueryNumber(query, "stars"); if (v is not null) Model.Stars = v; }
         { var v = FgQueryNumber(query, "nps"); if (v is not null) Model.Nps = v; }
+        { var v = FgQueryNumber(query, "price"); if (v is not null) Model.Price = v; }
+        { var v = FgQueryString(query, "address"); if (v is not null) Model.Address = v; }
         { var v = FgQueryString(query, "city"); if (v is not null) Model.City = v; }
         { var v = FgQueryString(query, "zip"); if (v is not null) Model.Zip = v; }
         { var v = FgQueryString(query, "account.username"); if (v is not null) Model.AccountUsername = v; }
@@ -9762,6 +10063,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         await FgJs.InvokeVoidAsync("eval", FgSignatureScript);
         await FgJs.InvokeVoidAsync("eval", FgRichTextScript);
         await FgJs.InvokeVoidAsync("eval", FgLocationScript);
+        await FgJs.InvokeVoidAsync("eval", FgSuggestScript);
         await FgJs.InvokeVoidAsync("eval", FgCaptchaScript);
     }
 
@@ -9773,6 +10075,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         await FgJs.InvokeVoidAsync("fgSignatures", fgFormRoot, fgSelf);
         await FgJs.InvokeVoidAsync("fgRich", fgFormRoot, fgSelf);
         await FgJs.InvokeVoidAsync("fgLocations", fgFormRoot, fgSelf);
+        await FgJs.InvokeVoidAsync("fgWireSuggest", fgFormRoot);
         await FgJs.InvokeVoidAsync("fgCaptchaWire", fgCaptchaEl, fgSelf);
     }
 
@@ -10520,6 +10823,111 @@ window.fgLocSet = function (root, values) {
         await FgJs.InvokeVoidAsync("fgLocSet", fgFormRoot, fgLoc.ToDictionary(entry => entry.Key, entry => entry.Value.Value is null ? null : (object)new { lat = entry.Value.Value.Lat, lng = entry.Value.Value.Lng }));
     }
 
+    // Money: the form's separators (en); parsing takes the last '.' or ','
+    // followed by one to <decimals> digits as the decimal mark, the rest as
+    // grouping. While a field is being edited its text is kept as typed.
+    private readonly Dictionary<string, string> fgMoneyDraft = new();
+
+    private static string FgMoneyFormat(double? value, int decimals)
+    {
+        if (value is not { } v || double.IsNaN(v) || double.IsInfinity(v)) return "";
+        var parts = Math.Abs(v).ToString("F" + decimals, System.Globalization.CultureInfo.InvariantCulture).Split('.');
+        var whole = parts[0];
+        for (var i = whole.Length - 3; i > 0; i -= 3) whole = whole.Insert(i, ",");
+        return (v < 0 ? "-" : "") + whole + (parts.Length > 1 ? "." + parts[1] : "");
+    }
+
+    private static double? FgMoneyParse(string text, int decimals)
+    {
+        var trimmed = text.Trim();
+        var digits = new string(trimmed.Where(c => (c >= '0' && c <= '9') || c == '.' || c == ',').ToArray());
+        if (!digits.Any(c => c >= '0' && c <= '9')) return null;
+        var mark = Math.Max(digits.LastIndexOf('.'), digits.LastIndexOf(','));
+        var tail = mark == -1 ? "" : digits[(mark + 1)..];
+        var isDecimal = mark != -1 && decimals > 0 && tail.Length >= 1 && tail.Length <= decimals && tail.All(c => c >= '0' && c <= '9');
+        var whole = (isDecimal ? digits[..mark] : digits).Replace(".", "").Replace(",", "");
+        var scale = Math.Pow(10, decimals);
+        var amount = Math.Round(double.Parse((whole == "" ? "0" : whole) + "." + (isDecimal ? tail : "0"), System.Globalization.CultureInfo.InvariantCulture) * scale, MidpointRounding.AwayFromZero) / scale;
+        return trimmed.StartsWith('-') ? -amount : amount;
+    }
+
+    private string FgMoneyText(string member, double? value, int decimals) =>
+        fgMoneyDraft.TryGetValue(member, out var text) ? text : FgMoneyFormat(value, decimals);
+
+    private double? FgMoneyInput(string member, ChangeEventArgs e, int decimals)
+    {
+        var text = Convert.ToString(e.Value) ?? "";
+        fgMoneyDraft[member] = text;
+        return FgMoneyParse(text, decimals);
+    }
+
+    private void FgMoneyBlur(string member)
+    {
+        fgMoneyDraft.Remove(member);
+        FgChanged(member);
+    }
+
+    private const string FgSuggestScript = @"// Address suggestions: the provider named by data-fg-suggest ({q} = the
+// typed text) fills the input's datalist after a pause; its JSON is read loosely.
+function fgSuggestText(item) {
+  if (typeof item === 'string') return item.trim() || null
+  if (!item || typeof item !== 'object') return null
+  var record = item
+  if (record['properties'] && typeof record['properties'] === 'object') return fgSuggestText(record['properties'])
+  var keys = ['display_name', 'label', 'name', 'text', 'address']
+  for (var i = 0; i < keys.length; i++) {
+    var v = record[keys[i]]
+    if (typeof v === 'string' && v.trim() !== '') return v.trim()
+  }
+  return null
+}
+function fgSuggestTexts(data) {
+  var list = data
+  if (list && typeof list === 'object' && !Array.isArray(list)) {
+    var record = list
+    list = record['features'] || record['results'] || record['items'] || []
+  }
+  if (!Array.isArray(list)) return []
+  var out = []
+  list.forEach(function (item) {
+    var text = fgSuggestText(item)
+    if (text && out.indexOf(text) === -1 && out.length < 8) out.push(text)
+  })
+  return out
+}
+function fgWireSuggest(root) {
+  if (!root) return
+  Array.prototype.forEach.call(root.querySelectorAll('[data-fg-suggest]:not([data-fg-suggested])'), function (input) {
+    input.setAttribute('data-fg-suggested', '')
+    var url = input.getAttribute('data-fg-suggest') || ''
+    var min = Number(input.getAttribute('data-fg-suggest-min')) || 3
+    var timer
+    var request = 0
+    input.addEventListener('input', function () {
+      if (timer !== undefined) clearTimeout(timer)
+      var q = input.value.trim()
+      const target = input.list
+      if (!target) return
+      if (q.length < min) { target.innerHTML = ''; return }
+      timer = setTimeout(function () {
+        var mine = ++request
+        fetch(url.replace('{q}', encodeURIComponent(q)))
+          .then(function (response) { return response.json() })
+          .then(function (data) {
+            if (mine !== request) return
+            target.innerHTML = ''
+            fgSuggestTexts(data).forEach(function (text) {
+              var option = document.createElement('option')
+              option.value = text
+              target.appendChild(option)
+            })
+          })
+          .catch(function () {})
+      }, 300)
+    })
+  })
+}";
+
     // Spam check (Cloudflare Turnstile): the widget is run by a script
     // (FgCaptchaScript) that reports each token here; the submit button
     // waits for one, and each submission sends it once.
@@ -10633,6 +11041,8 @@ window.fgCaptchaWire = function (el, dotnet) {
         payload["satisfaction"] = Model.Satisfaction;
         payload["stars"] = Model.Stars;
         payload["nps"] = Model.Nps;
+        payload["price"] = Model.Price;
+        payload["address"] = Model.Address;
         payload["city"] = Model.City;
         payload["zip"] = Model.Zip;
         var dict0 = new Dictionary<string, object?>();
@@ -10709,6 +11119,10 @@ window.fgCaptchaWire = function (el, dotnet) {
         public double? Stars { get; set; }
 
         public double? Nps { get; set; }
+
+        public double? Price { get; set; }
+
+        public string Address { get; set; } = "";
 
         public string City { get; set; } = "";
 
@@ -11072,6 +11486,24 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
           <div class="fg-nps-ends" aria-hidden="true"><span>Not likely</span><span>Very likely</span></div>
           <p id="fg_nps-err" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert" hidden></p>
         </fieldset>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="d-flex flex-column fg-field">
+          <label class="form-label fw-semibold small mb-0 fg-label" for="fg_price">Price</label>
+          <div class="input-group">
+            <span id="fg_price-prefix" class="input-group-text">€</span>
+            <input id="fg_price" type="text" inputmode="decimal" autocomplete="off" class="form-control" data-fg-path="price" data-fg-kind="currency" data-fg-decimals="2" aria-describedby="fg_price-prefix">
+          </div>
+          <p id="fg_price-err" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="d-flex flex-column fg-field">
+          <label class="form-label fw-semibold small mb-0 fg-label" for="fg_address">Address</label>
+          <input id="fg_address" type="text" class="form-control" data-fg-path="address" data-fg-kind="text" list="fg_address-list" autocomplete="off" data-fg-suggest="https://nominatim.openstreetmap.org/search?format=json&amp;limit=6&amp;q={q}" data-fg-suggest-min="3">
+          <datalist id="fg_address-list"></datalist>
+          <p id="fg_address-err" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert" hidden></p>
+        </div>
       </div>
       <div class="col-12 col-md-12">
         <hr class="border-top my-1 border-primary opacity-100">
@@ -12190,6 +12622,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         var picked = document.querySelector('[data-fg-path="' + path + '"]:checked')
         return picked ? Number(picked.value) : null
       }
+      if (kind === 'currency') return fgMoneyParse(el.value, Number(el.getAttribute('data-fg-decimals')))
       if (kind === 'multiselect') {
         return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }
@@ -12470,6 +12903,8 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       "satisfaction": function (v) { return fgAnswer(v, ", ") },
       "stars": function (v) { return fgAnswer(v, ", ") },
       "nps": function (v) { return fgAnswer(v, ", ") },
+      "price": function (v) { return fgAnswer(v, ", ") },
+      "address": function (v) { return fgAnswer(v, ", ") },
       "city": function (v) { return fgAnswer(v, ", ") },
       "zip": function (v) { return fgAnswer(v, ", ") },
       "account.username": function (v) { return fgAnswer(v, ", ") },
@@ -13089,6 +13524,98 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       })
     }
 
+    // Money: the form's separators (en). Parsing needs no locale: the last
+    // '.' or ',' followed by one to <decimals> digits is the decimal mark, every
+    // other separator groups digits; signs and currency marks are skipped.
+    function fgMoneyFormat(value, decimals) {
+      if (typeof value !== 'number' || !isFinite(value)) return ''
+      var parts = Math.abs(value).toFixed(decimals).split('.')
+      var whole = parts[0] || '0'
+      for (var i = whole.length - 3; i > 0; i -= 3) whole = whole.slice(0, i) + "," + whole.slice(i)
+      return (value < 0 ? '-' : '') + whole + (parts[1] ? "." + parts[1] : '')
+    }
+    function fgMoneyParse(text, decimals) {
+      var trimmed = text.trim()
+      var digits = trimmed.replace(/[^\\d.,]/g, '')
+      if (!/\\d/.test(digits)) return null
+      var mark = Math.max(digits.lastIndexOf('.'), digits.lastIndexOf(','))
+      var tail = mark === -1 ? '' : digits.slice(mark + 1)
+      var isDecimal = mark !== -1 && decimals > 0 && tail.length >= 1 && tail.length <= decimals && /^\\d+$/.test(tail)
+      var whole = (isDecimal ? digits.slice(0, mark) : digits).replace(/[.,]/g, '')
+      var scale = Math.pow(10, decimals)
+      var amount = Math.round(Number((whole === '' ? '0' : whole) + '.' + (isDecimal ? tail : '0')) * scale) / scale
+      return trimmed.charAt(0) === '-' ? -amount : amount
+    }
+    // Leaving a money field shows the amount formatted.
+    function fgWireMoney(root) {
+      fgEach(root, '[data-fg-kind="currency"]', function (input) {
+        input.addEventListener('blur', function () {
+          var decimals = Number(input.getAttribute('data-fg-decimals'))
+          input.value = fgMoneyFormat(fgMoneyParse(input.value, decimals), decimals)
+        })
+      })
+    }
+    // Address suggestions: the provider named by data-fg-suggest ({q} = the
+    // typed text) fills the input's datalist after a pause; its JSON is read loosely.
+    function fgSuggestText(item) {
+      if (typeof item === 'string') return item.trim() || null
+      if (!item || typeof item !== 'object') return null
+      var record = item
+      if (record['properties'] && typeof record['properties'] === 'object') return fgSuggestText(record['properties'])
+      var keys = ['display_name', 'label', 'name', 'text', 'address']
+      for (var i = 0; i < keys.length; i++) {
+        var v = record[keys[i]]
+        if (typeof v === 'string' && v.trim() !== '') return v.trim()
+      }
+      return null
+    }
+    function fgSuggestTexts(data) {
+      var list = data
+      if (list && typeof list === 'object' && !Array.isArray(list)) {
+        var record = list
+        list = record['features'] || record['results'] || record['items'] || []
+      }
+      if (!Array.isArray(list)) return []
+      var out = []
+      list.forEach(function (item) {
+        var text = fgSuggestText(item)
+        if (text && out.indexOf(text) === -1 && out.length < 8) out.push(text)
+      })
+      return out
+    }
+    function fgWireSuggest(root) {
+      if (!root) return
+      Array.prototype.forEach.call(root.querySelectorAll('[data-fg-suggest]:not([data-fg-suggested])'), function (input) {
+        input.setAttribute('data-fg-suggested', '')
+        var url = input.getAttribute('data-fg-suggest') || ''
+        var min = Number(input.getAttribute('data-fg-suggest-min')) || 3
+        var timer
+        var request = 0
+        input.addEventListener('input', function () {
+          if (timer !== undefined) clearTimeout(timer)
+          var q = input.value.trim()
+          const target = input.list
+          if (!target) return
+          if (q.length < min) { target.innerHTML = ''; return }
+          timer = setTimeout(function () {
+            var mine = ++request
+            fetch(url.replace('{q}', encodeURIComponent(q)))
+              .then(function (response) { return response.json() })
+              .then(function (data) {
+                if (mine !== request) return
+                target.innerHTML = ''
+                fgSuggestTexts(data).forEach(function (text) {
+                  var option = document.createElement('option')
+                  option.value = text
+                  target.appendChild(option)
+                })
+              })
+              .catch(function () {})
+          }, 300)
+        })
+      })
+    }
+
     function fgWire(root) {
       fgWireTags(root)
       fgWireFiles(root)
@@ -13096,6 +13623,8 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       fgWireRange(root)
       fgWireDates(root)
       fgWirePhone(root)
+      fgWireMoney(root)
+      fgWireSuggest(root)
     }
     fgWire(document)
 
@@ -13191,6 +13720,8 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         "satisfaction": fgGet("satisfaction"),
         "stars": fgGet("stars"),
         "nps": fgGet("nps"),
+        "price": fgGet("price"),
+        "address": fgGet("address"),
         "city": fgGet("city"),
         "zip": fgGet("zip"),
         "account": {
@@ -13959,7 +14490,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
     // Prefill from the page address: ?field=value fills matching fields (a list
     // takes repeated parameters or one comma-separated value); a hidden field
     // takes its named parameter. After a restored draft: the link wins.
-    var FG_PREFILL = [{ p: "full_name", k: "string" }, { p: "email", k: "string" }, { p: "website", k: "string" }, { p: "seats", k: "number" }, { p: "satisfaction", k: "number" }, { p: "stars", k: "number" }, { p: "nps", k: "number" }, { p: "city", k: "string" }, { p: "zip", k: "string" }, { p: "account.username", k: "string" }, { p: "account.bio", k: "string" }, { p: "account.birthday", k: "string" }, { p: "plan", k: "string" }, { p: "interests", k: "list" }, { p: "channels", k: "list" }, { p: "topics", k: "list" }, { p: "billing", k: "string" }, { p: "extras", k: "list" }, { p: "notify", k: "bool" }, { p: "appointment", k: "string" }, { p: "brand_color", k: "string" }, { p: "volume", k: "number" }, { p: "days", k: "list" }, { p: "source", k: "string", q: "utm_source" }, { p: "attachments_note", k: "string" }, { p: "contact_method", k: "string" }, { p: "contact_phone", k: "string" }, { p: "contact_other", k: "string" }, { p: "twitter", k: "string" }, { p: "github", k: "string" }, { p: "shipping_city", k: "string" }, { p: "order_notes", k: "string" }, { p: "newsletter", k: "bool" }, { p: "terms", k: "bool" }]
+    var FG_PREFILL = [{ p: "full_name", k: "string" }, { p: "email", k: "string" }, { p: "website", k: "string" }, { p: "seats", k: "number" }, { p: "satisfaction", k: "number" }, { p: "stars", k: "number" }, { p: "nps", k: "number" }, { p: "price", k: "number" }, { p: "address", k: "string" }, { p: "city", k: "string" }, { p: "zip", k: "string" }, { p: "account.username", k: "string" }, { p: "account.bio", k: "string" }, { p: "account.birthday", k: "string" }, { p: "plan", k: "string" }, { p: "interests", k: "list" }, { p: "channels", k: "list" }, { p: "topics", k: "list" }, { p: "billing", k: "string" }, { p: "extras", k: "list" }, { p: "notify", k: "bool" }, { p: "appointment", k: "string" }, { p: "brand_color", k: "string" }, { p: "volume", k: "number" }, { p: "days", k: "list" }, { p: "source", k: "string", q: "utm_source" }, { p: "attachments_note", k: "string" }, { p: "contact_method", k: "string" }, { p: "contact_phone", k: "string" }, { p: "contact_other", k: "string" }, { p: "twitter", k: "string" }, { p: "github", k: "string" }, { p: "shipping_city", k: "string" }, { p: "order_notes", k: "string" }, { p: "newsletter", k: "bool" }, { p: "terms", k: "bool" }]
     function fgPrefillValue(kind, raw) {
       var first = raw[0]
       if (first === undefined) return undefined
@@ -13997,6 +14528,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         }
         if (first.multiple) Array.prototype.forEach.call(first.options, function (option) { option.selected = value.indexOf(option.value) !== -1 })
         else if (first.type === 'checkbox') first.checked = value === true
+        else if (kind === 'currency') first.value = fgMoneyFormat(value, Number(first.getAttribute('data-fg-decimals')))
         else first.value = String(value)
         changed.push(first)
       })
@@ -14256,6 +14788,24 @@ exports[`html target > snapshot (tailwind) 1`] = `
           <div class="fg-nps-ends" aria-hidden="true"><span>Not likely</span><span>Very likely</span></div>
           <p id="fg_nps-err" class="text-sm text-red-600" role="alert" hidden></p>
         </fieldset>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
+          <label class="text-sm font-semibold" for="fg_price">Price</label>
+          <div class="flex [&>:not(:first-child)]:-ms-px [&>:not(:first-child)]:rounded-s-none [&>:not(:last-child)]:rounded-e-none">
+            <span id="fg_price-prefix" class="inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-base text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">€</span>
+            <input id="fg_price" type="text" inputmode="decimal" autocomplete="off" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" data-fg-path="price" data-fg-kind="currency" data-fg-decimals="2" aria-describedby="fg_price-prefix">
+          </div>
+          <p id="fg_price-err" class="text-sm text-red-600" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
+          <label class="text-sm font-semibold" for="fg_address">Address</label>
+          <input id="fg_address" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" data-fg-path="address" data-fg-kind="text" list="fg_address-list" autocomplete="off" data-fg-suggest="https://nominatim.openstreetmap.org/search?format=json&amp;limit=6&amp;q={q}" data-fg-suggest-min="3">
+          <datalist id="fg_address-list"></datalist>
+          <p id="fg_address-err" class="text-sm text-red-600" role="alert" hidden></p>
+        </div>
       </div>
       <div class="col-span-12 md:col-span-12">
         <hr class="my-1 border-t border-indigo-500">
@@ -15378,6 +15928,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
         var picked = document.querySelector('[data-fg-path="' + path + '"]:checked')
         return picked ? Number(picked.value) : null
       }
+      if (kind === 'currency') return fgMoneyParse(el.value, Number(el.getAttribute('data-fg-decimals')))
       if (kind === 'multiselect') {
         return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }
@@ -15658,6 +16209,8 @@ exports[`html target > snapshot (tailwind) 1`] = `
       "satisfaction": function (v) { return fgAnswer(v, ", ") },
       "stars": function (v) { return fgAnswer(v, ", ") },
       "nps": function (v) { return fgAnswer(v, ", ") },
+      "price": function (v) { return fgAnswer(v, ", ") },
+      "address": function (v) { return fgAnswer(v, ", ") },
       "city": function (v) { return fgAnswer(v, ", ") },
       "zip": function (v) { return fgAnswer(v, ", ") },
       "account.username": function (v) { return fgAnswer(v, ", ") },
@@ -16277,6 +16830,98 @@ exports[`html target > snapshot (tailwind) 1`] = `
       })
     }
 
+    // Money: the form's separators (en). Parsing needs no locale: the last
+    // '.' or ',' followed by one to <decimals> digits is the decimal mark, every
+    // other separator groups digits; signs and currency marks are skipped.
+    function fgMoneyFormat(value, decimals) {
+      if (typeof value !== 'number' || !isFinite(value)) return ''
+      var parts = Math.abs(value).toFixed(decimals).split('.')
+      var whole = parts[0] || '0'
+      for (var i = whole.length - 3; i > 0; i -= 3) whole = whole.slice(0, i) + "," + whole.slice(i)
+      return (value < 0 ? '-' : '') + whole + (parts[1] ? "." + parts[1] : '')
+    }
+    function fgMoneyParse(text, decimals) {
+      var trimmed = text.trim()
+      var digits = trimmed.replace(/[^\\d.,]/g, '')
+      if (!/\\d/.test(digits)) return null
+      var mark = Math.max(digits.lastIndexOf('.'), digits.lastIndexOf(','))
+      var tail = mark === -1 ? '' : digits.slice(mark + 1)
+      var isDecimal = mark !== -1 && decimals > 0 && tail.length >= 1 && tail.length <= decimals && /^\\d+$/.test(tail)
+      var whole = (isDecimal ? digits.slice(0, mark) : digits).replace(/[.,]/g, '')
+      var scale = Math.pow(10, decimals)
+      var amount = Math.round(Number((whole === '' ? '0' : whole) + '.' + (isDecimal ? tail : '0')) * scale) / scale
+      return trimmed.charAt(0) === '-' ? -amount : amount
+    }
+    // Leaving a money field shows the amount formatted.
+    function fgWireMoney(root) {
+      fgEach(root, '[data-fg-kind="currency"]', function (input) {
+        input.addEventListener('blur', function () {
+          var decimals = Number(input.getAttribute('data-fg-decimals'))
+          input.value = fgMoneyFormat(fgMoneyParse(input.value, decimals), decimals)
+        })
+      })
+    }
+    // Address suggestions: the provider named by data-fg-suggest ({q} = the
+    // typed text) fills the input's datalist after a pause; its JSON is read loosely.
+    function fgSuggestText(item) {
+      if (typeof item === 'string') return item.trim() || null
+      if (!item || typeof item !== 'object') return null
+      var record = item
+      if (record['properties'] && typeof record['properties'] === 'object') return fgSuggestText(record['properties'])
+      var keys = ['display_name', 'label', 'name', 'text', 'address']
+      for (var i = 0; i < keys.length; i++) {
+        var v = record[keys[i]]
+        if (typeof v === 'string' && v.trim() !== '') return v.trim()
+      }
+      return null
+    }
+    function fgSuggestTexts(data) {
+      var list = data
+      if (list && typeof list === 'object' && !Array.isArray(list)) {
+        var record = list
+        list = record['features'] || record['results'] || record['items'] || []
+      }
+      if (!Array.isArray(list)) return []
+      var out = []
+      list.forEach(function (item) {
+        var text = fgSuggestText(item)
+        if (text && out.indexOf(text) === -1 && out.length < 8) out.push(text)
+      })
+      return out
+    }
+    function fgWireSuggest(root) {
+      if (!root) return
+      Array.prototype.forEach.call(root.querySelectorAll('[data-fg-suggest]:not([data-fg-suggested])'), function (input) {
+        input.setAttribute('data-fg-suggested', '')
+        var url = input.getAttribute('data-fg-suggest') || ''
+        var min = Number(input.getAttribute('data-fg-suggest-min')) || 3
+        var timer
+        var request = 0
+        input.addEventListener('input', function () {
+          if (timer !== undefined) clearTimeout(timer)
+          var q = input.value.trim()
+          const target = input.list
+          if (!target) return
+          if (q.length < min) { target.innerHTML = ''; return }
+          timer = setTimeout(function () {
+            var mine = ++request
+            fetch(url.replace('{q}', encodeURIComponent(q)))
+              .then(function (response) { return response.json() })
+              .then(function (data) {
+                if (mine !== request) return
+                target.innerHTML = ''
+                fgSuggestTexts(data).forEach(function (text) {
+                  var option = document.createElement('option')
+                  option.value = text
+                  target.appendChild(option)
+                })
+              })
+              .catch(function () {})
+          }, 300)
+        })
+      })
+    }
+
     function fgWire(root) {
       fgWireTags(root)
       fgWireFiles(root)
@@ -16284,6 +16929,8 @@ exports[`html target > snapshot (tailwind) 1`] = `
       fgWireRange(root)
       fgWireDates(root)
       fgWirePhone(root)
+      fgWireMoney(root)
+      fgWireSuggest(root)
     }
     fgWire(document)
 
@@ -16379,6 +17026,8 @@ exports[`html target > snapshot (tailwind) 1`] = `
         "satisfaction": fgGet("satisfaction"),
         "stars": fgGet("stars"),
         "nps": fgGet("nps"),
+        "price": fgGet("price"),
+        "address": fgGet("address"),
         "city": fgGet("city"),
         "zip": fgGet("zip"),
         "account": {
@@ -17147,7 +17796,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
     // Prefill from the page address: ?field=value fills matching fields (a list
     // takes repeated parameters or one comma-separated value); a hidden field
     // takes its named parameter. After a restored draft: the link wins.
-    var FG_PREFILL = [{ p: "full_name", k: "string" }, { p: "email", k: "string" }, { p: "website", k: "string" }, { p: "seats", k: "number" }, { p: "satisfaction", k: "number" }, { p: "stars", k: "number" }, { p: "nps", k: "number" }, { p: "city", k: "string" }, { p: "zip", k: "string" }, { p: "account.username", k: "string" }, { p: "account.bio", k: "string" }, { p: "account.birthday", k: "string" }, { p: "plan", k: "string" }, { p: "interests", k: "list" }, { p: "channels", k: "list" }, { p: "topics", k: "list" }, { p: "billing", k: "string" }, { p: "extras", k: "list" }, { p: "notify", k: "bool" }, { p: "appointment", k: "string" }, { p: "brand_color", k: "string" }, { p: "volume", k: "number" }, { p: "days", k: "list" }, { p: "source", k: "string", q: "utm_source" }, { p: "attachments_note", k: "string" }, { p: "contact_method", k: "string" }, { p: "contact_phone", k: "string" }, { p: "contact_other", k: "string" }, { p: "twitter", k: "string" }, { p: "github", k: "string" }, { p: "shipping_city", k: "string" }, { p: "order_notes", k: "string" }, { p: "newsletter", k: "bool" }, { p: "terms", k: "bool" }]
+    var FG_PREFILL = [{ p: "full_name", k: "string" }, { p: "email", k: "string" }, { p: "website", k: "string" }, { p: "seats", k: "number" }, { p: "satisfaction", k: "number" }, { p: "stars", k: "number" }, { p: "nps", k: "number" }, { p: "price", k: "number" }, { p: "address", k: "string" }, { p: "city", k: "string" }, { p: "zip", k: "string" }, { p: "account.username", k: "string" }, { p: "account.bio", k: "string" }, { p: "account.birthday", k: "string" }, { p: "plan", k: "string" }, { p: "interests", k: "list" }, { p: "channels", k: "list" }, { p: "topics", k: "list" }, { p: "billing", k: "string" }, { p: "extras", k: "list" }, { p: "notify", k: "bool" }, { p: "appointment", k: "string" }, { p: "brand_color", k: "string" }, { p: "volume", k: "number" }, { p: "days", k: "list" }, { p: "source", k: "string", q: "utm_source" }, { p: "attachments_note", k: "string" }, { p: "contact_method", k: "string" }, { p: "contact_phone", k: "string" }, { p: "contact_other", k: "string" }, { p: "twitter", k: "string" }, { p: "github", k: "string" }, { p: "shipping_city", k: "string" }, { p: "order_notes", k: "string" }, { p: "newsletter", k: "bool" }, { p: "terms", k: "bool" }]
     function fgPrefillValue(kind, raw) {
       var first = raw[0]
       if (first === undefined) return undefined
@@ -17185,6 +17834,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
         }
         if (first.multiple) Array.prototype.forEach.call(first.options, function (option) { option.selected = value.indexOf(option.value) !== -1 })
         else if (first.type === 'checkbox') first.checked = value === true
+        else if (kind === 'currency') first.value = fgMoneyFormat(value, Number(first.getAttribute('data-fg-decimals')))
         else first.value = String(value)
         changed.push(first)
       })
@@ -17665,6 +18315,24 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <div class="fg-nps-ends" aria-hidden="true"><span>Not likely</span><span>Very likely</span></div>
           <p id="fg_nps-err" class="fg-error" role="alert" hidden></p>
         </fieldset>
+      </div>
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
+        <div class="fg-field">
+          <label class="fg-label" for="fg_price">Price</label>
+          <div class="fg-affix-group">
+            <span id="fg_price-prefix" class="fg-affix">€</span>
+            <input id="fg_price" type="text" inputmode="decimal" autocomplete="off" class="fg-input" data-fg-path="price" data-fg-kind="currency" data-fg-decimals="2" aria-describedby="fg_price-prefix">
+          </div>
+          <p id="fg_price-err" class="fg-error" role="alert" hidden></p>
+        </div>
+      </div>
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
+        <div class="fg-field">
+          <label class="fg-label" for="fg_address">Address</label>
+          <input id="fg_address" type="text" class="fg-input" data-fg-path="address" data-fg-kind="text" list="fg_address-list" autocomplete="off" data-fg-suggest="https://nominatim.openstreetmap.org/search?format=json&amp;limit=6&amp;q={q}" data-fg-suggest-min="3">
+          <datalist id="fg_address-list"></datalist>
+          <p id="fg_address-err" class="fg-error" role="alert" hidden></p>
+        </div>
       </div>
       <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <hr class="fg-divider fg-tone-primary">
@@ -18787,6 +19455,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
         var picked = document.querySelector('[data-fg-path="' + path + '"]:checked')
         return picked ? Number(picked.value) : null
       }
+      if (kind === 'currency') return fgMoneyParse(el.value, Number(el.getAttribute('data-fg-decimals')))
       if (kind === 'multiselect') {
         return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }
@@ -19067,6 +19736,8 @@ exports[`html target > snapshot (vanilla) 1`] = `
       "satisfaction": function (v) { return fgAnswer(v, ", ") },
       "stars": function (v) { return fgAnswer(v, ", ") },
       "nps": function (v) { return fgAnswer(v, ", ") },
+      "price": function (v) { return fgAnswer(v, ", ") },
+      "address": function (v) { return fgAnswer(v, ", ") },
       "city": function (v) { return fgAnswer(v, ", ") },
       "zip": function (v) { return fgAnswer(v, ", ") },
       "account.username": function (v) { return fgAnswer(v, ", ") },
@@ -19686,6 +20357,98 @@ exports[`html target > snapshot (vanilla) 1`] = `
       })
     }
 
+    // Money: the form's separators (en). Parsing needs no locale: the last
+    // '.' or ',' followed by one to <decimals> digits is the decimal mark, every
+    // other separator groups digits; signs and currency marks are skipped.
+    function fgMoneyFormat(value, decimals) {
+      if (typeof value !== 'number' || !isFinite(value)) return ''
+      var parts = Math.abs(value).toFixed(decimals).split('.')
+      var whole = parts[0] || '0'
+      for (var i = whole.length - 3; i > 0; i -= 3) whole = whole.slice(0, i) + "," + whole.slice(i)
+      return (value < 0 ? '-' : '') + whole + (parts[1] ? "." + parts[1] : '')
+    }
+    function fgMoneyParse(text, decimals) {
+      var trimmed = text.trim()
+      var digits = trimmed.replace(/[^\\d.,]/g, '')
+      if (!/\\d/.test(digits)) return null
+      var mark = Math.max(digits.lastIndexOf('.'), digits.lastIndexOf(','))
+      var tail = mark === -1 ? '' : digits.slice(mark + 1)
+      var isDecimal = mark !== -1 && decimals > 0 && tail.length >= 1 && tail.length <= decimals && /^\\d+$/.test(tail)
+      var whole = (isDecimal ? digits.slice(0, mark) : digits).replace(/[.,]/g, '')
+      var scale = Math.pow(10, decimals)
+      var amount = Math.round(Number((whole === '' ? '0' : whole) + '.' + (isDecimal ? tail : '0')) * scale) / scale
+      return trimmed.charAt(0) === '-' ? -amount : amount
+    }
+    // Leaving a money field shows the amount formatted.
+    function fgWireMoney(root) {
+      fgEach(root, '[data-fg-kind="currency"]', function (input) {
+        input.addEventListener('blur', function () {
+          var decimals = Number(input.getAttribute('data-fg-decimals'))
+          input.value = fgMoneyFormat(fgMoneyParse(input.value, decimals), decimals)
+        })
+      })
+    }
+    // Address suggestions: the provider named by data-fg-suggest ({q} = the
+    // typed text) fills the input's datalist after a pause; its JSON is read loosely.
+    function fgSuggestText(item) {
+      if (typeof item === 'string') return item.trim() || null
+      if (!item || typeof item !== 'object') return null
+      var record = item
+      if (record['properties'] && typeof record['properties'] === 'object') return fgSuggestText(record['properties'])
+      var keys = ['display_name', 'label', 'name', 'text', 'address']
+      for (var i = 0; i < keys.length; i++) {
+        var v = record[keys[i]]
+        if (typeof v === 'string' && v.trim() !== '') return v.trim()
+      }
+      return null
+    }
+    function fgSuggestTexts(data) {
+      var list = data
+      if (list && typeof list === 'object' && !Array.isArray(list)) {
+        var record = list
+        list = record['features'] || record['results'] || record['items'] || []
+      }
+      if (!Array.isArray(list)) return []
+      var out = []
+      list.forEach(function (item) {
+        var text = fgSuggestText(item)
+        if (text && out.indexOf(text) === -1 && out.length < 8) out.push(text)
+      })
+      return out
+    }
+    function fgWireSuggest(root) {
+      if (!root) return
+      Array.prototype.forEach.call(root.querySelectorAll('[data-fg-suggest]:not([data-fg-suggested])'), function (input) {
+        input.setAttribute('data-fg-suggested', '')
+        var url = input.getAttribute('data-fg-suggest') || ''
+        var min = Number(input.getAttribute('data-fg-suggest-min')) || 3
+        var timer
+        var request = 0
+        input.addEventListener('input', function () {
+          if (timer !== undefined) clearTimeout(timer)
+          var q = input.value.trim()
+          const target = input.list
+          if (!target) return
+          if (q.length < min) { target.innerHTML = ''; return }
+          timer = setTimeout(function () {
+            var mine = ++request
+            fetch(url.replace('{q}', encodeURIComponent(q)))
+              .then(function (response) { return response.json() })
+              .then(function (data) {
+                if (mine !== request) return
+                target.innerHTML = ''
+                fgSuggestTexts(data).forEach(function (text) {
+                  var option = document.createElement('option')
+                  option.value = text
+                  target.appendChild(option)
+                })
+              })
+              .catch(function () {})
+          }, 300)
+        })
+      })
+    }
+
     function fgWire(root) {
       fgWireTags(root)
       fgWireFiles(root)
@@ -19693,6 +20456,8 @@ exports[`html target > snapshot (vanilla) 1`] = `
       fgWireRange(root)
       fgWireDates(root)
       fgWirePhone(root)
+      fgWireMoney(root)
+      fgWireSuggest(root)
     }
     fgWire(document)
 
@@ -19788,6 +20553,8 @@ exports[`html target > snapshot (vanilla) 1`] = `
         "satisfaction": fgGet("satisfaction"),
         "stars": fgGet("stars"),
         "nps": fgGet("nps"),
+        "price": fgGet("price"),
+        "address": fgGet("address"),
         "city": fgGet("city"),
         "zip": fgGet("zip"),
         "account": {
@@ -20556,7 +21323,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
     // Prefill from the page address: ?field=value fills matching fields (a list
     // takes repeated parameters or one comma-separated value); a hidden field
     // takes its named parameter. After a restored draft: the link wins.
-    var FG_PREFILL = [{ p: "full_name", k: "string" }, { p: "email", k: "string" }, { p: "website", k: "string" }, { p: "seats", k: "number" }, { p: "satisfaction", k: "number" }, { p: "stars", k: "number" }, { p: "nps", k: "number" }, { p: "city", k: "string" }, { p: "zip", k: "string" }, { p: "account.username", k: "string" }, { p: "account.bio", k: "string" }, { p: "account.birthday", k: "string" }, { p: "plan", k: "string" }, { p: "interests", k: "list" }, { p: "channels", k: "list" }, { p: "topics", k: "list" }, { p: "billing", k: "string" }, { p: "extras", k: "list" }, { p: "notify", k: "bool" }, { p: "appointment", k: "string" }, { p: "brand_color", k: "string" }, { p: "volume", k: "number" }, { p: "days", k: "list" }, { p: "source", k: "string", q: "utm_source" }, { p: "attachments_note", k: "string" }, { p: "contact_method", k: "string" }, { p: "contact_phone", k: "string" }, { p: "contact_other", k: "string" }, { p: "twitter", k: "string" }, { p: "github", k: "string" }, { p: "shipping_city", k: "string" }, { p: "order_notes", k: "string" }, { p: "newsletter", k: "bool" }, { p: "terms", k: "bool" }]
+    var FG_PREFILL = [{ p: "full_name", k: "string" }, { p: "email", k: "string" }, { p: "website", k: "string" }, { p: "seats", k: "number" }, { p: "satisfaction", k: "number" }, { p: "stars", k: "number" }, { p: "nps", k: "number" }, { p: "price", k: "number" }, { p: "address", k: "string" }, { p: "city", k: "string" }, { p: "zip", k: "string" }, { p: "account.username", k: "string" }, { p: "account.bio", k: "string" }, { p: "account.birthday", k: "string" }, { p: "plan", k: "string" }, { p: "interests", k: "list" }, { p: "channels", k: "list" }, { p: "topics", k: "list" }, { p: "billing", k: "string" }, { p: "extras", k: "list" }, { p: "notify", k: "bool" }, { p: "appointment", k: "string" }, { p: "brand_color", k: "string" }, { p: "volume", k: "number" }, { p: "days", k: "list" }, { p: "source", k: "string", q: "utm_source" }, { p: "attachments_note", k: "string" }, { p: "contact_method", k: "string" }, { p: "contact_phone", k: "string" }, { p: "contact_other", k: "string" }, { p: "twitter", k: "string" }, { p: "github", k: "string" }, { p: "shipping_city", k: "string" }, { p: "order_notes", k: "string" }, { p: "newsletter", k: "bool" }, { p: "terms", k: "bool" }]
     function fgPrefillValue(kind, raw) {
       var first = raw[0]
       if (first === undefined) return undefined
@@ -20594,6 +21361,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
         }
         if (first.multiple) Array.prototype.forEach.call(first.options, function (option) { option.selected = value.indexOf(option.value) !== -1 })
         else if (first.type === 'checkbox') first.checked = value === true
+        else if (kind === 'currency') first.value = fgMoneyFormat(value, Number(first.getAttribute('data-fg-decimals')))
         else first.value = String(value)
         changed.push(first)
       })
@@ -21453,6 +22221,8 @@ type FormData = {
   satisfaction: number
   stars: number | null
   nps: number | null
+  price: number | null
+  address: string
   city: string
   zip: string
   account: {
@@ -21509,6 +22279,8 @@ const INITIAL: FormData = {
   satisfaction: 5,
   stars: null,
   nps: null,
+  price: null,
+  address: "",
   city: "",
   zip: "",
   account: {
@@ -21603,6 +22375,8 @@ function fgPrefill(current: FormData): FormData | null {
   { const v = fgQueryNumber(q, "satisfaction"); if (v !== undefined) { next.satisfaction = v; changed = true } }
   { const v = fgQueryNumber(q, "stars"); if (v !== undefined) { next.stars = v; changed = true } }
   { const v = fgQueryNumber(q, "nps"); if (v !== undefined) { next.nps = v; changed = true } }
+  { const v = fgQueryNumber(q, "price"); if (v !== undefined) { next.price = v; changed = true } }
+  { const v = fgQueryString(q, "address"); if (v !== undefined) { next.address = v; changed = true } }
   { const v = fgQueryString(q, "city"); if (v !== undefined) { next.city = v; changed = true } }
   { const v = fgQueryString(q, "zip"); if (v !== undefined) { next.zip = v; changed = true } }
   { const v = fgQueryString(q, "account.username"); if (v !== undefined) { next.account.username = v; changed = true } }
@@ -21757,6 +22531,8 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "satisfaction": data.satisfaction,
     "stars": data.stars,
     "nps": data.nps,
+    "price": data.price,
+    "address": data.address,
     "city": data.city,
     "zip": data.zip,
     "account": {
@@ -21948,6 +22724,88 @@ function fgPhoneFrom(value: unknown, fallback: string): string {
 }
 // Starting country per field (template path).
 const FG_PHONE_DEFAULTS: Record<string, string> = {"contact_phone":"OM","references.phone":"GB"}
+// Money: the form's separators (en). Parsing needs no locale: the last
+// '.' or ',' followed by one to <decimals> digits is the decimal mark, every
+// other separator groups digits; signs and currency marks are skipped.
+function fgMoneyFormat(value: unknown, decimals: number): string {
+  if (typeof value !== 'number' || !isFinite(value)) return ''
+  var parts = Math.abs(value).toFixed(decimals).split('.')
+  var whole = parts[0] || '0'
+  for (var i = whole.length - 3; i > 0; i -= 3) whole = whole.slice(0, i) + "," + whole.slice(i)
+  return (value < 0 ? '-' : '') + whole + (parts[1] ? "." + parts[1] : '')
+}
+function fgMoneyParse(text: string, decimals: number): number | null {
+  var trimmed = text.trim()
+  var digits = trimmed.replace(/[^\\d.,]/g, '')
+  if (!/\\d/.test(digits)) return null
+  var mark = Math.max(digits.lastIndexOf('.'), digits.lastIndexOf(','))
+  var tail = mark === -1 ? '' : digits.slice(mark + 1)
+  var isDecimal = mark !== -1 && decimals > 0 && tail.length >= 1 && tail.length <= decimals && /^\\d+$/.test(tail)
+  var whole = (isDecimal ? digits.slice(0, mark) : digits).replace(/[.,]/g, '')
+  var scale = Math.pow(10, decimals)
+  var amount = Math.round(Number((whole === '' ? '0' : whole) + '.' + (isDecimal ? tail : '0')) * scale) / scale
+  return trimmed.charAt(0) === '-' ? -amount : amount
+}
+// Address suggestions: the provider named by data-fg-suggest ({q} = the
+// typed text) fills the input's datalist after a pause; its JSON is read loosely.
+function fgSuggestText(item: unknown): string | null {
+  if (typeof item === 'string') return item.trim() || null
+  if (!item || typeof item !== 'object') return null
+  var record = item as Record<string, unknown>
+  if (record['properties'] && typeof record['properties'] === 'object') return fgSuggestText(record['properties'])
+  var keys = ['display_name', 'label', 'name', 'text', 'address']
+  for (var i = 0; i < keys.length; i++) {
+    var v = record[keys[i]!]
+    if (typeof v === 'string' && v.trim() !== '') return v.trim()
+  }
+  return null
+}
+function fgSuggestTexts(data: unknown): string[] {
+  var list: unknown = data
+  if (list && typeof list === 'object' && !Array.isArray(list)) {
+    var record = list as Record<string, unknown>
+    list = record['features'] || record['results'] || record['items'] || []
+  }
+  if (!Array.isArray(list)) return []
+  var out: string[] = []
+  list.forEach(function (item: unknown) {
+    var text = fgSuggestText(item)
+    if (text && out.indexOf(text) === -1 && out.length < 8) out.push(text)
+  })
+  return out
+}
+function fgWireSuggest(root: ParentNode | null): void {
+  if (!root) return
+  Array.prototype.forEach.call(root.querySelectorAll('[data-fg-suggest]:not([data-fg-suggested])'), function (input: HTMLInputElement) {
+    input.setAttribute('data-fg-suggested', '')
+    var url = input.getAttribute('data-fg-suggest') || ''
+    var min = Number(input.getAttribute('data-fg-suggest-min')) || 3
+    var timer: ReturnType<typeof setTimeout> | undefined
+    var request = 0
+    input.addEventListener('input', function () {
+      if (timer !== undefined) clearTimeout(timer)
+      var q = input.value.trim()
+      const target = input.list
+      if (!target) return
+      if (q.length < min) { target.innerHTML = ''; return }
+      timer = setTimeout(function () {
+        var mine = ++request
+        fetch(url.replace('{q}', encodeURIComponent(q)))
+          .then(function (response) { return response.json() })
+          .then(function (data) {
+            if (mine !== request) return
+            target.innerHTML = ''
+            fgSuggestTexts(data).forEach(function (text) {
+              var option = document.createElement('option')
+              option.value = text
+              target.appendChild(option)
+            })
+          })
+          .catch(function () {})
+      }, 300)
+    })
+  })
+}
 
 function fgTpl(path: string): string {
   return path.replace(/\\.\\d+(?=\\.|$)/g, '')
@@ -22030,6 +22888,8 @@ export default function KitchenSinkForm({
   const [dateDrafts, setDateDrafts] = useState<Record<string, string>>({})
   // The chosen country per field path (else the field's default).
   const [phoneCountry, setPhoneCountry] = useState<Record<string, string>>({})
+  // The text of a money field while it is being edited (else the value, formatted).
+  const [fgMoney, setFgMoney] = useState<Record<string, string>>({})
   const fgRoot = useRef<HTMLFormElement>(null)
   // Stable React keys per item (the form object is cloned on every edit).
   const fgKeys = useRef<Record<string, number[]>>({})
@@ -22229,6 +23089,28 @@ export default function KitchenSinkForm({
     setField(path, fgComposePhone(fgPhoneCountryOf(path), number))
   }
 
+  function fgMoneyText(path: string, value: unknown, decimals: number): string {
+    return fgMoney[path] ?? fgMoneyFormat(value, decimals)
+  }
+
+  function fgMoneyInput(path: string, text: string, decimals: number): void {
+    setFgMoney((d) => ({ ...d, [path]: text }))
+    setField(path, fgMoneyParse(text, decimals))
+  }
+
+  function fgMoneyBlur(path: string): void {
+    setFgMoney((d) => {
+      const next = { ...d }
+      delete next[path]
+      return next
+    })
+    touch(path)
+  }
+
+  useEffect(() => {
+    fgWireSuggest(fgRoot.current)
+  }, [])
+
   // "Only one file fits here, …" per field path, until its next change.
   const [fgFileNotes, setFgFileNotes] = useState<Record<string, string>>({})
   function fgFileNote(path: string, note: string): void {
@@ -22420,6 +23302,7 @@ export default function KitchenSinkForm({
     setTagDrafts({})
     setDateDrafts({})
     setPhoneCountry({})
+    setFgMoney({})
     fgAnnounce("The form was reset.")
   }
 
@@ -22593,6 +23476,24 @@ export default function KitchenSinkForm({
             <div className="fg-nps-ends" aria-hidden="true"><span>Not likely</span><span>Very likely</span></div>
           </fieldset>
             {errors['nps'] && <p className="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{errors['nps']}</p>}
+          </div>
+        </div>
+        <div className="col-12 col-md-12">
+          <div className="d-flex flex-column fg-field">
+            <label className="form-label fw-semibold small mb-0 fg-label" htmlFor="fg_price">Price</label>
+            <div className="input-group">
+              <span id="fg_price-prefix" className="input-group-text">€</span>
+              <input id="fg_price" type="text" inputMode="decimal" autoComplete="off" value={fgMoneyText('price', form.price, 2)} className={errors['price'] ? "form-control is-invalid" : "form-control"} aria-describedby="fg_price-prefix" onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgMoneyInput('price', e.target.value, 2)} onBlur={() => fgMoneyBlur('price')} />
+            </div>
+            {errors['price'] && <p className="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{errors['price']}</p>}
+          </div>
+        </div>
+        <div className="col-12 col-md-12">
+          <div className="d-flex flex-column fg-field">
+            <label className="form-label fw-semibold small mb-0 fg-label" htmlFor="fg_address">Address</label>
+            <input id="fg_address" type="text" value={form.address} className={errors['address'] ? "form-control is-invalid" : "form-control"} list="fg_address-list" autoComplete="off" data-fg-suggest="https://nominatim.openstreetmap.org/search?format=json&amp;limit=6&amp;q={q}" data-fg-suggest-min="3" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('address', e.target.value)} onBlur={() => touch('address')} />
+            <datalist id="fg_address-list"></datalist>
+            {errors['address'] && <p className="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{errors['address']}</p>}
           </div>
         </div>
         <div className="col-12 col-md-12">
@@ -24433,6 +25334,8 @@ type FormData = {
   satisfaction: number
   stars: number | null
   nps: number | null
+  price: number | null
+  address: string
   city: string
   zip: string
   account: {
@@ -24489,6 +25392,8 @@ const INITIAL: FormData = {
   satisfaction: 5,
   stars: null,
   nps: null,
+  price: null,
+  address: "",
   city: "",
   zip: "",
   account: {
@@ -24583,6 +25488,8 @@ function fgPrefill(current: FormData): FormData | null {
   { const v = fgQueryNumber(q, "satisfaction"); if (v !== undefined) { next.satisfaction = v; changed = true } }
   { const v = fgQueryNumber(q, "stars"); if (v !== undefined) { next.stars = v; changed = true } }
   { const v = fgQueryNumber(q, "nps"); if (v !== undefined) { next.nps = v; changed = true } }
+  { const v = fgQueryNumber(q, "price"); if (v !== undefined) { next.price = v; changed = true } }
+  { const v = fgQueryString(q, "address"); if (v !== undefined) { next.address = v; changed = true } }
   { const v = fgQueryString(q, "city"); if (v !== undefined) { next.city = v; changed = true } }
   { const v = fgQueryString(q, "zip"); if (v !== undefined) { next.zip = v; changed = true } }
   { const v = fgQueryString(q, "account.username"); if (v !== undefined) { next.account.username = v; changed = true } }
@@ -24737,6 +25644,8 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "satisfaction": data.satisfaction,
     "stars": data.stars,
     "nps": data.nps,
+    "price": data.price,
+    "address": data.address,
     "city": data.city,
     "zip": data.zip,
     "account": {
@@ -24928,6 +25837,88 @@ function fgPhoneFrom(value: unknown, fallback: string): string {
 }
 // Starting country per field (template path).
 const FG_PHONE_DEFAULTS: Record<string, string> = {"contact_phone":"OM","references.phone":"GB"}
+// Money: the form's separators (en). Parsing needs no locale: the last
+// '.' or ',' followed by one to <decimals> digits is the decimal mark, every
+// other separator groups digits; signs and currency marks are skipped.
+function fgMoneyFormat(value: unknown, decimals: number): string {
+  if (typeof value !== 'number' || !isFinite(value)) return ''
+  var parts = Math.abs(value).toFixed(decimals).split('.')
+  var whole = parts[0] || '0'
+  for (var i = whole.length - 3; i > 0; i -= 3) whole = whole.slice(0, i) + "," + whole.slice(i)
+  return (value < 0 ? '-' : '') + whole + (parts[1] ? "." + parts[1] : '')
+}
+function fgMoneyParse(text: string, decimals: number): number | null {
+  var trimmed = text.trim()
+  var digits = trimmed.replace(/[^\\d.,]/g, '')
+  if (!/\\d/.test(digits)) return null
+  var mark = Math.max(digits.lastIndexOf('.'), digits.lastIndexOf(','))
+  var tail = mark === -1 ? '' : digits.slice(mark + 1)
+  var isDecimal = mark !== -1 && decimals > 0 && tail.length >= 1 && tail.length <= decimals && /^\\d+$/.test(tail)
+  var whole = (isDecimal ? digits.slice(0, mark) : digits).replace(/[.,]/g, '')
+  var scale = Math.pow(10, decimals)
+  var amount = Math.round(Number((whole === '' ? '0' : whole) + '.' + (isDecimal ? tail : '0')) * scale) / scale
+  return trimmed.charAt(0) === '-' ? -amount : amount
+}
+// Address suggestions: the provider named by data-fg-suggest ({q} = the
+// typed text) fills the input's datalist after a pause; its JSON is read loosely.
+function fgSuggestText(item: unknown): string | null {
+  if (typeof item === 'string') return item.trim() || null
+  if (!item || typeof item !== 'object') return null
+  var record = item as Record<string, unknown>
+  if (record['properties'] && typeof record['properties'] === 'object') return fgSuggestText(record['properties'])
+  var keys = ['display_name', 'label', 'name', 'text', 'address']
+  for (var i = 0; i < keys.length; i++) {
+    var v = record[keys[i]!]
+    if (typeof v === 'string' && v.trim() !== '') return v.trim()
+  }
+  return null
+}
+function fgSuggestTexts(data: unknown): string[] {
+  var list: unknown = data
+  if (list && typeof list === 'object' && !Array.isArray(list)) {
+    var record = list as Record<string, unknown>
+    list = record['features'] || record['results'] || record['items'] || []
+  }
+  if (!Array.isArray(list)) return []
+  var out: string[] = []
+  list.forEach(function (item: unknown) {
+    var text = fgSuggestText(item)
+    if (text && out.indexOf(text) === -1 && out.length < 8) out.push(text)
+  })
+  return out
+}
+function fgWireSuggest(root: ParentNode | null): void {
+  if (!root) return
+  Array.prototype.forEach.call(root.querySelectorAll('[data-fg-suggest]:not([data-fg-suggested])'), function (input: HTMLInputElement) {
+    input.setAttribute('data-fg-suggested', '')
+    var url = input.getAttribute('data-fg-suggest') || ''
+    var min = Number(input.getAttribute('data-fg-suggest-min')) || 3
+    var timer: ReturnType<typeof setTimeout> | undefined
+    var request = 0
+    input.addEventListener('input', function () {
+      if (timer !== undefined) clearTimeout(timer)
+      var q = input.value.trim()
+      const target = input.list
+      if (!target) return
+      if (q.length < min) { target.innerHTML = ''; return }
+      timer = setTimeout(function () {
+        var mine = ++request
+        fetch(url.replace('{q}', encodeURIComponent(q)))
+          .then(function (response) { return response.json() })
+          .then(function (data) {
+            if (mine !== request) return
+            target.innerHTML = ''
+            fgSuggestTexts(data).forEach(function (text) {
+              var option = document.createElement('option')
+              option.value = text
+              target.appendChild(option)
+            })
+          })
+          .catch(function () {})
+      }, 300)
+    })
+  })
+}
 
 function fgTpl(path: string): string {
   return path.replace(/\\.\\d+(?=\\.|$)/g, '')
@@ -25010,6 +26001,8 @@ export default function KitchenSinkForm({
   const [dateDrafts, setDateDrafts] = useState<Record<string, string>>({})
   // The chosen country per field path (else the field's default).
   const [phoneCountry, setPhoneCountry] = useState<Record<string, string>>({})
+  // The text of a money field while it is being edited (else the value, formatted).
+  const [fgMoney, setFgMoney] = useState<Record<string, string>>({})
   const fgRoot = useRef<HTMLFormElement>(null)
   // Stable React keys per item (the form object is cloned on every edit).
   const fgKeys = useRef<Record<string, number[]>>({})
@@ -25209,6 +26202,28 @@ export default function KitchenSinkForm({
     setField(path, fgComposePhone(fgPhoneCountryOf(path), number))
   }
 
+  function fgMoneyText(path: string, value: unknown, decimals: number): string {
+    return fgMoney[path] ?? fgMoneyFormat(value, decimals)
+  }
+
+  function fgMoneyInput(path: string, text: string, decimals: number): void {
+    setFgMoney((d) => ({ ...d, [path]: text }))
+    setField(path, fgMoneyParse(text, decimals))
+  }
+
+  function fgMoneyBlur(path: string): void {
+    setFgMoney((d) => {
+      const next = { ...d }
+      delete next[path]
+      return next
+    })
+    touch(path)
+  }
+
+  useEffect(() => {
+    fgWireSuggest(fgRoot.current)
+  }, [])
+
   // "Only one file fits here, …" per field path, until its next change.
   const [fgFileNotes, setFgFileNotes] = useState<Record<string, string>>({})
   function fgFileNote(path: string, note: string): void {
@@ -25400,6 +26415,7 @@ export default function KitchenSinkForm({
     setTagDrafts({})
     setDateDrafts({})
     setPhoneCountry({})
+    setFgMoney({})
     fgAnnounce("The form was reset.")
   }
 
@@ -25573,6 +26589,24 @@ export default function KitchenSinkForm({
             <div className="fg-nps-ends" aria-hidden="true"><span>Not likely</span><span>Very likely</span></div>
           </fieldset>
             {errors['nps'] && <p className="text-sm text-red-600" role="alert">{errors['nps']}</p>}
+          </div>
+        </div>
+        <div className="col-span-12 md:col-span-12">
+          <div className="flex flex-col gap-1.5 [&>legend]:mb-1.5">
+            <label className="text-sm font-semibold" htmlFor="fg_price">Price</label>
+            <div className="flex [&>:not(:first-child)]:-ms-px [&>:not(:first-child)]:rounded-s-none [&>:not(:last-child)]:rounded-e-none">
+              <span id="fg_price-prefix" className="inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-base text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">€</span>
+              <input id="fg_price" type="text" inputMode="decimal" autoComplete="off" value={fgMoneyText('price', form.price, 2)} className={errors['price'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0"} aria-describedby="fg_price-prefix" onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgMoneyInput('price', e.target.value, 2)} onBlur={() => fgMoneyBlur('price')} />
+            </div>
+            {errors['price'] && <p className="text-sm text-red-600" role="alert">{errors['price']}</p>}
+          </div>
+        </div>
+        <div className="col-span-12 md:col-span-12">
+          <div className="flex flex-col gap-1.5 [&>legend]:mb-1.5">
+            <label className="text-sm font-semibold" htmlFor="fg_address">Address</label>
+            <input id="fg_address" type="text" value={form.address} className={errors['address'] ? "w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0 border-red-500 focus:ring-red-200" : "w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0"} list="fg_address-list" autoComplete="off" data-fg-suggest="https://nominatim.openstreetmap.org/search?format=json&amp;limit=6&amp;q={q}" data-fg-suggest-min="3" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('address', e.target.value)} onBlur={() => touch('address')} />
+            <datalist id="fg_address-list"></datalist>
+            {errors['address'] && <p className="text-sm text-red-600" role="alert">{errors['address']}</p>}
           </div>
         </div>
         <div className="col-span-12 md:col-span-12">
@@ -27417,6 +28451,8 @@ type FormData = {
   satisfaction: number
   stars: number | null
   nps: number | null
+  price: number | null
+  address: string
   city: string
   zip: string
   account: {
@@ -27473,6 +28509,8 @@ const INITIAL: FormData = {
   satisfaction: 5,
   stars: null,
   nps: null,
+  price: null,
+  address: "",
   city: "",
   zip: "",
   account: {
@@ -27567,6 +28605,8 @@ function fgPrefill(current: FormData): FormData | null {
   { const v = fgQueryNumber(q, "satisfaction"); if (v !== undefined) { next.satisfaction = v; changed = true } }
   { const v = fgQueryNumber(q, "stars"); if (v !== undefined) { next.stars = v; changed = true } }
   { const v = fgQueryNumber(q, "nps"); if (v !== undefined) { next.nps = v; changed = true } }
+  { const v = fgQueryNumber(q, "price"); if (v !== undefined) { next.price = v; changed = true } }
+  { const v = fgQueryString(q, "address"); if (v !== undefined) { next.address = v; changed = true } }
   { const v = fgQueryString(q, "city"); if (v !== undefined) { next.city = v; changed = true } }
   { const v = fgQueryString(q, "zip"); if (v !== undefined) { next.zip = v; changed = true } }
   { const v = fgQueryString(q, "account.username"); if (v !== undefined) { next.account.username = v; changed = true } }
@@ -27721,6 +28761,8 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "satisfaction": data.satisfaction,
     "stars": data.stars,
     "nps": data.nps,
+    "price": data.price,
+    "address": data.address,
     "city": data.city,
     "zip": data.zip,
     "account": {
@@ -27912,6 +28954,88 @@ function fgPhoneFrom(value: unknown, fallback: string): string {
 }
 // Starting country per field (template path).
 const FG_PHONE_DEFAULTS: Record<string, string> = {"contact_phone":"OM","references.phone":"GB"}
+// Money: the form's separators (en). Parsing needs no locale: the last
+// '.' or ',' followed by one to <decimals> digits is the decimal mark, every
+// other separator groups digits; signs and currency marks are skipped.
+function fgMoneyFormat(value: unknown, decimals: number): string {
+  if (typeof value !== 'number' || !isFinite(value)) return ''
+  var parts = Math.abs(value).toFixed(decimals).split('.')
+  var whole = parts[0] || '0'
+  for (var i = whole.length - 3; i > 0; i -= 3) whole = whole.slice(0, i) + "," + whole.slice(i)
+  return (value < 0 ? '-' : '') + whole + (parts[1] ? "." + parts[1] : '')
+}
+function fgMoneyParse(text: string, decimals: number): number | null {
+  var trimmed = text.trim()
+  var digits = trimmed.replace(/[^\\d.,]/g, '')
+  if (!/\\d/.test(digits)) return null
+  var mark = Math.max(digits.lastIndexOf('.'), digits.lastIndexOf(','))
+  var tail = mark === -1 ? '' : digits.slice(mark + 1)
+  var isDecimal = mark !== -1 && decimals > 0 && tail.length >= 1 && tail.length <= decimals && /^\\d+$/.test(tail)
+  var whole = (isDecimal ? digits.slice(0, mark) : digits).replace(/[.,]/g, '')
+  var scale = Math.pow(10, decimals)
+  var amount = Math.round(Number((whole === '' ? '0' : whole) + '.' + (isDecimal ? tail : '0')) * scale) / scale
+  return trimmed.charAt(0) === '-' ? -amount : amount
+}
+// Address suggestions: the provider named by data-fg-suggest ({q} = the
+// typed text) fills the input's datalist after a pause; its JSON is read loosely.
+function fgSuggestText(item: unknown): string | null {
+  if (typeof item === 'string') return item.trim() || null
+  if (!item || typeof item !== 'object') return null
+  var record = item as Record<string, unknown>
+  if (record['properties'] && typeof record['properties'] === 'object') return fgSuggestText(record['properties'])
+  var keys = ['display_name', 'label', 'name', 'text', 'address']
+  for (var i = 0; i < keys.length; i++) {
+    var v = record[keys[i]!]
+    if (typeof v === 'string' && v.trim() !== '') return v.trim()
+  }
+  return null
+}
+function fgSuggestTexts(data: unknown): string[] {
+  var list: unknown = data
+  if (list && typeof list === 'object' && !Array.isArray(list)) {
+    var record = list as Record<string, unknown>
+    list = record['features'] || record['results'] || record['items'] || []
+  }
+  if (!Array.isArray(list)) return []
+  var out: string[] = []
+  list.forEach(function (item: unknown) {
+    var text = fgSuggestText(item)
+    if (text && out.indexOf(text) === -1 && out.length < 8) out.push(text)
+  })
+  return out
+}
+function fgWireSuggest(root: ParentNode | null): void {
+  if (!root) return
+  Array.prototype.forEach.call(root.querySelectorAll('[data-fg-suggest]:not([data-fg-suggested])'), function (input: HTMLInputElement) {
+    input.setAttribute('data-fg-suggested', '')
+    var url = input.getAttribute('data-fg-suggest') || ''
+    var min = Number(input.getAttribute('data-fg-suggest-min')) || 3
+    var timer: ReturnType<typeof setTimeout> | undefined
+    var request = 0
+    input.addEventListener('input', function () {
+      if (timer !== undefined) clearTimeout(timer)
+      var q = input.value.trim()
+      const target = input.list
+      if (!target) return
+      if (q.length < min) { target.innerHTML = ''; return }
+      timer = setTimeout(function () {
+        var mine = ++request
+        fetch(url.replace('{q}', encodeURIComponent(q)))
+          .then(function (response) { return response.json() })
+          .then(function (data) {
+            if (mine !== request) return
+            target.innerHTML = ''
+            fgSuggestTexts(data).forEach(function (text) {
+              var option = document.createElement('option')
+              option.value = text
+              target.appendChild(option)
+            })
+          })
+          .catch(function () {})
+      }, 300)
+    })
+  })
+}
 
 function fgTpl(path: string): string {
   return path.replace(/\\.\\d+(?=\\.|$)/g, '')
@@ -27994,6 +29118,8 @@ export default function KitchenSinkForm({
   const [dateDrafts, setDateDrafts] = useState<Record<string, string>>({})
   // The chosen country per field path (else the field's default).
   const [phoneCountry, setPhoneCountry] = useState<Record<string, string>>({})
+  // The text of a money field while it is being edited (else the value, formatted).
+  const [fgMoney, setFgMoney] = useState<Record<string, string>>({})
   const fgRoot = useRef<HTMLFormElement>(null)
   // Stable React keys per item (the form object is cloned on every edit).
   const fgKeys = useRef<Record<string, number[]>>({})
@@ -28193,6 +29319,28 @@ export default function KitchenSinkForm({
     setField(path, fgComposePhone(fgPhoneCountryOf(path), number))
   }
 
+  function fgMoneyText(path: string, value: unknown, decimals: number): string {
+    return fgMoney[path] ?? fgMoneyFormat(value, decimals)
+  }
+
+  function fgMoneyInput(path: string, text: string, decimals: number): void {
+    setFgMoney((d) => ({ ...d, [path]: text }))
+    setField(path, fgMoneyParse(text, decimals))
+  }
+
+  function fgMoneyBlur(path: string): void {
+    setFgMoney((d) => {
+      const next = { ...d }
+      delete next[path]
+      return next
+    })
+    touch(path)
+  }
+
+  useEffect(() => {
+    fgWireSuggest(fgRoot.current)
+  }, [])
+
   // "Only one file fits here, …" per field path, until its next change.
   const [fgFileNotes, setFgFileNotes] = useState<Record<string, string>>({})
   function fgFileNote(path: string, note: string): void {
@@ -28384,6 +29532,7 @@ export default function KitchenSinkForm({
     setTagDrafts({})
     setDateDrafts({})
     setPhoneCountry({})
+    setFgMoney({})
     fgAnnounce("The form was reset.")
   }
 
@@ -28557,6 +29706,24 @@ export default function KitchenSinkForm({
             <div className="fg-nps-ends" aria-hidden="true"><span>Not likely</span><span>Very likely</span></div>
           </fieldset>
             {errors['nps'] && <p className="fg-error" role="alert">{errors['nps']}</p>}
+          </div>
+        </div>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
+          <div className="fg-field">
+            <label className="fg-label" htmlFor="fg_price">Price</label>
+            <div className="fg-affix-group">
+              <span id="fg_price-prefix" className="fg-affix">€</span>
+              <input id="fg_price" type="text" inputMode="decimal" autoComplete="off" value={fgMoneyText('price', form.price, 2)} className={errors['price'] ? "fg-input fg-invalid" : "fg-input"} aria-describedby="fg_price-prefix" onChange={(e: React.ChangeEvent<HTMLInputElement>) => fgMoneyInput('price', e.target.value, 2)} onBlur={() => fgMoneyBlur('price')} />
+            </div>
+            {errors['price'] && <p className="fg-error" role="alert">{errors['price']}</p>}
+          </div>
+        </div>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
+          <div className="fg-field">
+            <label className="fg-label" htmlFor="fg_address">Address</label>
+            <input id="fg_address" type="text" value={form.address} className={errors['address'] ? "fg-input fg-invalid" : "fg-input"} list="fg_address-list" autoComplete="off" data-fg-suggest="https://nominatim.openstreetmap.org/search?format=json&amp;limit=6&amp;q={q}" data-fg-suggest-min="3" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setField('address', e.target.value)} onBlur={() => touch('address')} />
+            <datalist id="fg_address-list"></datalist>
+            {errors['address'] && <p className="fg-error" role="alert">{errors['address']}</p>}
           </div>
         </div>
         <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
@@ -29630,6 +30797,8 @@ type FormData = {
   satisfaction: number
   stars: number | null
   nps: number | null
+  price: number | null
+  address: string
   city: string
   zip: string
   account: {
@@ -29686,6 +30855,8 @@ const form = reactive<FormData>({
   satisfaction: 5,
   stars: null,
   nps: null,
+  price: null,
+  address: "",
   city: "",
   zip: "",
   account: {
@@ -29983,6 +31154,8 @@ onMounted(() => {
   { const v = fgQueryNumber(q, "satisfaction"); if (v !== undefined) form.satisfaction = v }
   { const v = fgQueryNumber(q, "stars"); if (v !== undefined) form.stars = v }
   { const v = fgQueryNumber(q, "nps"); if (v !== undefined) form.nps = v }
+  { const v = fgQueryNumber(q, "price"); if (v !== undefined) form.price = v }
+  { const v = fgQueryString(q, "address"); if (v !== undefined) form.address = v }
   { const v = fgQueryString(q, "city"); if (v !== undefined) form.city = v }
   { const v = fgQueryString(q, "zip"); if (v !== undefined) form.zip = v }
   { const v = fgQueryString(q, "account.username"); if (v !== undefined) form.account.username = v }
@@ -31007,6 +32180,104 @@ function fgPhoneInput(path: string, event: Event): void {
   fgSet(path, fgComposePhone(fgPhoneCountryOf(path), (event.target as HTMLInputElement).value))
   revalidate(path)
 }
+// Money: the form's separators (en). Parsing needs no locale: the last
+// '.' or ',' followed by one to <decimals> digits is the decimal mark, every
+// other separator groups digits; signs and currency marks are skipped.
+function fgMoneyFormat(value: unknown, decimals: number): string {
+  if (typeof value !== 'number' || !isFinite(value)) return ''
+  var parts = Math.abs(value).toFixed(decimals).split('.')
+  var whole = parts[0] || '0'
+  for (var i = whole.length - 3; i > 0; i -= 3) whole = whole.slice(0, i) + "," + whole.slice(i)
+  return (value < 0 ? '-' : '') + whole + (parts[1] ? "." + parts[1] : '')
+}
+function fgMoneyParse(text: string, decimals: number): number | null {
+  var trimmed = text.trim()
+  var digits = trimmed.replace(/[^\\d.,]/g, '')
+  if (!/\\d/.test(digits)) return null
+  var mark = Math.max(digits.lastIndexOf('.'), digits.lastIndexOf(','))
+  var tail = mark === -1 ? '' : digits.slice(mark + 1)
+  var isDecimal = mark !== -1 && decimals > 0 && tail.length >= 1 && tail.length <= decimals && /^\\d+$/.test(tail)
+  var whole = (isDecimal ? digits.slice(0, mark) : digits).replace(/[.,]/g, '')
+  var scale = Math.pow(10, decimals)
+  var amount = Math.round(Number((whole === '' ? '0' : whole) + '.' + (isDecimal ? tail : '0')) * scale) / scale
+  return trimmed.charAt(0) === '-' ? -amount : amount
+}
+// The text of a money field while it is being edited (else the value, formatted).
+const fgMoneyDraft = reactive<Record<string, string>>({})
+function fgMoneyText(path: string, value: unknown, decimals: number): string {
+  return fgMoneyDraft[path] ?? fgMoneyFormat(value, decimals)
+}
+function fgMoneyInput(path: string, event: Event, decimals: number): void {
+  const text = (event.target as HTMLInputElement).value
+  fgMoneyDraft[path] = text
+  fgSet(path, fgMoneyParse(text, decimals))
+  revalidate(path)
+}
+function fgMoneyBlur(path: string): void {
+  delete fgMoneyDraft[path]
+  touch(path)
+}
+// Address suggestions: the provider named by data-fg-suggest ({q} = the
+// typed text) fills the input's datalist after a pause; its JSON is read loosely.
+function fgSuggestText(item: unknown): string | null {
+  if (typeof item === 'string') return item.trim() || null
+  if (!item || typeof item !== 'object') return null
+  var record = item as Record<string, unknown>
+  if (record['properties'] && typeof record['properties'] === 'object') return fgSuggestText(record['properties'])
+  var keys = ['display_name', 'label', 'name', 'text', 'address']
+  for (var i = 0; i < keys.length; i++) {
+    var v = record[keys[i]!]
+    if (typeof v === 'string' && v.trim() !== '') return v.trim()
+  }
+  return null
+}
+function fgSuggestTexts(data: unknown): string[] {
+  var list: unknown = data
+  if (list && typeof list === 'object' && !Array.isArray(list)) {
+    var record = list as Record<string, unknown>
+    list = record['features'] || record['results'] || record['items'] || []
+  }
+  if (!Array.isArray(list)) return []
+  var out: string[] = []
+  list.forEach(function (item: unknown) {
+    var text = fgSuggestText(item)
+    if (text && out.indexOf(text) === -1 && out.length < 8) out.push(text)
+  })
+  return out
+}
+function fgWireSuggest(root: ParentNode | null): void {
+  if (!root) return
+  Array.prototype.forEach.call(root.querySelectorAll('[data-fg-suggest]:not([data-fg-suggested])'), function (input: HTMLInputElement) {
+    input.setAttribute('data-fg-suggested', '')
+    var url = input.getAttribute('data-fg-suggest') || ''
+    var min = Number(input.getAttribute('data-fg-suggest-min')) || 3
+    var timer: ReturnType<typeof setTimeout> | undefined
+    var request = 0
+    input.addEventListener('input', function () {
+      if (timer !== undefined) clearTimeout(timer)
+      var q = input.value.trim()
+      const target = input.list
+      if (!target) return
+      if (q.length < min) { target.innerHTML = ''; return }
+      timer = setTimeout(function () {
+        var mine = ++request
+        fetch(url.replace('{q}', encodeURIComponent(q)))
+          .then(function (response) { return response.json() })
+          .then(function (data) {
+            if (mine !== request) return
+            target.innerHTML = ''
+            fgSuggestTexts(data).forEach(function (text) {
+              var option = document.createElement('option')
+              option.value = text
+              target.appendChild(option)
+            })
+          })
+          .catch(function () {})
+      }, 300)
+    })
+  })
+}
+onMounted(() => fgWireSuggest(fgRoot.value))
 
 const fgRoot = ref<HTMLElement | null>(null)
 const fgItemDefaults: Record<string, () => Record<string, unknown>> = {
@@ -31218,6 +32489,8 @@ function fgReset(): void {
     satisfaction: 5,
     stars: null,
     nps: null,
+    price: null,
+    address: "",
     city: "",
     zip: "",
     account: {
@@ -31282,6 +32555,7 @@ function fgReset(): void {
   for (const key of Object.keys(tagDrafts)) tagDrafts[key] = ''
   for (const key of Object.keys(fgDateDrafts)) fgDateDrafts[key] = ''
   for (const key of Object.keys(fgPhoneCountry)) delete fgPhoneCountry[key]
+  for (const key of Object.keys(fgMoneyDraft)) delete fgMoneyDraft[key]
   fgAnnounce("The form was reset.")
 }
 
@@ -31295,6 +32569,8 @@ function buildPayload(): Record<string, unknown> {
     "satisfaction": form.satisfaction,
     "stars": form.stars,
     "nps": form.nps,
+    "price": form.price,
+    "address": form.address,
     "city": form.city,
     "zip": form.zip,
     "account": {
@@ -31487,6 +32763,24 @@ async function onSubmit(): Promise<void> {
           <div class="fg-nps-ends" aria-hidden="true"><span>Not likely</span><span>Very likely</span></div>
           <p v-if="errors['nps']" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{{ errors['nps'] }}</p>
         </fieldset>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="d-flex flex-column fg-field">
+          <label class="form-label fw-semibold small mb-0 fg-label" for="fg_price">Price</label>
+          <div class="input-group">
+            <span id="fg_price-prefix" class="input-group-text">€</span>
+            <input id="fg_price" type="text" inputmode="decimal" autocomplete="off" class="form-control" :class="{ 'is-invalid': !!errors['price'] }" aria-describedby="fg_price-prefix" :value="fgMoneyText('price', form.price, 2)" @input="fgMoneyInput('price', $event, 2)" @blur="fgMoneyBlur('price')">
+          </div>
+          <p v-if="errors['price']" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{{ errors['price'] }}</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="d-flex flex-column fg-field">
+          <label class="form-label fw-semibold small mb-0 fg-label" for="fg_address">Address</label>
+          <input id="fg_address" v-model="form.address" type="text" class="form-control" :class="{ 'is-invalid': !!errors['address'] }" list="fg_address-list" autocomplete="off" data-fg-suggest="https://nominatim.openstreetmap.org/search?format=json&amp;limit=6&amp;q={q}" data-fg-suggest-min="3" @blur="touch('address')" @input="revalidate('address')">
+          <datalist id="fg_address-list"></datalist>
+          <p v-if="errors['address']" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{{ errors['address'] }}</p>
+        </div>
       </div>
       <div class="col-12 col-md-12">
         <hr class="border-top my-1 border-primary opacity-100">
@@ -32637,6 +33931,8 @@ type FormData = {
   satisfaction: number
   stars: number | null
   nps: number | null
+  price: number | null
+  address: string
   city: string
   zip: string
   account: {
@@ -32693,6 +33989,8 @@ const form = reactive<FormData>({
   satisfaction: 5,
   stars: null,
   nps: null,
+  price: null,
+  address: "",
   city: "",
   zip: "",
   account: {
@@ -32990,6 +34288,8 @@ onMounted(() => {
   { const v = fgQueryNumber(q, "satisfaction"); if (v !== undefined) form.satisfaction = v }
   { const v = fgQueryNumber(q, "stars"); if (v !== undefined) form.stars = v }
   { const v = fgQueryNumber(q, "nps"); if (v !== undefined) form.nps = v }
+  { const v = fgQueryNumber(q, "price"); if (v !== undefined) form.price = v }
+  { const v = fgQueryString(q, "address"); if (v !== undefined) form.address = v }
   { const v = fgQueryString(q, "city"); if (v !== undefined) form.city = v }
   { const v = fgQueryString(q, "zip"); if (v !== undefined) form.zip = v }
   { const v = fgQueryString(q, "account.username"); if (v !== undefined) form.account.username = v }
@@ -34014,6 +35314,104 @@ function fgPhoneInput(path: string, event: Event): void {
   fgSet(path, fgComposePhone(fgPhoneCountryOf(path), (event.target as HTMLInputElement).value))
   revalidate(path)
 }
+// Money: the form's separators (en). Parsing needs no locale: the last
+// '.' or ',' followed by one to <decimals> digits is the decimal mark, every
+// other separator groups digits; signs and currency marks are skipped.
+function fgMoneyFormat(value: unknown, decimals: number): string {
+  if (typeof value !== 'number' || !isFinite(value)) return ''
+  var parts = Math.abs(value).toFixed(decimals).split('.')
+  var whole = parts[0] || '0'
+  for (var i = whole.length - 3; i > 0; i -= 3) whole = whole.slice(0, i) + "," + whole.slice(i)
+  return (value < 0 ? '-' : '') + whole + (parts[1] ? "." + parts[1] : '')
+}
+function fgMoneyParse(text: string, decimals: number): number | null {
+  var trimmed = text.trim()
+  var digits = trimmed.replace(/[^\\d.,]/g, '')
+  if (!/\\d/.test(digits)) return null
+  var mark = Math.max(digits.lastIndexOf('.'), digits.lastIndexOf(','))
+  var tail = mark === -1 ? '' : digits.slice(mark + 1)
+  var isDecimal = mark !== -1 && decimals > 0 && tail.length >= 1 && tail.length <= decimals && /^\\d+$/.test(tail)
+  var whole = (isDecimal ? digits.slice(0, mark) : digits).replace(/[.,]/g, '')
+  var scale = Math.pow(10, decimals)
+  var amount = Math.round(Number((whole === '' ? '0' : whole) + '.' + (isDecimal ? tail : '0')) * scale) / scale
+  return trimmed.charAt(0) === '-' ? -amount : amount
+}
+// The text of a money field while it is being edited (else the value, formatted).
+const fgMoneyDraft = reactive<Record<string, string>>({})
+function fgMoneyText(path: string, value: unknown, decimals: number): string {
+  return fgMoneyDraft[path] ?? fgMoneyFormat(value, decimals)
+}
+function fgMoneyInput(path: string, event: Event, decimals: number): void {
+  const text = (event.target as HTMLInputElement).value
+  fgMoneyDraft[path] = text
+  fgSet(path, fgMoneyParse(text, decimals))
+  revalidate(path)
+}
+function fgMoneyBlur(path: string): void {
+  delete fgMoneyDraft[path]
+  touch(path)
+}
+// Address suggestions: the provider named by data-fg-suggest ({q} = the
+// typed text) fills the input's datalist after a pause; its JSON is read loosely.
+function fgSuggestText(item: unknown): string | null {
+  if (typeof item === 'string') return item.trim() || null
+  if (!item || typeof item !== 'object') return null
+  var record = item as Record<string, unknown>
+  if (record['properties'] && typeof record['properties'] === 'object') return fgSuggestText(record['properties'])
+  var keys = ['display_name', 'label', 'name', 'text', 'address']
+  for (var i = 0; i < keys.length; i++) {
+    var v = record[keys[i]!]
+    if (typeof v === 'string' && v.trim() !== '') return v.trim()
+  }
+  return null
+}
+function fgSuggestTexts(data: unknown): string[] {
+  var list: unknown = data
+  if (list && typeof list === 'object' && !Array.isArray(list)) {
+    var record = list as Record<string, unknown>
+    list = record['features'] || record['results'] || record['items'] || []
+  }
+  if (!Array.isArray(list)) return []
+  var out: string[] = []
+  list.forEach(function (item: unknown) {
+    var text = fgSuggestText(item)
+    if (text && out.indexOf(text) === -1 && out.length < 8) out.push(text)
+  })
+  return out
+}
+function fgWireSuggest(root: ParentNode | null): void {
+  if (!root) return
+  Array.prototype.forEach.call(root.querySelectorAll('[data-fg-suggest]:not([data-fg-suggested])'), function (input: HTMLInputElement) {
+    input.setAttribute('data-fg-suggested', '')
+    var url = input.getAttribute('data-fg-suggest') || ''
+    var min = Number(input.getAttribute('data-fg-suggest-min')) || 3
+    var timer: ReturnType<typeof setTimeout> | undefined
+    var request = 0
+    input.addEventListener('input', function () {
+      if (timer !== undefined) clearTimeout(timer)
+      var q = input.value.trim()
+      const target = input.list
+      if (!target) return
+      if (q.length < min) { target.innerHTML = ''; return }
+      timer = setTimeout(function () {
+        var mine = ++request
+        fetch(url.replace('{q}', encodeURIComponent(q)))
+          .then(function (response) { return response.json() })
+          .then(function (data) {
+            if (mine !== request) return
+            target.innerHTML = ''
+            fgSuggestTexts(data).forEach(function (text) {
+              var option = document.createElement('option')
+              option.value = text
+              target.appendChild(option)
+            })
+          })
+          .catch(function () {})
+      }, 300)
+    })
+  })
+}
+onMounted(() => fgWireSuggest(fgRoot.value))
 
 const fgRoot = ref<HTMLElement | null>(null)
 const fgItemDefaults: Record<string, () => Record<string, unknown>> = {
@@ -34225,6 +35623,8 @@ function fgReset(): void {
     satisfaction: 5,
     stars: null,
     nps: null,
+    price: null,
+    address: "",
     city: "",
     zip: "",
     account: {
@@ -34289,6 +35689,7 @@ function fgReset(): void {
   for (const key of Object.keys(tagDrafts)) tagDrafts[key] = ''
   for (const key of Object.keys(fgDateDrafts)) fgDateDrafts[key] = ''
   for (const key of Object.keys(fgPhoneCountry)) delete fgPhoneCountry[key]
+  for (const key of Object.keys(fgMoneyDraft)) delete fgMoneyDraft[key]
   fgAnnounce("The form was reset.")
 }
 
@@ -34302,6 +35703,8 @@ function buildPayload(): Record<string, unknown> {
     "satisfaction": form.satisfaction,
     "stars": form.stars,
     "nps": form.nps,
+    "price": form.price,
+    "address": form.address,
     "city": form.city,
     "zip": form.zip,
     "account": {
@@ -34494,6 +35897,24 @@ async function onSubmit(): Promise<void> {
           <div class="fg-nps-ends" aria-hidden="true"><span>Not likely</span><span>Very likely</span></div>
           <p v-if="errors['nps']" class="text-sm text-red-600" role="alert">{{ errors['nps'] }}</p>
         </fieldset>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
+          <label class="text-sm font-semibold" for="fg_price">Price</label>
+          <div class="flex [&>:not(:first-child)]:-ms-px [&>:not(:first-child)]:rounded-s-none [&>:not(:last-child)]:rounded-e-none">
+            <span id="fg_price-prefix" class="inline-flex items-center whitespace-nowrap rounded-md border border-gray-300 bg-gray-50 px-3 text-base text-gray-500 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-400">€</span>
+            <input id="fg_price" type="text" inputmode="decimal" autocomplete="off" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" :class="{ 'border-red-500 focus:ring-red-200': !!errors['price'] }" aria-describedby="fg_price-prefix" :value="fgMoneyText('price', form.price, 2)" @input="fgMoneyInput('price', $event, 2)" @blur="fgMoneyBlur('price')">
+          </div>
+          <p v-if="errors['price']" class="text-sm text-red-600" role="alert">{{ errors['price'] }}</p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <div class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
+          <label class="text-sm font-semibold" for="fg_address">Address</label>
+          <input id="fg_address" v-model="form.address" type="text" class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 [&::-webkit-datetime-edit-fields-wrapper]:p-0" :class="{ 'border-red-500 focus:ring-red-200': !!errors['address'] }" list="fg_address-list" autocomplete="off" data-fg-suggest="https://nominatim.openstreetmap.org/search?format=json&amp;limit=6&amp;q={q}" data-fg-suggest-min="3" @blur="touch('address')" @input="revalidate('address')">
+          <datalist id="fg_address-list"></datalist>
+          <p v-if="errors['address']" class="text-sm text-red-600" role="alert">{{ errors['address'] }}</p>
+        </div>
       </div>
       <div class="col-span-12 md:col-span-12">
         <hr class="my-1 border-t border-indigo-500">
@@ -35589,6 +37010,8 @@ type FormData = {
   satisfaction: number
   stars: number | null
   nps: number | null
+  price: number | null
+  address: string
   city: string
   zip: string
   account: {
@@ -35645,6 +37068,8 @@ const form = reactive<FormData>({
   satisfaction: 5,
   stars: null,
   nps: null,
+  price: null,
+  address: "",
   city: "",
   zip: "",
   account: {
@@ -35942,6 +37367,8 @@ onMounted(() => {
   { const v = fgQueryNumber(q, "satisfaction"); if (v !== undefined) form.satisfaction = v }
   { const v = fgQueryNumber(q, "stars"); if (v !== undefined) form.stars = v }
   { const v = fgQueryNumber(q, "nps"); if (v !== undefined) form.nps = v }
+  { const v = fgQueryNumber(q, "price"); if (v !== undefined) form.price = v }
+  { const v = fgQueryString(q, "address"); if (v !== undefined) form.address = v }
   { const v = fgQueryString(q, "city"); if (v !== undefined) form.city = v }
   { const v = fgQueryString(q, "zip"); if (v !== undefined) form.zip = v }
   { const v = fgQueryString(q, "account.username"); if (v !== undefined) form.account.username = v }
@@ -36966,6 +38393,104 @@ function fgPhoneInput(path: string, event: Event): void {
   fgSet(path, fgComposePhone(fgPhoneCountryOf(path), (event.target as HTMLInputElement).value))
   revalidate(path)
 }
+// Money: the form's separators (en). Parsing needs no locale: the last
+// '.' or ',' followed by one to <decimals> digits is the decimal mark, every
+// other separator groups digits; signs and currency marks are skipped.
+function fgMoneyFormat(value: unknown, decimals: number): string {
+  if (typeof value !== 'number' || !isFinite(value)) return ''
+  var parts = Math.abs(value).toFixed(decimals).split('.')
+  var whole = parts[0] || '0'
+  for (var i = whole.length - 3; i > 0; i -= 3) whole = whole.slice(0, i) + "," + whole.slice(i)
+  return (value < 0 ? '-' : '') + whole + (parts[1] ? "." + parts[1] : '')
+}
+function fgMoneyParse(text: string, decimals: number): number | null {
+  var trimmed = text.trim()
+  var digits = trimmed.replace(/[^\\d.,]/g, '')
+  if (!/\\d/.test(digits)) return null
+  var mark = Math.max(digits.lastIndexOf('.'), digits.lastIndexOf(','))
+  var tail = mark === -1 ? '' : digits.slice(mark + 1)
+  var isDecimal = mark !== -1 && decimals > 0 && tail.length >= 1 && tail.length <= decimals && /^\\d+$/.test(tail)
+  var whole = (isDecimal ? digits.slice(0, mark) : digits).replace(/[.,]/g, '')
+  var scale = Math.pow(10, decimals)
+  var amount = Math.round(Number((whole === '' ? '0' : whole) + '.' + (isDecimal ? tail : '0')) * scale) / scale
+  return trimmed.charAt(0) === '-' ? -amount : amount
+}
+// The text of a money field while it is being edited (else the value, formatted).
+const fgMoneyDraft = reactive<Record<string, string>>({})
+function fgMoneyText(path: string, value: unknown, decimals: number): string {
+  return fgMoneyDraft[path] ?? fgMoneyFormat(value, decimals)
+}
+function fgMoneyInput(path: string, event: Event, decimals: number): void {
+  const text = (event.target as HTMLInputElement).value
+  fgMoneyDraft[path] = text
+  fgSet(path, fgMoneyParse(text, decimals))
+  revalidate(path)
+}
+function fgMoneyBlur(path: string): void {
+  delete fgMoneyDraft[path]
+  touch(path)
+}
+// Address suggestions: the provider named by data-fg-suggest ({q} = the
+// typed text) fills the input's datalist after a pause; its JSON is read loosely.
+function fgSuggestText(item: unknown): string | null {
+  if (typeof item === 'string') return item.trim() || null
+  if (!item || typeof item !== 'object') return null
+  var record = item as Record<string, unknown>
+  if (record['properties'] && typeof record['properties'] === 'object') return fgSuggestText(record['properties'])
+  var keys = ['display_name', 'label', 'name', 'text', 'address']
+  for (var i = 0; i < keys.length; i++) {
+    var v = record[keys[i]!]
+    if (typeof v === 'string' && v.trim() !== '') return v.trim()
+  }
+  return null
+}
+function fgSuggestTexts(data: unknown): string[] {
+  var list: unknown = data
+  if (list && typeof list === 'object' && !Array.isArray(list)) {
+    var record = list as Record<string, unknown>
+    list = record['features'] || record['results'] || record['items'] || []
+  }
+  if (!Array.isArray(list)) return []
+  var out: string[] = []
+  list.forEach(function (item: unknown) {
+    var text = fgSuggestText(item)
+    if (text && out.indexOf(text) === -1 && out.length < 8) out.push(text)
+  })
+  return out
+}
+function fgWireSuggest(root: ParentNode | null): void {
+  if (!root) return
+  Array.prototype.forEach.call(root.querySelectorAll('[data-fg-suggest]:not([data-fg-suggested])'), function (input: HTMLInputElement) {
+    input.setAttribute('data-fg-suggested', '')
+    var url = input.getAttribute('data-fg-suggest') || ''
+    var min = Number(input.getAttribute('data-fg-suggest-min')) || 3
+    var timer: ReturnType<typeof setTimeout> | undefined
+    var request = 0
+    input.addEventListener('input', function () {
+      if (timer !== undefined) clearTimeout(timer)
+      var q = input.value.trim()
+      const target = input.list
+      if (!target) return
+      if (q.length < min) { target.innerHTML = ''; return }
+      timer = setTimeout(function () {
+        var mine = ++request
+        fetch(url.replace('{q}', encodeURIComponent(q)))
+          .then(function (response) { return response.json() })
+          .then(function (data) {
+            if (mine !== request) return
+            target.innerHTML = ''
+            fgSuggestTexts(data).forEach(function (text) {
+              var option = document.createElement('option')
+              option.value = text
+              target.appendChild(option)
+            })
+          })
+          .catch(function () {})
+      }, 300)
+    })
+  })
+}
+onMounted(() => fgWireSuggest(fgRoot.value))
 
 const fgRoot = ref<HTMLElement | null>(null)
 const fgItemDefaults: Record<string, () => Record<string, unknown>> = {
@@ -37177,6 +38702,8 @@ function fgReset(): void {
     satisfaction: 5,
     stars: null,
     nps: null,
+    price: null,
+    address: "",
     city: "",
     zip: "",
     account: {
@@ -37241,6 +38768,7 @@ function fgReset(): void {
   for (const key of Object.keys(tagDrafts)) tagDrafts[key] = ''
   for (const key of Object.keys(fgDateDrafts)) fgDateDrafts[key] = ''
   for (const key of Object.keys(fgPhoneCountry)) delete fgPhoneCountry[key]
+  for (const key of Object.keys(fgMoneyDraft)) delete fgMoneyDraft[key]
   fgAnnounce("The form was reset.")
 }
 
@@ -37254,6 +38782,8 @@ function buildPayload(): Record<string, unknown> {
     "satisfaction": form.satisfaction,
     "stars": form.stars,
     "nps": form.nps,
+    "price": form.price,
+    "address": form.address,
     "city": form.city,
     "zip": form.zip,
     "account": {
@@ -37446,6 +38976,24 @@ async function onSubmit(): Promise<void> {
           <div class="fg-nps-ends" aria-hidden="true"><span>Not likely</span><span>Very likely</span></div>
           <p v-if="errors['nps']" class="fg-error" role="alert">{{ errors['nps'] }}</p>
         </fieldset>
+      </div>
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
+        <div class="fg-field">
+          <label class="fg-label" for="fg_price">Price</label>
+          <div class="fg-affix-group">
+            <span id="fg_price-prefix" class="fg-affix">€</span>
+            <input id="fg_price" type="text" inputmode="decimal" autocomplete="off" class="fg-input" :class="{ 'fg-invalid': !!errors['price'] }" aria-describedby="fg_price-prefix" :value="fgMoneyText('price', form.price, 2)" @input="fgMoneyInput('price', $event, 2)" @blur="fgMoneyBlur('price')">
+          </div>
+          <p v-if="errors['price']" class="fg-error" role="alert">{{ errors['price'] }}</p>
+        </div>
+      </div>
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
+        <div class="fg-field">
+          <label class="fg-label" for="fg_address">Address</label>
+          <input id="fg_address" v-model="form.address" type="text" class="fg-input" :class="{ 'fg-invalid': !!errors['address'] }" list="fg_address-list" autocomplete="off" data-fg-suggest="https://nominatim.openstreetmap.org/search?format=json&amp;limit=6&amp;q={q}" data-fg-suggest-min="3" @blur="touch('address')" @input="revalidate('address')">
+          <datalist id="fg_address-list"></datalist>
+          <p v-if="errors['address']" class="fg-error" role="alert">{{ errors['address'] }}</p>
+        </div>
       </div>
       <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <hr class="fg-divider fg-tone-primary">

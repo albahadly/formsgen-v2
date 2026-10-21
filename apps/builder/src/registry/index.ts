@@ -3,6 +3,8 @@ import { buttonElement } from './elements/button'
 import { checkboxElement, toggleElement } from './elements/checkbox'
 import { checkboxGroupElement, radioGroupElement } from './elements/choiceGroups'
 import { npsElement, ratingElement } from './elements/scores'
+import { currencyElement } from './elements/currency'
+import { addressElement } from './elements/address'
 import { columnsElement } from './elements/columns'
 import { groupElement } from './elements/group'
 import { hiddenElement } from './elements/hidden'
@@ -101,6 +103,8 @@ for (const def of [
   rangeSliderElement,
   ratingElement,
   npsElement,
+  currencyElement,
+  addressElement,
   dateRangeElement,
   datesElement,
   matrixElement,

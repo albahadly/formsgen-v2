@@ -74,6 +74,8 @@
     },
     { "id": "ks-stars", "type": "rating", "name": "stars", "props": { "label": "Stars", "max": 5 }, "validation": [{ "rule": "required" }] },
     { "id": "ks-nps", "type": "nps", "name": "nps", "props": { "label": "How likely are you to recommend us?" } },
+    { "id": "ks-price", "type": "currency", "name": "price", "props": { "label": "Price", "currency": "EUR", "decimals": 2 } },
+    { "id": "ks-address", "type": "address", "name": "address", "props": { "label": "Address", "minChars": 3 } },
     {
       "id": "ks-divider-1",
       "style": { "tone": "primary" },

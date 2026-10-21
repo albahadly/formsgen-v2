@@ -56,6 +56,7 @@ The component name is the form's name in PascalCase plus `Form`
 | Spam check (Turnstile) | `demos/spam.json` | `e2e/spam.mjs` | `SpamDemoForm` | `spam_demo` | 4281 with `TURNSTILE_SECRET=1x0000000000000000000000000000000AA` |
 | Wizard (steps + all three fields, re-render, reset) | `demos/wizard.json` | `e2e/wizard.mjs` | `WizDemoForm` | `wiz_demo` | 4280 |
 | Scores (star rating required, NPS prefilled from `?nps=3`, a box shown under 7) | `demos/scores.json` | `e2e/scores.mjs` | `ScoresDemoForm` | `scores_demo` | 4280 |
+| Money (German amount formatted on blur, prefilled from `?price=`, address suggestions from `/suggest`) | `demos/money.json` | `e2e/money.mjs` | `MoneyDemoForm` | `money_demo` | 4280 |
 
 The demo schemas carry the placeholder `FG_HOST` in their submit URL;
 `export-demo.sh` replaces it with the host the browser must use.

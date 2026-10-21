@@ -73,6 +73,7 @@ function leafShape(node: ElementNode): Shape {
     case 'calculated':
     case 'rating':
     case 'nps':
+    case 'currency':
       return { kind: 'number', nullable: true }
     case 'range':
       return { kind: 'number', nullable: false }

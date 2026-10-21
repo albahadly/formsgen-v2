@@ -12,7 +12,9 @@ import type { ElementNode } from './schema'
 export const REPEATER_TYPE = 'repeater'
 
 /** Element types a repeater item may not contain, at any depth. */
-export const REPEATER_EXCLUDED_TYPES: ReadonlySet<string> = new Set(['tabs', 'tab', 'steps', 'step'])
+// Sections cannot repeat; currency and address keep per-field state the
+// runtimes key by a fixed path (phase 45b), so they stay outside items too.
+export const REPEATER_EXCLUDED_TYPES: ReadonlySet<string> = new Set(['tabs', 'tab', 'steps', 'step', 'currency', 'address'])
 
 /** Repeaters nest at most this deep (a repeater inside a repeater's item). */
 export const MAX_REPEATER_DEPTH = 2

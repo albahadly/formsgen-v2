@@ -74,6 +74,8 @@ describe('buildDefaultData', () => {
       satisfaction: 5, // props.default wins over the range min
       stars: null,
       nps: null,
+      price: null,
+      address: '',
       // unnamed columns container is transparent:
       city: '',
       zip: '',
