@@ -40,3 +40,7 @@ classes across ~30 components, and part of it is drawn inside the form card
   shows gaps.
 - The two theme toggles stay separate controls: the builder's in the header,
   the form's in the canvas toolbar.
+- Phase 46 (2026-10-21) made the header control a three-way select: "light"
+  and "dark" are stored as before, "system" removes the key so the builder
+  follows the OS again (the rule in 1. unchanged; `index.html` needed no
+  change).

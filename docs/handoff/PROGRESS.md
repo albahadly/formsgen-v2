@@ -16,7 +16,7 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
   the review round of 2026-10-21 (drop direction fix,
   `tools/proof/canvas-parity.mjs`, `PLAYWRIGHT_CHANNEL`), then **phase 38**
   (builder light/dark mode, version `0.1.0` beside the title).
-- **State:** phases 01–11, 10b and 12–45 are complete.
+- **State:** phases 01–11, 10b and 12–46 are complete.
 - **Where sessions run now:** the user's local Windows checkout
   (`CLAUDE.md` §6, last bullet), not the cloud container. `pnpm verify`
   via `npx --yes pnpm@10 verify` is green there on `2c9f4fe` (198 renderer /
@@ -56,9 +56,16 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
     12/12 IDENTICAL after two fixes the first run found (TS narrowing in
     the suggestion script, the Blazor `FgField` helper gated on money),
     builder reviewed in Edge.
-  - **Phase 45 is complete.** Next on the roadmap: **Phase 46** — a
-    three-way system/light/dark control and copy/paste of elements
-    between projects (ADR-0005 for the theme).
+  - **Phase 45 is complete** (`5b76c96`, `e7a8e3c`, deployed).
+- **Phase 46 — small wins — complete (2026-10-21)**, committed as
+  `feat(phase-46)` + `docs(handoff)` on `main` (see the log). Gates:
+  verify green (renderer 228 / builder 395 / cli 12 / server 9), Edge
+  review with the real clipboard. **The roadmap the user chose on
+  2026-10-21 (phases 39–46) is complete**; nothing is in flight. Next
+  candidates: the backlog items in the handoffs' "What was intentionally
+  NOT done" sections, the parked npm publish of `@formsgen/renderer`, or
+  the ideas the user set aside (hosted forms and responses,
+  multi-language forms, the audit panel, print/PDF).
 
 ## Next steps (in order) — the roadmap the user chose on 2026-10-21
 
@@ -105,6 +112,17 @@ Sample servers for the demos: `node packages/submit-server/server.mjs --port 428
 and, for the spam demo, `TURNSTILE_SECRET=1x0000000000000000000000000000000AA node packages/submit-server/server.mjs --port 4281 --dir /tmp/subs-captcha`.
 
 ## Log (newest first)
+
+- **2026-10-21** — **Phase 46: small wins** (handoff
+  `phase-46-small-wins.md`). The header's theme control is a System /
+  Light / Dark select ("system" removes the stored key and follows the
+  OS live; ADR-0005 noted). Copy / cut / paste of the selected element
+  through the document's clipboard events as tagged JSON
+  (`formsgen/element` envelope, bare nodes accepted, parsed by the
+  renderer and checked against the registry), inserted with fresh ids
+  and unique names by the drag-and-drop placement rules; toasts in five
+  languages. Edge review with the real clipboard: same tab, a second
+  tab, cut.
 
 - **2026-10-21** — **Phase 45b: currency and address** (handoff
   `phase-45-field-types.md`, 45b section). `currency`: a number typed in
