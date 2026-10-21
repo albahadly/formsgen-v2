@@ -36,14 +36,17 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
 
 ## In flight
 
-- **Phase 43 — Web Component export**: renderer element, second build,
-  builder plugin + dialog, target, CLI support, tests and docs are in
-  (`fef57ce` + uncommitted toolkit/docs); `element-check.sh` passed for
-- Nothing. Uncommitted: nothing. Phase 43 shipped: `verify` green
-  (renderer 218 / builder 378 / cli 12 / server 9 tests, all builds),
-  element checks IDENTICAL on `prefill` and `thanks`, pushed to `main`
-  (the deploy now also hosts `element/formsgen-element.js`). Next: phase
-  44 (more templates and more UI languages).
+- **Phase 44 — more templates, more UI languages (started 2026-10-21,
+  on `main`).** Plan: four new templates in English and Arabic (RSVP,
+  order form with a calculated total, appointment booking, quote
+  request); the builder UI in French, Spanish and German (the catalog of
+  213 keys + 66 registry/export phrases each), the two-way toggle
+  replaced by a language picker, the completeness test generalised to
+  every locale; the renderer's form messages in the same three
+  languages so a form in them validates in its own words. Templates
+  fall back to English in the new UI languages. Phase 43 shipped before
+  it (`a466a21`): verify green (renderer 218 / builder 378 / cli 12 /
+  server 9), element checks IDENTICAL on `prefill` and `thanks`.
 
 ## Next steps (in order) — the roadmap the user chose on 2026-10-21
 
