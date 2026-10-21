@@ -11,20 +11,28 @@ import {
 import { evaluateRules } from './rules'
 
 describe('resolveMessages', () => {
-  it('picks Arabic for any ar locale and English otherwise', () => {
+  it('picks the catalog by language, English for any other', () => {
     expect(resolveMessages('ar')).toBe(MESSAGES.ar)
     expect(resolveMessages('ar-OM')).toBe(MESSAGES.ar)
     expect(resolveMessages('AR_sa')).toBe(MESSAGES.ar)
     expect(resolveMessages('en')).toBe(MESSAGES.en)
-    expect(resolveMessages('fr-FR')).toBe(MESSAGES.en)
+    expect(resolveMessages('fr-FR')).toBe(MESSAGES.fr)
+    expect(resolveMessages('es')).toBe(MESSAGES.es)
+    expect(resolveMessages('de-CH')).toBe(MESSAGES.de)
+    expect(resolveMessages('pt-BR')).toBe(MESSAGES.en)
     expect(resolveMessages(undefined)).toBe(MESSAGES.en)
     expect(resolveMessages('')).toBe(MESSAGES.en)
   })
 
-  it('both catalogs define every key', () => {
+  it('every catalog defines every key', () => {
     const keys = (o: object): string[] => Object.keys(o).sort()
-    expect(keys(MESSAGES.ar)).toEqual(keys(MESSAGES.en))
-    expect(keys(MESSAGES.ar.rules)).toEqual(keys(MESSAGES.en.rules))
+    for (const [id, catalog] of Object.entries(MESSAGES)) {
+      expect(keys(catalog), id).toEqual(keys(MESSAGES.en))
+      expect(keys(catalog.rules), id).toEqual(keys(MESSAGES.en.rules))
+    }
+    expect(resolveMessages('fr-CA')).toBe(MESSAGES.fr)
+    expect(resolveMessages('de')).toBe(MESSAGES.de)
+    expect(resolveMessages('pt')).toBe(MESSAGES.en)
   })
 })
 

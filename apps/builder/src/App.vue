@@ -15,7 +15,7 @@ const ExportDialog = defineAsyncComponent(
 import AppToolbar from '@/components/toolbar/AppToolbar.vue'
 import TreePanel from '@/components/tree/TreePanel.vue'
 import { clearDraft, readDraft, startAutosave } from '@/composables/persistence'
-import { applyLocaleToDocument, t, toggleLocale } from '@/i18n'
+import { LOCALES, applyLocaleToDocument, locale, setLocale, t, type BuilderLocale } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'
 import { startConditionPathTracking } from '@/stores/conditionPaths'
 import { useHistoryStore } from '@/stores/history'
@@ -123,14 +123,21 @@ onBeforeUnmount(() => {
         data-testid="header-actions"
       >
         <AppToolbar @notice="onNotice" />
-        <button
-          type="button"
+        <select
           class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-          data-testid="locale-toggle"
-          @click="toggleLocale()"
+          :aria-label="t('app.language')"
+          :value="locale"
+          data-testid="locale-select"
+          @change="setLocale(($event.target as HTMLSelectElement).value as BuilderLocale)"
         >
-          {{ t('app.language') }}
-        </button>
+          <option
+            v-for="item in LOCALES"
+            :key="item.id"
+            :value="item.id"
+          >
+            {{ item.name }}
+          </option>
+        </select>
         <button
           type="button"
           class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"

@@ -5,6 +5,7 @@
 // generated code, so every target speaks the same words as the renderer.
 
 import type { Rule } from './schema'
+import { de, es, fr } from './messagesExtra'
 
 export type PluralCategory = 'one' | 'two' | 'few' | 'many' | 'other'
 
@@ -333,11 +334,12 @@ const ar: MessageCatalog = {
   sendAnother: 'إرسال رد آخر',
 }
 
-export const MESSAGES: Readonly<Record<'en' | 'ar', MessageCatalog>> = { en, ar }
+export const MESSAGES: Readonly<Record<'en' | 'ar' | 'fr' | 'es' | 'de', MessageCatalog>> = { en, ar, fr, es, de }
 
+/** The catalog for a locale by its language (en-GB → en); English for any other. */
 export function resolveMessages(locale: string | undefined): MessageCatalog {
-  const language = (locale ?? '').toLowerCase().split(/[-_]/)[0]
-  return language === 'ar' ? ar : en
+  const language = (locale ?? '').toLowerCase().split(/[-_]/)[0] ?? ''
+  return language in MESSAGES ? MESSAGES[language as keyof typeof MESSAGES] : en
 }
 
 /** Replace `{name}` placeholders. */

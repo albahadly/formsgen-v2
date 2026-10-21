@@ -454,12 +454,12 @@ describe('palette → canvas → properties workflow', () => {
   it('locale toggle switches the UI to Arabic and flips direction', async () => {
     const { wrapper } = mountApp()
     expect(wrapper.text()).toContain('Text Input')
-    await wrapper.get('[data-testid="locale-toggle"]').trigger('click')
+    await wrapper.get('[data-testid="locale-select"]').setValue('ar')
     expect(document.documentElement.dir).toBe('rtl')
     expect(document.documentElement.lang).toBe('ar')
     expect(wrapper.text()).toContain('حقل نصي') // localized palette label
     expect(wrapper.text()).toContain('العناصر') // palette title
-    await wrapper.get('[data-testid="locale-toggle"]').trigger('click')
+    await wrapper.get('[data-testid="locale-select"]').setValue('en')
     expect(document.documentElement.dir).toBe('ltr')
     expect(wrapper.text()).toContain('Text Input')
   })

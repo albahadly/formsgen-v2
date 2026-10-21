@@ -3,14 +3,28 @@
 // persisted, and flips the document direction for RTL locales.
 
 import { ref } from 'vue'
+import * as de from './locales/de'
+import * as es from './locales/es'
+import * as fr from './locales/fr'
 
-export type BuilderLocale = 'en' | 'ar'
+export type BuilderLocale = 'en' | 'ar' | 'fr' | 'es' | 'de'
+
+/** The builder's languages, in the picker's order; Arabic is the right-to-left one. */
+export const LOCALES: readonly { id: BuilderLocale; name: string; dir: 'ltr' | 'rtl' }[] = [
+  { id: 'en', name: 'English', dir: 'ltr' },
+  { id: 'ar', name: 'العربية', dir: 'rtl' },
+  { id: 'fr', name: 'Français', dir: 'ltr' },
+  { id: 'es', name: 'Español', dir: 'ltr' },
+  { id: 'de', name: 'Deutsch', dir: 'ltr' },
+]
+const isLocale = (value: unknown): value is BuilderLocale => LOCALES.some((l) => l.id === value)
+export const localeDir = (id: BuilderLocale): 'ltr' | 'rtl' => LOCALES.find((l) => l.id === id)?.dir ?? 'ltr'
 
 const LOCALE_KEY = 'formsgen.locale'
 
 const en: Record<string, string> = {
   'app.title': 'FormsGen Builder',
-  'app.language': 'العربية',
+  'app.language': 'Language',
   'app.theme.light': 'Light',
   'app.theme.dark': 'Dark',
   'app.theme.toDark': 'Switch the builder to dark mode',
@@ -230,7 +244,7 @@ const en: Record<string, string> = {
 
 const ar: Record<string, string> = {
   'app.title': 'منشئ النماذج FormsGen',
-  'app.language': 'English',
+  'app.language': 'اللغة',
   'app.theme.light': 'فاتح',
   'app.theme.dark': 'داكن',
   'app.theme.toDark': 'تبديل المنشئ إلى الوضع الداكن',
@@ -669,12 +683,16 @@ const arText: Record<string, string> = {
     'ملف ‎.html واحد مستقل — يُفتح مباشرة دون خطوة بناء.',
 }
 
-const catalogs: Record<BuilderLocale, Record<string, string>> = { en, ar }
+const catalogs: Record<BuilderLocale, Record<string, string>> = { en, ar, fr: fr.catalog, es: es.catalog, de: de.catalog }
+/** English phrases of registry/export metadata → their translation, per locale. */
+const phrases: Record<BuilderLocale, Record<string, string>> = { en: {}, ar: arText, fr: fr.phrases, es: es.phrases, de: de.phrases }
+/** The English catalog's keys (for the completeness test). */
+export const ENGLISH_KEY_LIST: readonly string[] = Object.keys(en)
 
 function readStoredLocale(): BuilderLocale {
   try {
     const stored = localStorage.getItem(LOCALE_KEY)
-    return stored === 'ar' ? 'ar' : 'en'
+    return isLocale(stored) ? stored : 'en'
   } catch {
     return 'en'
   }
@@ -684,7 +702,7 @@ export const locale = ref<BuilderLocale>(readStoredLocale())
 
 export function applyLocaleToDocument(): void {
   document.documentElement.lang = locale.value
-  document.documentElement.dir = locale.value === 'ar' ? 'rtl' : 'ltr'
+  document.documentElement.dir = localeDir(locale.value)
 }
 
 export function setLocale(next: BuilderLocale): void {
@@ -697,10 +715,6 @@ export function setLocale(next: BuilderLocale): void {
   applyLocaleToDocument()
 }
 
-export function toggleLocale(): void {
-  setLocale(locale.value === 'en' ? 'ar' : 'en')
-}
-
 export function t(key: string): string {
   return catalogs[locale.value][key] ?? en[key] ?? key
 }
@@ -710,12 +724,17 @@ export function t(key: string): string {
  * titles, control labels, options, target names); English passes through.
  */
 export function tText(english: string): string {
-  return locale.value === 'ar' ? (arText[english] ?? english) : english
+  return phrases[locale.value][english] ?? english
 }
 
-/** Whether tText() has an Arabic translation for the phrase. */
-export function hasArabicText(english: string): boolean {
-  return english in arText
+/** Whether tText() has a translation of the phrase in a locale (English always has). */
+export function hasTranslation(target: BuilderLocale, english: string): boolean {
+  return target === 'en' || english in phrases[target]
+}
+
+/** The phrase in a locale, or undefined when it has none (English: the phrase itself). */
+export function translationOf(target: BuilderLocale, english: string): string | undefined {
+  return target === 'en' ? english : phrases[target][english]
 }
 
 /** A catalog entry in a specific locale (independent of the UI locale). */
