@@ -36,11 +36,9 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
 
 ## In flight
 
-- **Phase 39 — prefill from the page address**: code, tests, kitchen sink,
-  toolkit and docs committed; the matrix passed 12 × IDENTICAL on the
-  Windows checkout. The final `pnpm verify` is running (session
-  `scratchpad/verify5.log`); the push to `main` (= production deploy of the
-  builder) follows a green result. Uncommitted: nothing.
+- Nothing. Uncommitted: nothing. Phase 39 shipped: `verify` green
+  (renderer 208 / builder 353 / server 8 tests, all builds), matrix
+  12 × IDENTICAL, pushed to `main`. Next: phase 40 (after submit).
 
 ## Next steps (in order) — the roadmap the user chose on 2026-10-21
 
