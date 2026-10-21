@@ -16,7 +16,7 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
   the review round of 2026-10-21 (drop direction fix,
   `tools/proof/canvas-parity.mjs`, `PLAYWRIGHT_CHANNEL`), then **phase 38**
   (builder light/dark mode, version `0.1.0` beside the title).
-- **State:** phases 01–11, 10b and 12–43 are complete.
+- **State:** phases 01–11, 10b and 12–44 are complete.
 - **Where sessions run now:** the user's local Windows checkout
   (`CLAUDE.md` §6, last bullet), not the cloud container. `pnpm verify`
   via `npx --yes pnpm@10 verify` is green there on `2c9f4fe` (198 renderer /
@@ -36,17 +36,10 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
 
 ## In flight
 
-- **Phase 44 — more templates, more UI languages (started 2026-10-21,
-  on `main`).** Plan: four new templates in English and Arabic (RSVP,
-  order form with a calculated total, appointment booking, quote
-  request); the builder UI in French, Spanish and German (the catalog of
-  213 keys + 66 registry/export phrases each), the two-way toggle
-  replaced by a language picker, the completeness test generalised to
-  every locale; the renderer's form messages in the same three
-  languages so a form in them validates in its own words. Templates
-  fall back to English in the new UI languages. Phase 43 shipped before
-  it (`a466a21`): verify green (renderer 218 / builder 378 / cli 12 /
-  server 9), element checks IDENTICAL on `prefill` and `thanks`.
+- Nothing. Uncommitted: nothing. Phase 44 shipped: `verify` green
+  (renderer 221 / builder 383 / cli 12 / server 9 tests, all builds),
+  reviewed in Edge, pushed to `main`. Next: phase 45 (field types: star
+  rating, NPS scale, address autocomplete, currency).
 
 ## Next steps (in order) — the roadmap the user chose on 2026-10-21
 
@@ -94,6 +87,19 @@ and, for the spam demo, `TURNSTILE_SECRET=1x0000000000000000000000000000000AA no
 
 ## Log (newest first)
 
+- **2026-10-21** — **Phase 44: more templates, more UI languages**
+  (handoff `phase-44-templates-languages.md`). French, Spanish and
+  German builder UIs (`i18n/locales/*.ts`: 213 keys + 96 `element.*` +
+  66 phrases each), a language picker (`locale-select`, `LOCALES`,
+  `localeDir`), `tText` on per-locale phrase maps, renderer messages in
+  the three languages (`messagesExtra.ts`, `resolveMessages` by
+  language). Four templates in `templates/more.ts` (rsvp, order,
+  appointment, quote), helpers in `templates/shared.ts`,
+  `templateLocale` for UI languages without templates. Completeness test
+  sweeps every locale (a phrase may read the same). Reviewed in Edge.
+  Found on the way: the Arabic catalog's 96 `element.*` keys have no
+  English counterpart (the registry is the English), so a new locale
+  must carry them or the palette shows English names.
 - **2026-10-21** — **Phase 43: the form as a web component** (handoff
   `phase-43-web-component.md`, ADR-0006). Renderer `src/element.ts`
   (`defineCustomElement`, light DOM, `useHost`, the stylesheet via

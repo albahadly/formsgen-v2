@@ -56,7 +56,11 @@ expired session is continued, not repeated. So:
   second build `src/element.ts` → `dist/element/` is the `<formsgen-form>`
   web component (ADR-0006), served by the builder under `element/`.
   Field components: `src/components/fields/*`, map in `fieldComponents.ts`.
-- `apps/builder` — the builder. Element registry `src/registry/elements/*`;
+- `apps/builder` — the builder. UI in five languages: `src/i18n/index.ts`
+  (English, Arabic, the plumbing) and `src/i18n/locales/{fr,es,de}.ts`; a
+  locale is a catalog + `element.*` names + registry phrases, listed in
+  `LOCALES`, and the completeness test demands all of it. Templates in
+  `src/templates/{index,more}.ts` (English/Arabic). Element registry `src/registry/elements/*`;
   export targets `src/export/targets/{html,react,vue-standalone,vue-lib,blazor,json}.ts`
   with shared emitters in `src/export/*.ts`; CSS adapters `src/export/css/*`.
 - `packages/cli` — `@formsgen/cli`, bin `formsgen`: `export | validate |
