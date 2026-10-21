@@ -1,11 +1,14 @@
-# Publishes @albahadly/formsgen-renderer and @albahadly/formsgen-cli to npm.
+# Publishes @albahadly/formsgen-renderer and @albahadly/formsgen-cli to npm
+# through npm's trusted publishing (GitHub OIDC): no token, no secret. Each
+# package's settings page on npmjs.com names this repository and this
+# workflow file as its trusted publisher (docs/handoff/phase-47-npm-release.md
+# has the steps; the first version of a package is published by hand, since
+# a trusted publisher can only be configured for a package that exists).
 #
 # Run it by hand (Actions → Release → Run workflow) or push a tag like
-# v0.1.0. It needs one repository secret, NPM_TOKEN: an npm access token
-# with publish rights (an "Automation" / granular token so 2FA is not
-# asked for). A version that is already on npm is skipped, so re-running
-# after a failure is safe; bump "version" in the package.json files for a
-# new release (both packages share the version line of the root).
+# v0.1.0. A version that is already on npm is skipped, so re-running after
+# a failure is safe; bump "version" in the package.json files for a new
+# release.
 name: Release
 
 on:
@@ -15,6 +18,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   publish:
@@ -28,13 +32,14 @@ jobs:
           node-version: 22
           cache: pnpm
           registry-url: https://registry.npmjs.org
+      # Trusted publishing needs npm 11.5 or later; Node 22 ships an older one.
+      - run: npm install -g npm@latest && npm --version
       - run: pnpm install --frozen-lockfile
       - run: pnpm verify
       - name: Publish what is not on npm yet
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -eu
+          mkdir -p .release
           for dir in packages/renderer packages/cli; do
             name=$(node -p "require('./$dir/package.json').name")
             version=$(node -p "require('./$dir/package.json').version")
@@ -42,6 +47,8 @@ jobs:
               echo "$name@$version is already on npm — skipped"
               continue
             fi
-            pnpm --filter "$name" publish --access public --no-git-checks
+            # pnpm pack resolves workspace: specs; npm publish does the OIDC exchange.
+            tarball=$(cd "$dir" && pnpm pack --pack-destination ../../.release | tail -1)
+            npm publish ".release/$(basename "$tarball")" --access public
             echo "published $name@$version"
           done

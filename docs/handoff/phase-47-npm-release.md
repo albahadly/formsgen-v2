@@ -5,8 +5,8 @@
 Repo side complete (2026-10-21), on `main`. Gate: `pnpm verify` green on
 the Windows checkout (lint, typecheck, renderer 228 / builder 395 / cli 12 / server 9 tests, all builds); `npm pack --dry-run` and
 `pnpm publish --dry-run` clean for both packages. **Nothing is on npm
-until the user adds the `NPM_TOKEN` secret and runs the Release
-workflow** (see "How to verify").
+until the user publishes the first version by hand and names the
+workflow as each package's trusted publisher** (see "How to verify").
 
 ## What was built
 
@@ -25,14 +25,23 @@ workflow** (see "How to verify").
   `publishConfig.access: public` (scoped packages are private by default
   on npm, which makes an unpaid publish fail with 402).
 - **The Release workflow** (`.github/workflows/release.yml`): manual
-  (Actions → Release → Run workflow) or a `v*` tag; installs with the
-  frozen lockfile, runs `pnpm verify`, then for each package checks
-  `npm view <name>@<version>` and publishes only what is not on npm yet
-  (`pnpm --filter <name> publish --access public --no-git-checks` with
-  `NODE_AUTH_TOKEN` from the `NPM_TOKEN` secret). Re-running after a
-  failure is safe; a new release is a version bump in both
-  `package.json` files. No provenance attestation: the repository is
-  private, and npm only attests public repositories.
+  (Actions → Release → Run workflow) or a `v*` tag; frozen install,
+  `pnpm verify`, then for each package `npm view <name>@<version>` and,
+  when it is not on npm yet, `pnpm pack` (resolves `workspace:` specs)
+  followed by `npm publish <tarball> --access public`. It authenticates
+  through **npm trusted publishing (GitHub OIDC)** — `permissions:
+  id-token: write`, npm upgraded to ≥ 11.5 on the runner, no token and
+  no secret. Re-running after a failure is safe; a new release is a
+  version bump in both `package.json` files. No provenance attestation:
+  npm only attests public repositories, and this one is private.
+- **What the first run taught (2026-10-21).** The token route is closing:
+  a granular token without "Bypass 2FA" is refused with `E403 … bypass
+  2fa enabled is required`; the newer *stage-only* tokens can only
+  `npm stage publish` for a maintainer to approve with 2FA; npm targets
+  January 2027 to end direct publishing with bypass-2FA tokens. Trusted
+  publishing is npm's recommended destination, but it can only be
+  configured for a package that already exists — so the first version is
+  published by hand with 2FA, and the workflow takes over from there.
 - **READMEs**: the renderer's and the CLI's install sections start with
   `npm i @albahadly/formsgen-renderer vue` / `npx @albahadly/formsgen-cli …`
   (the monorepo build-and-pack route stays as the alternative); the Vue
@@ -60,21 +69,32 @@ workflow** (see "How to verify").
 
 ## How to verify
 
-What the user does once:
+What the user does once (both packages are built in `dist/` by
+`pnpm verify`):
 
-1. npmjs.com → profile → *Access Tokens* → *Generate New Token* →
-   *Granular Access Token*: **Read and write** on packages (all, or the
-   `@albahadly` scope), and **"Bypass two-factor authentication (2FA)"
-   turned on** — without it npm answers the workflow's publish with
-   `403 … Two-factor authentication or granular access token with bypass
-   2fa enabled is required`. Copy the token.
-2. GitHub → repository → *Settings* → *Secrets and variables* →
-   *Actions* → *New repository secret*: name `NPM_TOKEN`, the token.
-3. *Actions* → *Release* → *Run workflow* (branch `main`), or
-   `git tag v0.1.0 && git push origin v0.1.0`.
-4. Check https://www.npmjs.com/package/@albahadly/formsgen-renderer and
-   https://www.npmjs.com/package/@albahadly/formsgen-cli, then in any
-   project: `npx @albahadly/formsgen-cli targets`.
+1. **First publish by hand, with 2FA**, from the repo root:
+   ```sh
+   npm login                                   # opens the browser; 2FA
+   pnpm --filter @albahadly/formsgen-renderer publish --access public --no-git-checks
+   pnpm --filter @albahadly/formsgen-cli publish --access public --no-git-checks
+   ```
+   npm asks for the one-time code once per package.
+2. **Name the workflow as the trusted publisher**, for each package:
+   npmjs.com → the package → *Settings* → *Trusted publisher* →
+   *GitHub Actions*: organization or user `albahadly`, repository
+   `formsgen-v2`, workflow filename `release.yml`, environment empty.
+   npm expires a trusted-publisher configuration that has not published
+   within 2 days, so do this when a release is near — or run the
+   workflow right away: it skips versions already on npm, so the first
+   OIDC publish happens at the next version bump.
+3. Remove the `NPM_TOKEN` repository secret and the npm token: nothing
+   reads them any more.
+4. Later releases: bump `version` in `packages/renderer/package.json` and
+   `packages/cli/package.json`, commit, *Actions → Release → Run
+   workflow* (or push `v0.2.0`). Check
+   https://www.npmjs.com/package/@albahadly/formsgen-renderer and
+   https://www.npmjs.com/package/@albahadly/formsgen-cli, or
+   `npx @albahadly/formsgen-cli targets` anywhere.
 
 Repo side:
 
@@ -86,12 +106,16 @@ pnpm --filter @albahadly/formsgen-cli publish --dry-run --no-git-checks
 
 ## Known issues / gotchas
 
-- The first run (2026-10-21) failed exactly here: a granular token
-  without "Bypass 2FA" gets `E403 … bypass 2fa enabled is required`
-  (nothing was uploaded). Regenerate the token with that option, replace
-  the `NPM_TOKEN` secret, re-run the workflow. Once the packages exist,
-  npm's trusted publishing (GitHub OIDC, no token) is an option: it
-  needs `id-token: write` and npm ≥ 11.5 on the runner.
+- Tokens: the first run (2026-10-21) failed with `E403 … bypass 2fa
+  enabled is required` and nothing was uploaded; npm's token UI now
+  steers to *stage-only* tokens (`npm stage publish` + a maintainer's
+  `npm stage approve --otp`). The workflow no longer uses a token.
+- A trusted-publisher configuration must publish within 2 days or it
+  expires; trusted publishing needs GitHub-hosted runners and npm ≥ 11.5
+  (the workflow installs the latest npm).
+- The OIDC publish step calls `npm publish` on a `pnpm pack` tarball, not
+  `pnpm publish`: the OIDC exchange is the npm CLI's, and the tarball has
+  the `workspace:` specs resolved.
 - `npm pack` names a scoped tarball `albahadly-formsgen-renderer-<v>.tgz`;
   the monorepo install line in the READMEs uses that pattern.
 - The unscoped `formsgen` package on npm belongs to someone else; the

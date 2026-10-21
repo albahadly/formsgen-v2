@@ -70,10 +70,14 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
   lockfile), `LICENSE` (MIT) + `license`/`repository`/`publishConfig`
   metadata, `.github/workflows/release.yml` (verify, then publish each
   package whose version is not on npm; needs the `NPM_TOKEN` secret),
-  READMEs with `npm i` / `npx` lines, CLAUDE.md rule updated. **What
-  only the user can do:** create an npm automation token, add it as the
-  repository secret `NPM_TOKEN`, run the Release workflow (or push
-  `v0.1.0`). Nothing is published until then.
+  READMEs with `npm i` / `npx` lines, CLAUDE.md rule updated. The first
+  workflow run with a token failed (`E403 … bypass 2fa`; npm now steers
+  to stage-only tokens), so the workflow moved to **trusted publishing
+  (OIDC, no token)**. **What only the user can do:** publish the first
+  version of each package by hand with 2FA (`npm login`, then
+  `pnpm --filter <name> publish --access public --no-git-checks` ×2),
+  then name `release.yml` as each package's trusted publisher on
+  npmjs.com. Nothing is published until then.
 
 ## Next steps (in order) — the roadmap the user chose on 2026-10-21
 
@@ -126,7 +130,8 @@ and, for the spam demo, `TURNSTILE_SECRET=1x0000000000000000000000000000000AA no
   the `@formsgen` scope would have needed a new org; the user chose
   their own scope. Mechanical rename across 181 tracked files, lockfile
   regenerated, both packages `pnpm publish --dry-run` clean, verify
-  green. Publishing itself waits for the user's `NPM_TOKEN`.
+  green. The token route failed on npm's 2FA policy; the workflow now
+  publishes by trusted publishing (OIDC) after a manual first publish.
 
 - **2026-10-21** — **Phase 46: small wins** (handoff
   `phase-46-small-wins.md`). The header's theme control is a System /
