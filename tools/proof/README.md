@@ -130,6 +130,19 @@ as a share of its own grid on the canvas and in the preview. It prints the
 counts per template and device, `mismatches` (empty when the two agree
 within 2.5%) and page `errors`, and exits 1 when either is not empty.
 
+The builder has its own light/dark theme (ADR-0005):
+
+```sh
+node tools/proof/theme-shots.mjs http://$FG_HOST:4186/ tools/proof/work/shots
+```
+
+screenshots every view, the three dialogs and the phone layout in both
+themes (`theme-<theme>-<view>.png`) and the canvas card in the four
+combinations of builder theme × form theme (`card-builder-*-form-*.png`),
+and prints what it saw: `html` / `colorScheme` / `stored` / `formTheme` /
+`version` per theme, `afterReload` (`dark`: the choice survives) and
+`errors` (exit 1 when not empty).
+
 ## Environment knobs (all optional; `lib.sh` picks defaults)
 
 | Variable | Default | Meaning |
@@ -156,6 +169,7 @@ within 2.5%) and page `errors`, and exits 1 when either is not empty.
 - `demos/` — the demo schemas.
 - `builder-check.mjs` — the builder's browser check.
 - `canvas-parity.mjs` — the design canvas lays every template out like the preview.
+- `theme-shots.mjs` — the builder in light and dark, every view and dialog.
 - `work/` — outputs, logs, pids, screenshots (ignored).
 
 ## Adding a demo for a new feature
