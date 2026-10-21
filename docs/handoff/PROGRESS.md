@@ -14,7 +14,9 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
   worktree is removed. Since then on `main`: `d5b7ac1` (design canvas on
   the renderer's column grid), `2c9f4fe` (`.gitattributes` pins LF), then
   the review round of 2026-10-21 (drop direction fix,
-  `tools/proof/canvas-parity.mjs`, `PLAYWRIGHT_CHANNEL`).
+  `tools/proof/canvas-parity.mjs`, `PLAYWRIGHT_CHANNEL`), then **phase 38**
+  (builder light/dark mode, versions `0.1.0` in the header).
+- **State:** phases 01–11, 10b and 12–38 are complete.
 - **Where sessions run now:** the user's local Windows checkout
   (`CLAUDE.md` §6, last bullet), not the cloud container. `pnpm verify`
   via `npx --yes pnpm@10 verify` is green there on `2c9f4fe` (198 renderer /
@@ -64,6 +66,21 @@ and, for the spam demo, `TURNSTILE_SECRET=1x0000000000000000000000000000000AA no
 
 ## Log (newest first)
 
+- **2026-10-21** — **Phase 38: builder light/dark mode + version**
+  (handoff `phase-38-builder-theme.md`, ADR-0005). The chrome gets its own
+  theme: `composables/theme.ts` (stored `formsgen.theme`, OS until chosen,
+  `data-theme` + `color-scheme` on `<html>`, no-flash script in
+  `index.html`), Tailwind `dark:` bound to `[data-theme='dark']` and
+  `fg-dark:` bound to the form card's own theme for the chrome drawn inside
+  it (first pass keyed it to the builder and painted a dark box inside the
+  white form — caught in the Edge screenshots), 284 `dark:` variants over 27
+  components from one mapping plus three special cases, header toggle with
+  en/ar strings. Versions: header `v0.1.0 · renderer v0.1.0`; builder from
+  its `package.json`, renderer literal test-enforced (JSON import would
+  shift the d.ts output); root/builder/renderer bumped to `0.1.0`, lockfile
+  unchanged. Tests: builder 346, renderer 199. Toolkit:
+  `tools/proof/theme-shots.mjs`. Not done on purpose: no "system" entry in
+  the toggle; form theme stays independent; exports carry no version.
 - **2026-10-21** — Review round after the canvas fix. Verified `d5b7ac1`
   in Edge (playwright-core, `channel: 'msedge'`): the Registration
   template's two password cells measure the same in the editor and the
