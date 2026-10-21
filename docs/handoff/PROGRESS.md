@@ -7,8 +7,9 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
 
 ## Where we are (2026-10-21)
 
-- **Branch / remote:** `main` of `albahadly/formsgen-v2`, pushed with
-  `git push -u origin main`. Phase 37 landed as `f3f73a6` (adapters),
+- **Branch / remote:** `main` of `albahadly/formsgen-v2` is protected since
+  2026-10-21 (PRs only; the user merges — see CLAUDE.md §3); work goes on
+  a branch and reaches `main` through a pull request. Phase 37 landed as `f3f73a6` (adapters),
   `78845f8` (parity check), `5ae40ae` (sized selects), `9319fca` (docs),
   `bf3902d` (invalid state), `0ca1735` (floating labels); the `phase-37`
   worktree is removed. Since then on `main`: `d5b7ac1` (design canvas on

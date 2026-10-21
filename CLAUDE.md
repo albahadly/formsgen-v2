@@ -38,9 +38,14 @@ expired session is continued, not repeated. So:
 - Never disable TLS verification, never unset `HTTPS_PROXY`.
 - No model identifiers in code, commit subjects/bodies, PR text or docs.
   The commit trailers the harness asks for are the only exception.
-- No pull requests unless asked. Work lands on `main` of
-  `albahadly/formsgen-v2` (the user's standing practice), pushed with
-  `git push -u origin main`.
+- `main` of `albahadly/formsgen-v2` is protected (ruleset "main: pull
+  requests only", 2026-10-21): no direct pushes, a pull request with the
+  CI `verify` check green and the user's approval (CODEOWNERS). A session
+  works on a branch (`phase-NN-<topic>` or `fix/<topic>`), pushes it with
+  `git push -u origin <branch>`, opens the PR with `gh pr create` (body
+  ending with the harness line), and stops there. **Never merge, approve
+  or bypass**; the user merges, and a merge deploys builder.albahadly.com.
+  PROGRESS.md still goes with the work, on the branch.
 - npm: `.github/workflows/release.yml` (manual run or a `v*` tag) *stages*
   `@albahadly/formsgen-renderer` and `@albahadly/formsgen-cli` with the
   user's stage-only `NPM_TOKEN`; the user approves each staged version

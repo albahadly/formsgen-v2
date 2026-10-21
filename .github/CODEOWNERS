@@ -1,0 +1,3 @@
+# Every change needs the maintainer's review before it reaches main
+# (the "main: pull requests only" ruleset requires a code-owner approval).
+* @albahadly
