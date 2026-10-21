@@ -16,7 +16,7 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
   the review round of 2026-10-21 (drop direction fix,
   `tools/proof/canvas-parity.mjs`, `PLAYWRIGHT_CHANNEL`), then **phase 38**
   (builder light/dark mode, version `0.1.0` beside the title).
-- **State:** phases 01–11, 10b and 12–42 are complete.
+- **State:** phases 01–11, 10b and 12–43 are complete.
 - **Where sessions run now:** the user's local Windows checkout
   (`CLAUDE.md` §6, last bullet), not the cloud container. `pnpm verify`
   via `npx --yes pnpm@10 verify` is green there on `2c9f4fe` (198 renderer /
@@ -36,9 +36,14 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
 
 ## In flight
 
-- Nothing. Uncommitted: nothing. Phase 42 shipped: `verify` green
-  (renderer 212 / builder 375 / cli 12 / server 9 tests, all builds),
-  pushed to `main`. Next: phase 43 (Web Component export).
+- **Phase 43 — Web Component export**: renderer element, second build,
+  builder plugin + dialog, target, CLI support, tests and docs are in
+  (`fef57ce` + uncommitted toolkit/docs); `element-check.sh` passed for
+  `prefill` (IDENTICAL) and `thanks` (matrix 12 × IDENTICAL, element
+  IDENTICAL); toolkit and docs committed; the final `pnpm verify` is
+  running (session `scratchpad/verify9.log`); the push to `main`
+  (= production deploy, which now also hosts `element/`) follows a green
+  result. Uncommitted: nothing.
 
 ## Next steps (in order) — the roadmap the user chose on 2026-10-21
 
@@ -86,6 +91,23 @@ and, for the spam demo, `TURNSTILE_SECRET=1x0000000000000000000000000000000AA no
 
 ## Log (newest first)
 
+- **2026-10-21** — **Phase 43: the form as a web component** (handoff
+  `phase-43-web-component.md`, ADR-0006). Renderer `src/element.ts`
+  (`defineCustomElement`, light DOM, `useHost`, the stylesheet via
+  `?inline` added once; `src` / `schema` property or attribute; events
+  `formsgen-change/submit/sent/ready/error`; sends with `sendSubmission`
+  unless `formsgen-submit` is prevented; after-submit honoured) built by
+  `vite.config.element.ts` into `dist/element/` (ES + IIFE, ~325 kB, Vue
+  inside; `build:element`, package export `./element`). Builder: Vite
+  plugin serving `element/*.js` in dev and copying into `dist/element/`
+  on build; `build.sh` builds the bundle first; the Export dialog fetches
+  its own copy (`ExportContext.assets`). Target `web-component`: host
+  page + bundle (`ExportedFile.project: false` keeps the project off
+  prebuilt files). CLI reads the bundle from `dist/element/` or the
+  renderer build. Toolkit `element-check.sh` (the 13th runtime); the
+  `thanks`/`prefill` scenarios carry an `ID` map per runtime (renderer
+  `fg-<node id>` vs exports `fg_<path>`; aligning the renderer would touch
+  16 + 35 test assertions), `thanks` reads a value only while shown.
 - **2026-10-21** — **Phase 42: the command line** (handoff `phase-42-cli.md`).
   `packages/cli`: Vite SSR bundle of the builder's export code + renderer +
   Vue (`ssr.noExternal`), `commands.ts` (`packageFiles` mirrors the Export

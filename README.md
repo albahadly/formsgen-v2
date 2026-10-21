@@ -78,6 +78,7 @@ compilers on them and drives each runtime with the same scenario
 |---|---|---|
 | JSON schema | `<name>.formsgen.json` | `@formsgen/renderer`, or re-open in the builder |
 | Validation | `<name>.zod.ts`, `<name>.schema.json` | a server: zod (Node/TypeScript) or any JSON Schema validator, the form's rules mirrored |
+| Web Component | `<name>.html` + `formsgen-element.js` | any page: `<formsgen-form src="…">`, one script with the renderer and Vue inside (ADR-0006) |
 
 The same exports from the command line, for CI and scripts (`packages/cli`):
 

@@ -52,7 +52,9 @@ expired session is continued, not repeated. So:
 ## 4. Repo map
 
 - `packages/renderer` — `@formsgen/renderer`, Vue 3 runtime (parse, rules,
-  conditions, composite values, files, location, signature, captcha).
+  conditions, composite values, files, location, signature, captcha); a
+  second build `src/element.ts` → `dist/element/` is the `<formsgen-form>`
+  web component (ADR-0006), served by the builder under `element/`.
   Field components: `src/components/fields/*`, map in `fieldComponents.ts`.
 - `apps/builder` — the builder. Element registry `src/registry/elements/*`;
   export targets `src/export/targets/{html,react,vue-standalone,vue-lib,blazor,json}.ts`
@@ -96,7 +98,9 @@ Blazor × vanilla, Tailwind, Bootstrap 5) lives in `tools/proof/`; read its
   `tools/proof/theme-shots.mjs` — the builder in light and dark (run it
   after adding or restyling a builder component; ADR-0005);
   `tools/proof/server-validate.mjs` — the Validation export (zod + JSON
-  Schema) against the sample server's stored submissions.
+  Schema) against the sample server's stored submissions;
+  `tools/proof/element-check.sh` — a demo as a web component (the 13th
+  runtime) compared with its HTML-vanilla matrix result.
 - `tools/proof/parity-check.sh` — the three CSS flavours must measure
   IDENTICAL (ADR-0004); run it after any change to `export/css/*`,
   `composite.ts` or the renderer stylesheet.
