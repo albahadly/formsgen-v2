@@ -6,26 +6,16 @@
 
 import { SCHEMA_ID, type ElementNode, type FormSchema } from '@formsgen/renderer'
 
-export type TemplateLocale = 'en' | 'ar'
+import { appointment, order, quote, rsvp } from './more'
+import { meta, tx, type TemplateLocale, type Text } from './shared'
+
+export { templateLocale, type TemplateLocale } from './shared'
 
 export interface FormTemplate {
-  id: 'contact' | 'registration' | 'feedback' | 'job' | 'booking' | 'trip' | 'settings'
+  id: 'contact' | 'registration' | 'feedback' | 'job' | 'booking' | 'trip' | 'settings' | 'rsvp' | 'order' | 'appointment' | 'quote'
   title: string
   description: string
   schema: FormSchema
-}
-
-type Text = { en: string; ar: string }
-const tx = (en: string, ar: string): Text => ({ en, ar })
-
-function meta(name: string, title: Text, lang: TemplateLocale, submitText: Text): FormSchema['meta'] {
-  return {
-    name,
-    title: title[lang],
-    locale: lang,
-    dir: lang === 'ar' ? 'rtl' : 'ltr',
-    submitButton: { text: submitText[lang] },
-  }
 }
 
 function contact(lang: TemplateLocale): FormSchema {
@@ -933,6 +923,30 @@ export function listTemplates(lang: TemplateLocale): FormTemplate[] {
       title: pick(tx('Account settings', 'إعدادات الحساب')),
       description: pick(tx('Tabs for profile, preferences and help.', 'تبويبات للملف الشخصي والتفضيلات والمساعدة.')),
       schema: settings(lang),
+    },
+    {
+      id: 'rsvp',
+      title: pick(tx('Event RSVP', 'تأكيد الحضور')),
+      description: pick(tx('Attending or not, guests and dietary needs only when attending, a hidden event tag.', 'الحضور من عدمه، والمرافقون والاحتياجات الغذائية عند الحضور فقط، ووسم مخفي للفعالية.')),
+      schema: rsvp(lang),
+    },
+    {
+      id: 'order',
+      title: pick(tx('Order form', 'نموذج طلب')),
+      description: pick(tx('Customer details, repeated items with a calculated count, delivery with a conditional address.', 'بيانات العميل، ومنتجات متكررة مع عدد محسوب، والتسليم مع عنوان مشروط.')),
+      schema: order(lang),
+    },
+    {
+      id: 'appointment',
+      title: pick(tx('Appointment booking', 'حجز موعد')),
+      description: pick(tx('Service, date and time, phone with country code, a reminder with its channel.', 'الخدمة والتاريخ والوقت، وهاتف برمز الدولة، وتذكير مع وسيلته.')),
+      schema: appointment(lang),
+    },
+    {
+      id: 'quote',
+      title: pick(tx('Quote request', 'طلب عرض سعر')),
+      description: pick(tx('Services, a budget range, a timeline, a brief with attachments.', 'الخدمات ونطاق الميزانية والجدول الزمني وملخص مع مرفقات.')),
+      schema: quote(lang),
     },
   ]
 }

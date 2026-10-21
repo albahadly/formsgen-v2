@@ -10,7 +10,7 @@ import { locale, t } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'
 import { useHistoryStore } from '@/stores/history'
 import { useUiStore } from '@/stores/ui'
-import { listTemplates, type FormTemplate } from '@/templates'
+import { listTemplates, type FormTemplate, templateLocale } from '@/templates'
 
 const builder = useBuilderStore()
 const history = useHistoryStore()
@@ -22,7 +22,7 @@ useFocusTrap(
   computed(() => ui.showTemplates),
 )
 
-const templates = computed(() => listTemplates(locale.value))
+const templates = computed(() => listTemplates(templateLocale(locale.value)))
 const selectedId = ref<FormTemplate['id']>('contact')
 const selected = computed(() => templates.value.find((tpl) => tpl.id === selectedId.value) ?? templates.value[0]!)
 

@@ -11,7 +11,7 @@ describe('starter templates', () => {
   for (const lang of ['en', 'ar'] as const) {
     it(`parse, use unique ids and every target exports them (${lang})`, () => {
       const templates = listTemplates(lang)
-      expect(templates.map((t) => t.id)).toEqual(['contact', 'registration', 'feedback', 'job', 'booking', 'trip', 'settings'])
+      expect(templates.map((t) => t.id)).toEqual(['contact', 'registration', 'feedback', 'job', 'booking', 'trip', 'settings', 'rsvp', 'order', 'appointment', 'quote'])
       for (const template of templates) {
         const result = parseFormSchema(structuredClone(template.schema))
         expect(result.ok ? [] : result.errors, template.id).toEqual([])
