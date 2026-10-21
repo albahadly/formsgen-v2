@@ -2410,6 +2410,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         { var v = FgQueryString(query, "brand_color"); if (v is not null) Model.BrandColor = v; }
         { var v = FgQueryNumber(query, "volume"); if (v is not null) Model.Volume = v.Value; }
         { var v = FgQueryList(query, "days"); if (v is not null) Model.Days = v; }
+        { var v = FgQueryString(query, "utm_source"); if (v is not null) Model.Source = v; }
         { var v = FgQueryString(query, "attachments_note"); if (v is not null) Model.AttachmentsNote = v; }
         { var v = FgQueryString(query, "contact_method"); if (v is not null) Model.ContactMethod = v; }
         { var v = FgQueryString(query, "contact_phone"); if (v is not null) Model.ContactPhone = v; }
@@ -5932,6 +5933,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         { var v = FgQueryString(query, "brand_color"); if (v is not null) Model.BrandColor = v; }
         { var v = FgQueryNumber(query, "volume"); if (v is not null) Model.Volume = v.Value; }
         { var v = FgQueryList(query, "days"); if (v is not null) Model.Days = v; }
+        { var v = FgQueryString(query, "utm_source"); if (v is not null) Model.Source = v; }
         { var v = FgQueryString(query, "attachments_note"); if (v is not null) Model.AttachmentsNote = v; }
         { var v = FgQueryString(query, "contact_method"); if (v is not null) Model.ContactMethod = v; }
         { var v = FgQueryString(query, "contact_phone"); if (v is not null) Model.ContactPhone = v; }
@@ -9454,6 +9456,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         { var v = FgQueryString(query, "brand_color"); if (v is not null) Model.BrandColor = v; }
         { var v = FgQueryNumber(query, "volume"); if (v is not null) Model.Volume = v.Value; }
         { var v = FgQueryList(query, "days"); if (v is not null) Model.Days = v; }
+        { var v = FgQueryString(query, "utm_source"); if (v is not null) Model.Source = v; }
         { var v = FgQueryString(query, "attachments_note"); if (v is not null) Model.AttachmentsNote = v; }
         { var v = FgQueryString(query, "contact_method"); if (v is not null) Model.ContactMethod = v; }
         { var v = FgQueryString(query, "contact_phone"); if (v is not null) Model.ContactPhone = v; }
@@ -13613,7 +13616,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
     // Prefill from the page address: ?field=value fills matching fields (a list
     // takes repeated parameters or one comma-separated value); a hidden field
     // takes its named parameter. After a restored draft: the link wins.
-    var FG_PREFILL = [{ p: "full_name", k: "string" }, { p: "email", k: "string" }, { p: "website", k: "string" }, { p: "seats", k: "number" }, { p: "satisfaction", k: "number" }, { p: "city", k: "string" }, { p: "zip", k: "string" }, { p: "account.username", k: "string" }, { p: "account.bio", k: "string" }, { p: "account.birthday", k: "string" }, { p: "plan", k: "string" }, { p: "interests", k: "list" }, { p: "channels", k: "list" }, { p: "topics", k: "list" }, { p: "billing", k: "string" }, { p: "extras", k: "list" }, { p: "notify", k: "bool" }, { p: "appointment", k: "string" }, { p: "brand_color", k: "string" }, { p: "volume", k: "number" }, { p: "days", k: "list" }, { p: "attachments_note", k: "string" }, { p: "contact_method", k: "string" }, { p: "contact_phone", k: "string" }, { p: "contact_other", k: "string" }, { p: "twitter", k: "string" }, { p: "github", k: "string" }, { p: "shipping_city", k: "string" }, { p: "order_notes", k: "string" }, { p: "newsletter", k: "bool" }, { p: "terms", k: "bool" }]
+    var FG_PREFILL = [{ p: "full_name", k: "string" }, { p: "email", k: "string" }, { p: "website", k: "string" }, { p: "seats", k: "number" }, { p: "satisfaction", k: "number" }, { p: "city", k: "string" }, { p: "zip", k: "string" }, { p: "account.username", k: "string" }, { p: "account.bio", k: "string" }, { p: "account.birthday", k: "string" }, { p: "plan", k: "string" }, { p: "interests", k: "list" }, { p: "channels", k: "list" }, { p: "topics", k: "list" }, { p: "billing", k: "string" }, { p: "extras", k: "list" }, { p: "notify", k: "bool" }, { p: "appointment", k: "string" }, { p: "brand_color", k: "string" }, { p: "volume", k: "number" }, { p: "days", k: "list" }, { p: "source", k: "string", q: "utm_source" }, { p: "attachments_note", k: "string" }, { p: "contact_method", k: "string" }, { p: "contact_phone", k: "string" }, { p: "contact_other", k: "string" }, { p: "twitter", k: "string" }, { p: "github", k: "string" }, { p: "shipping_city", k: "string" }, { p: "order_notes", k: "string" }, { p: "newsletter", k: "bool" }, { p: "terms", k: "bool" }]
     function fgPrefillValue(kind, raw) {
       var first = raw[0]
       if (first === undefined) return undefined
@@ -16703,7 +16706,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
     // Prefill from the page address: ?field=value fills matching fields (a list
     // takes repeated parameters or one comma-separated value); a hidden field
     // takes its named parameter. After a restored draft: the link wins.
-    var FG_PREFILL = [{ p: "full_name", k: "string" }, { p: "email", k: "string" }, { p: "website", k: "string" }, { p: "seats", k: "number" }, { p: "satisfaction", k: "number" }, { p: "city", k: "string" }, { p: "zip", k: "string" }, { p: "account.username", k: "string" }, { p: "account.bio", k: "string" }, { p: "account.birthday", k: "string" }, { p: "plan", k: "string" }, { p: "interests", k: "list" }, { p: "channels", k: "list" }, { p: "topics", k: "list" }, { p: "billing", k: "string" }, { p: "extras", k: "list" }, { p: "notify", k: "bool" }, { p: "appointment", k: "string" }, { p: "brand_color", k: "string" }, { p: "volume", k: "number" }, { p: "days", k: "list" }, { p: "attachments_note", k: "string" }, { p: "contact_method", k: "string" }, { p: "contact_phone", k: "string" }, { p: "contact_other", k: "string" }, { p: "twitter", k: "string" }, { p: "github", k: "string" }, { p: "shipping_city", k: "string" }, { p: "order_notes", k: "string" }, { p: "newsletter", k: "bool" }, { p: "terms", k: "bool" }]
+    var FG_PREFILL = [{ p: "full_name", k: "string" }, { p: "email", k: "string" }, { p: "website", k: "string" }, { p: "seats", k: "number" }, { p: "satisfaction", k: "number" }, { p: "city", k: "string" }, { p: "zip", k: "string" }, { p: "account.username", k: "string" }, { p: "account.bio", k: "string" }, { p: "account.birthday", k: "string" }, { p: "plan", k: "string" }, { p: "interests", k: "list" }, { p: "channels", k: "list" }, { p: "topics", k: "list" }, { p: "billing", k: "string" }, { p: "extras", k: "list" }, { p: "notify", k: "bool" }, { p: "appointment", k: "string" }, { p: "brand_color", k: "string" }, { p: "volume", k: "number" }, { p: "days", k: "list" }, { p: "source", k: "string", q: "utm_source" }, { p: "attachments_note", k: "string" }, { p: "contact_method", k: "string" }, { p: "contact_phone", k: "string" }, { p: "contact_other", k: "string" }, { p: "twitter", k: "string" }, { p: "github", k: "string" }, { p: "shipping_city", k: "string" }, { p: "order_notes", k: "string" }, { p: "newsletter", k: "bool" }, { p: "terms", k: "bool" }]
     function fgPrefillValue(kind, raw) {
       var first = raw[0]
       if (first === undefined) return undefined
@@ -20015,7 +20018,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
     // Prefill from the page address: ?field=value fills matching fields (a list
     // takes repeated parameters or one comma-separated value); a hidden field
     // takes its named parameter. After a restored draft: the link wins.
-    var FG_PREFILL = [{ p: "full_name", k: "string" }, { p: "email", k: "string" }, { p: "website", k: "string" }, { p: "seats", k: "number" }, { p: "satisfaction", k: "number" }, { p: "city", k: "string" }, { p: "zip", k: "string" }, { p: "account.username", k: "string" }, { p: "account.bio", k: "string" }, { p: "account.birthday", k: "string" }, { p: "plan", k: "string" }, { p: "interests", k: "list" }, { p: "channels", k: "list" }, { p: "topics", k: "list" }, { p: "billing", k: "string" }, { p: "extras", k: "list" }, { p: "notify", k: "bool" }, { p: "appointment", k: "string" }, { p: "brand_color", k: "string" }, { p: "volume", k: "number" }, { p: "days", k: "list" }, { p: "attachments_note", k: "string" }, { p: "contact_method", k: "string" }, { p: "contact_phone", k: "string" }, { p: "contact_other", k: "string" }, { p: "twitter", k: "string" }, { p: "github", k: "string" }, { p: "shipping_city", k: "string" }, { p: "order_notes", k: "string" }, { p: "newsletter", k: "bool" }, { p: "terms", k: "bool" }]
+    var FG_PREFILL = [{ p: "full_name", k: "string" }, { p: "email", k: "string" }, { p: "website", k: "string" }, { p: "seats", k: "number" }, { p: "satisfaction", k: "number" }, { p: "city", k: "string" }, { p: "zip", k: "string" }, { p: "account.username", k: "string" }, { p: "account.bio", k: "string" }, { p: "account.birthday", k: "string" }, { p: "plan", k: "string" }, { p: "interests", k: "list" }, { p: "channels", k: "list" }, { p: "topics", k: "list" }, { p: "billing", k: "string" }, { p: "extras", k: "list" }, { p: "notify", k: "bool" }, { p: "appointment", k: "string" }, { p: "brand_color", k: "string" }, { p: "volume", k: "number" }, { p: "days", k: "list" }, { p: "source", k: "string", q: "utm_source" }, { p: "attachments_note", k: "string" }, { p: "contact_method", k: "string" }, { p: "contact_phone", k: "string" }, { p: "contact_other", k: "string" }, { p: "twitter", k: "string" }, { p: "github", k: "string" }, { p: "shipping_city", k: "string" }, { p: "order_notes", k: "string" }, { p: "newsletter", k: "bool" }, { p: "terms", k: "bool" }]
     function fgPrefillValue(kind, raw) {
       var first = raw[0]
       if (first === undefined) return undefined
@@ -21056,6 +21059,7 @@ function fgPrefill(current: FormData): FormData | null {
   { const v = fgQueryString(q, "brand_color"); if (v !== undefined) { next.brand_color = v; changed = true } }
   { const v = fgQueryNumber(q, "volume"); if (v !== undefined) { next.volume = v; changed = true } }
   { const v = fgQueryList(q, "days"); if (v !== undefined) { next.days = v; changed = true } }
+  { const v = fgQueryString(q, "utm_source"); if (v !== undefined) { next.source = v; changed = true } }
   { const v = fgQueryString(q, "attachments_note"); if (v !== undefined) { next.attachments_note = v; changed = true } }
   { const v = fgQueryString(q, "contact_method"); if (v !== undefined) { next.contact_method = v; changed = true } }
   { const v = fgQueryString(q, "contact_phone"); if (v !== undefined) { next.contact_phone = v; changed = true } }
@@ -23945,6 +23949,7 @@ function fgPrefill(current: FormData): FormData | null {
   { const v = fgQueryString(q, "brand_color"); if (v !== undefined) { next.brand_color = v; changed = true } }
   { const v = fgQueryNumber(q, "volume"); if (v !== undefined) { next.volume = v; changed = true } }
   { const v = fgQueryList(q, "days"); if (v !== undefined) { next.days = v; changed = true } }
+  { const v = fgQueryString(q, "utm_source"); if (v !== undefined) { next.source = v; changed = true } }
   { const v = fgQueryString(q, "attachments_note"); if (v !== undefined) { next.attachments_note = v; changed = true } }
   { const v = fgQueryString(q, "contact_method"); if (v !== undefined) { next.contact_method = v; changed = true } }
   { const v = fgQueryString(q, "contact_phone"); if (v !== undefined) { next.contact_phone = v; changed = true } }
@@ -26838,6 +26843,7 @@ function fgPrefill(current: FormData): FormData | null {
   { const v = fgQueryString(q, "brand_color"); if (v !== undefined) { next.brand_color = v; changed = true } }
   { const v = fgQueryNumber(q, "volume"); if (v !== undefined) { next.volume = v; changed = true } }
   { const v = fgQueryList(q, "days"); if (v !== undefined) { next.days = v; changed = true } }
+  { const v = fgQueryString(q, "utm_source"); if (v !== undefined) { next.source = v; changed = true } }
   { const v = fgQueryString(q, "attachments_note"); if (v !== undefined) { next.attachments_note = v; changed = true } }
   { const v = fgQueryString(q, "contact_method"); if (v !== undefined) { next.contact_method = v; changed = true } }
   { const v = fgQueryString(q, "contact_phone"); if (v !== undefined) { next.contact_phone = v; changed = true } }
@@ -29163,6 +29169,7 @@ onMounted(() => {
   { const v = fgQueryString(q, "brand_color"); if (v !== undefined) form.brand_color = v }
   { const v = fgQueryNumber(q, "volume"); if (v !== undefined) form.volume = v }
   { const v = fgQueryList(q, "days"); if (v !== undefined) form.days = v }
+  { const v = fgQueryString(q, "utm_source"); if (v !== undefined) form.source = v }
   { const v = fgQueryString(q, "attachments_note"); if (v !== undefined) form.attachments_note = v }
   { const v = fgQueryString(q, "contact_method"); if (v !== undefined) form.contact_method = v }
   { const v = fgQueryString(q, "contact_phone"); if (v !== undefined) form.contact_phone = v }
@@ -32076,6 +32083,7 @@ onMounted(() => {
   { const v = fgQueryString(q, "brand_color"); if (v !== undefined) form.brand_color = v }
   { const v = fgQueryNumber(q, "volume"); if (v !== undefined) form.volume = v }
   { const v = fgQueryList(q, "days"); if (v !== undefined) form.days = v }
+  { const v = fgQueryString(q, "utm_source"); if (v !== undefined) form.source = v }
   { const v = fgQueryString(q, "attachments_note"); if (v !== undefined) form.attachments_note = v }
   { const v = fgQueryString(q, "contact_method"); if (v !== undefined) form.contact_method = v }
   { const v = fgQueryString(q, "contact_phone"); if (v !== undefined) form.contact_phone = v }
@@ -34934,6 +34942,7 @@ onMounted(() => {
   { const v = fgQueryString(q, "brand_color"); if (v !== undefined) form.brand_color = v }
   { const v = fgQueryNumber(q, "volume"); if (v !== undefined) form.volume = v }
   { const v = fgQueryList(q, "days"); if (v !== undefined) form.days = v }
+  { const v = fgQueryString(q, "utm_source"); if (v !== undefined) form.source = v }
   { const v = fgQueryString(q, "attachments_note"); if (v !== undefined) form.attachments_note = v }
   { const v = fgQueryString(q, "contact_method"); if (v !== undefined) form.contact_method = v }
   { const v = fgQueryString(q, "contact_phone"); if (v !== undefined) form.contact_phone = v }

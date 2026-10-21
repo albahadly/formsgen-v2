@@ -288,7 +288,7 @@
       "id": "ks-source",
       "type": "hidden",
       "name": "source",
-      "props": { "value": "kitchen-sink" }
+      "props": { "value": "kitchen-sink", "param": "utm_source" }
     },
     {
       "id": "ks-references",
@@ -320,7 +320,6 @@
       "type": "file",
       "name": "attachments",
       "props": {
-        "param": "utm_source",
         "label": "Attachments",
         "description": "Up to 3 PDF or Word files, 5 MB each",
         "multiple": true,
