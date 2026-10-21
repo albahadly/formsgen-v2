@@ -75,9 +75,13 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
   to stage-only tokens). The user chose **staging**: the workflow
   `npm stage publish`es each package (unpacked `pnpm pack` tarball,
   stage-only `NPM_TOKEN`), and the user approves on npmjs.com with 2FA.
-  **What only the user can do:** put a stage-only token in `NPM_TOKEN`,
-  run the workflow, approve the two staged versions (*Staged Packages*
-  → *Approve*). Nothing is live until then.
+  **Done 2026-10-21 05:29Z:** Release run 39549631364 staged both
+  versions with the user's stage-only token — renderer stage
+  `559d507c-3bc5-473a-b4c8-4bb3c8e136cb`, cli stage
+  `b5c9928c-49cc-4568-b8ac-e5316b2be57a` (status "validating", public
+  `0.0.0-stage` placeholders created). **What only the user can do:**
+  approve them on npmjs.com (*Staged Packages* → *Approve*, 2FA) or
+  `npm stage approve <id>`. Nothing is live until then.
 
 ## Next steps (in order) — the roadmap the user chose on 2026-10-21
 
