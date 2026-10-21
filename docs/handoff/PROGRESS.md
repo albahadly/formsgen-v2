@@ -16,7 +16,7 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
   the review round of 2026-10-21 (drop direction fix,
   `tools/proof/canvas-parity.mjs`, `PLAYWRIGHT_CHANNEL`), then **phase 38**
   (builder light/dark mode, version `0.1.0` beside the title).
-- **State:** phases 01–11, 10b and 12–38 are complete.
+- **State:** phases 01–11, 10b and 12–39 are complete.
 - **Where sessions run now:** the user's local Windows checkout
   (`CLAUDE.md` §6, last bullet), not the cloud container. `pnpm verify`
   via `npx --yes pnpm@10 verify` is green there on `2c9f4fe` (198 renderer /
@@ -36,12 +36,34 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
 
 ## In flight
 
-- Nothing. Uncommitted: nothing.
+- **Phase 39 — prefill from the page address**: code, tests, kitchen sink,
+  toolkit and docs committed; the matrix passed 12 × IDENTICAL on the
+  Windows checkout. The final `pnpm verify` is running (session
+  `scratchpad/verify5.log`); the push to `main` (= production deploy of the
+  builder) follows a green result. Uncommitted: nothing.
 
-## Next steps (in order)
+## Next steps (in order) — the roadmap the user chose on 2026-10-21
 
-1. Pick the next phase with the user. Candidates from the backlog below
-   and the handoffs' "pointers" sections.
+The user picked these from a list of ideas and asked for them in sequence
+(skipped on purpose: hosted forms/responses, multi-language forms, the
+audit panel, print/PDF). Each is a phase under the Phase Standard.
+
+1. **Phase 39 — prefill from the URL**: query parameters fill matching
+   fields; hidden fields can take their value from a named parameter.
+   Renderer + all 12 runtimes, builder settings/panel, kitchen sink.
+2. **Phase 40 — after submit**: thank-you message / redirect in the schema
+   and every runtime; the sample server forwards submissions to a webhook.
+3. **Phase 41 — server-side validation export**: the form's rules as a
+   `zod` schema and as JSON Schema (DataAnnotations already exist).
+4. **Phase 42 — CLI**: `formsgen export <schema> --target … --css …` from
+   the JSON, usable in CI.
+5. **Phase 43 — Web Component export**: `<formsgen-form>` wrapping the
+   renderer, a single script for any host page.
+6. **Phase 44 — more templates and more UI languages.**
+7. **Phase 45 — field types**: star rating, NPS scale, address
+   autocomplete, currency with locale formatting.
+8. **Phase 46 — small wins**: three-way system/light/dark control,
+   copy/paste of elements between projects.
 
 ## Open backlog (pointer)
 
@@ -66,6 +88,22 @@ and, for the spam demo, `TURNSTILE_SECRET=1x0000000000000000000000000000000AA no
 
 ## Log (newest first)
 
+- **2026-10-21** — **Phase 39: prefill from the page address** (first of
+  the roadmap the user chose). Renderer `prefill.ts` (kinds, conversions,
+  `queryPrefill`), `FormsGenForm` prop `prefillSearch`, `meta.prefillFromQuery`
+  and hidden `param` (ADR-0002 log). Exports: one emitter module
+  `apps/builder/src/export/prefill.ts` feeding the HTML runtime
+  (`fgPrefill` after `fgDraftStart`), typed readers for React (functional
+  `setForm` after the draft effect) and Vue (`onMounted` after the draft
+  restore), and Blazor (`FgPrefill` in `OnInitialized` and again after a
+  draft load; `NavigationManager` injected). Builder: settings checkbox,
+  the hidden element's "URL parameter" control, a test string in the
+  preview. Kitchen sink carries both; 12 snapshots refreshed. Toolkit:
+  `demos/prefill.json`, `e2e/prefill.mjs`; `lib.sh` gained Windows shims
+  (no `setsid`, `pnpm` via npx, `python3` fallback), and the whole matrix
+  ran on Windows for the first time: strict clean, 12 × IDENTICAL. Gotcha
+  met: the harness collapses `\` in heredocs — scripts with backslashes
+  go in a file.
 - **2026-10-21** — Phase 38 follow-up asked by the user: the version sits
   beside the "FormsGen Builder" title (`app-version`, always visible) and
   the `renderer v…` text left the header; `RENDERER_VERSION` stays exported.
