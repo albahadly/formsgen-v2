@@ -36,15 +36,17 @@ canvas card in the four builder-theme × form-theme combinations
   export. `color-scheme` is scoped to the card so its native controls follow
   the form, not the builder. The chrome inside the card now follows the
   form too, so a dark form no longer gets light boxes and tabs.
-- **Versions.** The header shows `v0.1.0 · renderer v0.1.0`
-  (`app-version`). The builder reads its own `package.json`; the renderer's
+- **Version.** The header shows `v0.1.0` beside the title (`app-version`);
+  the renderer's version is no longer shown (asked by the user), its
+  constant stays exported for consumers. The builder reads its own
+  `package.json`; the renderer's
   `RENDERER_VERSION` stays a literal that `version.test.ts` keeps equal to
   its `package.json` (importing the JSON from the library source would move
   the declaration output under `dist/src/`). Root, builder and renderer went
   from the scaffold's `0.0.1` to `0.1.0`.
 - Tests: the toggle darkens the chrome, stores the choice, leaves the form's
-  theme alone and is restored by a new session; the header shows both
-  versions; the renderer constant matches `package.json`.
+  theme alone and is restored by a new session; the title carries the
+  version; the renderer constant matches `package.json`.
 
 ## What was intentionally NOT done
 
@@ -80,7 +82,7 @@ node tools/proof/theme-shots.mjs http://$FG_HOST:4186/ tools/proof/work/shots
 ```
 
 The script prints both themes' `html`/`colorScheme`/`stored`/`formTheme`/
-`version`, the four card combinations, `afterReload` (`dark`: the choice
+`version` (the title's `v…`), the four card combinations, `afterReload` (`dark`: the choice
 survives) and `errors` (empty), and writes `theme-*.png` / `card-*.png`.
 
 ## Known issues / gotchas

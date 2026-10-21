@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { RENDERER_VERSION } from '@formsgen/renderer'
 import { version as BUILDER_VERSION } from '../package.json'
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import WorkArea from '@/components/canvas/WorkArea.vue'
@@ -111,8 +110,12 @@ onBeforeUnmount(() => {
 <template>
   <div class="flex h-screen flex-col bg-gray-100 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
     <header class="flex items-center justify-between gap-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 shadow-sm md:px-4">
-      <h1 class="shrink-0 text-base font-semibold md:text-lg">
+      <h1 class="flex shrink-0 items-baseline gap-1.5 text-base font-semibold md:text-lg">
         {{ t('app.title') }}
+        <span
+          class="text-xs font-normal text-gray-500 dark:text-gray-400"
+          data-testid="app-version"
+        >v{{ BUILDER_VERSION }}</span>
       </h1>
       <!-- On phones the buttons scroll sideways instead of overflowing the page. -->
       <div
@@ -149,10 +152,6 @@ onBeforeUnmount(() => {
         >
           {{ t('tree.title') }}
         </button>
-        <span
-          class="hidden shrink-0 text-xs text-gray-500 dark:text-gray-400 lg:inline"
-          data-testid="app-version"
-        >v{{ BUILDER_VERSION }} · renderer v{{ RENDERER_VERSION }}</span>
       </div>
     </header>
     <main class="flex flex-1 overflow-hidden">

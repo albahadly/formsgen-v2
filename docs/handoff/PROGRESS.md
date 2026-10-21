@@ -15,7 +15,7 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
   the renderer's column grid), `2c9f4fe` (`.gitattributes` pins LF), then
   the review round of 2026-10-21 (drop direction fix,
   `tools/proof/canvas-parity.mjs`, `PLAYWRIGHT_CHANNEL`), then **phase 38**
-  (builder light/dark mode, versions `0.1.0` in the header).
+  (builder light/dark mode, version `0.1.0` beside the title).
 - **State:** phases 01–11, 10b and 12–38 are complete.
 - **Where sessions run now:** the user's local Windows checkout
   (`CLAUDE.md` §6, last bullet), not the cloud container. `pnpm verify`
@@ -66,6 +66,9 @@ and, for the spam demo, `TURNSTILE_SECRET=1x0000000000000000000000000000000AA no
 
 ## Log (newest first)
 
+- **2026-10-21** — Phase 38 follow-up asked by the user: the version sits
+  beside the "FormsGen Builder" title (`app-version`, always visible) and
+  the `renderer v…` text left the header; `RENDERER_VERSION` stays exported.
 - **2026-10-21** — **Phase 38: builder light/dark mode + version**
   (handoff `phase-38-builder-theme.md`, ADR-0005). The chrome gets its own
   theme: `composables/theme.ts` (stored `formsgen.theme`, OS until chosen,

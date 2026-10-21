@@ -2,7 +2,6 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { RENDERER_VERSION } from '@formsgen/renderer'
 import App from '../App.vue'
 import { version as BUILDER_VERSION } from '../../package.json'
 import { useBuilderStore } from '../stores/builder'
@@ -195,9 +194,10 @@ describe('palette → canvas → properties workflow', () => {
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
   })
 
-  it('the header shows the builder and renderer versions', () => {
+  it('the header shows the builder version beside the title', () => {
     const { wrapper } = mountApp()
-    expect(wrapper.get('[data-testid="app-version"]').text()).toBe(`v${BUILDER_VERSION} · renderer v${RENDERER_VERSION}`)
+    expect(wrapper.get('h1').text()).toBe(`FormsGen Builder v${BUILDER_VERSION}`)
+    expect(wrapper.get('[data-testid="app-version"]').text()).toBe(`v${BUILDER_VERSION}`)
     expect(BUILDER_VERSION).toMatch(/^\d+\.\d+\.\d+$/)
   })
 
