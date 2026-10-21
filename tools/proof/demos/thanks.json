@@ -1,0 +1,9 @@
+{
+ "$schema": "formsgen/v2",
+ "meta": { "name": "thanks_demo", "title": "Thanks", "locale": "en", "dir": "ltr", "afterSubmit": { "message": "Thanks, {full_name|friend}! We will write to {email}." }, "submit": { "url": "http://FG_HOST:4280/submit", "method": "POST" } },
+ "tree": [
+  { "id": "name", "type": "text", "name": "full_name", "props": { "label": "Full name" }, "validation": [ { "rule": "required" } ] },
+  { "id": "email", "type": "email", "name": "email", "props": { "label": "Email" }, "validation": [ { "rule": "required" } ] },
+  { "id": "hello", "type": "paragraph", "props": { "text": "Hello {full_name|there}" } }
+ ]
+}

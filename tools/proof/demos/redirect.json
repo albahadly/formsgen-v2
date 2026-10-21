@@ -1,0 +1,7 @@
+{
+ "$schema": "formsgen/v2",
+ "meta": { "name": "redirect_demo", "title": "Redirect", "locale": "en", "dir": "ltr", "afterSubmit": { "redirectUrl": "http://FG_HOST:4280/", "message": "never shown: the redirect wins" }, "submit": { "url": "http://FG_HOST:4280/submit", "method": "POST" } },
+ "tree": [
+  { "id": "name", "type": "text", "name": "full_name", "props": { "label": "Full name" }, "validation": [ { "rule": "required" } ] }
+ ]
+}
