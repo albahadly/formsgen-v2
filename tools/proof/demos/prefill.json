@@ -1,0 +1,19 @@
+{
+ "$schema": "formsgen/v2",
+ "meta": { "name": "prefill_demo", "title": "Prefill", "locale": "en", "dir": "ltr", "prefillFromQuery": true, "submit": { "url": "http://FG_HOST:4280/submit", "method": "POST" } },
+ "tree": [
+  { "id": "name", "type": "text", "name": "full_name", "props": { "label": "Full name" } },
+  { "id": "hello", "type": "paragraph", "props": { "text": "Hello {full_name|there}" } },
+  { "id": "age", "type": "number", "name": "age", "props": { "label": "Age" } },
+  { "id": "plan", "type": "select", "name": "plan", "props": { "label": "Plan", "items": [ { "value": "free", "label": "Free" }, { "value": "pro", "label": "Pro" } ] } },
+  { "id": "code", "type": "text", "name": "pro_code", "props": { "label": "Pro code" }, "conditions": [[{ "field": "plan", "operator": "equals", "value": "pro" }]] },
+  { "id": "topics", "type": "checkboxgroup", "name": "topics", "props": { "label": "Topics", "items": [ { "value": "news", "label": "News" }, { "value": "offers", "label": "Offers" }, { "value": "tips", "label": "Tips" } ] } },
+  { "id": "langs", "type": "multiselect", "name": "langs", "props": { "label": "Languages", "items": [ { "value": "en", "label": "English" }, { "value": "ar", "label": "Arabic" }, { "value": "fr", "label": "French" } ] } },
+  { "id": "agree", "type": "toggle", "name": "agree", "props": { "label": "I agree" } },
+  { "id": "addr", "type": "group", "name": "address", "props": { "label": "Address" }, "children": [
+    { "id": "city", "type": "text", "name": "city", "props": { "label": "City" } }
+  ] },
+  { "id": "secret", "type": "password", "name": "secret", "props": { "label": "Secret" } },
+  { "id": "source", "type": "hidden", "name": "source", "props": { "value": "web", "param": "utm_source" } }
+ ]
+}

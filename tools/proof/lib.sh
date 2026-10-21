@@ -37,11 +37,26 @@ if [ -z "${PLAYWRIGHT_CHROMIUM:-}" ] && [ -x /opt/pw-browsers/chromium ]; then
   export PLAYWRIGHT_CHROMIUM=/opt/pw-browsers/chromium
 fi
 
+# A Windows checkout (Git Bash): no setsid, pnpm may not be on PATH (npx
+# fetches it), and "python3" may be the Store stub that only opens a window.
+if ! command -v pnpm > /dev/null 2>&1; then
+  pnpm() { npx --yes pnpm@10 "$@"; }
+  export -f pnpm
+fi
+if ! python3 --version > /dev/null 2>&1; then
+  python3() { python "$@"; }
+  export -f python3
+fi
+
 # start_bg <name> <command...>: run a server in the background, detached from
 # this shell, logging to work/<name>.log with its pid in work/<name>.pid.
 start_bg() {
   local name=$1; shift
-  setsid nohup "$@" > "$WORK/$name.log" 2>&1 < /dev/null &
+  if command -v setsid > /dev/null 2>&1; then
+    setsid nohup "$@" > "$WORK/$name.log" 2>&1 < /dev/null &
+  else
+    nohup "$@" > "$WORK/$name.log" 2>&1 < /dev/null &
+  fi
   echo $! > "$WORK/$name.pid"
 }
 

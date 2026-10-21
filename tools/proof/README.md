@@ -155,6 +155,11 @@ and prints what it saw: `html` / `colorScheme` / `stored` / `formTheme` /
 | `PLAYWRIGHT_CHANNEL` | unset | a browser installed on the machine (`msedge` on Windows) when no Chromium is downloaded; `PLAYWRIGHT_CHROMIUM` wins when both are set |
 | `HTTPS_PROXY`, `PROXY_CA_SPKI` | from the environment / computed | when set, the browser uses the proxy for the CDNs and trusts its CA (`--ignore-certificate-errors-spki-list`), bypassing it for `FG_HOST` |
 
+On a Windows checkout (Git Bash) `lib.sh` fills the gaps itself: no
+`setsid` (servers start with `nohup … &`), `pnpm` not on PATH (an `npx
+pnpm@10` function), a `python3` that is the Store stub (falls back to
+`python`). Set `PLAYWRIGHT_CHANNEL=msedge` to drive Edge.
+
 ## Layout
 
 - `lib.sh` — shared defaults and helpers (`start_bg`, `stop_bg`, `wait_http`); sourced by the scripts.
