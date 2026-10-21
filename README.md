@@ -3,7 +3,7 @@
 A drag-and-drop form builder (Vueform-Builder-style UX) whose forms export to
 **Vue, React, Blazor, and plain HTML** with **vanilla CSS, Tailwind, or
 Bootstrap 5** styling — or as a framework-neutral JSON schema rendered by the
-bundled `@formsgen/renderer` package.
+bundled `@albahadly/formsgen-renderer` package.
 
 Full product/architecture spec: `REBUILD_PROMPT.md` (the master prompt this
 project is built from, phase by phase). Development history and context for
@@ -13,7 +13,7 @@ every phase: `docs/handoff/INDEX.md`.
 
 | Path | What |
 |---|---|
-| `packages/renderer` | `@formsgen/renderer` — standalone Vue 3 library that renders a FormsGen JSON schema (ESM + UMD + d.ts + CSS) |
+| `packages/renderer` | `@albahadly/formsgen-renderer` — standalone Vue 3 library that renders a FormsGen JSON schema (ESM + UMD + d.ts + CSS) |
 | `packages/submit-server` | Sample submission server: one dependency-free Node file that receives and stores what a form sends (JSON or multipart with files) and, with `TURNSTILE_SECRET` set, verifies the form's Cloudflare Turnstile token; the export dialog can add it to a ZIP |
 | `apps/builder` | The builder application (Vue 3 + Vite + Pinia + Tailwind) |
 | `docs/handoff` | Per-phase handoff documents — read the latest one first |
@@ -76,7 +76,7 @@ compilers on them and drives each runtime with the same scenario
 
 | Target | Output | Needs |
 |---|---|---|
-| JSON schema | `<name>.formsgen.json` | `@formsgen/renderer`, or re-open in the builder |
+| JSON schema | `<name>.formsgen.json` | `@albahadly/formsgen-renderer`, or re-open in the builder |
 | Validation | `<name>.zod.ts`, `<name>.schema.json` | a server: zod (Node/TypeScript) or any JSON Schema validator, the form's rules mirrored |
 | Web Component | `<name>.html` + `formsgen-element.js` | any page: `<formsgen-form src="…">`, one script with the renderer and Vue inside (ADR-0006) |
 
@@ -89,7 +89,9 @@ amount and an address with suggestions.
 The same exports from the command line, for CI and scripts (`packages/cli`):
 
 ```sh
-pnpm --filter @formsgen/cli build
+npx @albahadly/formsgen-cli export form.formsgen.json --target react --css tailwind --out src/forms   # from npm
+# or from this repository:
+pnpm --filter @albahadly/formsgen-cli build
 node packages/cli/dist/formsgen.mjs export form.formsgen.json --target react --css tailwind --out src/forms
 node packages/cli/dist/formsgen.mjs validate form.formsgen.json
 ```
@@ -116,7 +118,7 @@ needs the receiving server to verify the token with the secret key; an
 
 `examples/` shows the same form, *Event registration*, integrated in each
 stack: three self-contained HTML pages, a Vite + React app, a Vite + Vue app
-(standalone exports and the `@formsgen/renderer` export) and a Blazor Web
+(standalone exports and the `@albahadly/formsgen-renderer` export) and a Blazor Web
 App. The exported files in them are generated from
 `examples/form/event-registration.formsgen.json` by the builder's own
 targets and checked by `pnpm test`; `pnpm examples:update` regenerates them
@@ -136,3 +138,13 @@ The project is built in phases (see `REBUILD_PROMPT.md` §9) under a fixed
 Phase Standard (§11): every phase starts by reading `docs/handoff/INDEX.md`,
 ends with `pnpm verify` green plus a committed handoff doc, and follows the
 same Definition of Done checklist.
+
+## Publishing to npm
+
+`@albahadly/formsgen-renderer` and `@albahadly/formsgen-cli` are published
+by `.github/workflows/release.yml` (Actions → Release → Run workflow, or a
+`v*` tag). It runs `pnpm verify`, then publishes each package whose
+version is not on npm yet, with the repository secret `NPM_TOKEN` (an npm
+automation token with publish rights). To release: bump `version` in
+`packages/renderer/package.json` and `packages/cli/package.json`, commit,
+run the workflow. Both packages are MIT licensed (`LICENSE`).

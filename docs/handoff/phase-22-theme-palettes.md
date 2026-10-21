@@ -2,7 +2,7 @@
 
 ## Status
 
-Complete — 2026-10-04, commit: see `git log` (feat(phase-22)). Still parked per user direction: publishing `@formsgen/renderer` to npm.
+Complete — 2026-10-04, commit: see `git log` (feat(phase-22)). Still parked per user direction: publishing `@albahadly/formsgen-renderer` to npm.
 
 ## What was built
 
@@ -59,5 +59,5 @@ Complete — 2026-10-04, commit: see `git log` (feat(phase-22)). Still parked pe
 
 ## Backlog
 
-- **`@formsgen/renderer` npm publish — parked by user.**
+- **`@albahadly/formsgen-renderer` npm publish — parked by user.**
 - The renderer's own palette for the HTML debug payload (`<pre>`) stays dark in every theme, by design.

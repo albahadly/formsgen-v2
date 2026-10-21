@@ -41,7 +41,10 @@ expired session is continued, not repeated. So:
 - No pull requests unless asked. Work lands on `main` of
   `albahadly/formsgen-v2` (the user's standing practice), pushed with
   `git push -u origin main`.
-- npm publish of `@formsgen/renderer` is parked ("we will come back to it").
+- npm: `@albahadly/formsgen-renderer` and `@albahadly/formsgen-cli` publish
+  through `.github/workflows/release.yml` (manual run or a `v*` tag) with
+  the user's `NPM_TOKEN` secret; a release = version bump in both
+  package.json files + the workflow. Never publish from a session.
 - Every phase meets the Phase Standard: `pnpm verify` green, strict compiles
   (React `tsc`, `vue-tsc`, .NET 8 build with 0 errors 0 warnings), the
   12-runtime matrix for new behaviour, handoff doc + INDEX row, ADR for
@@ -51,7 +54,7 @@ expired session is continued, not repeated. So:
 
 ## 4. Repo map
 
-- `packages/renderer` — `@formsgen/renderer`, Vue 3 runtime (parse, rules,
+- `packages/renderer` — `@albahadly/formsgen-renderer`, Vue 3 runtime (parse, rules,
   conditions, composite values, files, location, signature, captcha); a
   second build `src/element.ts` → `dist/element/` is the `<formsgen-form>`
   web component (ADR-0006), served by the builder under `element/`.
@@ -63,9 +66,9 @@ expired session is continued, not repeated. So:
   `src/templates/{index,more}.ts` (English/Arabic). Element registry `src/registry/elements/*`;
   export targets `src/export/targets/{html,react,vue-standalone,vue-lib,blazor,json}.ts`
   with shared emitters in `src/export/*.ts`; CSS adapters `src/export/css/*`.
-- `packages/cli` — `@formsgen/cli`, bin `formsgen`: `export | validate |
+- `packages/cli` — `@albahadly/formsgen-cli`, bin `formsgen`: `export | validate |
   targets` from a `.formsgen.json`, one Vite-bundled Node script
-  (`pnpm --filter @formsgen/cli build` → `dist/formsgen.mjs`).
+  (`pnpm --filter @albahadly/formsgen-cli build` → `dist/formsgen.mjs`).
 - `packages/submit-server/server.mjs` — sample submission server
   (`--port`, `--dir`, `TURNSTILE_SECRET`).
 - `fixtures/kitchen-sink.formsgen.json` — every feature once; tests import it.

@@ -11,7 +11,7 @@ Complete — 2026-10-04, commit: see `git log` (feat(phase-08)).
 - **Markup walker** — `src/export/markup.ts`: renders the tree (grids, cells with spans, group fieldsets, columns, conditional wrappers) via the adapter; leaf fields delegate to **registry emitters** — `ElementDefinition.export.{vue,html}` added to text/textarea/select/checkbox (`registry/emitters/shared.ts` holds the building blocks).
 - **Export targets** — `src/export/targets/` plugin registry (`registerTarget`/`listTargets`):
   1. `json` — canonical schema, round-trips through the parser.
-  2. `vue-lib` — SFC using `@formsgen/renderer` with inlined schema.
+  2. `vue-lib` — SFC using `@albahadly/formsgen-renderer` with inlined schema.
   3. `vue-standalone` — ZERO-DEP SFC: reactive data, compiled validators (blur + revalidate-after-touch + submit), visibility functions, conditional-spread payload, optional `meta.submit` fetch, scoped stylesheet in vanilla mode.
   4. `html` — one self-contained document: `data-fg-path/kind` controls, generic runtime + compiled validators/conditions/payload, CDN links for tailwind/bootstrap, embedded CSS for vanilla.
 - **Export dialog** — `components/export/ExportDialog.vue` (lazy-loaded chunk): target tabs, framework select (hidden for non-framework-aware targets), file tabs incl. a README tab, highlighted code (`components/ui/CodeBlock.vue`, shared with the code view), Copy / Download / **Download .zip** (jszip; files + generated README). Header **Export** button opens it.

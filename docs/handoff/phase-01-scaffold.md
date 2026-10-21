@@ -7,7 +7,7 @@ Complete — 2026-10-04, commit: (first commit of this repo; hash in `git log`).
 ## What was built
 
 - pnpm workspace with two packages:
-  - `packages/renderer` — `@formsgen/renderer` stub: builds as a Vue 3 library (ESM + UMD via Vite lib mode, `.d.ts` via `vue-tsc -p tsconfig.build.json`). Exports `RENDERER_VERSION` and `SCHEMA_ID` placeholders only.
+  - `packages/renderer` — `@albahadly/formsgen-renderer` stub: builds as a Vue 3 library (ESM + UMD via Vite lib mode, `.d.ts` via `vue-tsc -p tsconfig.build.json`). Exports `RENDERER_VERSION` and `SCHEMA_ID` placeholders only.
   - `apps/builder` — `@formsgen/builder`: Vue 3 + Vite + Pinia + Tailwind CSS v4 (`@tailwindcss/vite` plugin, `@import 'tailwindcss'` in `src/style.css`). `src/App.vue` renders the three-panel shell (palette / canvas / properties) with `data-testid` hooks; panels are placeholders for phase 4.
 - Tooling, all wired through the single gate `pnpm verify` (= lint + typecheck + test + build):
   - ESLint 9 flat config at repo root (`eslint.config.js`): JS + typescript-eslint + eslint-plugin-vue; `no-explicit-any`, `ban-ts-comment`, `no-console` (warn/error allowed) enforced as errors.
@@ -29,7 +29,7 @@ Complete — 2026-10-04, commit: (first commit of this repo; hash in `git log`).
 - **Tailwind CSS v4** (not v3): current major; no `tailwind.config.js` / PostCSS needed — the `@tailwindcss/vite` plugin + one `@import 'tailwindcss'` line. Theme customization, when needed, goes in CSS `@theme` blocks.
 - **Vitest 3 with Vite 6**: vitest 2.x bundles Vite 5 types and conflicts with Vite 6 under `exactOptionalPropertyTypes` (two UserConfig types collide). vitest ^3.2 pairs with Vite 6. Keep these majors in lockstep when upgrading.
 - **Vite configs import `defineConfig` from `vitest/config`** (not `vite`): this is what types the `test` key; a triple-slash reference was not sufficient with vue-tsc.
-- **Builder consumes the renderer BY SOURCE in dev**: alias `@formsgen/renderer` → `packages/renderer/src/index.ts` in both `apps/builder/vite.config.ts` and its tsconfig `paths`. So builder dev/typecheck/test never require a pre-built renderer dist, while the published package's `exports` map still points at `dist/`. If you add subpath exports to the renderer, mirror them in both aliases.
+- **Builder consumes the renderer BY SOURCE in dev**: alias `@albahadly/formsgen-renderer` → `packages/renderer/src/index.ts` in both `apps/builder/vite.config.ts` and its tsconfig `paths`. So builder dev/typecheck/test never require a pre-built renderer dist, while the published package's `exports` map still points at `dist/`. If you add subpath exports to the renderer, mirror them in both aliases.
 - **`.d.ts` generation via `vue-tsc --declaration --emitDeclarationOnly -p tsconfig.build.json`** instead of `vite-plugin-dts`: one less dependency; `tsconfig.build.json` flips `noEmit` and excludes tests.
 - **`onlyBuiltDependencies: [esbuild, vue-demi]` in `pnpm-workspace.yaml`**: pnpm 10 blocks postinstall scripts by default; declaring approvals in-file keeps CI deterministic (no interactive `pnpm approve-builds`).
 - **Named exports only; tests co-located** (`foo.test.ts` next to `foo.ts`) per repo conventions in REBUILD_PROMPT.md §1.

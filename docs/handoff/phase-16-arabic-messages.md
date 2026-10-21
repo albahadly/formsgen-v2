@@ -2,7 +2,7 @@
 
 ## Status
 
-Complete — 2026-10-04, commit: see `git log` (feat(phase-16)). Still parked per user direction: publishing `@formsgen/renderer` to npm.
+Complete — 2026-10-04, commit: see `git log` (feat(phase-16)). Still parked per user direction: publishing `@albahadly/formsgen-renderer` to npm.
 
 ## What was built
 
@@ -48,7 +48,7 @@ Complete — 2026-10-04, commit: see `git log` (feat(phase-16)). Still parked pe
 
 ## Not done / backlog
 
-- **`@formsgen/renderer` npm publish — parked by user.**
+- **`@albahadly/formsgen-renderer` npm publish — parked by user.**
 - Only English and Arabic. Adding a language means adding one catalog object to `messages.ts` and teaching `resolveMessages` / `pluralCategory` its rules. There's no runtime registration API yet (deliberately: the builder's code generators must see the same catalog the renderer uses).
 - No per-form override of built-in texts (e.g. `meta.messages`). Authors can already override every rule message and button label individually.
 - The builder's properties-panel control labels ("Back button text", …) aren't in the builder's own ar catalog yet. That's builder chrome, separate from form texts.

@@ -2,7 +2,7 @@
 
 ## Status
 
-Complete — 2026-10-04, commit: see `git log` (feat(phase-17)). Still parked per user direction: publishing `@formsgen/renderer` to npm.
+Complete — 2026-10-04, commit: see `git log` (feat(phase-17)). Still parked per user direction: publishing `@albahadly/formsgen-renderer` to npm.
 
 ## The bug
 
@@ -59,5 +59,5 @@ While a pointer press is in progress inside the form, a field's blur validation 
 
 ## Backlog
 
-- **`@formsgen/renderer` npm publish — parked by user.**
+- **`@albahadly/formsgen-renderer` npm publish — parked by user.**
 - Other items from the phase-16 "Not done" list are unchanged.

@@ -83,4 +83,4 @@ PLAYWRIGHT_CHANNEL=msedge node tools/proof/theme-shots.mjs http://127.0.0.1:4186
 
 - The roadmap the user chose is done through phase 46; the backlog in
   the earlier handoffs ("What was intentionally NOT done") and the parked
-  npm publish of `@formsgen/renderer` remain.
+  npm publish of `@albahadly/formsgen-renderer` remain.

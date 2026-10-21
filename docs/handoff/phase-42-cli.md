@@ -10,7 +10,7 @@ binary exercised in plain Node (recorded under "How to verify").
 
 ## What was built
 
-- **`packages/cli` — `@formsgen/cli`, bin `formsgen`**, one self-contained
+- **`packages/cli` — `@albahadly/formsgen-cli`, bin `formsgen`**, one self-contained
   Node 20+ script (`dist/formsgen.mjs`, ~2.2 MB) that bundles the
   builder's export code, the renderer and Vue with Vite's SSR build
   (`ssr.noExternal: true`; the renderer's entry imports Vue components and
@@ -62,7 +62,7 @@ binary exercised in plain Node (recorded under "How to verify").
 
 ```sh
 pnpm verify
-pnpm --filter @formsgen/cli build
+pnpm --filter @albahadly/formsgen-cli build
 node packages/cli/dist/formsgen.mjs validate fixtures/kitchen-sink.formsgen.json
 node packages/cli/dist/formsgen.mjs export tools/proof/demos/prefill.json --target all --out /tmp/out
 ```

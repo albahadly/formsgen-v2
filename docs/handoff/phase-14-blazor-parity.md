@@ -2,7 +2,7 @@
 
 ## Status
 
-Complete — 2026-10-04, commit: see `git log` (feat(phase-14)). Still parked per user direction: publishing `@formsgen/renderer` to npm.
+Complete — 2026-10-04, commit: see `git log` (feat(phase-14)). Still parked per user direction: publishing `@albahadly/formsgen-renderer` to npm.
 
 ## What was built
 
@@ -23,7 +23,7 @@ Complete — 2026-10-04, commit: see `git log` (feat(phase-14)). Still parked pe
 
 ## What was intentionally NOT done (remaining backlog)
 
-- **`@formsgen/renderer` npm publish — parked by user.**
+- **`@albahadly/formsgen-renderer` npm publish — parked by user.**
 - Blazor tags don't add on Enter-without-submit: conditional `preventDefault` needs JS interop, which the zero-dependency export avoids. Enter commits the draft (tag IS added) but may also trigger EditForm submit — standard Blazor behavior, noted in the generated README.
 - `aria-live` announcement region (all targets).
 

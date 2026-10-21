@@ -2,7 +2,7 @@
 
 ## Status
 
-Complete — 2026-10-04, commit: see `git log` (feat(phase-18)). Replaces the Properties-panel placeholder "The visual condition builder arrives in a later phase." Still parked per user direction: publishing `@formsgen/renderer` to npm.
+Complete — 2026-10-04, commit: see `git log` (feat(phase-18)). Replaces the Properties-panel placeholder "The visual condition builder arrives in a later phase." Still parked per user direction: publishing `@albahadly/formsgen-renderer` to npm.
 
 ## What was built
 
@@ -47,7 +47,7 @@ The condition *engine* has existed since phase 3: schema `conditions: Condition[
 
 ## Not done / backlog
 
-- **`@formsgen/renderer` npm publish — parked by user.**
+- **`@albahadly/formsgen-renderer` npm publish — parked by user.**
 - The builder's own Arabic catalog still misses the panel section headings (PROPERTIES, DATA, LAYOUT, VALIDATION, CONDITIONS) and some control labels (Label, Placeholder, Description). This is pre-existing (phase 16 backlog); a quick follow-up.
 - Conditions compare against fixed values only (no "field A equals field B"). The engine's closed operator catalog would need a new operator for that.
 - No date comparisons ("before / after"): `greater-than` / `less-than` are numeric in the engine.

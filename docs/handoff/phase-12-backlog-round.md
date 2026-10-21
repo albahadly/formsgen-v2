@@ -2,7 +2,7 @@
 
 ## Status
 
-Complete — 2026-10-04, commit: see `git log` (feat(phase-12)). Deliberately SKIPPED per user direction: publishing `@formsgen/renderer` to npm (parked for later).
+Complete — 2026-10-04, commit: see `git log` (feat(phase-12)). Deliberately SKIPPED per user direction: publishing `@albahadly/formsgen-renderer` to npm (parked for later).
 
 ## What was built
 
@@ -14,7 +14,7 @@ Complete — 2026-10-04, commit: see `git log` (feat(phase-12)). Deliberately SK
 
 ## What was intentionally NOT done (remaining backlog)
 
-- **`@formsgen/renderer` npm publish — parked by user; pick up later.**
+- **`@albahadly/formsgen-renderer` npm publish — parked by user; pick up later.**
 - Tags/chips element (custom chip UI across 4 codegen targets is heavy).
 - Blazor emitters for multiselect/checkboxgroup; Blazor per-step validation gating.
 - axe-core smoke test in CI; `aria-live` announcements.

@@ -2,7 +2,7 @@
 
 ## Status
 
-Complete — 2026-10-04, commit: see `git log` (feat(phase-13)). Still parked per user direction: publishing `@formsgen/renderer` to npm.
+Complete — 2026-10-04, commit: see `git log` (feat(phase-13)). Still parked per user direction: publishing `@albahadly/formsgen-renderer` to npm.
 
 ## What was built
 
@@ -19,7 +19,7 @@ Complete — 2026-10-04, commit: see `git log` (feat(phase-13)). Still parked pe
 
 ## What was intentionally NOT done (remaining backlog)
 
-- **`@formsgen/renderer` npm publish — parked by user; pick up when asked.**
+- **`@albahadly/formsgen-renderer` npm publish — parked by user; pick up when asked.**
 - Blazor emitters for tags/multiselect/checkboxgroup (markup renders an unsupported-comment; payload properties exist). Blazor per-step validation gating (needs `ValidationMessageStore`) and Blazor auto-jump likewise.
 - `aria-live` announcement region for error summaries.
 - Vue-standalone artifact was asserted structurally (same compiled logic as react/html) but not browser-driven this round — the react/html proofs cover the shared scaffold conventions.
@@ -35,7 +35,7 @@ Complete — 2026-10-04, commit: see `git log` (feat(phase-13)). Still parked pe
 
 ```bash
 pnpm verify                     # lint + typecheck + 158 tests + builds
-pnpm --filter @formsgen/renderer vitest run src/tags.test.ts src/a11y.test.ts
+pnpm --filter @albahadly/formsgen-renderer vitest run src/tags.test.ts src/a11y.test.ts
 pnpm dev                        # drop a Tags field; preview: chips UI; export any target
 ```
 

@@ -50,7 +50,7 @@ pnpm dev      # then:
 ## Pointers for whoever continues (post-plan backlog, in suggested order)
 
 1. **Phase 10b** — tabs/steps wizards (plan in phase-10 handoff), then multiselect/tags.
-2. Publish `@formsgen/renderer` to a registry and swap the README's pack-and-install flow for a plain `npm i`.
+2. Publish `@albahadly/formsgen-renderer` to a registry and swap the README's pack-and-install flow for a plain `npm i`.
 3. Builder-UI i18n (catalog exists; add a locale switcher + Arabic strings) — pairs naturally with an RTL builder shell via `dir` on `<html>`.
 4. axe-core smoke test in CI; `aria-live` region for canvas operations.
 5. Renderer class presets (`preset="tailwind|bootstrap"`) — the one §7a item still one-way (codegen only).

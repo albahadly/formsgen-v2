@@ -2,7 +2,7 @@
 
 ## Status
 
-Complete — 2026-10-04, commit: see `git log` (feat(phase-15)). Still parked per user direction: publishing `@formsgen/renderer` to npm.
+Complete — 2026-10-04, commit: see `git log` (feat(phase-15)). Still parked per user direction: publishing `@albahadly/formsgen-renderer` to npm.
 
 ## What was built
 
@@ -34,7 +34,7 @@ The HTML export reported 5 errors and the Blazor export 6 for the same journey. 
 
 ## Not done / backlog
 
-- **`@formsgen/renderer` npm publish — parked by user.**
+- **`@albahadly/formsgen-renderer` npm publish — parked by user.**
 - Built-in texts (validation defaults and announcements) are English only. A localized message table keyed by `meta.locale` (en/ar first) would make Arabic forms fully native. Today, authors localize validation through per-rule custom messages, but there is no override for announcements yet.
 - Blazor tags: Enter adds the tag but may also submit the form (documented in phase 14).
 

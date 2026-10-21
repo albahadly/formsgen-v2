@@ -2,7 +2,7 @@
 
 ## Status
 
-Complete — 2026-10-04, commit: see `git log` (feat(phase-20)). Still parked per user direction: publishing `@formsgen/renderer` to npm.
+Complete — 2026-10-04, commit: see `git log` (feat(phase-20)). Still parked per user direction: publishing `@albahadly/formsgen-renderer` to npm.
 
 ## What was built
 
@@ -64,6 +64,6 @@ A single checkbox gets alignment and class only (its label *is* its text). Indiv
 
 ## Backlog
 
-- **`@formsgen/renderer` npm publish — parked by user.**
+- **`@albahadly/formsgen-renderer` npm publish — parked by user.**
 - Form-level theme in Settings could grow (font family, text/background/border/error colors). Today the Settings theme tokens (`--fg-*` variables) style only vanilla exports and the renderer; Tailwind/Bootstrap exports follow their framework's palette.
 - More per-element options are easy to add the same way (e.g. label position, spacing): add the key to `ElementStyle` + ADR-0002's log, then the parser, each adapter's idiom, and a panel feature.

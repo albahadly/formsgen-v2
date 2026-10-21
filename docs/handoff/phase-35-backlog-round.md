@@ -37,7 +37,7 @@ The React and Vue standalone runtimes for signatures, rich text, locations and t
 
 - **Keyboard drawing on a signature pad with "Or type your name" turned off**: the typing box is the keyboard path and is on by default; the builder's control says so.
 - **Bootstrap 5 contrast** of secondary legends and outline buttons on `bg-body-tertiary`: Bootstrap's own palette, left as it ships.
-- **npm publish of `@formsgen/renderer`**: parked by the user.
+- **npm publish of `@albahadly/formsgen-renderer`**: parked by the user.
 - **Legacy entities without a semicolon** (`&copy` as the browser also accepts it): the renderer's parser still requires the `;`; typed text never produces the form, only pasted raw HTML.
 
 ## Key decisions & why

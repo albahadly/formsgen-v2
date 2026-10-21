@@ -2,7 +2,7 @@
 
 ## Status
 
-Complete — 2026-10-04, commit: see `git log` (feat(phase-19)). Still parked per user direction: publishing `@formsgen/renderer` to npm.
+Complete — 2026-10-04, commit: see `git log` (feat(phase-19)). Still parked per user direction: publishing `@albahadly/formsgen-renderer` to npm.
 
 ## What was built
 
@@ -37,6 +37,6 @@ The builder's Arabic mode (header toggle "العربية") used to leave registr
 
 ## Not done / backlog
 
-- **`@formsgen/renderer` npm publish — parked by user.**
+- **`@albahadly/formsgen-renderer` npm publish — parked by user.**
 - "renderer v0.0.1" (version tag) and the brand name "FormsGen" are intentionally left as-is.
 - Adding a third UI language means a third catalog plus a third `arText`-style phrase table. If more languages come, fold `arText` into the per-locale catalogs keyed by phrase.

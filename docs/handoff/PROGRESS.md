@@ -61,11 +61,19 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
   `feat(phase-46)` + `docs(handoff)` on `main` (see the log). Gates:
   verify green (renderer 228 / builder 395 / cli 12 / server 9), Edge
   review with the real clipboard. **The roadmap the user chose on
-  2026-10-21 (phases 39–46) is complete**; nothing is in flight. Next
-  candidates: the backlog items in the handoffs' "What was intentionally
-  NOT done" sections, the parked npm publish of `@formsgen/renderer`, or
-  the ideas the user set aside (hosted forms and responses,
-  multi-language forms, the audit panel, print/PDF).
+  2026-10-21 (phases 39–46) is complete.**
+- **Phase 47 — npm release (2026-10-21).** The user asked how to publish
+  to npmjs.com (profile `~albahadly`) and chose: the `@albahadly` scope,
+  MIT, GitHub Actions. Done in the repo: packages renamed to
+  `@albahadly/formsgen-renderer` / `@albahadly/formsgen-cli` everywhere
+  (imports, exports' generated code and READMEs, docs, snapshots, the
+  lockfile), `LICENSE` (MIT) + `license`/`repository`/`publishConfig`
+  metadata, `.github/workflows/release.yml` (verify, then publish each
+  package whose version is not on npm; needs the `NPM_TOKEN` secret),
+  READMEs with `npm i` / `npx` lines, CLAUDE.md rule updated. **What
+  only the user can do:** create an npm automation token, add it as the
+  repository secret `NPM_TOKEN`, run the Release workflow (or push
+  `v0.1.0`). Nothing is published until then.
 
 ## Next steps (in order) — the roadmap the user chose on 2026-10-21
 
@@ -92,7 +100,7 @@ audit panel, print/PDF). Each is a phase under the Phase Standard.
 
 ## Open backlog (pointer)
 
-- npm publish of `@formsgen/renderer` — parked by the user.
+- npm publish of `@albahadly/formsgen-renderer` — parked by the user.
 - Still deferred on purpose: a keyboard way to draw a signature when typing
   is off; Bootstrap 5 contrast on tertiary backgrounds; legacy entities
   without a semicolon (see `phase-35-backlog-round.md`).
@@ -112,6 +120,13 @@ Sample servers for the demos: `node packages/submit-server/server.mjs --port 428
 and, for the spam demo, `TURNSTILE_SECRET=1x0000000000000000000000000000000AA node packages/submit-server/server.mjs --port 4281 --dir /tmp/subs-captcha`.
 
 ## Log (newest first)
+
+- **2026-10-21** — **Phase 47: npm release** (handoff
+  `phase-47-npm-release.md`). The npm user `formsgen` does not exist, so
+  the `@formsgen` scope would have needed a new org; the user chose
+  their own scope. Mechanical rename across 181 tracked files, lockfile
+  regenerated, both packages `pnpm publish --dry-run` clean, verify
+  green. Publishing itself waits for the user's `NPM_TOKEN`.
 
 - **2026-10-21** — **Phase 46: small wins** (handoff
   `phase-46-small-wins.md`). The header's theme control is a System /

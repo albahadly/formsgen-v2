@@ -22,7 +22,7 @@ on two demos (recorded under "How to verify").
   after submit. The renderer's stylesheet is added to the page once.
 - **A second renderer build** (`vite.config.element.ts` → `dist/element/`
   `formsgen-element.js` ES module and `.iife.js`, Vue inside, ~325 kB;
-  `pnpm --filter @formsgen/renderer build:element`, part of `build`;
+  `pnpm --filter @albahadly/formsgen-renderer build:element`, part of `build`;
   package export `./element`).
 - **The builder serves and ships it**: a Vite plugin (`elementBundle`)
   serves `element/*.js` from the renderer's build in dev and copies it
@@ -71,7 +71,7 @@ on two demos (recorded under "How to verify").
 
 ```sh
 pnpm verify
-pnpm --filter @formsgen/renderer build:element && pnpm --filter @formsgen/cli build
+pnpm --filter @albahadly/formsgen-renderer build:element && pnpm --filter @albahadly/formsgen-cli build
 node packages/submit-server/server.mjs --port 4280 --dir /tmp/subs &
 bash tools/proof/element-check.sh tools/proof/demos/prefill.json tools/proof/e2e/prefill.mjs prefill
 bash tools/proof/element-check.sh tools/proof/demos/thanks.json tools/proof/e2e/thanks.mjs thanks

@@ -162,7 +162,7 @@ A project-wide review (12 reviewers, each finding judged independently) found th
 
 ## What was intentionally NOT done
 
-- **npm publish of `@formsgen/renderer`**: parked by the user (unchanged since phase 16).
+- **npm publish of `@albahadly/formsgen-renderer`**: parked by the user (unchanged since phase 16).
 - **Rich-text toolbar roving tabindex** (arrow keys between buttons): every button is a tab stop; five stops is acceptable, deferred.
 - **A signature without "Or type your name"** has no keyboard way to sign: the typing box is the keyboard path and is on by default; the builder's control says so. Deferred: a focusable pad with key-drawn strokes is not worth it.
 - **`meta.captcha` in the kitchen-sink fixture**: a check would block the fixture's own submit tests; the spam check is covered by its own unit tests, the export tests and the 12-runtime demo.

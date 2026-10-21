@@ -2,7 +2,7 @@
 
 ## Status
 
-Complete — 2026-10-04, commit: see `git log` (feat(phase-23)). Scope: the "quick wins" from the comparison with builder.vueform.com. Still parked per user direction: publishing `@formsgen/renderer` to npm.
+Complete — 2026-10-04, commit: see `git log` (feat(phase-23)). Scope: the "quick wins" from the comparison with builder.vueform.com. Still parked per user direction: publishing `@albahadly/formsgen-renderer` to npm.
 
 ## What was built
 
@@ -69,7 +69,7 @@ Complete — 2026-10-04, commit: see `git log` (feat(phase-23)). Scope: the "qui
 
 ## Backlog (from the Vueform comparison)
 
-- **`@formsgen/renderer` npm publish — parked by user.**
+- **`@albahadly/formsgen-renderer` npm publish — parked by user.**
 - Medium: range slider with two handles, date range and multiple dates, matrix / matrix table, grid and table layouts, phone with a country selector.
 - Large (needs a decision): repeatable list / nested list; file and image upload (payload encoding: multipart when a submit URL is set?); signature, WYSIWYG, location, captcha (third-party services); static HTML (recommend a restricted Markdown instead).
 - Form-level: per-breakpoint column widths, floating placeholders, tooltips, a default size for all fields, input prefix/suffix add-ons, starter templates.

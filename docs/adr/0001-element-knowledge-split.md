@@ -5,7 +5,7 @@
 Element types need two kinds of knowledge: runtime semantics (does it carry
 a value, does it nest children, what is its default value, how does it
 render) and authoring metadata (palette icon and labels, default props when
-dropped, property-panel definition). The published `@formsgen/renderer`
+dropped, property-panel definition). The published `@albahadly/formsgen-renderer`
 package must stay lean and dependency-free, while REBUILD_PROMPT.md §3
 describes one `ElementDefinition` carrying everything.
 
@@ -13,7 +13,7 @@ describes one `ElementDefinition` carrying everything.
 
 Split by consumer:
 
-- `@formsgen/renderer` owns the canonical schema types, the closed rule and
+- `@albahadly/formsgen-renderer` owns the canonical schema types, the closed rule and
   condition catalogs, and `coreElements` — per-type runtime semantics
   (`hasValue`, `isContainer`, `defaultValue`). Phase 3 adds its render
   components keyed by the same type ids (an internal component map, not a
