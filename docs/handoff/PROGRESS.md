@@ -16,7 +16,7 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
   the review round of 2026-10-21 (drop direction fix,
   `tools/proof/canvas-parity.mjs`, `PLAYWRIGHT_CHANNEL`), then **phase 38**
   (builder light/dark mode, version `0.1.0` beside the title).
-- **State:** phases 01–11, 10b and 12–39 are complete.
+- **State:** phases 01–11, 10b and 12–40 are complete.
 - **Where sessions run now:** the user's local Windows checkout
   (`CLAUDE.md` §6, last bullet), not the cloud container. `pnpm verify`
   via `npx --yes pnpm@10 verify` is green there on `2c9f4fe` (198 renderer /
@@ -36,9 +36,10 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
 
 ## In flight
 
-- Nothing. Uncommitted: nothing. Phase 39 shipped: `verify` green
-  (renderer 208 / builder 353 / server 8 tests, all builds), matrix
-  12 × IDENTICAL, pushed to `main`. Next: phase 40 (after submit).
+- **Phase 40 — after submit**: everything committed; both matrices
+  12 × IDENTICAL. The final `pnpm verify` is running (session
+  `scratchpad/verify6.log`); the push to `main` (= production deploy)
+  follows a green result. Uncommitted: nothing.
 
 ## Next steps (in order) — the roadmap the user chose on 2026-10-21
 
@@ -86,6 +87,23 @@ and, for the spam demo, `TURNSTILE_SECRET=1x0000000000000000000000000000000AA no
 
 ## Log (newest first)
 
+- **2026-10-21** — **Phase 40: after submit** (handoff
+  `phase-40-after-submit.md`, ADR-0002 log). Renderer `afterSubmit.ts`
+  (`afterSubmitOf`, `isRedirectUrl`), `FormsGenForm` prop `sent` + event
+  `again` (the thank-you replaces the form body, piped through `pipeText`),
+  message key `sendAnother`. Exports: `export/afterSubmit.ts` — the block
+  per language from `pipeMarkup`, `data-fg-sent` on the root plus one CSS
+  rule hiding the rest (HTML `<style>` in head, React a `<style>` child,
+  Vue the scoped block, Blazor a `<style>` child), success hooks in the
+  three send branches of each target (the draft goes first; the output is
+  byte-identical when nothing is configured, so no example drifted), the
+  reset function emitted whenever a message exists; vue-lib host sets
+  `sent`. Builder: Settings fields (the redirect is kept only when valid),
+  preview shows the thank-you or a note for a redirect. Sample server
+  `--webhook` + `WEBHOOK_SECRET` (HMAC), tested. Kitchen sink carries a
+  piped message; 12 snapshots refreshed. Matrices `thanks` and `redirect`
+  12 × IDENTICAL each; the first `thanks` run exposed a dead selector in
+  the Vue Tailwind flavour (`undefined[data-fg-sent]`), fixed (`b96a8d9`).
 - **2026-10-21** — **Phase 39: prefill from the page address** (first of
   the roadmap the user chose). Renderer `prefill.ts` (kinds, conversions,
   `queryPrefill`), `FormsGenForm` prop `prefillSearch`, `meta.prefillFromQuery`
