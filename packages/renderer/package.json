@@ -15,12 +15,14 @@
       "import": "./dist/formsgen-renderer.js",
       "require": "./dist/formsgen-renderer.umd.cjs"
     },
-    "./style.css": "./dist/formsgen-renderer.css"
+    "./style.css": "./dist/formsgen-renderer.css",
+    "./element": "./dist/element/formsgen-element.js"
   },
   "scripts": {
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run",
-    "build": "vite build && vue-tsc --declaration --emitDeclarationOnly --outDir dist -p tsconfig.build.json"
+    "build": "vite build && vite build -c vite.config.element.ts && vue-tsc --declaration --emitDeclarationOnly --outDir dist -p tsconfig.build.json",
+    "build:element": "vite build -c vite.config.element.ts"
   },
   "peerDependencies": {
     "vue": "^3.5.0"

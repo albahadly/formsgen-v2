@@ -9,11 +9,22 @@ export interface ExportedFile {
   content: string
   /** highlight.js language id for display. */
   language: 'json' | 'xml' | 'javascript' | 'typescript' | 'markdown' | 'css'
+  /** False for a file the project must not be appended to (a prebuilt bundle). */
+  project?: false
+}
+
+/** Prebuilt pieces a target may include when the caller has them. */
+export interface ExportAssets {
+  /** The renderer's web-component bundle (dist/element/formsgen-element.js). */
+  elementScript?: string | null
+  /** Where that bundle can be loaded from instead (the builder's own origin). */
+  elementScriptUrl?: string | null
 }
 
 export interface ExportContext {
   schema: FormSchema
   css: CssFrameworkAdapter
+  assets?: ExportAssets | undefined
 }
 
 export interface ExportTarget {

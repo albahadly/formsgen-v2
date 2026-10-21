@@ -92,7 +92,8 @@ describe('formsgen export', () => {
   it('writes every target into its own sub-folder with "all"', () => {
     const dir = temp()
     const { written } = exportCommand(KITCHEN, { target: 'all', css: 'bootstrap5', out: dir, project: true, server: false })
-    expect(readdirSync(dir).sort()).toEqual(['blazor-bootstrap5', 'html-bootstrap5', 'json', 'react-bootstrap5', 'validation', 'vue-lib', 'vue-standalone-bootstrap5'])
+    expect(readdirSync(dir).sort()).toEqual(['blazor-bootstrap5', 'html-bootstrap5', 'json', 'react-bootstrap5', 'validation', 'vue-lib', 'vue-standalone-bootstrap5', 'web-component'])
+    expect(written).toContain('web-component/kitchen_sink.html')
     expect(written).toContain('html-bootstrap5/kitchen_sink.html')
     expect(written).toContain('validation/kitchen_sink.zod.ts')
     expect(readFileSync(join(dir, 'html-bootstrap5/kitchen_sink.html'), 'utf8')).toContain('bootstrap')
@@ -117,9 +118,9 @@ describe('formsgen validate, targets, help', () => {
     expect(cli(['validate', bad])).toMatchObject({ code: 1, err: expect.stringContaining('not a valid FormsGen project') })
   })
 
-  it('targets lists the seven targets and the flavours', () => {
+  it('targets lists the eight targets and the flavours', () => {
     const text = targetsCommand()
-    for (const id of ['json', 'vue-lib', 'vue-standalone', 'react', 'blazor', 'html', 'validation']) expect(text).toContain(`  ${id}`)
+    for (const id of ['json', 'vue-lib', 'vue-standalone', 'react', 'blazor', 'html', 'validation', 'web-component']) expect(text).toContain(`  ${id}`)
     expect(text).toContain('vanilla, tailwind, bootstrap5')
     expect(cli(['targets']).code).toBe(0)
   })

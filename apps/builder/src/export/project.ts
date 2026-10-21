@@ -41,7 +41,7 @@ export function projectBlock(schema: FormSchema, style: CommentStyle): string {
 /** The files with the project appended to each code file. */
 export function withProject(files: ExportedFile[], schema: FormSchema): ExportedFile[] {
   return files.map((file) => {
-    const style = commentStyle(file.path)
+    const style = file.project === false ? null : commentStyle(file.path)
     if (!style) return file
     const content = file.content.endsWith('\n') ? file.content : `${file.content}\n`
     return { ...file, content: `${content}\n${projectBlock(schema, style)}` }

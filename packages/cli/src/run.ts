@@ -18,7 +18,7 @@ Usage:
   formsgen targets                                 list the targets and CSS flavours
 
 Export options:
-  --target <id|all>   html (default), react, vue-standalone, vue-lib, blazor, json, validation, or all
+  --target <id|all>   html (default), react, vue-standalone, vue-lib, blazor, json, validation, web-component, or all
   --css <flavour>     vanilla (default), tailwind, bootstrap5
   --out <dir>         where to write (default: formsgen-export); with "all", one sub-folder per target
   --no-project        leave the project out of the generated files (the builder cannot reopen them)

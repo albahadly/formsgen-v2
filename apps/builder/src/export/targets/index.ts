@@ -4,6 +4,7 @@ import { jsonTarget } from './json'
 import { reactTarget } from './react'
 import type { ExportTarget } from './types'
 import { validationTarget } from './validation'
+import { webComponentTarget } from './web-component'
 import { vueLibTarget } from './vue-lib'
 import { vueStandaloneTarget } from './vue-standalone'
 
@@ -32,9 +33,10 @@ for (const target of [
   blazorTarget,
   htmlTarget,
   validationTarget,
+  webComponentTarget,
 ]) {
   registerTarget(target)
 }
 
 export { componentName } from './types'
-export type { ExportContext, ExportedFile, ExportTarget } from './types'
+export type { ExportAssets, ExportContext, ExportedFile, ExportTarget } from './types'

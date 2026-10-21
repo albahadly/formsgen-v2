@@ -9,8 +9,9 @@ import { getCssAdapter, listCssAdapters, type CssFrameworkId } from '@/export/cs
 import { withProject } from '@/export/project'
 import { sampleServerFiles } from '@/export/submitServer'
 import { getTarget, listTargets, type ExportedFile } from '@/export/targets'
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 /** A problem the user can fix: printed as one line, exit code 1. */
 export class CliError extends Error {}
@@ -43,6 +44,19 @@ export interface PackageOptions {
   server: boolean
 }
 
+/**
+ * The renderer's web-component bundle: next to the built CLI (copied there by
+ * its build), else the renderer's build in this repository; null when neither
+ * exists (the README then says where to get it).
+ */
+export function elementScript(): string | null {
+  const here = dirname(fileURLToPath(import.meta.url))
+  for (const candidate of [join(here, 'element/formsgen-element.js'), join(here, '../../renderer/dist/element/formsgen-element.js')]) {
+    if (existsSync(candidate)) return readFileSync(candidate, 'utf8')
+  }
+  return null
+}
+
 /** The files the builder's "project package" ZIP holds for one target. */
 export function packageFiles(schema: FormSchema, targetId: string, css: CssFrameworkId, options: PackageOptions): ExportedFile[] {
   const target = getTarget(targetId)
@@ -50,10 +64,11 @@ export function packageFiles(schema: FormSchema, targetId: string, css: CssFrame
   if (!CSS_IDS().includes(css)) throw new CliError(`unknown CSS flavour "${css}"; one of ${CSS_IDS().join(', ')}`)
   const adapter = getCssAdapter(css)
   const isCode = target.id !== 'json'
-  const generated = target.generate({ schema, css: adapter })
+  const assets = target.id === 'web-component' ? { elementScript: elementScript() } : undefined
+  const generated = target.generate({ schema, css: adapter, assets })
   const files = isCode && options.project ? withProject(generated, schema) : generated
   const projectFile = `${schema.meta.name}.formsgen.json`
-  const base = target.readme({ schema, css: adapter })
+  const base = target.readme({ schema, css: adapter, assets })
   const readme = isCode
     ? `${base.trimEnd()}\n\n## Change this form later\n\nOpen \`${projectFile}\`${options.project ? ' (or the generated file)' : ''} in the FormsGen builder with *Open*, edit it, and export again. Exporting again replaces the generated files, so keep your own code outside them.\n`
     : base

@@ -6,7 +6,7 @@ import { useFocusTrap } from '@/composables/useFocusTrap'
 import { getCssAdapter, listCssAdapters, type CssFrameworkId } from '@/export/css'
 import { withProject } from '@/export/project'
 import { sampleServerFiles } from '@/export/submitServer'
-import { getTarget, listTargets, type ExportedFile } from '@/export/targets'
+import { getTarget, listTargets, type ExportAssets, type ExportedFile } from '@/export/targets'
 import { t, tText } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'
 import { useUiStore } from '@/stores/ui'
@@ -34,15 +34,34 @@ const isCode = computed(() => targetId.value !== 'json')
 const includeServer = ref(false)
 const serverFiles = computed<ExportedFile[]>(() => (isCode.value && includeServer.value ? sampleServerFiles(builder.schema) : []))
 
+// The web-component target ships the renderer's element bundle, fetched from
+// this origin (served under element/) once that target is picked.
+const elementScript = ref<string | null>(null)
+const elementScriptUrl = typeof document !== 'undefined' ? new URL('element/formsgen-element.js', document.baseURI).href : null
+watch(
+  targetId,
+  async (id) => {
+    if (id !== 'web-component' || elementScript.value !== null || typeof fetch !== 'function' || !elementScriptUrl) return
+    try {
+      const response = await fetch(elementScriptUrl)
+      if (response.ok) elementScript.value = await response.text()
+    } catch {
+      // Not served here: the README says where the script comes from.
+    }
+  },
+  { immediate: true },
+)
+const assets = computed<ExportAssets>(() => ({ elementScript: elementScript.value, elementScriptUrl }))
+
 const files = computed<ExportedFile[]>(() => {
-  const generated = target.value.generate({ schema: builder.schema, css: getCssAdapter(framework.value) })
+  const generated = target.value.generate({ schema: builder.schema, css: getCssAdapter(framework.value), assets: assets.value })
   return isCode.value && includeProject.value ? withProject(generated, builder.schema) : generated
 })
 
 const projectFile = computed(() => `${builder.schema.meta.name}.formsgen.json`)
 
 const readme = computed(() => {
-  const base = target.value.readme({ schema: builder.schema, css: getCssAdapter(framework.value) })
+  const base = target.value.readme({ schema: builder.schema, css: getCssAdapter(framework.value), assets: assets.value })
   return isCode.value
     ? `${base.trimEnd()}\n\n## Change this form later\n\nOpen \`${projectFile.value}\` (or this ZIP${includeProject.value ? ', or the generated file' : ''}) in the FormsGen builder with *Open*, edit it, and export again. Exporting again replaces the generated files, so keep your own code outside them.\n`
     : base

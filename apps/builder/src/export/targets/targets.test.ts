@@ -39,7 +39,7 @@ const generateNoSlider = (targetId: string, framework: CssFrameworkId) => {
 }
 
 describe('export target registry', () => {
-  it('registers the seven targets', () => {
+  it('registers the eight targets', () => {
     expect(listTargets().map((t) => t.id)).toEqual([
       'json',
       'vue-lib',
@@ -48,6 +48,7 @@ describe('export target registry', () => {
       'blazor',
       'html',
       'validation',
+      'web-component',
     ])
   })
 

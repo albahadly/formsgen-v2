@@ -646,6 +646,8 @@ const arText: Record<string, string> = {
   // export dialog
   'JSON schema': 'مخطط JSON',
   'Validation (zod + JSON Schema)': 'التحقق (zod + JSON Schema)',
+  'Web Component (any page)': 'مكوّن ويب (لأي صفحة)',
+  'A <formsgen-form> element: one script tag renders the form in any site, no framework needed.': 'عنصر <formsgen-form>: وسم سكربت واحد يعرض النموذج في أي موقع دون إطار عمل.',
   'The form’s rules for your server: a zod schema for Node and TypeScript, and a JSON Schema for any language.': 'قواعد النموذج لخادمك: مخطط zod لـ Node وTypeScript، ومخطط JSON Schema لأي لغة.',
   'Vue (renderer package)': 'Vue (حزمة العارض)',
   'Vue (standalone)': 'Vue (مستقل)',
