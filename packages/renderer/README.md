@@ -42,6 +42,30 @@ const schema = result.schema
 - `schema.meta.dir: "rtl"` flips the form; the stylesheet uses logical
   properties throughout.
 
+## Any framework: the web component
+
+The package also ships `<formsgen-form>`, a custom element with Vue
+bundled inside, for React, Angular, Svelte, plain HTML or a CMS — the host
+page needs no Vue:
+
+```html
+<script type="module">
+  import '@albahadly/formsgen-renderer/element'
+</script>
+<formsgen-form src="./contact.formsgen.json"></formsgen-form>
+```
+
+Or one classic script tag with the IIFE build
+(`node_modules/@albahadly/formsgen-renderer/dist/element/formsgen-element.iife.js`).
+The element takes `src` (a schema URL) or `schema` (a JSON string, or an
+object set as a property); it dispatches `formsgen-ready`,
+`formsgen-change`, `formsgen-submit` (cancelable; the answers in
+`detail`), `formsgen-sent` and `formsgen-error`, posts where
+`meta.submit` points, and renders in the page itself (no shadow DOM) so
+the host's styles apply. React apps that prefer a native component generate one with
+`npx @albahadly/formsgen-cli export form.formsgen.json --target react`
+(a self-contained `.tsx`, no runtime dependency on this package).
+
 ## Exports
 
 Components (`FormsGenForm` plus the individual `Fg*` field components),
