@@ -36,11 +36,9 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
 
 ## In flight
 
-- **Phase 41 — server-side validation export**: target, tests, toolkit
-  proof (12 + 24 real submissions, 0 failures) and docs committed; the
-  final `pnpm verify` is running (session `scratchpad/verify7.log`); the
-  push to `main` (= production deploy) follows a green result.
-  Uncommitted: nothing.
+- Nothing. Uncommitted: nothing. Phase 41 shipped: `verify` green
+  (renderer 212 / builder 376 / server 9 tests, all builds), proof 12 + 24
+  real submissions valid, pushed to `main`. Next: phase 42 (CLI).
 
 ## Next steps (in order) — the roadmap the user chose on 2026-10-21
 
