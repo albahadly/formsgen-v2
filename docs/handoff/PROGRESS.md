@@ -16,7 +16,7 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
   the review round of 2026-10-21 (drop direction fix,
   `tools/proof/canvas-parity.mjs`, `PLAYWRIGHT_CHANNEL`), then **phase 38**
   (builder light/dark mode, version `0.1.0` beside the title).
-- **State:** phases 01–11, 10b and 12–44 are complete.
+- **State:** phases 01–11, 10b and 12–45 are complete.
 - **Where sessions run now:** the user's local Windows checkout
   (`CLAUDE.md` §6, last bullet), not the cloud container. `pnpm verify`
   via `npx --yes pnpm@10 verify` is green there on `2c9f4fe` (198 renderer /
@@ -48,14 +48,17 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
     `fix(phase-45)` and `docs(handoff)` commits after it (see the log).
     Gates: verify green (renderer 221 / builder 383 / cli 12 / server 9),
     matrix 12/12 IDENTICAL, parity IDENTICAL ×6, builder reviewed in Edge.
-  - **Next: 45b** — `currency` (number + code, locale formatting while
-    typing, one separator table shared by renderer and runtimes) and
-    `address` (text with suggestions, datalist + debounced provider, the
-    value stays a string). Same checklist: renderer component + meta,
-    registry element with four emitters, `structure.ts` / `csharp.ts` /
-    `validation.ts` / prefill kinds, kitchen sink + a template, i18n in
-    five locales, demo + e2e, matrix, parity if CSS changes, handoff
-    section, ADR-0002 row.
+  - **45b shipped** (2026-10-21, see the log): `currency` and `address`
+    through the renderer, the registry, the four targets, prefill, the
+    validation export, the kitchen sink, the order template, five
+    locales, the sample server's `/suggest`, demo + e2e. Gates:
+    verify green (renderer 228 / builder 388 / cli 12 / server 9), matrix
+    12/12 IDENTICAL after two fixes the first run found (TS narrowing in
+    the suggestion script, the Blazor `FgField` helper gated on money),
+    builder reviewed in Edge.
+  - **Phase 45 is complete.** Next on the roadmap: **Phase 46** — a
+    three-way system/light/dark control and copy/paste of elements
+    between projects (ADR-0005 for the theme).
 
 ## Next steps (in order) — the roadmap the user chose on 2026-10-21
 
@@ -102,6 +105,18 @@ Sample servers for the demos: `node packages/submit-server/server.mjs --port 428
 and, for the spam demo, `TURNSTILE_SECRET=1x0000000000000000000000000000000AA node packages/submit-server/server.mjs --port 4281 --dir /tmp/subs-captcha`.
 
 ## Log (newest first)
+
+- **2026-10-21** — **Phase 45b: currency and address** (handoff
+  `phase-45-field-types.md`, 45b section). `currency`: a number typed in
+  a decimal text control, the sign as a prefix add-on, formatted with the
+  form locale's separators on blur; one parse rule in JS/TS/C# (last
+  separator + up to `decimals` digits = decimal mark) so the runtimes
+  agree. `address`: a text input with a datalist filled by one shared
+  script from a provider URL template (`{q}`; Nominatim by default; the
+  sample server's `/suggest` for demos). Both excluded from repeaters.
+  Demo `demos/money.json` (German) + `e2e/money.mjs`. Found on the way:
+  a `vitest -u` run while `export-demo.sh` runs the builder's vitest can
+  lose its snapshot update.
 
 - **2026-10-21** — **Phase 45a: star rating and NPS scale** (handoff
   `phase-45-field-types.md`). `rating` (1..max stars) and `nps` (0..10
