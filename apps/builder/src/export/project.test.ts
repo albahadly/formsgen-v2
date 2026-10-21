@@ -17,7 +17,7 @@ describe('reopenable exports', () => {
       for (const fw of ['vanilla', 'tailwind', 'bootstrap5'] as const) {
         const files = withProject(target.generate({ schema, css: getCssAdapter(fw) }), schema)
         for (const file of files) {
-          const carries = /\.(html|vue|tsx|razor)$/.test(file.path)
+          const carries = /\.(html|vue|tsx|ts|razor)$/.test(file.path)
           expect(file.content.includes(PROJECT_MARKER), `${target.id} ${fw} ${file.path}`).toBe(carries)
           if (carries) expect(readProject(file.content), file.path).toEqual(schema)
         }
