@@ -27,19 +27,19 @@ function set(key: (typeof sizes)[number]['key'], v: string): void {
 
 <template>
   <fieldset class="flex flex-col gap-1">
-    <legend class="mb-1 text-xs font-medium text-gray-600">
+    <legend class="mb-1 text-xs font-medium text-gray-600 dark:text-gray-300">
       {{ t('properties.colspan.label') }}
     </legend>
     <div class="grid grid-cols-3 gap-2">
       <label
         v-for="size in sizes"
         :key="size.key"
-        class="flex flex-col gap-1 text-[11px] font-medium text-gray-500"
+        class="flex flex-col gap-1 text-[11px] font-medium text-gray-500 dark:text-gray-400"
       >
         {{ t(size.label) }}
         <select
           :value="current(size.key)"
-          class="rounded border border-gray-300 px-1.5 py-1.5 text-sm font-normal text-gray-900"
+          class="rounded border border-gray-300 dark:border-gray-600 px-1.5 py-1.5 text-sm font-normal text-gray-900 dark:text-gray-100"
           :data-testid="size.testid"
           @change="set(size.key, ($event.target as HTMLSelectElement).value)"
         >

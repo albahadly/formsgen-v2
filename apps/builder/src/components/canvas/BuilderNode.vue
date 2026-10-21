@@ -132,7 +132,7 @@ function onDuplicate(): void {
     class="fg-cell group relative rounded-md border p-2 transition-colors"
     :style="cellStyle"
     :class="[
-      selected ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-transparent hover:border-indigo-300',
+      selected ? 'border-indigo-500 ring-2 ring-indigo-200 fg-dark:ring-indigo-900' : 'border-transparent hover:border-indigo-300',
       node.style?.align ? `fg-align-${node.style.align}` : '',
     ]"
     :data-testid="`canvas-node-${node.id}`"
@@ -202,7 +202,7 @@ function onDuplicate(): void {
 
     <p
       v-else-if="isHidden"
-      class="flex items-center gap-2 rounded border border-dashed border-gray-300 px-2 py-1 text-xs text-gray-500"
+      class="flex items-center gap-2 rounded border border-dashed border-gray-300 fg-dark:border-gray-600 px-2 py-1 text-xs text-gray-500 fg-dark:text-gray-400"
       dir="ltr"
     >
       <span class="font-semibold">{{ t('canvas.hiddenField') }}</span>
@@ -211,7 +211,7 @@ function onDuplicate(): void {
 
     <div
       v-else-if="isSectionHost"
-      class="rounded border border-dashed border-gray-300 bg-gray-50/60 p-2"
+      class="rounded border border-dashed border-gray-300 fg-dark:border-gray-600 bg-gray-50/60 fg-dark:bg-gray-800/60 p-2"
     >
       <div class="mb-2 flex flex-wrap items-center gap-1">
         <button
@@ -220,15 +220,15 @@ function onDuplicate(): void {
           type="button"
           class="group/tab flex items-center gap-1 rounded-t border-b-2 px-2.5 py-1 text-xs font-medium"
           :class="index === activeIndex
-            ? 'border-indigo-500 bg-white text-indigo-700'
-            : 'border-transparent text-gray-500 hover:bg-gray-100'"
+            ? 'border-indigo-500 bg-white fg-dark:bg-gray-900 text-indigo-700 fg-dark:text-indigo-300'
+            : 'border-transparent text-gray-500 fg-dark:text-gray-400 hover:bg-gray-100 fg-dark:hover:bg-gray-800'"
           :data-testid="`section-tab-${section.id}`"
           @click.stop="selectSection(section, index)"
         >
           {{ sectionLabel(section, index) }}
           <span
             v-if="sections.length > 1"
-            class="hidden rounded px-0.5 text-[10px] text-red-400 hover:bg-red-50 hover:text-red-600 group-hover/tab:inline [@media(hover:none)]:inline"
+            class="hidden rounded px-0.5 text-[10px] text-red-400 hover:bg-red-50 fg-dark:hover:bg-red-950 hover:text-red-600 fg-dark:hover:text-red-400 group-hover/tab:inline [@media(hover:none)]:inline"
             role="button"
             :aria-label="t('canvas.section.remove')"
             :data-testid="`section-remove-${section.id}`"
@@ -237,7 +237,7 @@ function onDuplicate(): void {
         </button>
         <button
           type="button"
-          class="rounded px-2 py-1 text-xs text-gray-400 hover:bg-gray-100 hover:text-indigo-600"
+          class="rounded px-2 py-1 text-xs text-gray-400 fg-dark:text-gray-500 hover:bg-gray-100 fg-dark:hover:bg-gray-800 hover:text-indigo-600 fg-dark:hover:text-indigo-400"
           :data-testid="`section-add-${node.id}`"
           @click.stop="addSection"
         >
@@ -267,7 +267,7 @@ function onDuplicate(): void {
         <template #footer>
           <p
             v-if="(activeSection.children ?? []).length === 0"
-            class="pointer-events-none py-3 text-center text-xs text-gray-400"
+            class="pointer-events-none py-3 text-center text-xs text-gray-400 fg-dark:text-gray-500"
           >
             {{ t('canvas.container.empty') }}
           </p>
@@ -277,9 +277,9 @@ function onDuplicate(): void {
 
     <div
       v-else-if="isContainer"
-      class="rounded border border-dashed border-gray-300 bg-gray-50/60 p-2"
+      class="rounded border border-dashed border-gray-300 fg-dark:border-gray-600 bg-gray-50/60 fg-dark:bg-gray-800/60 p-2"
     >
-      <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+      <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400 fg-dark:text-gray-500">
         {{ tOr(`element.${node.type}.label`, definition?.label ?? node.type) }}
         <span v-if="node.props.label"> — {{ node.props.label }}</span>
         <span
@@ -310,7 +310,7 @@ function onDuplicate(): void {
         <template #footer>
           <p
             v-if="(node.children ?? []).length === 0"
-            class="pointer-events-none py-3 text-center text-xs text-gray-400"
+            class="pointer-events-none py-3 text-center text-xs text-gray-400 fg-dark:text-gray-500"
           >
             {{ t('canvas.container.empty') }}
           </p>

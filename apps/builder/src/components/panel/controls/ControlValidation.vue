@@ -72,28 +72,28 @@ function betweenValue(rule: Rule, bound: 0 | 1): number {
     <div
       v-for="(rule, index) in rules"
       :key="rule.rule"
-      class="flex items-center gap-1.5 rounded border border-gray-200 bg-gray-50 px-2 py-1"
+      class="flex items-center gap-1.5 rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-2 py-1"
       :data-testid="`rule-${rule.rule}`"
     >
-      <span class="flex-1 text-xs font-medium text-gray-700">{{ t(`properties.validation.rule.${rule.rule}`) }}</span>
+      <span class="flex-1 text-xs font-medium text-gray-700 dark:text-gray-300">{{ t(`properties.validation.rule.${rule.rule}`) }}</span>
       <input
         v-if="needsNumber(rule)"
         type="number"
-        class="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-xs"
+        class="w-16 rounded border border-gray-300 dark:border-gray-600 px-1.5 py-0.5 text-xs"
         :value="Number(rule.value ?? 0)"
         @input="setRuleValue(index, Number(($event.target as HTMLInputElement).value))"
       >
       <template v-else-if="rule.rule === 'between'">
         <input
           type="number"
-          class="w-14 rounded border border-gray-300 px-1.5 py-0.5 text-xs"
+          class="w-14 rounded border border-gray-300 dark:border-gray-600 px-1.5 py-0.5 text-xs"
           :value="betweenValue(rule, 0)"
           @input="setBetweenBound(index, 0, ($event.target as HTMLInputElement).value)"
         >
-        <span class="text-xs text-gray-400">–</span>
+        <span class="text-xs text-gray-400 dark:text-gray-500">–</span>
         <input
           type="number"
-          class="w-14 rounded border border-gray-300 px-1.5 py-0.5 text-xs"
+          class="w-14 rounded border border-gray-300 dark:border-gray-600 px-1.5 py-0.5 text-xs"
           :value="betweenValue(rule, 1)"
           @input="setBetweenBound(index, 1, ($event.target as HTMLInputElement).value)"
         >
@@ -102,13 +102,13 @@ function betweenValue(rule: Rule, bound: 0 | 1): number {
         v-else-if="needsText(rule)"
         type="text"
         dir="ltr"
-        class="w-28 rounded border border-gray-300 px-1.5 py-0.5 font-mono text-xs"
+        class="w-28 rounded border border-gray-300 dark:border-gray-600 px-1.5 py-0.5 font-mono text-xs"
         :value="String(rule.value ?? '')"
         @input="setRuleValue(index, ($event.target as HTMLInputElement).value)"
       >
       <button
         type="button"
-        class="rounded px-1 text-xs text-red-500 hover:bg-red-50"
+        class="rounded px-1 text-xs text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950"
         :aria-label="t('properties.validation.remove')"
         :data-testid="`rule-remove-${rule.rule}`"
         @click="removeRule(index)"
@@ -119,7 +119,7 @@ function betweenValue(rule: Rule, bound: 0 | 1): number {
     <div class="flex gap-1.5">
       <select
         v-model="pendingRule"
-        class="flex-1 rounded border border-gray-300 px-2 py-1 text-xs"
+        class="flex-1 rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs"
         data-testid="rule-add-select"
       >
         <option value="">

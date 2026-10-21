@@ -20,7 +20,7 @@ const store = useBuilderStore()
 const sources = computed(() => listConditionSources(store.schema.tree, props.node.id))
 const groups = computed<Condition[][]>(() => props.node.conditions ?? [])
 
-const inputClass = 'min-w-0 rounded border border-gray-300 bg-white px-1.5 py-1 text-xs'
+const inputClass = 'min-w-0 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-1.5 py-1 text-xs'
 
 function sourceOf(path: string): ConditionSource | undefined {
   return sources.value.find((s) => s.path === path)
@@ -113,12 +113,12 @@ function optionsFor(condition: Condition): { value: string; label: string }[] {
     data-testid="conditions-editor"
   >
     <template v-if="groups.length === 0">
-      <p class="text-[11px] text-gray-500">
+      <p class="text-[11px] text-gray-500 dark:text-gray-400">
         {{ sources.length > 0 ? t('properties.conditions.always') : t('properties.conditions.noFields') }}
       </p>
       <button
         type="button"
-        class="self-start rounded border border-indigo-200 px-2 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-50 disabled:opacity-40"
+        class="self-start rounded border border-indigo-200 dark:border-indigo-800 px-2 py-1 text-xs font-medium text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950 disabled:opacity-40"
         :disabled="sources.length === 0"
         data-testid="condition-add"
         @click="addFirst"
@@ -128,7 +128,7 @@ function optionsFor(condition: Condition): { value: string; label: string }[] {
     </template>
 
     <template v-else>
-      <p class="text-[11px] text-gray-500">
+      <p class="text-[11px] text-gray-500 dark:text-gray-400">
         {{ t('properties.conditions.hint') }}
       </p>
       <template
@@ -137,12 +137,12 @@ function optionsFor(condition: Condition): { value: string; label: string }[] {
       >
         <p
           v-if="gi > 0"
-          class="text-center text-[11px] font-semibold uppercase text-gray-400"
+          class="text-center text-[11px] font-semibold uppercase text-gray-400 dark:text-gray-500"
         >
           {{ t('properties.conditions.or') }}
         </p>
         <div
-          class="flex flex-col gap-1.5 rounded border border-gray-200 bg-gray-50 p-2"
+          class="flex flex-col gap-1.5 rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-2"
           :data-testid="`condition-group-${gi}`"
         >
           <template
@@ -151,7 +151,7 @@ function optionsFor(condition: Condition): { value: string; label: string }[] {
           >
             <p
               v-if="ci > 0"
-              class="text-[11px] font-semibold text-gray-400"
+              class="text-[11px] font-semibold text-gray-400 dark:text-gray-500"
             >
               {{ t('properties.conditions.and') }}
             </p>
@@ -181,7 +181,7 @@ function optionsFor(condition: Condition): { value: string; label: string }[] {
                 </select>
                 <button
                   type="button"
-                  class="rounded px-1 text-xs text-red-500 hover:bg-red-50"
+                  class="rounded px-1 text-xs text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950"
                   :aria-label="t('properties.conditions.remove')"
                   :data-testid="`condition-${gi}-${ci}-remove`"
                   @click="replaceAt(gi, ci, null)"
@@ -191,7 +191,7 @@ function optionsFor(condition: Condition): { value: string; label: string }[] {
               </div>
               <p
                 v-if="!sourceOf(condition.field)"
-                class="text-[11px] text-amber-700"
+                class="text-[11px] text-amber-700 dark:text-amber-300"
                 data-testid="condition-missing"
               >
                 {{ missingText(condition.field) }}
@@ -269,7 +269,7 @@ function optionsFor(condition: Condition): { value: string; label: string }[] {
           </template>
           <button
             type="button"
-            class="self-start rounded px-1.5 py-0.5 text-[11px] font-medium text-indigo-700 hover:bg-indigo-50"
+            class="self-start rounded px-1.5 py-0.5 text-[11px] font-medium text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950"
             :data-testid="`condition-add-and-${gi}`"
             @click="addAnd(gi)"
           >
@@ -279,7 +279,7 @@ function optionsFor(condition: Condition): { value: string; label: string }[] {
       </template>
       <button
         type="button"
-        class="self-start rounded border border-indigo-200 px-2 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-50"
+        class="self-start rounded border border-indigo-200 dark:border-indigo-800 px-2 py-1 text-xs font-medium text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950"
         data-testid="condition-add-or"
         @click="addOr"
       >

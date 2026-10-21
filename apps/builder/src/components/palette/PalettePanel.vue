@@ -44,13 +44,13 @@ function clone(def: ElementDefinition) {
     class="flex h-full flex-col gap-3"
     data-testid="panel-palette"
   >
-    <h2 class="text-sm font-semibold text-gray-700">
+    <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300">
       {{ t('palette.title') }}
     </h2>
     <input
       v-model="search"
       type="search"
-      class="rounded-md border border-gray-300 px-2 py-1.5 text-sm"
+      class="rounded-md border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-sm"
       :placeholder="t('palette.search')"
     >
     <div
@@ -64,7 +64,7 @@ function clone(def: ElementDefinition) {
         type="button"
         role="tab"
         class="rounded px-2 py-1 text-xs font-medium"
-        :class="c === category ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+        :class="c === category ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'"
         :aria-selected="c === category"
         @click="category = c"
       >
@@ -86,18 +86,18 @@ function clone(def: ElementDefinition) {
         <li>
           <button
             type="button"
-            class="flex w-full cursor-grab items-center gap-2 rounded-md border border-gray-200 bg-white px-2 py-2 text-start hover:border-indigo-400 hover:bg-indigo-50"
+            class="flex w-full cursor-grab items-center gap-2 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-2 text-start hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950"
             :data-testid="`palette-item-${def.type}`"
             :title="tOr(`element.${def.type}.description`, def.description)"
             @click="add(def.type)"
           >
             <SvgIcon
-              class="text-gray-500"
+              class="text-gray-500 dark:text-gray-400"
               :svg="def.icon"
             />
             <span class="min-w-0">
-              <span class="block truncate text-sm font-medium text-gray-800">{{ tOr(`element.${def.type}.label`, def.label) }}</span>
-              <span class="block truncate text-xs text-gray-500">{{ tOr(`element.${def.type}.description`, def.description) }}</span>
+              <span class="block truncate text-sm font-medium text-gray-800 dark:text-gray-200">{{ tOr(`element.${def.type}.label`, def.label) }}</span>
+              <span class="block truncate text-xs text-gray-500 dark:text-gray-400">{{ tOr(`element.${def.type}.description`, def.description) }}</span>
             </span>
           </button>
         </li>
@@ -105,7 +105,7 @@ function clone(def: ElementDefinition) {
       <template #footer>
         <li
           v-if="items.length === 0"
-          class="px-2 py-4 text-center text-xs text-gray-400"
+          class="px-2 py-4 text-center text-xs text-gray-400 dark:text-gray-500"
         >
           {{ t('palette.empty') }}
         </li>

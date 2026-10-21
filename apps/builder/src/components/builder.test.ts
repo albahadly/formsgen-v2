@@ -2,7 +2,9 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { RENDERER_VERSION } from '@formsgen/renderer'
 import App from '../App.vue'
+import { version as BUILDER_VERSION } from '../../package.json'
 import { useBuilderStore } from '../stores/builder'
 
 const mounted: VueWrapper[] = []
@@ -175,6 +177,28 @@ describe('palette → canvas → properties workflow', () => {
     await wrapper.get('[data-testid="preview-theme-toggle"]').trigger('click')
     const canvasCard = wrapper.get('[data-testid="panel-canvas"] .fg-form')
     expect(canvasCard.attributes('data-fg-theme')).toBe('dark')
+  })
+
+  it('builder theme: the header toggle darkens the chrome and is remembered', async () => {
+    const { wrapper } = mountApp()
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+    await wrapper.get('[data-testid="theme-toggle"]').trigger('click')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+    expect(document.documentElement.style.colorScheme).toBe('dark')
+    expect(localStorage.getItem('formsgen.theme')).toBe('dark')
+    expect(wrapper.get('[data-testid="theme-toggle"]').attributes('aria-pressed')).toBe('true')
+    // the form on the canvas keeps its own theme
+    expect(wrapper.get('[data-testid="panel-canvas"] .fg-form').attributes('data-fg-theme')).toBe('light')
+    // a new session starts with the stored choice
+    document.documentElement.setAttribute('data-theme', 'light')
+    mountApp()
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+  })
+
+  it('the header shows the builder and renderer versions', () => {
+    const { wrapper } = mountApp()
+    expect(wrapper.get('[data-testid="app-version"]').text()).toBe(`v${BUILDER_VERSION} · renderer v${RENDERER_VERSION}`)
+    expect(BUILDER_VERSION).toMatch(/^\d+\.\d+\.\d+$/)
   })
 
   it('settings dialog edits form meta with name validation', async () => {

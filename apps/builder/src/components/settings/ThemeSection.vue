@@ -75,14 +75,14 @@ function onColorInput(token: string, event: Event): void {
 
 <template>
   <div
-    class="flex flex-col gap-3 border-t border-gray-100 pt-3"
+    class="flex flex-col gap-3 border-t border-gray-100 dark:border-gray-800 pt-3"
     data-testid="settings-theme"
   >
     <div class="flex items-center justify-between gap-2">
-      <span class="text-xs font-semibold text-gray-700">{{ t('settings.theme') }}</span>
+      <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">{{ t('settings.theme') }}</span>
       <button
         type="button"
-        class="rounded px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-40"
+        class="rounded px-2 py-1 text-xs text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-200 disabled:opacity-40"
         :disabled="!hasTheme"
         data-testid="settings-theme-reset"
         @click="builder.resetTheme()"
@@ -90,7 +90,7 @@ function onColorInput(token: string, event: Event): void {
         {{ t('settings.themeReset') }}
       </button>
     </div>
-    <p class="-mt-2 text-xs text-gray-400">
+    <p class="-mt-2 text-xs text-gray-400 dark:text-gray-500">
       {{ t('settings.themeHint') }}
     </p>
 
@@ -103,8 +103,8 @@ function onColorInput(token: string, event: Event): void {
         v-for="palette in PALETTES"
         :key="palette.id"
         type="button"
-        class="flex flex-col items-center gap-1 rounded border p-1 text-[11px] text-gray-600 hover:border-indigo-300"
-        :class="activePalette === palette.id ? 'border-indigo-500 ring-1 ring-indigo-300' : 'border-gray-200'"
+        class="flex flex-col items-center gap-1 rounded border p-1 text-[11px] text-gray-600 dark:text-gray-300 hover:border-indigo-300"
+        :class="activePalette === palette.id ? 'border-indigo-500 ring-1 ring-indigo-300 dark:ring-indigo-800' : 'border-gray-200 dark:border-gray-700'"
         :aria-pressed="activePalette === palette.id"
         :data-testid="`settings-palette-${palette.id}`"
         @click="applyPalette(palette)"
@@ -132,7 +132,7 @@ function onColorInput(token: string, event: Event): void {
       <div
         v-for="color in COLORS"
         :key="color.token"
-        class="flex flex-col gap-1 text-xs font-medium text-gray-600"
+        class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300"
       >
         <label
           :for="`settings-theme-${color.token}`"
@@ -144,14 +144,14 @@ function onColorInput(token: string, event: Event): void {
           :value="colorInputValue(color.token)"
           type="color"
           class="h-8 w-full min-w-0 cursor-pointer rounded border"
-          :class="isSet(color.token) ? 'border-indigo-400' : 'border-gray-300'"
+          :class="isSet(color.token) ? 'border-indigo-400' : 'border-gray-300 dark:border-gray-600'"
           :data-testid="`settings-theme-${color.token}`"
           @input="onColorInput(color.token, $event)"
         >
         <button
           v-if="isSet(color.token)"
           type="button"
-          class="self-start text-[11px] font-normal text-gray-400 hover:text-gray-700"
+          class="self-start text-[11px] font-normal text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200"
           :aria-label="`${t(color.key)}: ${t('settings.resetToken')}`"
           :data-testid="`settings-theme-${color.token}-reset`"
           @click="builder.setThemeToken(color.token, null)"

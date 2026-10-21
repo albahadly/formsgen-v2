@@ -33,12 +33,12 @@ const value = computed({
 </script>
 
 <template>
-  <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
+  <label class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
     {{ tText(label) }}
     <input
       v-model.number="value"
       type="number"
-      class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal text-gray-900"
+      class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-sm font-normal text-gray-900 dark:text-gray-100"
       :min="min"
       :max="max"
       :data-testid="`control-${prop}`"

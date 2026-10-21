@@ -43,7 +43,7 @@ function removeItem(index: number): void {
 
 <template>
   <div class="flex flex-col gap-1.5">
-    <span class="text-xs font-medium text-gray-600">{{ tText(label) }}</span>
+    <span class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ tText(label) }}</span>
     <div
       v-for="(item, index) in items"
       :key="index"
@@ -51,7 +51,7 @@ function removeItem(index: number): void {
     >
       <input
         type="text"
-        class="w-1/3 rounded border border-gray-300 px-2 py-1 text-xs"
+        class="w-1/3 rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs"
         :value="item.value"
         :placeholder="t('properties.items.value')"
         :data-testid="`items-value-${index}`"
@@ -59,7 +59,7 @@ function removeItem(index: number): void {
       >
       <input
         type="text"
-        class="flex-1 rounded border border-gray-300 px-2 py-1 text-xs"
+        class="flex-1 rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs"
         :value="item.label"
         :placeholder="t('properties.items.label')"
         :data-testid="`items-label-${index}`"
@@ -67,7 +67,7 @@ function removeItem(index: number): void {
       >
       <button
         type="button"
-        class="rounded px-1.5 py-1 text-xs text-red-500 hover:bg-red-50"
+        class="rounded px-1.5 py-1 text-xs text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950"
         :aria-label="t('properties.items.remove')"
         @click="removeItem(index)"
       >
@@ -76,7 +76,7 @@ function removeItem(index: number): void {
     </div>
     <button
       type="button"
-      class="self-start rounded border border-dashed border-gray-300 px-2 py-1 text-xs text-gray-500 hover:border-indigo-400 hover:text-indigo-600"
+      class="self-start rounded border border-dashed border-gray-300 dark:border-gray-600 px-2 py-1 text-xs text-gray-500 dark:text-gray-400 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400"
       data-testid="items-add"
       @click="addItem"
     >

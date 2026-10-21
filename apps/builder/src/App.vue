@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { RENDERER_VERSION } from '@formsgen/renderer'
+import { version as BUILDER_VERSION } from '../package.json'
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import WorkArea from '@/components/canvas/WorkArea.vue'
 import PalettePanel from '@/components/palette/PalettePanel.vue'
@@ -20,6 +21,7 @@ import { useBuilderStore } from '@/stores/builder'
 import { startConditionPathTracking } from '@/stores/conditionPaths'
 import { useHistoryStore } from '@/stores/history'
 import { useUiStore, type MobilePanel } from '@/stores/ui'
+import { initTheme, startThemeTracking, theme, toggleTheme } from '@/composables/theme'
 import { storeToRefs } from 'pinia'
 
 const builder = useBuilderStore()
@@ -64,6 +66,8 @@ history.start()
 startConditionPathTracking()
 startAutosave()
 applyLocaleToDocument()
+initTheme()
+let stopThemeTracking: (() => void) | undefined
 
 function startFresh(): void {
   builder.reset()
@@ -95,16 +99,18 @@ function onKeydown(event: KeyboardEvent): void {
 onMounted(() => {
   window.addEventListener('keydown', onKeydown)
   narrowQuery?.addEventListener('change', onNarrowChange)
+  stopThemeTracking = startThemeTracking()
 })
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown)
   narrowQuery?.removeEventListener('change', onNarrowChange)
+  stopThemeTracking?.()
 })
 </script>
 
 <template>
-  <div class="flex h-screen flex-col bg-gray-100 text-gray-900">
-    <header class="flex items-center justify-between gap-3 border-b border-gray-200 bg-white px-3 py-2 shadow-sm md:px-4">
+  <div class="flex h-screen flex-col bg-gray-100 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+    <header class="flex items-center justify-between gap-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 shadow-sm md:px-4">
       <h1 class="shrink-0 text-base font-semibold md:text-lg">
         {{ t('app.title') }}
       </h1>
@@ -116,30 +122,43 @@ onBeforeUnmount(() => {
         <AppToolbar @notice="onNotice" />
         <button
           type="button"
-          class="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+          class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
           data-testid="locale-toggle"
           @click="toggleLocale()"
         >
           {{ t('app.language') }}
         </button>
         <button
+          type="button"
+          class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+          data-testid="theme-toggle"
+          :aria-pressed="theme === 'dark'"
+          :title="t(theme === 'dark' ? 'app.theme.toLight' : 'app.theme.toDark')"
+          @click="toggleTheme()"
+        >
+          {{ theme === 'dark' ? '🌙' : '☀️' }} {{ t(theme === 'dark' ? 'app.theme.dark' : 'app.theme.light') }}
+        </button>
+        <button
           v-if="!narrow"
           type="button"
           class="rounded border px-2 py-1 text-xs font-medium"
-          :class="showTree ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-600 hover:bg-gray-50'"
+          :class="showTree ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300' : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'"
           data-testid="tree-toggle"
           :aria-pressed="showTree"
           @click="showTree = !showTree"
         >
           {{ t('tree.title') }}
         </button>
-        <span class="hidden shrink-0 text-xs text-gray-500 lg:inline">renderer v{{ RENDERER_VERSION }}</span>
+        <span
+          class="hidden shrink-0 text-xs text-gray-500 dark:text-gray-400 lg:inline"
+          data-testid="app-version"
+        >v{{ BUILDER_VERSION }} · renderer v{{ RENDERER_VERSION }}</span>
       </div>
     </header>
     <main class="flex flex-1 overflow-hidden">
       <aside
         v-show="panelShown('palette', true)"
-        class="shrink-0 overflow-y-auto border-e border-gray-200 bg-white p-3"
+        class="shrink-0 overflow-y-auto border-e border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-3"
         :class="narrow ? 'w-full' : 'w-64'"
         :aria-label="t('palette.title')"
       >
@@ -147,7 +166,7 @@ onBeforeUnmount(() => {
       </aside>
       <aside
         v-if="panelShown('tree', showTree)"
-        class="shrink-0 overflow-y-auto border-e border-gray-200 bg-white p-3"
+        class="shrink-0 overflow-y-auto border-e border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-3"
         :class="narrow ? 'w-full' : 'w-56'"
         :aria-label="t('tree.title')"
       >
@@ -162,7 +181,7 @@ onBeforeUnmount(() => {
       </section>
       <aside
         v-show="panelShown('properties', true)"
-        class="shrink-0 overflow-y-auto border-s border-gray-200 bg-white p-3"
+        class="shrink-0 overflow-y-auto border-s border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-3"
         :class="narrow ? 'w-full' : 'w-80'"
         :aria-label="t('properties.title')"
       >
@@ -171,7 +190,7 @@ onBeforeUnmount(() => {
     </main>
     <nav
       v-if="narrow"
-      class="grid shrink-0 grid-cols-4 border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)]"
+      class="grid shrink-0 grid-cols-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 pb-[env(safe-area-inset-bottom)]"
       :aria-label="t('mobile.panels')"
       data-testid="mobile-tabs"
     >
@@ -180,7 +199,7 @@ onBeforeUnmount(() => {
         :key="tab.id"
         type="button"
         class="flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium"
-        :class="mobilePanel === tab.id ? 'text-indigo-700' : 'text-gray-500'"
+        :class="mobilePanel === tab.id ? 'text-indigo-700 dark:text-indigo-300' : 'text-gray-500 dark:text-gray-400'"
         :aria-pressed="mobilePanel === tab.id"
         :data-testid="`mobile-tab-${tab.id}`"
         @click="mobilePanel = tab.id"
@@ -195,7 +214,7 @@ onBeforeUnmount(() => {
 
     <div
       v-if="showDraftToast"
-      class="fixed start-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-lg bg-gray-900 px-4 py-2.5 text-sm text-white shadow-lg rtl:translate-x-1/2"
+      class="fixed start-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-lg bg-gray-900 px-4 py-2.5 text-sm text-white shadow-lg dark:bg-gray-100 dark:text-gray-900 rtl:translate-x-1/2"
       data-testid="draft-toast"
       :class="narrow ? 'bottom-20' : 'bottom-4'"
       role="status"
@@ -203,7 +222,7 @@ onBeforeUnmount(() => {
       {{ t('draft.restored') }}
       <button
         type="button"
-        class="rounded bg-gray-700 px-2 py-1 text-xs font-medium hover:bg-gray-600"
+        class="rounded bg-gray-700 px-2 py-1 text-xs font-medium hover:bg-gray-600 dark:bg-gray-300 dark:hover:bg-gray-400"
         data-testid="draft-start-fresh"
         @click="startFresh"
       >

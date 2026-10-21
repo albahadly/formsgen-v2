@@ -38,30 +38,30 @@ function key(control: PanelControl, index: number): string {
     class="flex h-full flex-col gap-3 overflow-y-auto"
     data-testid="panel-properties"
   >
-    <h2 class="text-sm font-semibold text-gray-700">
+    <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300">
       {{ t('properties.title') }}
     </h2>
     <p
       v-if="!node || !definition"
-      class="py-8 text-center text-xs text-gray-400"
+      class="py-8 text-center text-xs text-gray-400 dark:text-gray-500"
       data-testid="properties-empty"
     >
       {{ t('properties.empty') }}
     </p>
     <template v-else>
-      <p class="text-xs text-gray-500">
+      <p class="text-xs text-gray-500 dark:text-gray-400">
         {{ tOr(`element.${node.type}.label`, definition.label) }}
         <code
           v-if="node.name"
-          class="ms-1 rounded bg-gray-100 px-1 py-0.5 text-[11px]"
+          class="ms-1 rounded bg-gray-100 dark:bg-gray-800 px-1 py-0.5 text-[11px]"
         >{{ node.name }}</code>
       </p>
       <section
         v-for="section in definition.propertyPanel"
         :key="section.title"
-        class="flex flex-col gap-2 border-t border-gray-100 pt-3"
+        class="flex flex-col gap-2 border-t border-gray-100 dark:border-gray-800 pt-3"
       >
-        <h3 class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+        <h3 class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
           {{ tText(section.title) }}
         </h3>
         <template
@@ -113,7 +113,7 @@ function key(control: PanelControl, index: number): string {
           />
           <p
             v-else-if="control.kind === 'name' && layoutOnly"
-            class="text-xs text-gray-500"
+            class="text-xs text-gray-500 dark:text-gray-400"
             data-testid="name-layout-only"
           >
             {{ t('panel.layoutOnlyInItem') }}

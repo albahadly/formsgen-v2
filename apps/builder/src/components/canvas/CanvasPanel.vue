@@ -108,7 +108,7 @@ function onKeydown(event: KeyboardEvent): void {
         <template #footer>
           <p
             v-if="isEmpty"
-            class="py-16 text-center text-sm text-gray-400"
+            class="py-16 text-center text-sm text-gray-400 fg-dark:text-gray-500"
             data-testid="canvas-empty"
           >
             {{ t('canvas.empty') }}

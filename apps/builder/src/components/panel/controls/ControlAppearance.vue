@@ -15,7 +15,7 @@ const props = defineProps<{ node: ElementNode; features: AppearanceFeature[] }>(
 const store = useBuilderStore()
 
 const has = (feature: AppearanceFeature): boolean => props.features.includes(feature)
-const selectClass = 'rounded border border-gray-300 px-2 py-1.5 text-sm font-normal'
+const selectClass = 'rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-sm font-normal'
 
 function setSize(value: string): void {
   store.setStyle(props.node.id, { size: value === '' ? undefined : (value as ControlSize) })
@@ -54,7 +54,7 @@ function onClassInput(): void {
   >
     <label
       v-if="has('size')"
-      class="flex flex-col gap-1 text-xs font-medium text-gray-600"
+      class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300"
     >
       {{ t('properties.appearance.size') }}
       <select
@@ -72,7 +72,7 @@ function onClassInput(): void {
 
     <label
       v-if="has('align')"
-      class="flex flex-col gap-1 text-xs font-medium text-gray-600"
+      class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300"
     >
       {{ t('properties.appearance.align') }}
       <select
@@ -89,7 +89,7 @@ function onClassInput(): void {
 
     <label
       v-if="has('tone')"
-      class="flex flex-col gap-1 text-xs font-medium text-gray-600"
+      class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300"
     >
       {{ t('properties.appearance.tone') }}
       <select
@@ -107,7 +107,7 @@ function onClassInput(): void {
 
     <label
       v-if="has('hideLabel')"
-      class="inline-flex items-start gap-2 text-xs font-medium text-gray-600"
+      class="inline-flex items-start gap-2 text-xs font-medium text-gray-600 dark:text-gray-300"
     >
       <input
         type="checkbox"
@@ -121,7 +121,7 @@ function onClassInput(): void {
 
     <label
       v-if="has('className')"
-      class="flex flex-col gap-1 text-xs font-medium text-gray-600"
+      class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300"
     >
       {{ t('properties.appearance.className') }}
       <input
@@ -130,13 +130,13 @@ function onClassInput(): void {
         dir="ltr"
         placeholder="my-field shadow-lg"
         class="rounded border px-2 py-1.5 font-mono text-sm font-normal"
-        :class="classError ? 'border-red-400' : 'border-gray-300'"
+        :class="classError ? 'border-red-400' : 'border-gray-300 dark:border-gray-600'"
         data-testid="appearance-class"
         @input="onClassInput"
       >
       <span
         v-if="classError"
-        class="font-normal text-red-600"
+        class="font-normal text-red-600 dark:text-red-400"
         data-testid="appearance-class-error"
       >
         {{ t('properties.appearance.className.invalid') }}

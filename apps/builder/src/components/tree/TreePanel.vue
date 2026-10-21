@@ -37,7 +37,7 @@ const rows = computed<Row[]>(() => {
     class="flex h-full flex-col gap-2"
     data-testid="panel-tree"
   >
-    <h2 class="text-sm font-semibold text-gray-700">
+    <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300">
       {{ t('tree.title') }}
     </h2>
     <ul class="flex flex-1 flex-col overflow-y-auto text-sm">
@@ -47,8 +47,8 @@ const rows = computed<Row[]>(() => {
       >
         <button
           type="button"
-          class="flex w-full items-center gap-1.5 rounded px-2 py-1 text-start hover:bg-gray-100"
-          :class="{ 'bg-indigo-50 text-indigo-700': store.selectedId === row.id }"
+          class="flex w-full items-center gap-1.5 rounded px-2 py-1 text-start hover:bg-gray-100 dark:hover:bg-gray-800"
+          :class="{ 'bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300': store.selectedId === row.id }"
           :style="{ paddingInlineStart: `${0.5 + row.depth * 0.75}rem` }"
           :data-testid="`tree-row-${row.id}`"
           @click="store.select(row.id)"
@@ -56,13 +56,13 @@ const rows = computed<Row[]>(() => {
           <span class="truncate text-xs font-medium">{{ row.label }}</span>
           <code
             v-if="row.name"
-            class="truncate text-[10px] text-gray-400"
+            class="truncate text-[10px] text-gray-400 dark:text-gray-500"
           >{{ row.name }}</code>
         </button>
       </li>
       <li
         v-if="rows.length === 0"
-        class="px-2 py-4 text-center text-xs text-gray-400"
+        class="px-2 py-4 text-center text-xs text-gray-400 dark:text-gray-500"
       >
         {{ t('tree.empty') }}
       </li>

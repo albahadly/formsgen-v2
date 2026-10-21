@@ -1,5 +1,23 @@
 @import 'tailwindcss';
 
+/* The builder's own theme: composables/theme.ts puts data-theme on <html>,
+   and the dark: utilities follow it rather than the OS, so a stored choice
+   wins. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* Canvas chrome drawn inside the form card (BuilderNode, CanvasPanel) sits
+   on the form's colours, so it follows the form's theme instead. */
+@custom-variant fg-dark (&:where(.fg-form[data-fg-theme='dark'], .fg-form[data-fg-theme='dark'] *));
+
+/* The form on the canvas keeps its own theme (data-fg-theme): its native
+   controls follow that, not the builder's colour scheme. */
+.fg-form[data-fg-theme='light'] {
+  color-scheme: light;
+}
+.fg-form[data-fg-theme='dark'] {
+  color-scheme: dark;
+}
+
 /* Design canvas drop lists are the renderer's 12-column grid (BuilderNode).
    They keep the canvas's tighter gap, and anything that is not a node cell
    (an empty-list hint, a palette item being dragged in) spans the full row. */

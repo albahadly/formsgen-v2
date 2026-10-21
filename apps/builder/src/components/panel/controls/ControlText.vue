@@ -25,13 +25,13 @@ const value = computed({
 </script>
 
 <template>
-  <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
+  <label class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
     {{ tText(label) }}
     <textarea
       v-if="multiline"
       v-model="value"
       rows="4"
-      class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal text-gray-900"
+      class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-sm font-normal text-gray-900 dark:text-gray-100"
       :placeholder="placeholder ? tText(placeholder) : undefined"
       :data-testid="`control-${prop}`"
       :dir="prop === 'html' ? 'ltr' : undefined"
@@ -40,14 +40,14 @@ const value = computed({
       v-else
       v-model="value"
       type="text"
-      class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal text-gray-900"
+      class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-sm font-normal text-gray-900 dark:text-gray-100"
       :placeholder="placeholder ? tText(placeholder) : undefined"
       :data-testid="`control-${prop}`"
       :dir="LTR_PROPS.has(prop) ? 'ltr' : undefined"
     >
     <span
       v-if="hint"
-      class="text-[11px] font-normal text-gray-500"
+      class="text-[11px] font-normal text-gray-500 dark:text-gray-400"
       :data-testid="`control-${prop}-hint`"
     >{{ tText(hint) }}</span>
   </label>

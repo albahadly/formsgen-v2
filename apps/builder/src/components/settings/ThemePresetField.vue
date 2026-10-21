@@ -55,12 +55,12 @@ function onDraftInput(): void {
 </script>
 
 <template>
-  <div class="flex flex-col gap-1 text-xs font-medium text-gray-600">
+  <div class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
     <label class="flex flex-col gap-1">
       {{ label }}
       <select
         v-model="selected"
-        class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal"
+        class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-sm font-normal"
         :data-testid="testid"
       >
         <option
@@ -81,7 +81,7 @@ function onDraftInput(): void {
       type="text"
       dir="ltr"
       class="rounded border px-2 py-1.5 font-mono text-sm font-normal"
-      :class="invalid ? 'border-red-400' : 'border-gray-300'"
+      :class="invalid ? 'border-red-400' : 'border-gray-300 dark:border-gray-600'"
       :aria-label="`${label} — ${t('settings.customValue')}`"
       :aria-invalid="invalid || undefined"
       :placeholder="presets.find((p) => p.id === defaultId)?.value"
@@ -90,7 +90,7 @@ function onDraftInput(): void {
     >
     <span
       v-if="invalid"
-      class="font-normal text-red-600"
+      class="font-normal text-red-600 dark:text-red-400"
       :data-testid="`${testid}-error`"
     >{{ t('settings.invalidValue') }}</span>
   </div>

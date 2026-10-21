@@ -26,14 +26,14 @@ function insert(snippet: string): void {
 
 <template>
   <div class="flex flex-col gap-1.5">
-    <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
+    <label class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
       {{ t('formula.label') }}
       <textarea
         v-model="formula"
         rows="2"
         dir="ltr"
-        class="rounded border px-2 py-1.5 font-mono text-sm font-normal text-gray-900"
-        :class="problem ? 'border-red-400' : 'border-gray-300'"
+        class="rounded border px-2 py-1.5 font-mono text-sm font-normal text-gray-900 dark:text-gray-100"
+        :class="problem ? 'border-red-400' : 'border-gray-300 dark:border-gray-600'"
         placeholder="{nights} * {price}"
         :aria-invalid="problem ? 'true' : undefined"
         aria-describedby="formula-help"
@@ -42,7 +42,7 @@ function insert(snippet: string): void {
     </label>
     <p
       v-if="problem"
-      class="text-[11px] font-medium text-red-600"
+      class="text-[11px] font-medium text-red-600 dark:text-red-400"
       role="alert"
       data-testid="formula-problem"
     >
@@ -50,7 +50,7 @@ function insert(snippet: string): void {
     </p>
     <p
       id="formula-help"
-      class="text-[11px] text-gray-500"
+      class="text-[11px] text-gray-500 dark:text-gray-400"
     >
       {{ t('formula.help') }}
     </p>
@@ -58,13 +58,13 @@ function insert(snippet: string): void {
       v-if="suggestions.length"
       class="flex flex-col gap-1"
     >
-      <span class="text-[11px] font-medium text-gray-600">{{ t('formula.fields') }}</span>
+      <span class="text-[11px] font-medium text-gray-600 dark:text-gray-300">{{ t('formula.fields') }}</span>
       <div class="flex flex-wrap gap-1">
         <button
           v-for="s in suggestions"
           :key="s.snippet"
           type="button"
-          class="rounded border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 text-[11px] text-indigo-700 hover:bg-indigo-100"
+          class="rounded border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950 px-1.5 py-0.5 text-[11px] text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900"
           :title="s.snippet"
           data-testid="formula-insert"
           @click="insert(s.snippet)"

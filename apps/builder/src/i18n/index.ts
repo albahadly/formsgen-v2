@@ -11,6 +11,10 @@ const LOCALE_KEY = 'formsgen.locale'
 const en: Record<string, string> = {
   'app.title': 'FormsGen Builder',
   'app.language': 'العربية',
+  'app.theme.light': 'Light',
+  'app.theme.dark': 'Dark',
+  'app.theme.toDark': 'Switch the builder to dark mode',
+  'app.theme.toLight': 'Switch the builder to light mode',
   'palette.title': 'Elements',
   'palette.search': 'Search elements…',
   'palette.category.fields': 'Fields',
@@ -216,6 +220,10 @@ const en: Record<string, string> = {
 const ar: Record<string, string> = {
   'app.title': 'منشئ النماذج FormsGen',
   'app.language': 'English',
+  'app.theme.light': 'فاتح',
+  'app.theme.dark': 'داكن',
+  'app.theme.toDark': 'تبديل المنشئ إلى الوضع الداكن',
+  'app.theme.toLight': 'تبديل المنشئ إلى الوضع الفاتح',
   'palette.title': 'العناصر',
   'palette.search': 'ابحث عن عنصر…',
   'palette.category.fields': 'حقول',

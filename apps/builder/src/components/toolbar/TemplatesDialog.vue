@@ -44,25 +44,25 @@ function onKeydown(event: KeyboardEvent): void {
 <template>
   <div
     v-if="ui.showTemplates"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60 p-4"
     data-testid="templates-dialog"
     @click.self="ui.closeTemplates()"
     @keydown="onKeydown"
   >
     <div
       ref="dialogRef"
-      class="flex max-h-[92vh] w-full max-w-3xl flex-col rounded-lg bg-white shadow-xl"
+      class="flex max-h-[92vh] w-full max-w-3xl flex-col rounded-lg bg-white dark:bg-gray-900 shadow-xl"
       role="dialog"
       aria-modal="true"
       :aria-label="t('templates.title')"
     >
-      <div class="flex items-center justify-between border-b border-gray-200 px-5 py-3">
-        <h2 class="text-sm font-semibold text-gray-800">
+      <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-5 py-3">
+        <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">
           {{ t('templates.title') }}
         </h2>
         <button
           type="button"
-          class="rounded px-2 py-1 text-sm text-gray-500 hover:bg-gray-100"
+          class="rounded px-2 py-1 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
           :aria-label="t('settings.close')"
           @click="ui.closeTemplates()"
         >
@@ -71,14 +71,14 @@ function onKeydown(event: KeyboardEvent): void {
       </div>
 
       <div class="flex flex-col gap-2 px-5 pt-4">
-        <p class="text-xs text-gray-500">
+        <p class="text-xs text-gray-500 dark:text-gray-400">
           {{ t('templates.hint') }}
         </p>
-        <label class="flex flex-wrap items-center gap-2 text-xs font-medium text-gray-700">
+        <label class="flex flex-wrap items-center gap-2 text-xs font-medium text-gray-700 dark:text-gray-300">
           {{ t('templates.example') }}
           <select
             v-model="selectedId"
-            class="min-w-56 flex-1 rounded border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-800 sm:flex-none"
+            class="min-w-56 flex-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-2 py-1.5 text-sm text-gray-800 dark:text-gray-200 sm:flex-none"
             data-testid="templates-select"
           >
             <option
@@ -91,7 +91,7 @@ function onKeydown(event: KeyboardEvent): void {
           </select>
         </label>
         <p
-          class="text-xs text-gray-600"
+          class="text-xs text-gray-600 dark:text-gray-300"
           data-testid="templates-description"
         >
           {{ selected.description }}
@@ -99,24 +99,24 @@ function onKeydown(event: KeyboardEvent): void {
       </div>
 
       <section
-        class="m-5 mt-3 min-h-0 flex-1 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-4"
+        class="m-5 mt-3 min-h-0 flex-1 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4"
         :aria-label="t('templates.preview')"
         data-testid="templates-preview"
       >
         <FormsGenForm
           :key="`${locale}-${selected.id}`"
           v-model="previewData"
-          class="rounded-lg bg-white p-5 shadow-sm"
+          class="rounded-lg bg-white dark:bg-gray-900 p-5 shadow-sm"
           data-fg-theme="light"
           :schema="selected.schema"
           :draft-storage="null"
         />
       </section>
 
-      <div class="flex justify-end gap-2 border-t border-gray-200 px-5 py-3">
+      <div class="flex justify-end gap-2 border-t border-gray-200 dark:border-gray-700 px-5 py-3">
         <button
           type="button"
-          class="rounded border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
+          class="rounded border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
           @click="ui.closeTemplates()"
         >
           {{ t('templates.cancel') }}

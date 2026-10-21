@@ -26,11 +26,11 @@ const value = computed({
 </script>
 
 <template>
-  <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
+  <label class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
     {{ tText(label) }}
     <select
       v-model="value"
-      class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal text-gray-900"
+      class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-sm font-normal text-gray-900 dark:text-gray-100"
       :data-testid="`control-${prop}`"
     >
       <option

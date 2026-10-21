@@ -20,7 +20,7 @@ const value = computed({
 </script>
 
 <template>
-  <label class="flex items-center gap-2 text-xs font-medium text-gray-600">
+  <label class="flex items-center gap-2 text-xs font-medium text-gray-600 dark:text-gray-300">
     <input
       v-model="value"
       type="checkbox"

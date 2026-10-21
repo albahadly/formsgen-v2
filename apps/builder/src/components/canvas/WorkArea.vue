@@ -11,7 +11,7 @@ const ui = useUiStore()
 <template>
   <div class="flex h-full flex-col">
     <CanvasToolbar />
-    <div class="min-h-0 flex-1 bg-gray-100">
+    <div class="min-h-0 flex-1 bg-gray-100 dark:bg-gray-800">
       <CanvasPanel v-if="ui.viewMode === 'editor'" />
       <PreviewPanel v-else-if="ui.viewMode === 'preview'" />
       <CodePanel v-else />

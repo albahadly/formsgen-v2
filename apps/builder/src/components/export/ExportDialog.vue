@@ -103,25 +103,25 @@ async function downloadZip(): Promise<void> {
 <template>
   <div
     v-if="ui.showExport"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60 p-4"
     data-testid="export-dialog"
     @click.self="ui.closeExport()"
   >
     <div
       ref="dialogRef"
-      class="flex h-[80vh] w-full max-w-4xl flex-col rounded-lg bg-white shadow-xl"
+      class="flex h-[80vh] w-full max-w-4xl flex-col rounded-lg bg-white dark:bg-gray-900 shadow-xl"
       role="dialog"
       aria-modal="true"
       :aria-label="t('export.title')"
       @keydown.escape="ui.closeExport()"
     >
-      <div class="flex items-center justify-between border-b border-gray-200 px-4 py-2.5">
-        <h2 class="text-sm font-semibold text-gray-800">
+      <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-4 py-2.5">
+        <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">
           {{ t('export.title') }}
         </h2>
         <button
           type="button"
-          class="rounded px-2 py-1 text-sm text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          class="rounded px-2 py-1 text-sm text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
           data-testid="export-close"
           :aria-label="t('export.close')"
           @click="ui.closeExport()"
@@ -130,9 +130,9 @@ async function downloadZip(): Promise<void> {
         </button>
       </div>
 
-      <div class="flex flex-wrap items-center gap-2 border-b border-gray-100 px-4 py-2">
+      <div class="flex flex-wrap items-center gap-2 border-b border-gray-100 dark:border-gray-800 px-4 py-2">
         <div
-          class="flex max-w-full overflow-x-auto rounded-md bg-gray-100 p-0.5"
+          class="flex max-w-full overflow-x-auto rounded-md bg-gray-100 dark:bg-gray-800 p-0.5"
           role="tablist"
         >
           <button
@@ -141,7 +141,7 @@ async function downloadZip(): Promise<void> {
             type="button"
             role="tab"
             class="shrink-0 whitespace-nowrap rounded px-2.5 py-1 text-xs font-medium"
-            :class="targetId === candidate.id ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-600 hover:text-gray-900'"
+            :class="targetId === candidate.id ? 'bg-white dark:bg-gray-900 text-indigo-700 dark:text-indigo-300 shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'"
             :aria-selected="targetId === candidate.id"
             :title="tText(candidate.description)"
             :data-testid="`export-target-${candidate.id}`"
@@ -154,7 +154,7 @@ async function downloadZip(): Promise<void> {
         <select
           v-if="target.frameworkAware"
           v-model="framework"
-          class="rounded border border-gray-300 px-2 py-1 text-xs"
+          class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs"
           data-testid="export-framework"
           :aria-label="t('export.framework')"
         >
@@ -169,7 +169,7 @@ async function downloadZip(): Promise<void> {
 
         <label
           v-if="isCode"
-          class="flex items-center gap-1.5 text-xs text-gray-600"
+          class="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300"
           :title="t('export.includeProject.hint')"
         >
           <input
@@ -182,7 +182,7 @@ async function downloadZip(): Promise<void> {
         </label>
         <label
           v-if="isCode"
-          class="flex items-center gap-1.5 text-xs text-gray-600"
+          class="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300"
           :title="t('export.includeServer.hint')"
         >
           <input
@@ -225,7 +225,7 @@ async function downloadZip(): Promise<void> {
 
       <div
         v-if="viewFiles.length > 1"
-        class="flex gap-1 border-b border-gray-100 px-4 py-1.5"
+        class="flex gap-1 border-b border-gray-100 dark:border-gray-800 px-4 py-1.5"
       >
         <button
           v-for="(file, index) in viewFiles"
@@ -233,7 +233,7 @@ async function downloadZip(): Promise<void> {
           type="button"
           dir="ltr"
           class="rounded px-2 py-0.5 font-mono text-[11px]"
-          :class="index === activeFileIndex ? 'bg-indigo-50 text-indigo-700' : 'text-gray-500 hover:bg-gray-100'"
+          :class="index === activeFileIndex ? 'bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'"
           :data-testid="`export-file-${file.path}`"
           @click="activeFileIndex = index"
         >

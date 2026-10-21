@@ -52,7 +52,7 @@ async function onFileChosen(event: Event): Promise<void> {
   <div class="flex items-center gap-1.5">
     <button
       type="button"
-      class="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+      class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40"
       :disabled="!history.canUndo"
       data-testid="toolbar-undo"
       :title="t('toolbar.undo')"
@@ -62,7 +62,7 @@ async function onFileChosen(event: Event): Promise<void> {
     </button>
     <button
       type="button"
-      class="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+      class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40"
       :disabled="!history.canRedo"
       data-testid="toolbar-redo"
       :title="t('toolbar.redo')"
@@ -70,10 +70,10 @@ async function onFileChosen(event: Event): Promise<void> {
     >
       ↷ {{ t('toolbar.redo') }}
     </button>
-    <span class="mx-1 h-4 w-px bg-gray-200" />
+    <span class="mx-1 h-4 w-px bg-gray-200 dark:bg-gray-700" />
     <button
       type="button"
-      class="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+      class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
       data-testid="toolbar-templates"
       @click="ui.openTemplates()"
     >
@@ -81,7 +81,7 @@ async function onFileChosen(event: Event): Promise<void> {
     </button>
     <button
       type="button"
-      class="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+      class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
       data-testid="toolbar-open"
       @click="openPicker"
     >
@@ -89,7 +89,7 @@ async function onFileChosen(event: Event): Promise<void> {
     </button>
     <button
       type="button"
-      class="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+      class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
       data-testid="toolbar-save"
       @click="saveProject"
     >

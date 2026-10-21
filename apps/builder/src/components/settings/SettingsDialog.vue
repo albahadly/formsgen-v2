@@ -146,25 +146,25 @@ function onKeydown(event: KeyboardEvent): void {
 <template>
   <div
     v-if="ui.showSettings"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60 p-4"
     data-testid="settings-dialog"
     @click.self="ui.closeSettings()"
     @keydown="onKeydown"
   >
     <div
       ref="dialogRef"
-      class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white p-5 shadow-xl"
+      class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white dark:bg-gray-900 p-5 shadow-xl"
       role="dialog"
       aria-modal="true"
       :aria-label="t('settings.title')"
     >
       <div class="mb-4 flex items-center justify-between">
-        <h2 class="text-sm font-semibold text-gray-800">
+        <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">
           {{ t('settings.title') }}
         </h2>
         <button
           type="button"
-          class="rounded px-2 py-1 text-sm text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          class="rounded px-2 py-1 text-sm text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
           data-testid="settings-close"
           :aria-label="t('settings.close')"
           @click="ui.closeSettings()"
@@ -174,30 +174,30 @@ function onKeydown(event: KeyboardEvent): void {
       </div>
 
       <div class="flex flex-col gap-3">
-        <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
+        <label class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
           {{ t('settings.formTitle') }}
           <input
             v-model="title"
             type="text"
-            class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal"
+            class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-sm font-normal"
             data-testid="settings-title"
           >
         </label>
 
-        <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
+        <label class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
           {{ t('settings.formName') }}
           <input
             v-model="nameDraft"
             type="text"
             dir="ltr"
             class="rounded border px-2 py-1.5 font-mono text-sm font-normal"
-            :class="nameError ? 'border-red-400' : 'border-gray-300'"
+            :class="nameError ? 'border-red-400' : 'border-gray-300 dark:border-gray-600'"
             data-testid="settings-name"
             @input="onNameInput"
           >
           <span
             v-if="nameError"
-            class="font-normal text-red-600"
+            class="font-normal text-red-600 dark:text-red-400"
             data-testid="settings-name-error"
           >
             {{ t(`properties.name.${nameError}`) }}
@@ -205,20 +205,20 @@ function onKeydown(event: KeyboardEvent): void {
         </label>
 
         <div class="grid grid-cols-2 gap-3">
-          <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
+          <label class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
             {{ t('settings.locale') }}
             <input
               v-model="locale"
               type="text"
-              class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal"
+              class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-sm font-normal"
               data-testid="settings-locale"
             >
           </label>
-          <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
+          <label class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
             {{ t('settings.direction') }}
             <select
               v-model="dir"
-              class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal"
+              class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-sm font-normal"
               data-testid="settings-dir"
             >
               <option value="ltr">LTR</option>
@@ -227,11 +227,11 @@ function onKeydown(event: KeyboardEvent): void {
           </label>
         </div>
 
-        <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
+        <label class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
           {{ t('settings.fieldSize') }}
           <select
             v-model="fieldSize"
-            class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal"
+            class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-sm font-normal"
             data-testid="settings-field-size"
           >
             <option value="sm">{{ t('properties.appearance.size.sm') }}</option>
@@ -239,7 +239,7 @@ function onKeydown(event: KeyboardEvent): void {
             <option value="lg">{{ t('properties.appearance.size.lg') }}</option>
           </select>
         </label>
-        <label class="inline-flex items-center gap-2 text-xs font-medium text-gray-600">
+        <label class="inline-flex items-center gap-2 text-xs font-medium text-gray-600 dark:text-gray-300">
           <input
             v-model="floatingLabels"
             type="checkbox"
@@ -249,7 +249,7 @@ function onKeydown(event: KeyboardEvent): void {
           {{ t('settings.floatingLabels') }}
         </label>
         <div class="flex flex-col gap-1">
-          <label class="inline-flex items-center gap-2 text-xs font-medium text-gray-600">
+          <label class="inline-flex items-center gap-2 text-xs font-medium text-gray-600 dark:text-gray-300">
             <input
               v-model="saveDraft"
               type="checkbox"
@@ -258,12 +258,12 @@ function onKeydown(event: KeyboardEvent): void {
             >
             {{ t('settings.saveDraft') }}
           </label>
-          <p class="ms-6 text-xs text-gray-500">
+          <p class="ms-6 text-xs text-gray-500 dark:text-gray-400">
             {{ t('settings.saveDraftHint') }}
           </p>
         </div>
 
-        <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
+        <label class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
           {{ t('settings.captcha') }}
           <input
             v-model.lazy="captchaKey"
@@ -272,35 +272,35 @@ function onKeydown(event: KeyboardEvent): void {
             spellcheck="false"
             autocomplete="off"
             placeholder="0x4AAAAAAA…"
-            class="rounded border border-gray-300 px-2 py-1.5 font-mono text-sm font-normal"
+            class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 font-mono text-sm font-normal"
             :aria-invalid="captchaKeyBad ? 'true' : undefined"
             data-testid="settings-captcha"
           >
-          <span class="font-normal text-gray-500">{{ t('settings.captchaHint') }}</span>
+          <span class="font-normal text-gray-500 dark:text-gray-400">{{ t('settings.captchaHint') }}</span>
           <span
             v-if="captchaKeyBad"
-            class="font-normal text-red-600"
+            class="font-normal text-red-600 dark:text-red-400"
             role="alert"
           >{{ t('settings.captchaBad') }}</span>
         </label>
 
         <div class="grid grid-cols-[1fr_auto] gap-3">
-          <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
+          <label class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
             {{ t('settings.submitUrl') }}
             <input
               v-model="submitUrl"
               type="url"
               dir="ltr"
               placeholder="https://api.example.com/submit"
-              class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal"
+              class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-sm font-normal"
               data-testid="settings-submit-url"
             >
           </label>
-          <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
+          <label class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
             {{ t('settings.submitMethod') }}
             <select
               v-model="submitMethod"
-              class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal"
+              class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-sm font-normal"
               data-testid="settings-submit-method"
               :disabled="submitUrl === ''"
             >
@@ -309,11 +309,11 @@ function onKeydown(event: KeyboardEvent): void {
             </select>
           </label>
         </div>
-        <p class="-mt-2 text-xs text-gray-500">
+        <p class="-mt-2 text-xs text-gray-500 dark:text-gray-400">
           <button
             v-if="submitUrl !== SAMPLE_SERVER_URL"
             type="button"
-            class="font-medium text-indigo-600 underline hover:text-indigo-500"
+            class="font-medium text-indigo-600 dark:text-indigo-400 underline hover:text-indigo-500 dark:hover:text-indigo-300"
             data-testid="settings-use-sample-server"
             @click="submitUrl = SAMPLE_SERVER_URL"
           >
@@ -322,24 +322,24 @@ function onKeydown(event: KeyboardEvent): void {
           <span v-else>{{ t('settings.sampleServerHint') }}</span>
         </p>
 
-        <div class="flex flex-col gap-3 border-t border-gray-100 pt-3">
-          <span class="text-xs font-semibold text-gray-700">{{ t('settings.submitButton') }}</span>
+        <div class="flex flex-col gap-3 border-t border-gray-100 dark:border-gray-800 pt-3">
+          <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">{{ t('settings.submitButton') }}</span>
           <div class="grid grid-cols-3 gap-3">
-            <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
+            <label class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
               {{ t('settings.submitText') }}
               <input
                 v-model="submitText"
                 type="text"
                 placeholder="Submit"
-                class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal"
+                class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-sm font-normal"
                 data-testid="settings-submit-text"
               >
             </label>
-            <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
+            <label class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
               {{ t('settings.submitAlign') }}
               <select
                 v-model="submitAlign"
-                class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal"
+                class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-sm font-normal"
                 data-testid="settings-submit-align"
               >
                 <option value="start">{{ t('settings.alignStart') }}</option>
@@ -347,11 +347,11 @@ function onKeydown(event: KeyboardEvent): void {
                 <option value="end">{{ t('settings.alignEnd') }}</option>
               </select>
             </label>
-            <label class="flex flex-col gap-1 text-xs font-medium text-gray-600">
+            <label class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
               {{ t('settings.submitVariant') }}
               <select
                 v-model="submitVariant"
-                class="rounded border border-gray-300 px-2 py-1.5 text-sm font-normal"
+                class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-sm font-normal"
                 data-testid="settings-submit-variant"
               >
                 <option value="primary">{{ t('settings.variantPrimary') }}</option>
@@ -360,7 +360,7 @@ function onKeydown(event: KeyboardEvent): void {
             </label>
           </div>
           <div class="flex gap-4">
-            <label class="inline-flex items-center gap-2 text-xs font-medium text-gray-600">
+            <label class="inline-flex items-center gap-2 text-xs font-medium text-gray-600 dark:text-gray-300">
               <input
                 v-model="submitFullWidth"
                 type="checkbox"
@@ -369,7 +369,7 @@ function onKeydown(event: KeyboardEvent): void {
               >
               {{ t('settings.submitFullWidth') }}
             </label>
-            <label class="inline-flex items-center gap-2 text-xs font-medium text-gray-600">
+            <label class="inline-flex items-center gap-2 text-xs font-medium text-gray-600 dark:text-gray-300">
               <input
                 v-model="submitOnLastStepOnly"
                 type="checkbox"
