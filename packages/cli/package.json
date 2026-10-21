@@ -1,0 +1,30 @@
+{
+  "name": "@formsgen/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "FormsGen from the command line: export a form's code, validation rules or project package from its .formsgen.json",
+  "bin": {
+    "formsgen": "./dist/formsgen.mjs"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "typecheck": "vue-tsc --noEmit",
+    "test": "vitest run"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@formsgen/renderer": "workspace:*",
+    "@types/node": "^26.6.4",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "vite": "^6.0.7",
+    "vitest": "^3.2.7",
+    "vue": "^3.5.13",
+    "vue-tsc": "^2.2.0"
+  }
+}

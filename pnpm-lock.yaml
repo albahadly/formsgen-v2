@@ -153,6 +153,30 @@ importers:
         specifier: ^2.2.0
         version: 2.2.12(typescript@5.7.3)
 
+  packages/cli:
+    devDependencies:
+      '@formsgen/renderer':
+        specifier: workspace:*
+        version: link:../renderer
+      '@types/node':
+        specifier: ^26.6.4
+        version: 26.6.4
+      '@vitejs/plugin-vue':
+        specifier: ^5.2.1
+        version: 5.2.4(vite@6.4.3(@types/node@26.6.4)(jiti@2.7.0)(lightningcss@1.32.0))(vue@3.5.43(typescript@5.7.3))
+      vite:
+        specifier: ^6.0.7
+        version: 6.4.3(@types/node@26.6.4)(jiti@2.7.0)(lightningcss@1.32.0)
+      vitest:
+        specifier: ^3.2.7
+        version: 3.2.7(@types/node@26.6.4)(jiti@2.7.0)(jsdom@25.0.1)(lightningcss@1.32.0)
+      vue:
+        specifier: ^3.5.13
+        version: 3.5.43(typescript@5.7.3)
+      vue-tsc:
+        specifier: ^2.2.0
+        version: 2.2.12(typescript@5.7.3)
+
   packages/renderer:
     devDependencies:
       '@types/node':

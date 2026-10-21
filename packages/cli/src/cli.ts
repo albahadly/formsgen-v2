@@ -1,0 +1,7 @@
+// The `formsgen` executable (bundled by vite build into dist/formsgen.mjs).
+import { run } from './run'
+
+process.exitCode = run(process.argv.slice(2), {
+  log: (line) => process.stdout.write(`${line}\n`),
+  error: (line) => process.stderr.write(`${line}\n`),
+})

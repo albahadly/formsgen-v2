@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "paths": {
+      "@/*": ["../../apps/builder/src/*"],
+      "@formsgen/renderer": ["../../packages/renderer/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "vite.config.ts", "../../apps/builder/src/raw.d.ts"]
+}
