@@ -86,16 +86,16 @@ export const COMPOSITE_CSS = `/* Composite fields (two-handle slider, date range
 /** Help-tooltip rules (framework-neutral, like the slider's). */
 /** The star rating and NPS scale (mirrored verbatim in the renderer stylesheet). */
 export const SCORE_CSS = `/* Scores: a star rating and an NPS scale, radios underneath (phase 45) */
-.fg-rating { display: inline-flex; flex-direction: row-reverse; gap: 0.125rem; }
-.fg-rating-star { cursor: pointer; font-size: 1.75rem; line-height: 1; color: var(--fg-color-border); transition: color 0.1s; }
+.fg-rating { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 0.125rem; }
+.fg-rating-star { cursor: pointer; font-size: 1.75rem; line-height: 1; color: var(--fg-color-border, var(--bs-border-color, #d1d5db)); transition: color 0.1s; }
 .fg-rating-star::before { content: '\\2605'; }
 .fg-rating input:checked ~ .fg-rating-star, .fg-rating-star:hover, .fg-rating-star:hover ~ .fg-rating-star { color: #f59e0b; }
-.fg-rating input:focus-visible + .fg-rating-star { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; border-radius: 4px; }
+.fg-rating input:focus-visible + .fg-rating-star { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; border-radius: 4px; }
 .fg-nps { display: flex; flex-wrap: wrap; gap: 0.25rem; }
-.fg-nps-option { min-inline-size: 2.25rem; padding: 0.375rem 0; text-align: center; font-size: 0.875rem; line-height: 1.25rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); cursor: pointer; }
-.fg-nps input:checked + .fg-nps-option { background: var(--fg-color-primary); color: var(--fg-color-primary-contrast); border-color: var(--fg-color-primary); }
-.fg-nps input:focus-visible + .fg-nps-option { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; }
-.fg-nps-ends { display: flex; justify-content: space-between; font-size: 0.875rem; line-height: 1.25rem; color: var(--fg-color-muted); }
+.fg-nps-option { box-sizing: border-box; min-inline-size: 2.25rem; padding: 0.375rem 0; text-align: center; font-size: 0.875rem; line-height: 1.25rem; border: 1px solid var(--fg-color-border, var(--bs-border-color, #d1d5db)); border-radius: var(--fg-radius, 0.375rem); cursor: pointer; }
+.fg-nps input:checked + .fg-nps-option { background: var(--fg-color-primary, var(--bs-primary, #4f46e5)); color: var(--fg-color-primary-contrast, #fff); border-color: var(--fg-color-primary, var(--bs-primary, #4f46e5)); }
+.fg-nps input:focus-visible + .fg-nps-option { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+.fg-nps-ends { display: flex; justify-content: space-between; font-size: 0.875rem; line-height: 1.25rem; color: var(--fg-color-muted, var(--bs-secondary-color, #6b7280)); }
 `
 
 export const hasScores = (schema: FormSchema): boolean => treeHasType(schema.tree, 'rating') || treeHasType(schema.tree, 'nps')

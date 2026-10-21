@@ -688,6 +688,12 @@ ${stepHandlers ? `\n${stepHandlers}\n` : ''}
     if (validate) applyError(path, validate(data))
   }
 
+  // The latest data: the rendered state, or what setField just set, so a
+  // touch in the same handler (a radio's change) validates the new value,
+  // not the closure's.
+  const formRef = useRef(form)
+  formRef.current = form
+
   function setField(path: string, value: unknown): void {
     const next = structuredClone(form) as unknown as Record<string, unknown>
     const segments = path.split('.')
@@ -698,6 +704,7 @@ ${stepHandlers ? `\n${stepHandlers}\n` : ''}
     target[segments[segments.length - 1] as keyof typeof target] = value
     const typed = ${steps.length ? 'fgCalc(next as unknown as FormData)' : 'next as unknown as FormData'}
     setForm(typed)
+    formRef.current = typed
     if (touched.current.has(path)) validateField(path, typed)${steps.length ? `
     // Calculated fields: after a submit attempt their errors follow new values.
     for (const p of fgCalcPaths(typed)) if (p !== path && touched.current.has(p)) validateField(p, typed)` : ''}
@@ -706,8 +713,6 @@ ${stepHandlers ? `\n${stepHandlers}\n` : ''}
   // A blur error appearing while a pointer is held reflows the form and the
   // release misses its target; defer blur validation until the press ends.
   // Deferred work reads the latest state through refs, not this closure.
-  const formRef = useRef(form)
-  formRef.current = form
   const fgPressing = useRef(false)
   const fgDeferred = useRef(new Set<string>())
   const fgFlush = useRef(() => {})
@@ -739,7 +744,7 @@ ${stepHandlers ? `\n${stepHandlers}\n` : ''}
       return
     }
     touched.current.add(path)
-    validateField(path, form)
+    validateField(path, formRef.current)
   }
 ${tagsHandlers ? `\n${tagsHandlers}\n` : ''}${!hasRepeaters && (signatures || rich || locations) ? '\n  const fgRoot = useRef<HTMLFormElement>(null)\n' : ''}${signatures ? `\n${reactSignatureHooks()}\n` : ''}${rich ? `\n${reactRichTextHooks()}\n` : ''}${locations ? `\n${reactLocationHooks()}\n` : ''}${captchaKey ? `\n${reactCaptchaHooks(captchaKey, schema.meta.locale)}\n` : ''}${compositeHandlers ? `\n${compositeHandlers}\n` : ''}${hasUploads ? `\n${reactUploadHandlers(typedFields)}\n` : ''}${repeaterHandlers ? `\n${repeaterHandlers}\n` : ''}${resetHandler ? `\n${resetHandler}\n` : ''}${afterSubmitCode.handlers ? `\n${afterSubmitCode.handlers}\n` : ''}${draft ? `\n${reactDraftHandlers(messages, resetLines)}\n` : ''}
   function handleSubmit(event: React.FormEvent): void {

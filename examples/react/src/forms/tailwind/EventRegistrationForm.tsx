@@ -155,6 +155,12 @@ export default function EventRegistrationForm({
     if (validate) applyError(path, validate(data))
   }
 
+  // The latest data: the rendered state, or what setField just set, so a
+  // touch in the same handler (a radio's change) validates the new value,
+  // not the closure's.
+  const formRef = useRef(form)
+  formRef.current = form
+
   function setField(path: string, value: unknown): void {
     const next = structuredClone(form) as unknown as Record<string, unknown>
     const segments = path.split('.')
@@ -165,14 +171,13 @@ export default function EventRegistrationForm({
     target[segments[segments.length - 1] as keyof typeof target] = value
     const typed = next as unknown as FormData
     setForm(typed)
+    formRef.current = typed
     if (touched.current.has(path)) validateField(path, typed)
   }
 
   // A blur error appearing while a pointer is held reflows the form and the
   // release misses its target; defer blur validation until the press ends.
   // Deferred work reads the latest state through refs, not this closure.
-  const formRef = useRef(form)
-  formRef.current = form
   const fgPressing = useRef(false)
   const fgDeferred = useRef(new Set<string>())
   const fgFlush = useRef(() => {})
@@ -204,7 +209,7 @@ export default function EventRegistrationForm({
       return
     }
     touched.current.add(path)
-    validateField(path, form)
+    validateField(path, formRef.current)
   }
 
   function handleSubmit(event: React.FormEvent): void {
