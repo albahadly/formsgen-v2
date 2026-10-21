@@ -3,7 +3,10 @@
 ## Status
 
 Complete (2026-10-21), on `main`; commits in `PROGRESS.md`. Gate:
-GATE_RESULT
+`pnpm verify` green on the Windows checkout (lint, typecheck, renderer
+218 / builder 378 / cli 12 / server 9 tests, all builds including the
+element bundle and the CLI); the element proven as the thirteenth runtime
+on two demos (recorded under "How to verify").
 
 ## What was built
 

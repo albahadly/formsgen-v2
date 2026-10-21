@@ -39,11 +39,11 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
 - **Phase 43 — Web Component export**: renderer element, second build,
   builder plugin + dialog, target, CLI support, tests and docs are in
   (`fef57ce` + uncommitted toolkit/docs); `element-check.sh` passed for
-  `prefill` (IDENTICAL) and `thanks` (matrix 12 × IDENTICAL, element
-  IDENTICAL); toolkit and docs committed; the final `pnpm verify` is
-  running (session `scratchpad/verify9.log`); the push to `main`
-  (= production deploy, which now also hosts `element/`) follows a green
-  result. Uncommitted: nothing.
+- Nothing. Uncommitted: nothing. Phase 43 shipped: `verify` green
+  (renderer 218 / builder 378 / cli 12 / server 9 tests, all builds),
+  element checks IDENTICAL on `prefill` and `thanks`, pushed to `main`
+  (the deploy now also hosts `element/formsgen-element.js`). Next: phase
+  44 (more templates and more UI languages).
 
 ## Next steps (in order) — the roadmap the user chose on 2026-10-21
 
