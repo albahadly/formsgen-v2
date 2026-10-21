@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SITE_KEY_PATTERN } from '@formsgen/renderer'
+import { SITE_KEY_PATTERN, isRedirectUrl, type AfterSubmitConfig } from '@formsgen/renderer'
 import { SAMPLE_SERVER_URL } from '@/export/submitServer'
 import { computed, ref, watch } from 'vue'
 import { useFocusTrap } from '@/composables/useFocusTrap'
@@ -66,6 +66,24 @@ const saveDraft = computed({
 const prefill = computed({
   get: () => builder.schema.meta.prefillFromQuery === true,
   set: (v: boolean) => builder.updateMeta({ prefillFromQuery: v || undefined }),
+})
+
+// ---- after submit (meta.afterSubmit) ----
+function patchAfterSubmit(patch: Partial<AfterSubmitConfig>): void {
+  const merged: Record<string, string | undefined> = { ...builder.schema.meta.afterSubmit, ...patch }
+  for (const key of Object.keys(merged)) if (merged[key] === undefined || merged[key] === '') delete merged[key]
+  builder.updateMeta({ afterSubmit: Object.keys(merged).length > 0 ? (merged as AfterSubmitConfig) : undefined })
+}
+const thanksMessage = computed({
+  get: () => builder.schema.meta.afterSubmit?.message ?? '',
+  set: (v: string) => patchAfterSubmit({ message: v }),
+})
+// The address is kept only when it is one a page may go to; what is typed stays visible.
+const redirectInput = ref(builder.schema.meta.afterSubmit?.redirectUrl ?? '')
+const redirectInvalid = computed(() => redirectInput.value.trim() !== '' && !isRedirectUrl(redirectInput.value))
+watch(redirectInput, (v) => {
+  if (v.trim() === '') patchAfterSubmit({ redirectUrl: undefined })
+  else if (isRedirectUrl(v)) patchAfterSubmit({ redirectUrl: v.trim() })
 })
 
 // Spam check: a Cloudflare Turnstile site key (empty = off). Only a
@@ -339,6 +357,39 @@ function onKeydown(event: KeyboardEvent): void {
           </button>
           <span v-else>{{ t('settings.sampleServerHint') }}</span>
         </p>
+        <div class="flex flex-col gap-2 border-t border-gray-100 dark:border-gray-800 pt-3">
+          <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+            {{ t('settings.afterSubmit') }}
+          </p>
+          <label class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
+            {{ t('settings.thanksMessage') }}
+            <textarea
+              v-model="thanksMessage"
+              rows="2"
+              class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-sm font-normal"
+              data-testid="settings-thanks-message"
+            />
+            <span class="font-normal text-gray-500 dark:text-gray-400">{{ t('settings.thanksMessageHint') }}</span>
+          </label>
+          <label class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
+            {{ t('settings.redirectUrl') }}
+            <input
+              v-model="redirectInput"
+              type="url"
+              dir="ltr"
+              class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 font-mono text-sm font-normal"
+              placeholder="https://example.com/thanks"
+              data-testid="settings-redirect-url"
+            >
+            <span class="font-normal text-gray-500 dark:text-gray-400">{{ t('settings.redirectUrlHint') }}</span>
+            <span
+              v-if="redirectInvalid"
+              role="alert"
+              class="font-normal text-red-600 dark:text-red-400"
+              data-testid="settings-redirect-warning"
+            >{{ t('settings.redirectInvalid') }}</span>
+          </label>
+        </div>
 
         <div class="flex flex-col gap-3 border-t border-gray-100 dark:border-gray-800 pt-3">
           <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">{{ t('settings.submitButton') }}</span>

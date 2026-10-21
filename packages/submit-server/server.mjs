@@ -3,7 +3,7 @@
 // (JSON, or multipart with a JSON "data" part and one part per file),
 // stores each submission on disk and lists them at http://localhost:4180/.
 //
-//   node server.mjs [--port 4180] [--dir ./submissions] [--origin *] [--max-mb 25]
+//   node server.mjs [--port 4180] [--dir ./submissions] [--origin *] [--max-mb 25] [--webhook URL]
 //
 // Set the form's submit URL to http://localhost:4180/submit (any path works).
 // With TURNSTILE_SECRET set, submissions must carry a passed Cloudflare
@@ -12,7 +12,7 @@
 // No dependencies: Node 20 or newer. It is a starting point for local
 // testing, not a production backend: no authentication or rate limits.
 
-import { randomBytes } from 'node:crypto'
+import { randomBytes, createHmac } from 'node:crypto'
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import { join, resolve } from 'node:path'
@@ -132,6 +132,8 @@ export function createSubmitServer({
   log = console.log,
   turnstileSecret = '',
   verify = verifyTurnstile,
+  webhook = '',
+  webhookSecret = '',
 } = {}) {
   const root = resolve(dir)
   const cors = {
@@ -210,7 +212,24 @@ export function createSubmitServer({
     }
     await writeFile(join(folder, 'submission.json'), `${JSON.stringify(record, null, 2)}\n`)
     log(`[formsgen] ${record.receivedAt} ${req.method} ${req.url} → ${id} (${files.length} file${files.length === 1 ? '' : 's'})`)
+    if (webhook) void forward(record)
     return record
+  }
+
+  // --webhook: every stored submission is also POSTed to the URL as JSON
+  // (the record as written, file bodies not included). Fire and forget: a
+  // failure is logged and the sender still gets its 201. With a secret the
+  // body is signed: X-FormsGen-Signature: sha256=<HMAC-SHA256 hex>.
+  async function forward(record) {
+    const body = JSON.stringify(record)
+    const headers = { 'Content-Type': 'application/json' }
+    if (webhookSecret) headers['X-FormsGen-Signature'] = `sha256=${createHmac('sha256', webhookSecret).update(body).digest('hex')}`
+    try {
+      const res = await fetch(webhook, { method: 'POST', headers, body })
+      if (!res.ok) log(`[formsgen] webhook ${webhook} answered ${res.status}`)
+    } catch (error) {
+      log(`[formsgen] webhook ${webhook} failed: ${error.message}`)
+    }
   }
 
   function page(records) {
@@ -278,10 +297,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   const port = Number(option('port', process.env.PORT ?? 4180))
   const dir = option('dir', 'submissions')
   const turnstileSecret = process.env.TURNSTILE_SECRET ?? ''
-  const server = createSubmitServer({ dir, origin: option('origin', '*'), maxMb: Number(option('max-mb', 25)), turnstileSecret })
+  const webhook = option('webhook', '')
+  const server = createSubmitServer({ dir, origin: option('origin', '*'), maxMb: Number(option('max-mb', 25)), turnstileSecret, webhook, webhookSecret: process.env.WEBHOOK_SECRET ?? '' })
   server.listen(port, () => {
     console.log(`FormsGen submission server: http://localhost:${port}/ (forms post to http://localhost:${port}/submit)`)
     console.log(`Storing submissions in ${resolve(dir)}`)
     if (turnstileSecret) console.log('Spam check: Cloudflare Turnstile tokens are required (TURNSTILE_SECRET is set)')
+    if (webhook) console.log(`Webhook: each submission is also posted to ${webhook}${process.env.WEBHOOK_SECRET ? ' (signed, WEBHOOK_SECRET is set)' : ''}`)
   })
 }

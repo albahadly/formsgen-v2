@@ -7,6 +7,7 @@
     "locale": "en",
     "dir": "ltr",
   "prefillFromQuery": true,
+  "afterSubmit": { "message": "Thanks, {full_name}! We will be in touch." },
     "captcha": { "provider": "turnstile", "siteKey": "1x00000000000000000000AA" }
   },
   "tree": [

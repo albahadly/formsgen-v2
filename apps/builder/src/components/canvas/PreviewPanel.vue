@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { FormsGenForm, describeFiles, memoryStorage, pinsLightScheme, queryPrefill } from '@formsgen/renderer'
-import { computed, ref } from 'vue'
+import { FormsGenForm, afterSubmitOf, describeFiles, fill, memoryStorage, pinsLightScheme, queryPrefill } from '@formsgen/renderer'
+import { computed, ref, watch } from 'vue'
 import { t } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'
 import { useUiStore } from '@/stores/ui'
@@ -25,9 +25,21 @@ function hasParam(nodes: typeof builder.schema.tree): boolean {
 
 // Remount the form when the schema changes so defaults re-apply cleanly.
 const formKey = computed(() => JSON.stringify(builder.schema.tree).length + ui.previewTheme + query.value)
+watch(formKey, again)
 
+// After submit: the thank-you replaces the preview form; a redirect is only announced.
+const sent = ref(false)
+const redirectNote = ref<string | null>(null)
 function onSubmit(data: Record<string, unknown>): void {
   submitted.value = data
+  const after = afterSubmitOf(builder.schema)
+  if (after.redirectUrl) redirectNote.value = after.redirectUrl
+  else if (after.message) sent.value = true
+}
+function again(): void {
+  sent.value = false
+  submitted.value = null
+  redirectNote.value = null
 }
 
 // Files show as { name, size, type } (JSON.stringify would print {}).
@@ -67,10 +79,19 @@ const submittedJson = computed(() =>
         :draft-storage="previewDrafts"
         captcha-preview
         :prefill-search="readsQuery ? `?${query}` : null"
+        :sent="sent"
         :data-fg-theme="pinsLightScheme(builder.schema.meta.theme) ? 'light' : ui.previewTheme"
         :viewport="ui.device === 'mobile' ? 'sm' : ui.device === 'tablet' ? 'md' : undefined"
         @submit="onSubmit"
+        @again="again"
       />
+      <p
+        v-if="redirectNote"
+        class="rounded-lg bg-indigo-50 dark:bg-indigo-950 px-4 py-2 text-xs text-indigo-700 dark:text-indigo-300"
+        data-testid="preview-redirect-note"
+      >
+        {{ fill(t('preview.wouldRedirect'), { url: redirectNote }) }}
+      </p>
       <div
         v-if="submitted"
         class="rounded-lg bg-gray-900 p-4 text-xs text-green-300"

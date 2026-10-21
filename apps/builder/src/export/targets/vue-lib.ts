@@ -1,4 +1,5 @@
 import { servicesReadme } from '../readmeNotes'
+import { afterSubmitOf } from '../afterSubmit'
 import { componentName, type ExportTarget } from './types'
 
 export const vueLibTarget: ExportTarget = {
@@ -10,6 +11,10 @@ export const vueLibTarget: ExportTarget = {
     const name = componentName(schema)
     const schemaLiteral = JSON.stringify(schema, null, 2).replace(/\n/g, '\n')
     const submit = schema.meta.submit
+    const after = afterSubmitOf(schema)
+    const thanksLib = after.message !== null && after.redirectUrl === null
+    // After a successful send: the page goes on, or the thank-you replaces the form.
+    const afterLines = after.redirectUrl !== null ? `\n  window.location.assign(${JSON.stringify(after.redirectUrl)})` : thanksLib ? '\n  sent.value = true' : ''
     // The renderer only validates and emits; sending is the wrapper's job.
     // With a submit URL set in the builder the wrapper sends there, like the
     // other targets do (JSON, or multipart when the form has uploads).
@@ -21,11 +26,11 @@ export const vueLibTarget: ExportTarget = {
     method: ${JSON.stringify(submit.method ?? 'POST')},
     multipart: hasUploadFields(schema.tree),${submit.headers && Object.keys(submit.headers).length ? `\n    headers: ${JSON.stringify(submit.headers)},` : ''}
   })
-  if (!result.ok) console.error('${name}: the server did not accept the submission', result.status)
+${afterLines ? `  if (!result.ok) {\n    console.error('${name}: the server did not accept the submission', result.status)\n    return\n  }${afterLines}` : `  if (!result.ok) console.error('${name}: the server did not accept the submission', result.status)`}
 }`
       : `function onSubmit(payload: Record<string, unknown>): void {
   // Replace with your submit handling.
-  console.log('${name} submitted', payload)
+  console.log('${name} submitted', payload)${afterLines}
 }`
     return [
       {
@@ -40,15 +45,15 @@ import '@formsgen/renderer/style.css'
 const schema = ${schemaLiteral} as unknown as FormSchema
 
 const data = ref<Record<string, unknown>>({})
-
+${thanksLib ? `\n// After submit: the thank-you replaces the form until "Send another response".\nconst sent = ref(false)\n` : ''}
 ${onSubmit}
 </script>
 
 <template>
   <FormsGenForm
     v-model="data"
-    :schema="schema"
-    @submit="onSubmit"
+    :schema="schema"${thanksLib ? `\n    :sent="sent"` : ''}
+    @submit="onSubmit"${thanksLib ? `\n    @again="sent = false"` : ''}
   />
 </template>
 `,

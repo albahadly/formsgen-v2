@@ -39,6 +39,7 @@ import { blazorLocation, hasLocation } from '../location'
 import { CAPTCHA_FIELD, blazorCaptcha, captchaKeyOf, captchaMarkup } from '../captcha'
 import { blazorDraftBlock, draftBar, usesDraft } from '../draft'
 import { blazorModelMember, blazorPrefillBlock, prefillFields } from '../prefill'
+import { SENT_RULE, afterSubmitOf, blazorAfterSubmit, thanksMarkup, thanksPipes } from '../afterSubmit'
 import {
   renderTree,
   stepButtonLabels,
@@ -528,6 +529,9 @@ ${[
     // matching field types are present.
     const hasHosts = hosts.length > 0
     const prefill = prefillFields(schema)
+    const after = afterSubmitOf(schema)
+    const thanks = after.redirectUrl === null && after.message !== null
+    const afterSubmit = after.redirectUrl !== null || thanks
     // What OnInitialized runs: the edit context, the page address, calculations.
     const initCalls = ['FgInitEdit();', ...(prefill.length ? ['FgPrefill();'] : []), ...(steps.length ? ['FgCalc();'] : [])]
     const onInitialized = initCalls.length === 1 ? ` => ${initCalls[0]}` : `\n    {\n${initCalls.map((c) => `        ${c}`).join('\n')}\n    }`
@@ -820,7 +824,7 @@ ${fields.map((f) => `        ${csStr(pascalMember(f.key))},`).join('\n')}
         FgInitEdit();${steps.length ? '\n        FgCalc();' : ''}${hasRepeaters ? '\n        fgItemRefs.Clear();' : ''}
         fgDeferredFields.Clear();
         ResultJson = null;${tagsKeys.length ? '\n        foreach (var key in fgTagDrafts.Keys.ToList()) fgTagDrafts[key] = "";' : ''}${typedFields.some((f) => f.node.type === 'dates') ? '\n        foreach (var key in fgDateDrafts.Keys.ToList()) fgDateDrafts[key] = "";' : ''}${phoneCountryFields(typedFields).length ? '\n        fgPhoneCountry.Clear();' : ''}${signatures ? '\n        await FgJs.InvokeVoidAsync("fgSignClear", fgFormRoot);' : ''}`
-    const resetBlock = hasResetButton(schema)
+    const resetBlock = hasResetButton(schema) || thanks
       ? `
     private async Task FgReset()
     {
@@ -1497,12 +1501,12 @@ ${signatures ? blazorSignature().members : ''}${rich ? blazorRichText(messages.r
 `
         : ''
 
-    const answerBlock = usesAnswers(schema.tree)
+    const answerBlock = usesAnswers(schema.tree) || thanksPipes(schema)
       ? answerHelpersCs({ range: hasRangeSlider(schema), dateRange: hasDateRange(schema), uploads: typedFields.some((f) => FILE_TYPES.has(f.node.type)), location: locations })
       : ''
     const draftBlock = saveDraft ? blazorDraftBlock(schema, `${name}Model`, messages, { uploads: hasUploads, calc: steps.length > 0, resetLines, prefill: prefill.length > 0 }) : ''
     const prefillBlock = prefill.length ? blazorPrefillBlock(prefill, blazorModelMember) : ''
-    const helperBlocks = `${calcBlock}${answerBlock}${editContextBlock}${announceBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}${repeaterBlock}${uploadBlock}${compositeBlock}${afterRenderBlock}${resetBlock}${draftBlock}${prefillBlock}${interopBlock}`
+    const helperBlocks = `${calcBlock}${answerBlock}${editContextBlock}${announceBlock}${nextBlocks}${jumpBlock}${toggleBlock}${tagsBlock}${repeaterBlock}${uploadBlock}${compositeBlock}${afterRenderBlock}${resetBlock}${draftBlock}${prefillBlock}${blazorAfterSubmit(schema)}${interopBlock}`
 
     const formBinding = 'EditContext="fgEdit" OnSubmit="FgSubmit"'
     const extraUsings = '@using System.Linq\n@using Microsoft.AspNetCore.Components.Forms\n'
@@ -1510,9 +1514,7 @@ ${signatures ? blazorSignature().members : ''}${rich ? blazorRichText(messages.r
     const submitUrl = schema.meta.submit?.url
     const httpInject = submitUrl ? '@inject HttpClient Http\n' : ''
     const submitCall = !submitUrl
-      ? saveDraft
-        ? '        await FgDraftForget();\n'
-        : ''
+      ? `${saveDraft ? '        await FgDraftForget();\n' : ''}${afterSubmit ? '        FgAfterSubmit();\n' : ''}`
       : progress
         ? `        fgUploadState = "uploading";
         fgUploadPercent = 0;
@@ -1543,15 +1545,15 @@ ${signatures ? blazorSignature().members : ''}${rich ? blazorRichText(messages.r
         {
         }
         fgUploadState = ok ? "done" : "failed";
-        fgUploadPercent = ok ? 100 : 0;${saveDraft ? '\n        if (ok) await FgDraftForget();' : ''}
+        fgUploadPercent = ok ? 100 : 0;${saveDraft ? '\n        if (ok) await FgDraftForget();' : ''}${afterSubmit ? '\n        if (ok) FgAfterSubmit();' : ''}
         await FgAnnounce(ok ? ${csStr(messages.submitted)} : ${csStr(messages.uploadFailed)});\n`
       : hasUploads
         ? `        // multipart: a JSON "data" part + one part per file
         using var body = new System.Net.Http.MultipartFormDataContent();
         body.Add(FgPart(new System.Net.Http.StringContent(JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json"), "data"));
         foreach (var (path, file) in parts) body.Add(FgFilePart(file, path));
-        ${saveDraft ? 'using var response = ' : ''}await Http.${schema.meta.submit?.method === 'PUT' ? 'PutAsync' : 'PostAsync'}(${csStr(submitUrl)}, body);\n${saveDraft ? '        if (response.IsSuccessStatusCode) await FgDraftForget();\n' : ''}`
-        : `        ${saveDraft ? 'using var response = ' : ''}await Http.${schema.meta.submit?.method === 'PUT' ? 'PutAsJsonAsync' : 'PostAsJsonAsync'}(${csStr(submitUrl)}, payload);\n${saveDraft ? '        // Sent: the answers kept in this browser go.\n        if (response.IsSuccessStatusCode) await FgDraftForget();\n' : ''}`
+        ${saveDraft || afterSubmit ? 'using var response = ' : ''}await Http.${schema.meta.submit?.method === 'PUT' ? 'PutAsync' : 'PostAsync'}(${csStr(submitUrl)}, body);\n${saveDraft ? '        if (response.IsSuccessStatusCode) await FgDraftForget();\n' : ''}${afterSubmit ? '        if (response.IsSuccessStatusCode) FgAfterSubmit();\n' : ''}`
+        : `        ${saveDraft || afterSubmit ? 'using var response = ' : ''}await Http.${schema.meta.submit?.method === 'PUT' ? 'PutAsJsonAsync' : 'PostAsJsonAsync'}(${csStr(submitUrl)}, payload);\n${saveDraft ? '        // Sent: the answers kept in this browser go.\n        if (response.IsSuccessStatusCode) await FgDraftForget();\n' : ''}${afterSubmit ? '        if (response.IsSuccessStatusCode) FgAfterSubmit();\n' : ''}`
 
     // Bottom actions row: omitted when the wizard embeds the submit.
     const actionsBlock = embeddedHost
@@ -1571,9 +1573,9 @@ ${signatures ? blazorSignature().members : ''}${rich ? blazorRichText(messages.r
     const draft = `@* Generated by FormsGen (.NET 8). *@
 @using System.ComponentModel.DataAnnotations
 @using System.Text.Json
-${extraUsings}${submitUrl ? '@using System.Net.Http.Json\n' : ''}${httpInject}${prefill.length ? '@inject Microsoft.AspNetCore.Components.NavigationManager FgNav\n' : ''}${saveDraft || interop ? '@inject Microsoft.JSInterop.IJSRuntime FgJs\n' : ''}${interop ? '@implements IDisposable\n' : ''}
+${extraUsings}${submitUrl ? '@using System.Net.Http.Json\n' : ''}${httpInject}${prefill.length || after.redirectUrl !== null ? '@inject Microsoft.AspNetCore.Components.NavigationManager FgNav\n' : ''}${saveDraft || interop ? '@inject Microsoft.JSInterop.IJSRuntime FgJs\n' : ''}${interop ? '@implements IDisposable\n' : ''}
 <EditForm ${formBinding} novalidate dir="${schema.meta.dir}">
-    <div class="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd"${interop ? ' @ref="fgFormRoot"' : ''}>${saveDraft ? `\n${indentBlock(draftBar('blazor', schema, css, messages), 2)}` : ''}
+    <div class="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd"${interop ? ' @ref="fgFormRoot"' : ''}${thanks ? ' data-fg-sent="@(fgSent ? "" : null)"' : ''}>${thanks ? `\n    <style>${SENT_RULE}</style>\n${indentBlock(thanksMarkup('blazor', schema, css, messages, accessor), 1)}` : ''}${saveDraft ? `\n${indentBlock(draftBar('blazor', schema, css, messages), 2)}` : ''}
     <div class="${css.classes('grid')}">
 ${indentBlock(markup, 2)}
     </div>

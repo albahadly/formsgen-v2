@@ -220,6 +220,38 @@ describe('palette → canvas → properties workflow', () => {
     expect(field.value).toBe('Ada')
   })
 
+  it('after submit: the settings fields; the preview shows the thank-you, or notes the redirect', async () => {
+    const { wrapper, store } = mountApp()
+    await wrapper.get('[data-testid="palette-item-text"]').trigger('click')
+    await wrapper.get('[data-testid="control-name"]').setValue('full_name')
+    await wrapper.get('[data-testid="open-settings"]').trigger('click')
+    await wrapper.get('[data-testid="settings-thanks-message"]').setValue('Thanks, {full_name}!')
+    expect(store.schema.meta.afterSubmit).toEqual({ message: 'Thanks, {full_name}!' })
+    // an address a page must not go to is shown as wrong and not kept
+    await wrapper.get('[data-testid="settings-redirect-url"]').setValue('mailto:a@b.c')
+    expect(wrapper.find('[data-testid="settings-redirect-warning"]').exists()).toBe(true)
+    expect(store.schema.meta.afterSubmit).toEqual({ message: 'Thanks, {full_name}!' })
+    await wrapper.get('[data-testid="settings-redirect-url"]').setValue('')
+    await wrapper.get('[data-testid="settings-close"]').trigger('click')
+    await wrapper.get('[data-testid="view-preview"]').trigger('click')
+    const field = () => wrapper.get('[data-testid="panel-preview"] .fg-form input[type="text"]')
+    await field().setValue('Ada')
+    await wrapper.get('[data-testid="panel-preview"] form').trigger('submit')
+    await flushPromises()
+    expect(wrapper.get('[data-testid="panel-preview"] [data-fg-thanks]').text()).toContain('Thanks, Ada!')
+    await wrapper.get('[data-testid="panel-preview"] [data-fg-again]').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('[data-testid="panel-preview"] [data-fg-thanks]').exists()).toBe(false)
+    expect((field().element as HTMLInputElement).value).toBe('')
+    // a redirect is only announced: the preview stays
+    store.updateMeta({ afterSubmit: { redirectUrl: 'https://example.com/done' } })
+    await field().setValue('Bo')
+    await wrapper.get('[data-testid="panel-preview"] form').trigger('submit')
+    await flushPromises()
+    expect(wrapper.get('[data-testid="preview-redirect-note"]').text()).toContain('https://example.com/done')
+    expect(wrapper.find('[data-testid="panel-preview"] [data-fg-thanks]').exists()).toBe(false)
+  })
+
   it('settings dialog edits form meta with name validation', async () => {
     const { wrapper, store } = mountApp()
     await wrapper.get('[data-testid="open-settings"]').trigger('click')

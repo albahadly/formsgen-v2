@@ -16,6 +16,7 @@ import { hasLocation, locationRuntime } from '../location'
 import { CAPTCHA_FIELD, captchaKeyOf, captchaMarkup, captchaRuntime } from '../captcha'
 import { draftBar, draftHelpers, htmlDraftRuntime, usesDraft } from '../draft'
 import { htmlPrefillRuntime, prefillFields } from '../prefill'
+import { SENT_RULE, afterSubmitOf, htmlAfterSubmitRuntime, thanksMarkup, thanksPipes } from '../afterSubmit'
 import { fieldsByPath, listSeparator } from '@formsgen/renderer'
 import { dropFirstHelper, postsUploads, uploadFields, uploadStatusMarkup, uploadTextHelper } from '../uploadRuntime'
 import { exportStylesheet, hasDateRange, hasDates, hasMatrix, hasRangeSlider, phoneCountryFields } from '../composite'
@@ -205,10 +206,16 @@ ${indentBlock(r.itemHtml, 3)}
     // Calculated fields: recomputed at the start of every updateConditions().
     const steps = calcSteps(schema)
     // Answers inside text: <span data-fg-answer> painted with every update.
-    const answers = usesAnswers(schema.tree)
+    const answers = usesAnswers(schema.tree) || thanksPipes(schema)
     // Save and continue later: answers kept in this browser until sent.
     const draft = usesDraft(schema)
     const prefill = prefillFields(schema)
+    const after = afterSubmitOf(schema)
+    const thanks = after.redirectUrl === null && after.message !== null
+    const afterSubmit = after.redirectUrl !== null || thanks
+    // What runs once the server said yes: the draft goes, then what comes after.
+    const okCalls = [draft ? 'fgDraftForget()' : '', afterSubmit ? 'fgAfterSubmit()' : ''].filter(Boolean)
+    const okCall = okCalls.length === 1 ? okCalls[0] : `{ ${okCalls.join('; ')} }`
     const hasUploads = uploadFields(typedFields).length > 0
     const signatures = hasSignature(schema.tree)
     const rich = hasRichText(schema.tree)
@@ -224,17 +231,15 @@ ${indentBlock(r.itemHtml, 3)}
       fgSend(${jsString(submitUrl ?? '')}, ${jsString(schema.meta.submit?.method ?? 'POST')}, fgMultipart(data), function (percent) {
         fgUploadPaint('uploading', percent)
       }, function (ok) {
-        fgUploadPaint(ok ? 'done' : 'failed', ok ? 100 : 0)${draft ? '\n        if (ok) fgDraftForget()' : ''}
+        fgUploadPaint(ok ? 'done' : 'failed', ok ? 100 : 0)${draft ? '\n        if (ok) fgDraftForget()' : ''}${afterSubmit ? '\n        if (ok) fgAfterSubmit()' : ''}
         fgAnnounce(ok ? ${submittedText(messages)} : ${JSON.stringify(messages.uploadFailed)})
       })\n`
       : submitUrl
       ? `      fetch(${jsString(submitUrl)}, {
         method: ${jsString(schema.meta.submit?.method ?? 'POST')},
         ${hasUploads ? '// multipart: a JSON "data" part + one part per file\n        body: fgMultipart(data),' : "headers: { 'Content-Type': 'application/json' },\n        body: JSON.stringify(data),"}
-      })${draft ? '\n        // Sent: the answers kept in this browser go.\n        .then(function (response) { if (response.ok) fgDraftForget() })' : ''}.catch(function (error) { console.error('Submit failed', error) })\n`
-      : draft
-      ? '      fgDraftForget()\n'
-      : ''
+      })${draft || afterSubmit ? `\n        // Sent: the answers kept in this browser go.\n        .then(function (response) { if (response.ok) ${okCall} })` : ''}.catch(function (error) { console.error('Submit failed', error) })\n`
+      : `${draft ? '      fgDraftForget()\n' : ''}${afterSubmit ? '      fgAfterSubmit()\n' : ''}`
 
     // Reset buttons: native form reset (restores the markup defaults) plus
     // chips, errors, touched state and conditional blocks.
@@ -391,7 +396,7 @@ function fgWirePhone(root) {
         fgEach(document, '[data-fg-kind="richtext"]', function (el) { el.innerHTML = '' })` : ''}
         updateConditions()
 `
-    const resetScript = draft
+    const resetScript = draft || thanks
       ? `    function fgResetForm() {
 ${resetBody.replace(/^ {2}/gm, '')}    }
 ${hasResetButton(schema) ? `    Array.prototype.forEach.call(document.querySelectorAll('[data-fg-reset]'), function (button) {
@@ -1138,7 +1143,7 @@ ${wires.map((w) => `      ${w}(root)`).join('\n')}
       if (path && touched[path]) validateField(path)
     }
 
-${progress ? `${uploadProgressScript()}\n` : ''}${resetScript}${draft ? `    ${draftHelpers(schema, 'html', false).split('\n').join('\n    ')}\n    ${htmlDraftRuntime(messages, { dates: hasDateList, repeaters: hasRepeaters }).split('\n').join('\n    ')}\n\n` : ''}${prefill.length ? `    ${htmlPrefillRuntime(prefill).split('\n').join('\n    ')}\n\n` : ''}    form.addEventListener('submit', function (event) {
+${progress ? `${uploadProgressScript()}\n` : ''}${resetScript}${draft ? `    ${draftHelpers(schema, 'html', false).split('\n').join('\n    ')}\n    ${htmlDraftRuntime(messages, { dates: hasDateList, repeaters: hasRepeaters }).split('\n').join('\n    ')}\n\n` : ''}${prefill.length ? `    ${htmlPrefillRuntime(prefill).split('\n').join('\n    ')}\n\n` : ''}${afterSubmit ? `    ${htmlAfterSubmitRuntime(schema, messages).split('\n').join('\n    ')}\n\n` : ''}    form.addEventListener('submit', function (event) {
       event.preventDefault()${progress ? "\n      if (fgUploadState === 'uploading') return" : ''}
       var failed = 0
       ${hasRepeaters ? 'fgAllPaths()' : 'Object.keys(FG_VALIDATORS)'}.forEach(function (path) {
@@ -1186,9 +1191,9 @@ ${repeaterInit}    updateConditions()${draft ? '\n    fgDraftStart()' : ''}${pre
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${esc(schema.meta.title ?? schema.meta.name)}</title>
 ${headAssets}${headAssets && styleTag ? '\n' : ''}${styleTag}
-</head>
+${thanks ? `<style>${SENT_RULE}</style>\n` : ''}</head>
 <body>
-  <form id="fg-form" class="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} novalidate>${draft ? `\n${indentBlock(draftBar('html', schema, css, messages), 2)}` : ''}
+  <form id="fg-form" class="${formRootClass(css.classes('form'), schema.meta.theme)}"${pinnedSchemeAttr(schema.meta.theme)} novalidate>${thanks ? `\n${indentBlock(thanksMarkup('html', schema, css, messages, () => ''), 2)}` : ''}${draft ? `\n${indentBlock(draftBar('html', schema, css, messages), 2)}` : ''}
     <div class="${css.classes('grid')}">
 ${indentBlock(markup, 3)}
     </div>

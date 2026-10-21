@@ -2,6 +2,7 @@
 // import, export round-trips). Dependency-free by design — no zod.
 
 import { SITE_KEY_PATTERN } from './captcha'
+import { isRedirectUrl } from './afterSubmit'
 import { isSafeUrl } from './elements'
 import { REPEATER_TYPE, itemPlacementProblem } from './repeater'
 import {
@@ -101,6 +102,20 @@ export function parseFormSchema(input: unknown): ParseResult {
     }
     if (meta['prefillFromQuery'] !== undefined && typeof meta['prefillFromQuery'] !== 'boolean') {
       errors.push('meta.prefillFromQuery: expected a boolean')
+    }
+    const afterSubmit = meta['afterSubmit']
+    if (afterSubmit !== undefined) {
+      if (!isRecord(afterSubmit)) {
+        errors.push('meta.afterSubmit: expected an object')
+      } else {
+        const message = afterSubmit['message']
+        if (message !== undefined && (typeof message !== 'string' || message.length > 2000)) {
+          errors.push('meta.afterSubmit.message: expected text of up to 2000 characters')
+        }
+        if (afterSubmit['redirectUrl'] !== undefined && !isRedirectUrl(afterSubmit['redirectUrl'])) {
+          errors.push('meta.afterSubmit.redirectUrl: expected an http(s) or relative address')
+        }
+      }
     }
     const captcha = meta['captcha']
     if (captcha !== undefined) {

@@ -61,6 +61,15 @@ export interface FormMeta {
   captcha?: CaptchaConfig | undefined
   /** Query parameters named like a field's data path fill it (see prefill.ts). */
   prefillFromQuery?: boolean | undefined
+  /** Once sent: a thank-you replaces the form, or the page goes elsewhere (see afterSubmit.ts). */
+  afterSubmit?: AfterSubmitConfig | undefined
+}
+
+export interface AfterSubmitConfig {
+  /** Shown instead of the form after a successful send; may carry answers ({full_name}). */
+  message?: string | undefined
+  /** http(s) or relative; wins over the message. */
+  redirectUrl?: string | undefined
 }
 
 export type RuleName =

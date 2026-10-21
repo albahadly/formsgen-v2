@@ -164,3 +164,31 @@ test('Cloudflare trouble is a 503 (try again), not a refused submission', async 
   }
 })
 
+
+test('--webhook: each stored submission is posted on as JSON, signed with the secret', async () => {
+  const { createServer } = await import('node:http')
+  const { createHmac } = await import('node:crypto')
+  const received = []
+  const receiver = createServer((req, res) => {
+    let body = ''
+    req.on('data', (chunk) => (body += chunk))
+    req.on('end', () => { received.push({ body, signature: req.headers['x-formsgen-signature'] }); res.writeHead(204); res.end() })
+  })
+  await new Promise((resolve) => receiver.listen(0, '127.0.0.1', resolve))
+  const hookDir = await mkdtemp(join(tmpdir(), 'fg-hook-'))
+  const hooked = createSubmitServer({ dir: hookDir, webhook: `http://127.0.0.1:${receiver.address().port}/hook`, webhookSecret: 's3cret', log: () => {} })
+  await new Promise((resolve) => hooked.listen(0, '127.0.0.1', resolve))
+  try {
+    const res = await fetch(`http://127.0.0.1:${hooked.address().port}/submit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Ana' }) })
+    assert.equal(res.status, 201)
+    for (let i = 0; i < 40 && received.length === 0; i++) await new Promise((resolve) => setTimeout(resolve, 50))
+    assert.equal(received.length, 1)
+    const record = JSON.parse(received[0].body)
+    assert.deepEqual(record.data, { name: 'Ana' })
+    assert.equal(received[0].signature, `sha256=${createHmac('sha256', 's3cret').update(received[0].body).digest('hex')}`)
+  } finally {
+    hooked.close()
+    receiver.close()
+    await rm(hookDir, { recursive: true, force: true })
+  }
+})

@@ -61,6 +61,7 @@ export {
   type SubmitButtonConfig,
   type SubmitConfig,
   type ThemeTokens,
+  type AfterSubmitConfig,
 } from './schema'
 
 export {
@@ -262,3 +263,4 @@ export {
   type LocationSettings,
 } from './location'
 export { prefillKind, prefillValue, queryPrefill, type PrefillEntry, type PrefillKind } from './prefill'
+export { afterSubmitOf, isRedirectUrl, type AfterSubmit } from './afterSubmit'

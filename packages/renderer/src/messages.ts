@@ -150,6 +150,8 @@ export interface MessageCatalog {
   draftClear: string
   /** Announced after clearing. */
   draftCleared: string
+  /** After submit: the button under the thank-you message. */
+  sendAnother: string
 }
 
 const en: MessageCatalog = {
@@ -237,6 +239,7 @@ const en: MessageCatalog = {
   draftNoFiles: 'Files aren’t saved; choose them again before sending.',
   draftClear: 'Clear saved answers',
   draftCleared: 'Saved answers cleared.',
+  sendAnother: 'Send another response',
 }
 
 const ar: MessageCatalog = {
@@ -327,6 +330,7 @@ const ar: MessageCatalog = {
   draftNoFiles: 'لا تُحفَظ الملفات؛ اخترها مرة أخرى قبل الإرسال.',
   draftClear: 'مسح الإجابات المحفوظة',
   draftCleared: 'تم مسح الإجابات المحفوظة.',
+  sendAnother: 'إرسال رد آخر',
 }
 
 export const MESSAGES: Readonly<Record<'en' | 'ar', MessageCatalog>> = { en, ar }

@@ -12,6 +12,7 @@ import { fieldsByPath, listSeparator, pipeText } from '../pipe'
 import { movedIndex, resolveScoped } from '../repeater'
 import { collectCalculated, collectVisibleFields, pickVisibleData, scopedLookup, setValueByPath } from '../runtime'
 import type { FormSchema } from '../schema'
+import { afterSubmitOf } from '../afterSubmit'
 import { queryPrefill } from '../prefill'
 import { buildDefaultData } from '../tree'
 import FgNode from './FgNode.vue'
@@ -43,11 +44,15 @@ const props = defineProps<{
    * none (the builder preview passes the string it tests with).
    */
   prefillSearch?: string | null | undefined
+  /** The host sent the answers: with meta.afterSubmit.message the thank-you replaces the form. */
+  sent?: boolean | undefined
 }>()
 
 const emit = defineEmits<{
   'update:modelValue': [data: Record<string, unknown>]
   submit: [data: Record<string, unknown>]
+  /** "Send another response" under the thank-you: the form was reset; the host clears `sent`. */
+  again: []
 }>()
 
 /** meta.theme tokens (validated, with derived values) become --fg-* variables. */
@@ -333,6 +338,19 @@ context.pipe = (text, scope) =>
     listSeparator(props.schema.meta.locale),
   )
 
+// ---- after submit (meta.afterSubmit, see afterSubmit.ts) ----
+const thanksMessage = computed(() => afterSubmitOf(props.schema).message)
+const showThanks = computed(() => props.sent === true && thanksMessage.value !== null)
+const thanksText = computed(() =>
+  thanksMessage.value === null
+    ? ''
+    : pipeText(thanksMessage.value, pipeFields.value, '', (path) => getValueByPath(data, path), messages.value, listSeparator(props.schema.meta.locale)),
+)
+function sendAnother(): void {
+  resetForm(messages.value.formReset)
+  emit('again')
+}
+
 /**
  * A repeater item was removed: later items move up one index, so their
  * touched state and errors follow them (the removed item's are dropped).
@@ -493,109 +511,129 @@ function onSubmit(): void {
     @pointerdown.capture="onPointerDown"
   >
     <div
-      v-if="draftOn"
-      class="fg-draft"
-      data-fg-draft
+      v-if="showThanks"
+      class="fg-group"
+      role="status"
+      data-fg-thanks
     >
-      <p class="fg-draft-text">
-        {{ draftState === 'restored' ? messages.draftRestored : messages.draftOn }}<template v-if="draftHasFiles">
-          {{ messages.draftNoFiles }}
-        </template>
+      <p class="fg-paragraph">
+        {{ thanksText }}
       </p>
       <button
-        v-if="draftState !== ''"
         type="button"
-        class="fg-draft-clear"
-        data-fg-draft-clear
-        @click="clearDraft"
+        class="fg-button fg-button--secondary"
+        data-fg-again
+        @click="sendAnother"
       >
-        {{ messages.draftClear }}
+        {{ messages.sendAnother }}
       </button>
     </div>
-    <div class="fg-grid">
-      <FgNode
-        v-for="node in schema.tree"
-        :key="node.id"
-        :node="node"
-        parent-path=""
-        :default-span="12"
-      />
-    </div>
-    <div
-      v-if="captchaKey"
-      class="fg-captcha"
-      data-fg-captcha
-    >
-      <div ref="captchaEl" />
-      <p
-        v-if="captchaBroken"
-        class="fg-error"
+    <template v-else>
+      <div
+        v-if="draftOn"
+        class="fg-draft"
+        data-fg-draft
       >
-        {{ messages.captchaFailed }}
-      </p>
-      <p
-        v-else-if="captchaBlocks"
-        :id="captchaHintId"
-        class="fg-captcha-hint"
-      >
-        {{ messages.captchaWait }}
-      </p>
-    </div>
-    <div
-      v-if="upload"
-      class="fg-upload"
-      data-fg-upload
-    >
-      <template v-if="upload.state !== 'failed'">
-        <div
-          class="fg-progress"
-          role="progressbar"
-          :aria-label="messages.uploadProgress"
-          aria-valuemin="0"
-          aria-valuemax="100"
-          :aria-valuenow="uploadPercent"
-        >
-          <div
-            class="fg-progress-bar"
-            :style="{ inlineSize: `${uploadPercent}%` }"
-          />
-        </div>
-        <p class="fg-progress-text">
-          {{ upload.state === 'done' ? messages.uploadDone : fill(messages.uploading, { n: uploadPercent }) }}
+        <p class="fg-draft-text">
+          {{ draftState === 'restored' ? messages.draftRestored : messages.draftOn }}<template v-if="draftHasFiles">
+            {{ messages.draftNoFiles }}
+          </template>
         </p>
-      </template>
-      <p
-        v-else
-        class="fg-error"
-      >
-        {{ messages.uploadFailed }}
-      </p>
-    </div>
-    <div
-      class="fg-sr-only"
-      role="status"
-      aria-live="polite"
-      aria-atomic="true"
-      data-fg-live
-    >
-      {{ announcement }}
-    </div>
-    <div
-      class="fg-actions"
-      :style="actionsStyle"
-    >
-      <slot name="actions">
         <button
-          v-if="submitVisible"
-          :class="submitClass"
-          :style="submitStyle"
-          type="submit"
-          :disabled="uploading || captchaBlocks"
-          :aria-describedby="captchaBlocks && !captchaBroken ? captchaHintId : undefined"
+          v-if="draftState !== ''"
+          type="button"
+          class="fg-draft-clear"
+          data-fg-draft-clear
+          @click="clearDraft"
         >
-          {{ submitText }}
+          {{ messages.draftClear }}
         </button>
-      </slot>
-    </div>
+      </div>
+      <div class="fg-grid">
+        <FgNode
+          v-for="node in schema.tree"
+          :key="node.id"
+          :node="node"
+          parent-path=""
+          :default-span="12"
+        />
+      </div>
+      <div
+        v-if="captchaKey"
+        class="fg-captcha"
+        data-fg-captcha
+      >
+        <div ref="captchaEl" />
+        <p
+          v-if="captchaBroken"
+          class="fg-error"
+        >
+          {{ messages.captchaFailed }}
+        </p>
+        <p
+          v-else-if="captchaBlocks"
+          :id="captchaHintId"
+          class="fg-captcha-hint"
+        >
+          {{ messages.captchaWait }}
+        </p>
+      </div>
+      <div
+        v-if="upload"
+        class="fg-upload"
+        data-fg-upload
+      >
+        <template v-if="upload.state !== 'failed'">
+          <div
+            class="fg-progress"
+            role="progressbar"
+            :aria-label="messages.uploadProgress"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            :aria-valuenow="uploadPercent"
+          >
+            <div
+              class="fg-progress-bar"
+              :style="{ inlineSize: `${uploadPercent}%` }"
+            />
+          </div>
+          <p class="fg-progress-text">
+            {{ upload.state === 'done' ? messages.uploadDone : fill(messages.uploading, { n: uploadPercent }) }}
+          </p>
+        </template>
+        <p
+          v-else
+          class="fg-error"
+        >
+          {{ messages.uploadFailed }}
+        </p>
+      </div>
+      <div
+        class="fg-sr-only"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        data-fg-live
+      >
+        {{ announcement }}
+      </div>
+      <div
+        class="fg-actions"
+        :style="actionsStyle"
+      >
+        <slot name="actions">
+          <button
+            v-if="submitVisible"
+            :class="submitClass"
+            :style="submitStyle"
+            type="submit"
+            :disabled="uploading || captchaBlocks"
+            :aria-describedby="captchaBlocks && !captchaBroken ? captchaHintId : undefined"
+          >
+            {{ submitText }}
+          </button>
+        </slot>
+      </div>
+    </template>
   </form>
 </template>

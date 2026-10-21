@@ -11,7 +11,15 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
 @implements IDisposable
 
 <EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate dir="ltr">
-    <div class="p-3" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd" @ref="fgFormRoot">
+    <div class="p-3" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd" @ref="fgFormRoot" data-fg-sent="@(fgSent ? "" : null)">
+    <style>[data-fg-sent] > :not([data-fg-thanks]) { display: none; }</style>
+    @if (fgSent)
+    {
+        <div class="border rounded p-3 bg-body-tertiary" role="status" data-fg-thanks>
+            <p class="text-secondary mb-0">Thanks, @(FgOr(FgAnswer(Model.FullName, ", "), ""))! We will be in touch.</p>
+            <button type="button" class="btn btn-outline-secondary fw-semibold px-3" data-fg-again @onclick="FgSendAnother">Send another response</button>
+        </div>
+    }
     <div class="row g-3">
         <div class="col-12 col-md-12 text-center">
           <h2 class="fg-heading text-primary">Kitchen Sink</h2>
@@ -2445,6 +2453,18 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         return parts.Select(p => p.Trim()).Where(p => p.Length > 0).ToList();
     }
 
+    // After a successful send the thank-you replaces the form.
+    private bool fgSent;
+
+    private void FgAfterSubmit() => fgSent = true;
+
+    // "Send another response": the form comes back, reset.
+    private async Task FgSendAnother()
+    {
+        fgSent = false;
+        await FgReset();
+    }
+
     // Scripts on the form's root (loaded once, after the first render) call
     // back into this component through fgSelf. They are wired to the form's
     // element after each render that follows a new EditContext (EditForm
@@ -3319,6 +3339,7 @@ window.fgCaptchaWire = function (el, dotnet) {
         fgCaptchaToken = "";
         await FgJs.InvokeVoidAsync("fgCaptchaReset", fgCaptchaEl);
         ResultJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
+        FgAfterSubmit();
         await FgAnnounce("Form submitted.");
     }
 
@@ -3530,7 +3551,15 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
 @implements IDisposable
 
 <EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate dir="ltr">
-    <div class="bg-white p-4 font-sans text-gray-900 dark:bg-gray-900 dark:text-gray-100" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd" @ref="fgFormRoot">
+    <div class="bg-white p-4 font-sans text-gray-900 dark:bg-gray-900 dark:text-gray-100" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd" @ref="fgFormRoot" data-fg-sent="@(fgSent ? "" : null)">
+    <style>[data-fg-sent] > :not([data-fg-thanks]) { display: none; }</style>
+    @if (fgSent)
+    {
+        <div class="rounded-md border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50" role="status" data-fg-thanks>
+            <p class="text-base text-gray-600 dark:text-gray-300">Thanks, @(FgOr(FgAnswer(Model.FullName, ", "), ""))! We will be in touch.</p>
+            <button type="button" class="rounded-md border border-gray-300 px-4 py-1.5 text-base font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-again @onclick="FgSendAnother">Send another response</button>
+        </div>
+    }
     <div class="grid grid-cols-12 gap-4">
         <div class="col-span-12 md:col-span-12 text-center">
           <h2 class="text-2xl font-semibold leading-tight text-indigo-600 dark:text-indigo-400">Kitchen Sink</h2>
@@ -5968,6 +5997,18 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         return parts.Select(p => p.Trim()).Where(p => p.Length > 0).ToList();
     }
 
+    // After a successful send the thank-you replaces the form.
+    private bool fgSent;
+
+    private void FgAfterSubmit() => fgSent = true;
+
+    // "Send another response": the form comes back, reset.
+    private async Task FgSendAnother()
+    {
+        fgSent = false;
+        await FgReset();
+    }
+
     // Scripts on the form's root (loaded once, after the first render) call
     // back into this component through fgSelf. They are wired to the form's
     // element after each render that follows a new EditContext (EditForm
@@ -6842,6 +6883,7 @@ window.fgCaptchaWire = function (el, dotnet) {
         fgCaptchaToken = "";
         await FgJs.InvokeVoidAsync("fgCaptchaReset", fgCaptchaEl);
         ResultJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
+        FgAfterSubmit();
         await FgAnnounce("Form submitted.");
     }
 
@@ -7053,7 +7095,15 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
 @implements IDisposable
 
 <EditForm EditContext="fgEdit" OnSubmit="FgSubmit" novalidate dir="ltr">
-    <div class="fg-form" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd" @ref="fgFormRoot">
+    <div class="fg-form" @onpointerdown="FgPointerDown" @onpointerup="FgPointerEnd" @onpointerleave="FgPointerEnd" @onpointercancel="FgPointerEnd" @ref="fgFormRoot" data-fg-sent="@(fgSent ? "" : null)">
+    <style>[data-fg-sent] > :not([data-fg-thanks]) { display: none; }</style>
+    @if (fgSent)
+    {
+        <div class="fg-group" role="status" data-fg-thanks>
+            <p class="fg-paragraph">Thanks, @(FgOr(FgAnswer(Model.FullName, ", "), ""))! We will be in touch.</p>
+            <button type="button" class="fg-button fg-button--secondary" data-fg-again @onclick="FgSendAnother">Send another response</button>
+        </div>
+    }
     <div class="fg-grid">
         <div class="fg-cell fg-align-center" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <h2 class="fg-heading fg-tone-primary">Kitchen Sink</h2>
@@ -9491,6 +9541,18 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         return parts.Select(p => p.Trim()).Where(p => p.Length > 0).ToList();
     }
 
+    // After a successful send the thank-you replaces the form.
+    private bool fgSent;
+
+    private void FgAfterSubmit() => fgSent = true;
+
+    // "Send another response": the form comes back, reset.
+    private async Task FgSendAnother()
+    {
+        fgSent = false;
+        await FgReset();
+    }
+
     // Scripts on the form's root (loaded once, after the first render) call
     // back into this component through fgSelf. They are wired to the form's
     // element after each render that follows a new EditContext (EditForm
@@ -10365,6 +10427,7 @@ window.fgCaptchaWire = function (el, dotnet) {
         fgCaptchaToken = "";
         await FgJs.InvokeVoidAsync("fgCaptchaReset", fgCaptchaEl);
         ResultJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
+        FgAfterSubmit();
         await FgAnnounce("Form submitted.");
     }
 
@@ -10679,9 +10742,14 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
   #fg-form { box-sizing: border-box; max-inline-size: 42rem; margin-inline: auto; }
   [hidden] { display: none !important; }
   </style>
+<style>[data-fg-sent] > :not([data-fg-thanks]) { display: none; }</style>
 </head>
 <body>
   <form id="fg-form" class="p-3" novalidate>
+    <div class="border rounded p-3 bg-body-tertiary" role="status" data-fg-thanks hidden>
+      <p class="text-secondary mb-0">Thanks, <span data-fg-answer="full_name" data-fg-fallback=""></span>! We will be in touch.</p>
+      <button type="button" class="btn btn-outline-secondary fw-semibold px-3" data-fg-again>Send another response</button>
+    </div>
     <div class="row g-3">
       <div class="col-12 col-md-12 text-center">
         <h2 class="fg-heading text-primary">Kitchen Sink</h2>
@@ -13587,28 +13655,31 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       if (path && touched[path]) validateField(path)
     }
 
+    function fgResetForm() {
+      form.reset()
+      Object.keys(fgTags).forEach(function (path) { fgTags[path] = [] })
+      fgEach(document, '[data-fg-kind="tags"]', function (wrap) { if (wrap.fgPaint) wrap.fgPaint() })
+      Object.keys(fgFiles).forEach(function (path) {
+        fgFiles[path] = []
+        fgPaintFiles(path)
+      })
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fg-dual]'), fgDualPaint)
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="daterange"][data-fg-part="to"]'), function (to) { to.min = '' })
+      Object.keys(fgDates).forEach(function (path) { fgDates[path] = []; fgPaintDates(path) })
+      Object.keys(touched).forEach(function (path) { delete touched[path] })
+      Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })
+      // Top-level repeaters; inner ones go with their outer items.
+      ;["references"].forEach(function (path) {
+        fgItemElements(path).forEach(function (item) { item.remove() })
+        for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
+      })
+      document.getElementById('fg-result').hidden = true
+      fgEach(document, '[data-fg-kind="richtext"]', function (el) { el.innerHTML = '' })
+      updateConditions()
+    }
     Array.prototype.forEach.call(document.querySelectorAll('[data-fg-reset]'), function (button) {
       button.addEventListener('click', function () {
-        form.reset()
-        Object.keys(fgTags).forEach(function (path) { fgTags[path] = [] })
-        fgEach(document, '[data-fg-kind="tags"]', function (wrap) { if (wrap.fgPaint) wrap.fgPaint() })
-        Object.keys(fgFiles).forEach(function (path) {
-          fgFiles[path] = []
-          fgPaintFiles(path)
-        })
-        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-dual]'), fgDualPaint)
-        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="daterange"][data-fg-part="to"]'), function (to) { to.min = '' })
-        Object.keys(fgDates).forEach(function (path) { fgDates[path] = []; fgPaintDates(path) })
-        Object.keys(touched).forEach(function (path) { delete touched[path] })
-        Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })
-        // Top-level repeaters; inner ones go with their outer items.
-        ;["references"].forEach(function (path) {
-          fgItemElements(path).forEach(function (item) { item.remove() })
-          for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
-        })
-        document.getElementById('fg-result').hidden = true
-        fgEach(document, '[data-fg-kind="richtext"]', function (el) { el.innerHTML = '' })
-        updateConditions()
+        fgResetForm()
         fgAnnounce("The form was reset.")
       })
     })
@@ -13663,6 +13734,21 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       })
     }
 
+    // After a successful send the thank-you replaces the form (data-fg-sent
+    // hides the rest); "Send another response" resets and brings it back.
+    function fgAfterSubmit() {
+      form.setAttribute('data-fg-sent', '')
+      var thanks = form.querySelector('[data-fg-thanks]')
+      thanks.hidden = false
+      thanks.querySelector('[data-fg-again]').focus()
+    }
+    form.querySelector('[data-fg-again]').addEventListener('click', function () {
+      form.removeAttribute('data-fg-sent')
+      form.querySelector('[data-fg-thanks]').hidden = true
+      fgResetForm()
+      fgAnnounce("The form was reset.")
+    })
+
     form.addEventListener('submit', function (event) {
       event.preventDefault()
       var failed = 0
@@ -13698,6 +13784,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       out.hidden = false
       fgAnnounce("Form submitted.")
       console.log('Form submitted', data)
+      fgAfterSubmit()
     })
 
     fgInitRepeaters(document)
@@ -13765,9 +13852,14 @@ exports[`html target > snapshot (tailwind) 1`] = `
   #fg-form { box-sizing: border-box; max-inline-size: 42rem; margin-inline: auto; }
   [hidden] { display: none !important; }
   </style>
+<style>[data-fg-sent] > :not([data-fg-thanks]) { display: none; }</style>
 </head>
 <body>
   <form id="fg-form" class="bg-white p-4 font-sans text-gray-900 dark:bg-gray-900 dark:text-gray-100" novalidate>
+    <div class="rounded-md border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50" role="status" data-fg-thanks hidden>
+      <p class="text-base text-gray-600 dark:text-gray-300">Thanks, <span data-fg-answer="full_name" data-fg-fallback=""></span>! We will be in touch.</p>
+      <button type="button" class="rounded-md border border-gray-300 px-4 py-1.5 text-base font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-again>Send another response</button>
+    </div>
     <div class="grid grid-cols-12 gap-4">
       <div class="col-span-12 md:col-span-12 text-center">
         <h2 class="text-2xl font-semibold leading-tight text-indigo-600 dark:text-indigo-400">Kitchen Sink</h2>
@@ -16677,28 +16769,31 @@ exports[`html target > snapshot (tailwind) 1`] = `
       if (path && touched[path]) validateField(path)
     }
 
+    function fgResetForm() {
+      form.reset()
+      Object.keys(fgTags).forEach(function (path) { fgTags[path] = [] })
+      fgEach(document, '[data-fg-kind="tags"]', function (wrap) { if (wrap.fgPaint) wrap.fgPaint() })
+      Object.keys(fgFiles).forEach(function (path) {
+        fgFiles[path] = []
+        fgPaintFiles(path)
+      })
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fg-dual]'), fgDualPaint)
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="daterange"][data-fg-part="to"]'), function (to) { to.min = '' })
+      Object.keys(fgDates).forEach(function (path) { fgDates[path] = []; fgPaintDates(path) })
+      Object.keys(touched).forEach(function (path) { delete touched[path] })
+      Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })
+      // Top-level repeaters; inner ones go with their outer items.
+      ;["references"].forEach(function (path) {
+        fgItemElements(path).forEach(function (item) { item.remove() })
+        for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
+      })
+      document.getElementById('fg-result').hidden = true
+      fgEach(document, '[data-fg-kind="richtext"]', function (el) { el.innerHTML = '' })
+      updateConditions()
+    }
     Array.prototype.forEach.call(document.querySelectorAll('[data-fg-reset]'), function (button) {
       button.addEventListener('click', function () {
-        form.reset()
-        Object.keys(fgTags).forEach(function (path) { fgTags[path] = [] })
-        fgEach(document, '[data-fg-kind="tags"]', function (wrap) { if (wrap.fgPaint) wrap.fgPaint() })
-        Object.keys(fgFiles).forEach(function (path) {
-          fgFiles[path] = []
-          fgPaintFiles(path)
-        })
-        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-dual]'), fgDualPaint)
-        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="daterange"][data-fg-part="to"]'), function (to) { to.min = '' })
-        Object.keys(fgDates).forEach(function (path) { fgDates[path] = []; fgPaintDates(path) })
-        Object.keys(touched).forEach(function (path) { delete touched[path] })
-        Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })
-        // Top-level repeaters; inner ones go with their outer items.
-        ;["references"].forEach(function (path) {
-          fgItemElements(path).forEach(function (item) { item.remove() })
-          for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
-        })
-        document.getElementById('fg-result').hidden = true
-        fgEach(document, '[data-fg-kind="richtext"]', function (el) { el.innerHTML = '' })
-        updateConditions()
+        fgResetForm()
         fgAnnounce("The form was reset.")
       })
     })
@@ -16753,6 +16848,21 @@ exports[`html target > snapshot (tailwind) 1`] = `
       })
     }
 
+    // After a successful send the thank-you replaces the form (data-fg-sent
+    // hides the rest); "Send another response" resets and brings it back.
+    function fgAfterSubmit() {
+      form.setAttribute('data-fg-sent', '')
+      var thanks = form.querySelector('[data-fg-thanks]')
+      thanks.hidden = false
+      thanks.querySelector('[data-fg-again]').focus()
+    }
+    form.querySelector('[data-fg-again]').addEventListener('click', function () {
+      form.removeAttribute('data-fg-sent')
+      form.querySelector('[data-fg-thanks]').hidden = true
+      fgResetForm()
+      fgAnnounce("The form was reset.")
+    })
+
     form.addEventListener('submit', function (event) {
       event.preventDefault()
       var failed = 0
@@ -16788,6 +16898,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
       out.hidden = false
       fgAnnounce("Form submitted.")
       console.log('Form submitted', data)
+      fgAfterSubmit()
     })
 
     fgInitRepeaters(document)
@@ -17077,9 +17188,14 @@ exports[`html target > snapshot (vanilla) 1`] = `
   #fg-form { box-sizing: border-box; max-inline-size: 42rem; margin-inline: auto; }
   [hidden] { display: none !important; }
   </style>
+<style>[data-fg-sent] > :not([data-fg-thanks]) { display: none; }</style>
 </head>
 <body>
   <form id="fg-form" class="fg-form" novalidate>
+    <div class="fg-group" role="status" data-fg-thanks hidden>
+      <p class="fg-paragraph">Thanks, <span data-fg-answer="full_name" data-fg-fallback=""></span>! We will be in touch.</p>
+      <button type="button" class="fg-button fg-button--secondary" data-fg-again>Send another response</button>
+    </div>
     <div class="fg-grid">
       <div class="fg-cell fg-align-center" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <h2 class="fg-heading fg-tone-primary">Kitchen Sink</h2>
@@ -19989,28 +20105,31 @@ exports[`html target > snapshot (vanilla) 1`] = `
       if (path && touched[path]) validateField(path)
     }
 
+    function fgResetForm() {
+      form.reset()
+      Object.keys(fgTags).forEach(function (path) { fgTags[path] = [] })
+      fgEach(document, '[data-fg-kind="tags"]', function (wrap) { if (wrap.fgPaint) wrap.fgPaint() })
+      Object.keys(fgFiles).forEach(function (path) {
+        fgFiles[path] = []
+        fgPaintFiles(path)
+      })
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fg-dual]'), fgDualPaint)
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="daterange"][data-fg-part="to"]'), function (to) { to.min = '' })
+      Object.keys(fgDates).forEach(function (path) { fgDates[path] = []; fgPaintDates(path) })
+      Object.keys(touched).forEach(function (path) { delete touched[path] })
+      Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })
+      // Top-level repeaters; inner ones go with their outer items.
+      ;["references"].forEach(function (path) {
+        fgItemElements(path).forEach(function (item) { item.remove() })
+        for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
+      })
+      document.getElementById('fg-result').hidden = true
+      fgEach(document, '[data-fg-kind="richtext"]', function (el) { el.innerHTML = '' })
+      updateConditions()
+    }
     Array.prototype.forEach.call(document.querySelectorAll('[data-fg-reset]'), function (button) {
       button.addEventListener('click', function () {
-        form.reset()
-        Object.keys(fgTags).forEach(function (path) { fgTags[path] = [] })
-        fgEach(document, '[data-fg-kind="tags"]', function (wrap) { if (wrap.fgPaint) wrap.fgPaint() })
-        Object.keys(fgFiles).forEach(function (path) {
-          fgFiles[path] = []
-          fgPaintFiles(path)
-        })
-        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-dual]'), fgDualPaint)
-        Array.prototype.forEach.call(document.querySelectorAll('[data-fg-kind="daterange"][data-fg-part="to"]'), function (to) { to.min = '' })
-        Object.keys(fgDates).forEach(function (path) { fgDates[path] = []; fgPaintDates(path) })
-        Object.keys(touched).forEach(function (path) { delete touched[path] })
-        Object.keys(FG_VALIDATORS).forEach(function (path) { setError(path, null) })
-        // Top-level repeaters; inner ones go with their outer items.
-        ;["references"].forEach(function (path) {
-          fgItemElements(path).forEach(function (item) { item.remove() })
-          for (var n = 0; n < FG_REPEATERS[path].initial; n++) fgAddItem(path, false)
-        })
-        document.getElementById('fg-result').hidden = true
-        fgEach(document, '[data-fg-kind="richtext"]', function (el) { el.innerHTML = '' })
-        updateConditions()
+        fgResetForm()
         fgAnnounce("The form was reset.")
       })
     })
@@ -20065,6 +20184,21 @@ exports[`html target > snapshot (vanilla) 1`] = `
       })
     }
 
+    // After a successful send the thank-you replaces the form (data-fg-sent
+    // hides the rest); "Send another response" resets and brings it back.
+    function fgAfterSubmit() {
+      form.setAttribute('data-fg-sent', '')
+      var thanks = form.querySelector('[data-fg-thanks]')
+      thanks.hidden = false
+      thanks.querySelector('[data-fg-again]').focus()
+    }
+    form.querySelector('[data-fg-again]').addEventListener('click', function () {
+      form.removeAttribute('data-fg-sent')
+      form.querySelector('[data-fg-thanks]').hidden = true
+      fgResetForm()
+      fgAnnounce("The form was reset.")
+    })
+
     form.addEventListener('submit', function (event) {
       event.preventDefault()
       var failed = 0
@@ -20100,6 +20234,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
       out.hidden = false
       fgAnnounce("Form submitted.")
       console.log('Form submitted', data)
+      fgAfterSubmit()
     })
 
     fgInitRepeaters(document)
@@ -21455,6 +21590,8 @@ export default function KitchenSinkForm({
       return next ? fgCalc(next) : current
     })
   }, [])
+  // After a successful send the thank-you replaces the form.
+  const [fgSent, setFgSent] = useState(false)
   const [fgSec_ks_social_tabs, setFgSec_ks_social_tabs] = useState(0)
   const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)
   const [tagDrafts, setTagDrafts] = useState<Record<string, string>>({})
@@ -21849,6 +21986,15 @@ export default function KitchenSinkForm({
     fgAnnounce("The form was reset.")
   }
 
+  function fgAfterSubmit(): void {
+    setFgSent(true)
+  }
+  // "Send another response": the form comes back, reset.
+  function fgSendAnother(): void {
+    setFgSent(false)
+    fgReset()
+  }
+
   function handleSubmit(event: React.FormEvent): void {
     event.preventDefault()
     const nextErrors: Record<string, string> = {}
@@ -21882,10 +22028,18 @@ export default function KitchenSinkForm({
     setResult(data)
     fgAnnounce("Form submitted.")
     onSubmit?.(data)
+    fgAfterSubmit()
   }
 
   return (
-    <form ref={fgRoot} className="p-3" dir="ltr" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
+    <form ref={fgRoot} className="p-3" dir="ltr" data-fg-sent={fgSent ? '' : undefined} noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
+      <style>{"[data-fg-sent] > :not([data-fg-thanks]) { display: none; }"}</style>
+      {fgSent && (
+        <div className="border rounded p-3 bg-body-tertiary" role="status" data-fg-thanks>
+          <p className="text-secondary mb-0">Thanks, {fgOr(fgAnswer(form.full_name, ", "), "")}! We will be in touch.</p>
+          <button type="button" className="btn btn-outline-secondary fw-semibold px-3" data-fg-again onClick={fgSendAnother}>Send another response</button>
+        </div>
+      )}
       <div className="row g-3">
         <div className="col-12 col-md-12 text-center">
           <h2 className="fg-heading text-primary">Kitchen Sink</h2>
@@ -24345,6 +24499,8 @@ export default function KitchenSinkForm({
       return next ? fgCalc(next) : current
     })
   }, [])
+  // After a successful send the thank-you replaces the form.
+  const [fgSent, setFgSent] = useState(false)
   const [fgSec_ks_social_tabs, setFgSec_ks_social_tabs] = useState(0)
   const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)
   const [tagDrafts, setTagDrafts] = useState<Record<string, string>>({})
@@ -24739,6 +24895,15 @@ export default function KitchenSinkForm({
     fgAnnounce("The form was reset.")
   }
 
+  function fgAfterSubmit(): void {
+    setFgSent(true)
+  }
+  // "Send another response": the form comes back, reset.
+  function fgSendAnother(): void {
+    setFgSent(false)
+    fgReset()
+  }
+
   function handleSubmit(event: React.FormEvent): void {
     event.preventDefault()
     const nextErrors: Record<string, string> = {}
@@ -24772,10 +24937,18 @@ export default function KitchenSinkForm({
     setResult(data)
     fgAnnounce("Form submitted.")
     onSubmit?.(data)
+    fgAfterSubmit()
   }
 
   return (
-    <form ref={fgRoot} className="bg-white p-4 font-sans text-gray-900 dark:bg-gray-900 dark:text-gray-100" dir="ltr" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
+    <form ref={fgRoot} className="bg-white p-4 font-sans text-gray-900 dark:bg-gray-900 dark:text-gray-100" dir="ltr" data-fg-sent={fgSent ? '' : undefined} noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
+      <style>{"[data-fg-sent] > :not([data-fg-thanks]) { display: none; }"}</style>
+      {fgSent && (
+        <div className="rounded-md border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50" role="status" data-fg-thanks>
+          <p className="text-base text-gray-600 dark:text-gray-300">Thanks, {fgOr(fgAnswer(form.full_name, ", "), "")}! We will be in touch.</p>
+          <button type="button" className="rounded-md border border-gray-300 px-4 py-1.5 text-base font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-again onClick={fgSendAnother}>Send another response</button>
+        </div>
+      )}
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-12 md:col-span-12 text-center">
           <h2 className="text-2xl font-semibold leading-tight text-indigo-600 dark:text-indigo-400">Kitchen Sink</h2>
@@ -27239,6 +27412,8 @@ export default function KitchenSinkForm({
       return next ? fgCalc(next) : current
     })
   }, [])
+  // After a successful send the thank-you replaces the form.
+  const [fgSent, setFgSent] = useState(false)
   const [fgSec_ks_social_tabs, setFgSec_ks_social_tabs] = useState(0)
   const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)
   const [tagDrafts, setTagDrafts] = useState<Record<string, string>>({})
@@ -27633,6 +27808,15 @@ export default function KitchenSinkForm({
     fgAnnounce("The form was reset.")
   }
 
+  function fgAfterSubmit(): void {
+    setFgSent(true)
+  }
+  // "Send another response": the form comes back, reset.
+  function fgSendAnother(): void {
+    setFgSent(false)
+    fgReset()
+  }
+
   function handleSubmit(event: React.FormEvent): void {
     event.preventDefault()
     const nextErrors: Record<string, string> = {}
@@ -27666,10 +27850,18 @@ export default function KitchenSinkForm({
     setResult(data)
     fgAnnounce("Form submitted.")
     onSubmit?.(data)
+    fgAfterSubmit()
   }
 
   return (
-    <form ref={fgRoot} className="fg-form" dir="ltr" noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
+    <form ref={fgRoot} className="fg-form" dir="ltr" data-fg-sent={fgSent ? '' : undefined} noValidate onSubmit={handleSubmit} onPointerDownCapture={() => { fgFlush.current(); fgPressing.current = true }}>
+      <style>{"[data-fg-sent] > :not([data-fg-thanks]) { display: none; }"}</style>
+      {fgSent && (
+        <div className="fg-group" role="status" data-fg-thanks>
+          <p className="fg-paragraph">Thanks, {fgOr(fgAnswer(form.full_name, ", "), "")}! We will be in touch.</p>
+          <button type="button" className="fg-button fg-button--secondary" data-fg-again onClick={fgSendAnother}>Send another response</button>
+        </div>
+      )}
       <div className="fg-grid">
         <div className="fg-cell fg-align-center" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
           <h2 className="fg-heading fg-tone-primary">Kitchen Sink</h2>
@@ -29181,6 +29373,16 @@ onMounted(() => {
   { const v = fgQueryBool(q, "newsletter"); if (v !== undefined) form.newsletter = v }
   { const v = fgQueryBool(q, "terms"); if (v !== undefined) form.terms = v }
 })
+// After a successful send the thank-you replaces the form.
+const fgSent = ref(false)
+function fgAfterSubmit(): void {
+  fgSent.value = true
+}
+// "Send another response": the form comes back, reset.
+function fgSendAnother(): void {
+  fgSent.value = false
+  fgReset()
+}
 // Signature pads: draw (mouse, finger, pen) or type a name; each change is
 // signature.png. Wired once on the form root (pads in new items included).
 interface FgSignPad {
@@ -30507,6 +30709,7 @@ async function onSubmit(): Promise<void> {
   result.value = data
   fgAnnounce("Form submitted.")
   emit('submit', data)
+  fgAfterSubmit()
 }
 </script>
 
@@ -30518,7 +30721,12 @@ async function onSubmit(): Promise<void> {
     novalidate
     @submit.prevent="onSubmit"
     @pointerdown.capture="fgPointerDown"
+    :data-fg-sent="fgSent ? '' : undefined"
   >
+    <div v-if="fgSent" class="border rounded p-3 bg-body-tertiary" role="status" data-fg-thanks>
+      <p class="text-secondary mb-0">Thanks, {{ fgOr(fgAnswer(form.full_name, ", "), '') }}! We will be in touch.</p>
+      <button type="button" class="btn btn-outline-secondary fw-semibold px-3" data-fg-again @click="fgSendAnother">Send another response</button>
+    </div>
     <div class="row g-3">
       <div class="col-12 col-md-12 text-center">
         <h2 class="fg-heading text-primary">Kitchen Sink</h2>
@@ -31700,6 +31908,7 @@ h6.fg-heading { font-size: 0.875rem; }
 .fg-file-drop:hover, .fg-file-drop[data-fg-dragging] { color: var(--bs-body-color) !important; border-color: var(--bs-primary) !important; }
 .fg-file-drop:has(:focus-visible) { box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25); }
 .fg-file-drop > input { cursor: pointer; }
+[data-fg-sent] > :not([data-fg-thanks]) { display: none; }
 </style>
 "
 `;
@@ -32095,6 +32304,16 @@ onMounted(() => {
   { const v = fgQueryBool(q, "newsletter"); if (v !== undefined) form.newsletter = v }
   { const v = fgQueryBool(q, "terms"); if (v !== undefined) form.terms = v }
 })
+// After a successful send the thank-you replaces the form.
+const fgSent = ref(false)
+function fgAfterSubmit(): void {
+  fgSent.value = true
+}
+// "Send another response": the form comes back, reset.
+function fgSendAnother(): void {
+  fgSent.value = false
+  fgReset()
+}
 // Signature pads: draw (mouse, finger, pen) or type a name; each change is
 // signature.png. Wired once on the form root (pads in new items included).
 interface FgSignPad {
@@ -33421,6 +33640,7 @@ async function onSubmit(): Promise<void> {
   result.value = data
   fgAnnounce("Form submitted.")
   emit('submit', data)
+  fgAfterSubmit()
 }
 </script>
 
@@ -33432,7 +33652,12 @@ async function onSubmit(): Promise<void> {
     novalidate
     @submit.prevent="onSubmit"
     @pointerdown.capture="fgPointerDown"
+    :data-fg-sent="fgSent ? '' : undefined"
   >
+    <div v-if="fgSent" class="rounded-md border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50" role="status" data-fg-thanks>
+      <p class="text-base text-gray-600 dark:text-gray-300">Thanks, {{ fgOr(fgAnswer(form.full_name, ", "), '') }}! We will be in touch.</p>
+      <button type="button" class="rounded-md border border-gray-300 px-4 py-1.5 text-base font-semibold text-gray-700 shadow-sm hover:bg-gray-50" data-fg-again @click="fgSendAnother">Send another response</button>
+    </div>
     <div class="grid grid-cols-12 gap-4">
       <div class="col-span-12 md:col-span-12 text-center">
         <h2 class="text-2xl font-semibold leading-tight text-indigo-600 dark:text-indigo-400">Kitchen Sink</h2>
@@ -34559,6 +34784,7 @@ async function onSubmit(): Promise<void> {
 .fg-html :where(img) { max-inline-size: 100%; block-size: auto; }
 .fg-html :where(iframe) { display: block; border: 0; max-inline-size: 100%; }
 .fg-html :where(a) { color: var(--fg-color-primary, var(--bs-primary, #4f46e5)); }
+[data-fg-sent] > :not([data-fg-thanks]) { display: none; }
 </style>
 "
 `;
@@ -34954,6 +35180,16 @@ onMounted(() => {
   { const v = fgQueryBool(q, "newsletter"); if (v !== undefined) form.newsletter = v }
   { const v = fgQueryBool(q, "terms"); if (v !== undefined) form.terms = v }
 })
+// After a successful send the thank-you replaces the form.
+const fgSent = ref(false)
+function fgAfterSubmit(): void {
+  fgSent.value = true
+}
+// "Send another response": the form comes back, reset.
+function fgSendAnother(): void {
+  fgSent.value = false
+  fgReset()
+}
 // Signature pads: draw (mouse, finger, pen) or type a name; each change is
 // signature.png. Wired once on the form root (pads in new items included).
 interface FgSignPad {
@@ -36280,6 +36516,7 @@ async function onSubmit(): Promise<void> {
   result.value = data
   fgAnnounce("Form submitted.")
   emit('submit', data)
+  fgAfterSubmit()
 }
 </script>
 
@@ -36291,7 +36528,12 @@ async function onSubmit(): Promise<void> {
     novalidate
     @submit.prevent="onSubmit"
     @pointerdown.capture="fgPointerDown"
+    :data-fg-sent="fgSent ? '' : undefined"
   >
+    <div v-if="fgSent" class="fg-group" role="status" data-fg-thanks>
+      <p class="fg-paragraph">Thanks, {{ fgOr(fgAnswer(form.full_name, ", "), '') }}! We will be in touch.</p>
+      <button type="button" class="fg-button fg-button--secondary" data-fg-again @click="fgSendAnother">Send another response</button>
+    </div>
     <div class="fg-grid">
       <div class="fg-cell fg-align-center" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <h2 class="fg-heading fg-tone-primary">Kitchen Sink</h2>
@@ -37641,6 +37883,7 @@ fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
     --fg-color-error-contrast: #0f172a;
   }
 }
+[data-fg-sent] > :not([data-fg-thanks]) { display: none; }
 </style>
 "
 `;
