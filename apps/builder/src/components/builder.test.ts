@@ -201,6 +201,25 @@ describe('palette → canvas → properties workflow', () => {
     expect(BUILDER_VERSION).toMatch(/^\d+\.\d+\.\d+$/)
   })
 
+  it('prefill: the settings flag, and the preview fills from the address string it is given', async () => {
+    const { wrapper, store } = mountApp()
+    await wrapper.get('[data-testid="palette-item-text"]').trigger('click')
+    await wrapper.get('[data-testid="control-name"]').setValue('first_name')
+    expect(wrapper.find('[data-testid="preview-query"]').exists()).toBe(false)
+    await wrapper.get('[data-testid="open-settings"]').trigger('click')
+    await wrapper.get('[data-testid="settings-prefill"]').setValue(true)
+    expect(store.schema.meta.prefillFromQuery).toBe(true)
+    await wrapper.get('[data-testid="settings-prefill"]').setValue(false)
+    expect(store.schema.meta.prefillFromQuery).toBeUndefined()
+    await wrapper.get('[data-testid="settings-prefill"]').setValue(true)
+    await wrapper.get('[data-testid="settings-close"]').trigger('click')
+    await wrapper.get('[data-testid="view-preview"]').trigger('click')
+    await wrapper.get('[data-testid="preview-query"]').setValue('first_name=Ada')
+    await flushPromises()
+    const field = wrapper.get('[data-testid="panel-preview"] .fg-form input[type="text"]').element as HTMLInputElement
+    expect(field.value).toBe('Ada')
+  })
+
   it('settings dialog edits form meta with name validation', async () => {
     const { wrapper, store } = mountApp()
     await wrapper.get('[data-testid="open-settings"]').trigger('click')

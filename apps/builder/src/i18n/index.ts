@@ -65,6 +65,10 @@ const en: Record<string, string> = {
   'mobile.panels': 'Panels',
   'settings.useSampleServer': 'Try it with the sample server (http://localhost:4180/submit)',
   'settings.sampleServerHint': 'Posts to the sample server: add it with Export → “Sample server” and run node server/server.mjs.',
+  'settings.prefill': 'Prefill answers from the page address',
+  'settings.prefillHint': 'A link like form.html?email=a@b.c&topics=news,offers fills the fields named in it. A hidden field can take a named parameter whatever this setting says.',
+  'preview.query': 'Address parameters to test with',
+  'preview.queryHint': 'What would follow the ? in the page address, e.g. email=a@b.c&utm_source=mail',
   'settings.saveDraft': 'Save and continue later',
   'settings.saveDraftHint': 'Answers are kept in the visitor’s browser until the form is sent, so a reload or a closed tab doesn’t lose them. Uploaded files aren’t kept.',
   'settings.captcha': 'Spam check: Cloudflare Turnstile site key',
@@ -274,6 +278,10 @@ const ar: Record<string, string> = {
   'mobile.panels': 'اللوحات',
   'settings.useSampleServer': 'جرّبه مع الخادم التجريبي (http://localhost:4180/submit)',
   'settings.sampleServerHint': 'يُرسل إلى الخادم التجريبي: أضِفه من «تصدير» ← «خادم تجريبي» ثم شغّل node server/server.mjs.',
+  'settings.prefill': 'تعبئة الإجابات مسبقًا من عنوان الصفحة',
+  'settings.prefillHint': 'رابط مثل form.html?email=a@b.c&topics=news,offers يملأ الحقول المذكورة فيه. يمكن للحقل المخفي أن يأخذ معاملًا باسمه بغض النظر عن هذا الإعداد.',
+  'preview.query': 'معاملات العنوان للتجربة',
+  'preview.queryHint': 'ما يلي علامة ? في عنوان الصفحة، مثل email=a@b.c&utm_source=mail',
   'settings.saveDraft': 'الحفظ والمتابعة لاحقًا',
   'settings.saveDraftHint': 'تُحفَظ الإجابات في متصفح الزائر حتى يُرسَل النموذج، فلا تضيع عند إعادة تحميل الصفحة أو إغلاقها. لا تُحفَظ الملفات المرفوعة.',
   'settings.captcha': 'التحقق من البريد المزعج: مفتاح موقع Cloudflare Turnstile',
@@ -529,6 +537,8 @@ const ar: Record<string, string> = {
  * names) — looked up by the English text itself via tText().
  */
 const arText: Record<string, string> = {
+  'URL parameter': 'معامل عنوان الصفحة',
+  'e.g. utm_source': 'مثل utm_source',
   // panel sections
   Properties: 'الخصائص',
   Data: 'البيانات',

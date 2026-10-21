@@ -12,6 +12,7 @@ import { fieldsByPath, listSeparator, pipeText } from '../pipe'
 import { movedIndex, resolveScoped } from '../repeater'
 import { collectCalculated, collectVisibleFields, pickVisibleData, scopedLookup, setValueByPath } from '../runtime'
 import type { FormSchema } from '../schema'
+import { queryPrefill } from '../prefill'
 import { buildDefaultData } from '../tree'
 import FgNode from './FgNode.vue'
 
@@ -36,6 +37,12 @@ const props = defineProps<{
    * the builder's preview, where the form's own key would refuse the domain.
    */
   captchaPreview?: boolean | undefined
+  /**
+   * The page address's query string, for meta.prefillFromQuery and hidden
+   * fields with `param`: window.location.search when omitted; null reads
+   * none (the builder preview passes the string it tests with).
+   */
+  prefillSearch?: string | null | undefined
 }>()
 
 const emit = defineEmits<{
@@ -154,6 +161,18 @@ if (draftOn.value) {
     applyCalculations()
     draftLast = draftJson(data)
     draftState.value = 'restored'
+    onMounted(() => emit('update:modelValue', cloneData(data)))
+  }
+}
+// ---- prefill from the page address (meta.prefillFromQuery, hidden `param`; see prefill.ts) ----
+// After a restored draft: what the link says wins.
+{
+  const search =
+    props.prefillSearch !== undefined ? props.prefillSearch : typeof window !== 'undefined' ? window.location.search : null
+  const entries = search === null ? [] : queryPrefill(props.schema.tree, search, { fields: props.schema.meta.prefillFromQuery === true })
+  if (entries.length > 0) {
+    for (const entry of entries) setValueByPath(data, entry.path, entry.value)
+    applyCalculations()
     onMounted(() => emit('update:modelValue', cloneData(data)))
   }
 }

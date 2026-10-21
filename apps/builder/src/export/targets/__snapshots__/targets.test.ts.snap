@@ -6,6 +6,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
 @using System.Text.Json
 @using System.Linq
 @using Microsoft.AspNetCore.Components.Forms
+@inject Microsoft.AspNetCore.Components.NavigationManager FgNav
 @inject Microsoft.JSInterop.IJSRuntime FgJs
 @implements IDisposable
 
@@ -1278,6 +1279,7 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
     protected override void OnInitialized()
     {
         FgInitEdit();
+        FgPrefill();
         FgCalc();
     }
 
@@ -2381,6 +2383,67 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         await FgAnnounce("The form was reset.");
     }
 
+    // Prefill from the page address: ?field=value fills matching fields (a
+    // list takes repeated parameters or one comma-separated value); a hidden
+    // field takes its named parameter. After a restored draft: the link wins.
+    private void FgPrefill()
+    {
+        var query = System.Web.HttpUtility.ParseQueryString(new Uri(FgNav.Uri).Query);
+        { var v = FgQueryString(query, "full_name"); if (v is not null) Model.FullName = v; }
+        { var v = FgQueryString(query, "email"); if (v is not null) Model.Email = v; }
+        { var v = FgQueryString(query, "website"); if (v is not null) Model.Website = v; }
+        { var v = FgQueryNumber(query, "seats"); if (v is not null) Model.Seats = v; }
+        { var v = FgQueryNumber(query, "satisfaction"); if (v is not null) Model.Satisfaction = v.Value; }
+        { var v = FgQueryString(query, "city"); if (v is not null) Model.City = v; }
+        { var v = FgQueryString(query, "zip"); if (v is not null) Model.Zip = v; }
+        { var v = FgQueryString(query, "account.username"); if (v is not null) Model.AccountUsername = v; }
+        { var v = FgQueryString(query, "account.bio"); if (v is not null) Model.AccountBio = v; }
+        { var v = FgQueryString(query, "account.birthday"); if (v is not null) Model.AccountBirthday = v; }
+        { var v = FgQueryString(query, "plan"); if (v is not null) Model.Plan = v; }
+        { var v = FgQueryList(query, "interests"); if (v is not null) Model.Interests = v; }
+        { var v = FgQueryList(query, "channels"); if (v is not null) Model.Channels = v.ToArray(); }
+        { var v = FgQueryList(query, "topics"); if (v is not null) Model.Topics = v; }
+        { var v = FgQueryString(query, "billing"); if (v is not null) Model.Billing = v; }
+        { var v = FgQueryList(query, "extras"); if (v is not null) Model.Extras = v; }
+        { var v = FgQueryBool(query, "notify"); if (v is not null) Model.Notify = v.Value; }
+        { var v = FgQueryString(query, "appointment"); if (v is not null) Model.Appointment = v; }
+        { var v = FgQueryString(query, "brand_color"); if (v is not null) Model.BrandColor = v; }
+        { var v = FgQueryNumber(query, "volume"); if (v is not null) Model.Volume = v.Value; }
+        { var v = FgQueryList(query, "days"); if (v is not null) Model.Days = v; }
+        { var v = FgQueryString(query, "attachments_note"); if (v is not null) Model.AttachmentsNote = v; }
+        { var v = FgQueryString(query, "contact_method"); if (v is not null) Model.ContactMethod = v; }
+        { var v = FgQueryString(query, "contact_phone"); if (v is not null) Model.ContactPhone = v; }
+        { var v = FgQueryString(query, "contact_other"); if (v is not null) Model.ContactOther = v; }
+        { var v = FgQueryString(query, "twitter"); if (v is not null) Model.Twitter = v; }
+        { var v = FgQueryString(query, "github"); if (v is not null) Model.Github = v; }
+        { var v = FgQueryString(query, "shipping_city"); if (v is not null) Model.ShippingCity = v; }
+        { var v = FgQueryString(query, "order_notes"); if (v is not null) Model.OrderNotes = v; }
+        { var v = FgQueryBool(query, "newsletter"); if (v is not null) Model.Newsletter = v.Value; }
+        { var v = FgQueryBool(query, "terms"); if (v is not null) Model.Terms = v.Value; }
+    }
+
+    private static string? FgQueryString(System.Collections.Specialized.NameValueCollection query, string name) =>
+        query.GetValues(name) is { Length: > 0 } values ? values[0] : null;
+
+    private static double? FgQueryNumber(System.Collections.Specialized.NameValueCollection query, string name) =>
+        FgQueryString(query, name) is { } v && v.Trim().Length > 0 && double.TryParse(v.Trim(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var n) ? n : null;
+
+    private static bool? FgQueryBool(System.Collections.Specialized.NameValueCollection query, string name) =>
+        FgQueryString(query, name)?.Trim().ToLowerInvariant() switch
+        {
+            "1" or "true" or "on" or "yes" => true,
+            "0" or "false" or "off" or "no" => false,
+            _ => null,
+        };
+
+    private static List<string>? FgQueryList(System.Collections.Specialized.NameValueCollection query, string name)
+    {
+        var values = query.GetValues(name);
+        if (values is null) return null;
+        var parts = values.Length == 1 ? values[0].Split(',') : values;
+        return parts.Select(p => p.Trim()).Where(p => p.Length > 0).ToList();
+    }
+
     // Scripts on the form's root (loaded once, after the first render) call
     // back into this component through fgSelf. They are wired to the form's
     // element after each render that follows a new EditContext (EditForm
@@ -3461,6 +3524,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
 @using System.Text.Json
 @using System.Linq
 @using Microsoft.AspNetCore.Components.Forms
+@inject Microsoft.AspNetCore.Components.NavigationManager FgNav
 @inject Microsoft.JSInterop.IJSRuntime FgJs
 @implements IDisposable
 
@@ -4737,6 +4801,7 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
     protected override void OnInitialized()
     {
         FgInitEdit();
+        FgPrefill();
         FgCalc();
     }
 
@@ -5840,6 +5905,67 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         await FgAnnounce("The form was reset.");
     }
 
+    // Prefill from the page address: ?field=value fills matching fields (a
+    // list takes repeated parameters or one comma-separated value); a hidden
+    // field takes its named parameter. After a restored draft: the link wins.
+    private void FgPrefill()
+    {
+        var query = System.Web.HttpUtility.ParseQueryString(new Uri(FgNav.Uri).Query);
+        { var v = FgQueryString(query, "full_name"); if (v is not null) Model.FullName = v; }
+        { var v = FgQueryString(query, "email"); if (v is not null) Model.Email = v; }
+        { var v = FgQueryString(query, "website"); if (v is not null) Model.Website = v; }
+        { var v = FgQueryNumber(query, "seats"); if (v is not null) Model.Seats = v; }
+        { var v = FgQueryNumber(query, "satisfaction"); if (v is not null) Model.Satisfaction = v.Value; }
+        { var v = FgQueryString(query, "city"); if (v is not null) Model.City = v; }
+        { var v = FgQueryString(query, "zip"); if (v is not null) Model.Zip = v; }
+        { var v = FgQueryString(query, "account.username"); if (v is not null) Model.AccountUsername = v; }
+        { var v = FgQueryString(query, "account.bio"); if (v is not null) Model.AccountBio = v; }
+        { var v = FgQueryString(query, "account.birthday"); if (v is not null) Model.AccountBirthday = v; }
+        { var v = FgQueryString(query, "plan"); if (v is not null) Model.Plan = v; }
+        { var v = FgQueryList(query, "interests"); if (v is not null) Model.Interests = v; }
+        { var v = FgQueryList(query, "channels"); if (v is not null) Model.Channels = v.ToArray(); }
+        { var v = FgQueryList(query, "topics"); if (v is not null) Model.Topics = v; }
+        { var v = FgQueryString(query, "billing"); if (v is not null) Model.Billing = v; }
+        { var v = FgQueryList(query, "extras"); if (v is not null) Model.Extras = v; }
+        { var v = FgQueryBool(query, "notify"); if (v is not null) Model.Notify = v.Value; }
+        { var v = FgQueryString(query, "appointment"); if (v is not null) Model.Appointment = v; }
+        { var v = FgQueryString(query, "brand_color"); if (v is not null) Model.BrandColor = v; }
+        { var v = FgQueryNumber(query, "volume"); if (v is not null) Model.Volume = v.Value; }
+        { var v = FgQueryList(query, "days"); if (v is not null) Model.Days = v; }
+        { var v = FgQueryString(query, "attachments_note"); if (v is not null) Model.AttachmentsNote = v; }
+        { var v = FgQueryString(query, "contact_method"); if (v is not null) Model.ContactMethod = v; }
+        { var v = FgQueryString(query, "contact_phone"); if (v is not null) Model.ContactPhone = v; }
+        { var v = FgQueryString(query, "contact_other"); if (v is not null) Model.ContactOther = v; }
+        { var v = FgQueryString(query, "twitter"); if (v is not null) Model.Twitter = v; }
+        { var v = FgQueryString(query, "github"); if (v is not null) Model.Github = v; }
+        { var v = FgQueryString(query, "shipping_city"); if (v is not null) Model.ShippingCity = v; }
+        { var v = FgQueryString(query, "order_notes"); if (v is not null) Model.OrderNotes = v; }
+        { var v = FgQueryBool(query, "newsletter"); if (v is not null) Model.Newsletter = v.Value; }
+        { var v = FgQueryBool(query, "terms"); if (v is not null) Model.Terms = v.Value; }
+    }
+
+    private static string? FgQueryString(System.Collections.Specialized.NameValueCollection query, string name) =>
+        query.GetValues(name) is { Length: > 0 } values ? values[0] : null;
+
+    private static double? FgQueryNumber(System.Collections.Specialized.NameValueCollection query, string name) =>
+        FgQueryString(query, name) is { } v && v.Trim().Length > 0 && double.TryParse(v.Trim(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var n) ? n : null;
+
+    private static bool? FgQueryBool(System.Collections.Specialized.NameValueCollection query, string name) =>
+        FgQueryString(query, name)?.Trim().ToLowerInvariant() switch
+        {
+            "1" or "true" or "on" or "yes" => true,
+            "0" or "false" or "off" or "no" => false,
+            _ => null,
+        };
+
+    private static List<string>? FgQueryList(System.Collections.Specialized.NameValueCollection query, string name)
+    {
+        var values = query.GetValues(name);
+        if (values is null) return null;
+        var parts = values.Length == 1 ? values[0].Split(',') : values;
+        return parts.Select(p => p.Trim()).Where(p => p.Length > 0).ToList();
+    }
+
     // Scripts on the form's root (loaded once, after the first render) call
     // back into this component through fgSelf. They are wired to the form's
     // element after each render that follows a new EditContext (EditForm
@@ -6920,6 +7046,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
 @using System.Text.Json
 @using System.Linq
 @using Microsoft.AspNetCore.Components.Forms
+@inject Microsoft.AspNetCore.Components.NavigationManager FgNav
 @inject Microsoft.JSInterop.IJSRuntime FgJs
 @implements IDisposable
 
@@ -8196,6 +8323,7 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
     protected override void OnInitialized()
     {
         FgInitEdit();
+        FgPrefill();
         FgCalc();
     }
 
@@ -9297,6 +9425,67 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         fgPhoneCountry.Clear();
         await FgJs.InvokeVoidAsync("fgSignClear", fgFormRoot);
         await FgAnnounce("The form was reset.");
+    }
+
+    // Prefill from the page address: ?field=value fills matching fields (a
+    // list takes repeated parameters or one comma-separated value); a hidden
+    // field takes its named parameter. After a restored draft: the link wins.
+    private void FgPrefill()
+    {
+        var query = System.Web.HttpUtility.ParseQueryString(new Uri(FgNav.Uri).Query);
+        { var v = FgQueryString(query, "full_name"); if (v is not null) Model.FullName = v; }
+        { var v = FgQueryString(query, "email"); if (v is not null) Model.Email = v; }
+        { var v = FgQueryString(query, "website"); if (v is not null) Model.Website = v; }
+        { var v = FgQueryNumber(query, "seats"); if (v is not null) Model.Seats = v; }
+        { var v = FgQueryNumber(query, "satisfaction"); if (v is not null) Model.Satisfaction = v.Value; }
+        { var v = FgQueryString(query, "city"); if (v is not null) Model.City = v; }
+        { var v = FgQueryString(query, "zip"); if (v is not null) Model.Zip = v; }
+        { var v = FgQueryString(query, "account.username"); if (v is not null) Model.AccountUsername = v; }
+        { var v = FgQueryString(query, "account.bio"); if (v is not null) Model.AccountBio = v; }
+        { var v = FgQueryString(query, "account.birthday"); if (v is not null) Model.AccountBirthday = v; }
+        { var v = FgQueryString(query, "plan"); if (v is not null) Model.Plan = v; }
+        { var v = FgQueryList(query, "interests"); if (v is not null) Model.Interests = v; }
+        { var v = FgQueryList(query, "channels"); if (v is not null) Model.Channels = v.ToArray(); }
+        { var v = FgQueryList(query, "topics"); if (v is not null) Model.Topics = v; }
+        { var v = FgQueryString(query, "billing"); if (v is not null) Model.Billing = v; }
+        { var v = FgQueryList(query, "extras"); if (v is not null) Model.Extras = v; }
+        { var v = FgQueryBool(query, "notify"); if (v is not null) Model.Notify = v.Value; }
+        { var v = FgQueryString(query, "appointment"); if (v is not null) Model.Appointment = v; }
+        { var v = FgQueryString(query, "brand_color"); if (v is not null) Model.BrandColor = v; }
+        { var v = FgQueryNumber(query, "volume"); if (v is not null) Model.Volume = v.Value; }
+        { var v = FgQueryList(query, "days"); if (v is not null) Model.Days = v; }
+        { var v = FgQueryString(query, "attachments_note"); if (v is not null) Model.AttachmentsNote = v; }
+        { var v = FgQueryString(query, "contact_method"); if (v is not null) Model.ContactMethod = v; }
+        { var v = FgQueryString(query, "contact_phone"); if (v is not null) Model.ContactPhone = v; }
+        { var v = FgQueryString(query, "contact_other"); if (v is not null) Model.ContactOther = v; }
+        { var v = FgQueryString(query, "twitter"); if (v is not null) Model.Twitter = v; }
+        { var v = FgQueryString(query, "github"); if (v is not null) Model.Github = v; }
+        { var v = FgQueryString(query, "shipping_city"); if (v is not null) Model.ShippingCity = v; }
+        { var v = FgQueryString(query, "order_notes"); if (v is not null) Model.OrderNotes = v; }
+        { var v = FgQueryBool(query, "newsletter"); if (v is not null) Model.Newsletter = v.Value; }
+        { var v = FgQueryBool(query, "terms"); if (v is not null) Model.Terms = v.Value; }
+    }
+
+    private static string? FgQueryString(System.Collections.Specialized.NameValueCollection query, string name) =>
+        query.GetValues(name) is { Length: > 0 } values ? values[0] : null;
+
+    private static double? FgQueryNumber(System.Collections.Specialized.NameValueCollection query, string name) =>
+        FgQueryString(query, name) is { } v && v.Trim().Length > 0 && double.TryParse(v.Trim(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var n) ? n : null;
+
+    private static bool? FgQueryBool(System.Collections.Specialized.NameValueCollection query, string name) =>
+        FgQueryString(query, name)?.Trim().ToLowerInvariant() switch
+        {
+            "1" or "true" or "on" or "yes" => true,
+            "0" or "false" or "off" or "no" => false,
+            _ => null,
+        };
+
+    private static List<string>? FgQueryList(System.Collections.Specialized.NameValueCollection query, string name)
+    {
+        var values = query.GetValues(name);
+        if (values is null) return null;
+        var parts = values.Length == 1 ? values[0].Split(',') : values;
+        return parts.Select(p => p.Trim()).Where(p => p.Length > 0).ToList();
     }
 
     // Scripts on the form's root (loaded once, after the first render) call
@@ -13421,6 +13610,56 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       })
     })
 
+    // Prefill from the page address: ?field=value fills matching fields (a list
+    // takes repeated parameters or one comma-separated value); a hidden field
+    // takes its named parameter. After a restored draft: the link wins.
+    var FG_PREFILL = [{ p: "full_name", k: "string" }, { p: "email", k: "string" }, { p: "website", k: "string" }, { p: "seats", k: "number" }, { p: "satisfaction", k: "number" }, { p: "city", k: "string" }, { p: "zip", k: "string" }, { p: "account.username", k: "string" }, { p: "account.bio", k: "string" }, { p: "account.birthday", k: "string" }, { p: "plan", k: "string" }, { p: "interests", k: "list" }, { p: "channels", k: "list" }, { p: "topics", k: "list" }, { p: "billing", k: "string" }, { p: "extras", k: "list" }, { p: "notify", k: "bool" }, { p: "appointment", k: "string" }, { p: "brand_color", k: "string" }, { p: "volume", k: "number" }, { p: "days", k: "list" }, { p: "attachments_note", k: "string" }, { p: "contact_method", k: "string" }, { p: "contact_phone", k: "string" }, { p: "contact_other", k: "string" }, { p: "twitter", k: "string" }, { p: "github", k: "string" }, { p: "shipping_city", k: "string" }, { p: "order_notes", k: "string" }, { p: "newsletter", k: "bool" }, { p: "terms", k: "bool" }]
+    function fgPrefillValue(kind, raw) {
+      var first = raw[0]
+      if (first === undefined) return undefined
+      if (kind === 'number') { var n = Number(first); return first.trim() !== '' && isFinite(n) ? n : undefined }
+      if (kind === 'bool') { var w = first.trim().toLowerCase(); return ['1', 'true', 'on', 'yes'].indexOf(w) !== -1 ? true : ['0', 'false', 'off', 'no'].indexOf(w) !== -1 ? false : undefined }
+      if (kind === 'list') return (raw.length === 1 ? first.split(',') : raw).map(function (p) { return p.trim() }).filter(function (p) { return p !== '' })
+      return first
+    }
+    function fgPrefill() {
+      var query = new URLSearchParams(window.location.search)
+      var changed = []
+      FG_PREFILL.forEach(function (field) {
+        var name = field.q || field.p
+        if (!query.has(name)) return
+        var value = fgPrefillValue(field.k, query.getAll(name))
+        if (value === undefined) return
+        var controls = form.querySelectorAll('[data-fg-path="' + field.p + '"]')
+        if (!controls.length) return
+        var first = controls[0]
+        var kind = first.getAttribute('data-fg-kind')
+        if (kind === 'tags') {
+          if (typeof fgTags !== 'undefined' && fgTags[field.p]) { fgTags[field.p] = value.slice(); if (first.fgPaint) first.fgPaint() }
+          return
+        }
+        if (kind === 'dates') {
+          if (typeof fgDates !== 'undefined' && fgDates[field.p]) { fgDates[field.p] = value.slice(); fgPaintDates(field.p) }
+          return
+        }
+        if (kind === 'radio' || kind === 'checks') {
+          Array.prototype.forEach.call(controls, function (input) {
+            input.checked = kind === 'radio' ? input.value === value : value.indexOf(input.value) !== -1
+            changed.push(input)
+          })
+          return
+        }
+        if (first.multiple) Array.prototype.forEach.call(first.options, function (option) { option.selected = value.indexOf(option.value) !== -1 })
+        else if (first.type === 'checkbox') first.checked = value === true
+        else first.value = String(value)
+        changed.push(first)
+      })
+      changed.forEach(function (el) {
+        el.dispatchEvent(new Event('input', { bubbles: true }))
+        el.dispatchEvent(new Event('change', { bubbles: true }))
+      })
+    }
+
     form.addEventListener('submit', function (event) {
       event.preventDefault()
       var failed = 0
@@ -13460,6 +13699,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
 
     fgInitRepeaters(document)
     updateConditions()
+    fgPrefill()
   })()
   </script>
 </body>
@@ -16460,6 +16700,56 @@ exports[`html target > snapshot (tailwind) 1`] = `
       })
     })
 
+    // Prefill from the page address: ?field=value fills matching fields (a list
+    // takes repeated parameters or one comma-separated value); a hidden field
+    // takes its named parameter. After a restored draft: the link wins.
+    var FG_PREFILL = [{ p: "full_name", k: "string" }, { p: "email", k: "string" }, { p: "website", k: "string" }, { p: "seats", k: "number" }, { p: "satisfaction", k: "number" }, { p: "city", k: "string" }, { p: "zip", k: "string" }, { p: "account.username", k: "string" }, { p: "account.bio", k: "string" }, { p: "account.birthday", k: "string" }, { p: "plan", k: "string" }, { p: "interests", k: "list" }, { p: "channels", k: "list" }, { p: "topics", k: "list" }, { p: "billing", k: "string" }, { p: "extras", k: "list" }, { p: "notify", k: "bool" }, { p: "appointment", k: "string" }, { p: "brand_color", k: "string" }, { p: "volume", k: "number" }, { p: "days", k: "list" }, { p: "attachments_note", k: "string" }, { p: "contact_method", k: "string" }, { p: "contact_phone", k: "string" }, { p: "contact_other", k: "string" }, { p: "twitter", k: "string" }, { p: "github", k: "string" }, { p: "shipping_city", k: "string" }, { p: "order_notes", k: "string" }, { p: "newsletter", k: "bool" }, { p: "terms", k: "bool" }]
+    function fgPrefillValue(kind, raw) {
+      var first = raw[0]
+      if (first === undefined) return undefined
+      if (kind === 'number') { var n = Number(first); return first.trim() !== '' && isFinite(n) ? n : undefined }
+      if (kind === 'bool') { var w = first.trim().toLowerCase(); return ['1', 'true', 'on', 'yes'].indexOf(w) !== -1 ? true : ['0', 'false', 'off', 'no'].indexOf(w) !== -1 ? false : undefined }
+      if (kind === 'list') return (raw.length === 1 ? first.split(',') : raw).map(function (p) { return p.trim() }).filter(function (p) { return p !== '' })
+      return first
+    }
+    function fgPrefill() {
+      var query = new URLSearchParams(window.location.search)
+      var changed = []
+      FG_PREFILL.forEach(function (field) {
+        var name = field.q || field.p
+        if (!query.has(name)) return
+        var value = fgPrefillValue(field.k, query.getAll(name))
+        if (value === undefined) return
+        var controls = form.querySelectorAll('[data-fg-path="' + field.p + '"]')
+        if (!controls.length) return
+        var first = controls[0]
+        var kind = first.getAttribute('data-fg-kind')
+        if (kind === 'tags') {
+          if (typeof fgTags !== 'undefined' && fgTags[field.p]) { fgTags[field.p] = value.slice(); if (first.fgPaint) first.fgPaint() }
+          return
+        }
+        if (kind === 'dates') {
+          if (typeof fgDates !== 'undefined' && fgDates[field.p]) { fgDates[field.p] = value.slice(); fgPaintDates(field.p) }
+          return
+        }
+        if (kind === 'radio' || kind === 'checks') {
+          Array.prototype.forEach.call(controls, function (input) {
+            input.checked = kind === 'radio' ? input.value === value : value.indexOf(input.value) !== -1
+            changed.push(input)
+          })
+          return
+        }
+        if (first.multiple) Array.prototype.forEach.call(first.options, function (option) { option.selected = value.indexOf(option.value) !== -1 })
+        else if (first.type === 'checkbox') first.checked = value === true
+        else first.value = String(value)
+        changed.push(first)
+      })
+      changed.forEach(function (el) {
+        el.dispatchEvent(new Event('input', { bubbles: true }))
+        el.dispatchEvent(new Event('change', { bubbles: true }))
+      })
+    }
+
     form.addEventListener('submit', function (event) {
       event.preventDefault()
       var failed = 0
@@ -16499,6 +16789,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
 
     fgInitRepeaters(document)
     updateConditions()
+    fgPrefill()
   })()
   </script>
 </body>
@@ -19721,6 +20012,56 @@ exports[`html target > snapshot (vanilla) 1`] = `
       })
     })
 
+    // Prefill from the page address: ?field=value fills matching fields (a list
+    // takes repeated parameters or one comma-separated value); a hidden field
+    // takes its named parameter. After a restored draft: the link wins.
+    var FG_PREFILL = [{ p: "full_name", k: "string" }, { p: "email", k: "string" }, { p: "website", k: "string" }, { p: "seats", k: "number" }, { p: "satisfaction", k: "number" }, { p: "city", k: "string" }, { p: "zip", k: "string" }, { p: "account.username", k: "string" }, { p: "account.bio", k: "string" }, { p: "account.birthday", k: "string" }, { p: "plan", k: "string" }, { p: "interests", k: "list" }, { p: "channels", k: "list" }, { p: "topics", k: "list" }, { p: "billing", k: "string" }, { p: "extras", k: "list" }, { p: "notify", k: "bool" }, { p: "appointment", k: "string" }, { p: "brand_color", k: "string" }, { p: "volume", k: "number" }, { p: "days", k: "list" }, { p: "attachments_note", k: "string" }, { p: "contact_method", k: "string" }, { p: "contact_phone", k: "string" }, { p: "contact_other", k: "string" }, { p: "twitter", k: "string" }, { p: "github", k: "string" }, { p: "shipping_city", k: "string" }, { p: "order_notes", k: "string" }, { p: "newsletter", k: "bool" }, { p: "terms", k: "bool" }]
+    function fgPrefillValue(kind, raw) {
+      var first = raw[0]
+      if (first === undefined) return undefined
+      if (kind === 'number') { var n = Number(first); return first.trim() !== '' && isFinite(n) ? n : undefined }
+      if (kind === 'bool') { var w = first.trim().toLowerCase(); return ['1', 'true', 'on', 'yes'].indexOf(w) !== -1 ? true : ['0', 'false', 'off', 'no'].indexOf(w) !== -1 ? false : undefined }
+      if (kind === 'list') return (raw.length === 1 ? first.split(',') : raw).map(function (p) { return p.trim() }).filter(function (p) { return p !== '' })
+      return first
+    }
+    function fgPrefill() {
+      var query = new URLSearchParams(window.location.search)
+      var changed = []
+      FG_PREFILL.forEach(function (field) {
+        var name = field.q || field.p
+        if (!query.has(name)) return
+        var value = fgPrefillValue(field.k, query.getAll(name))
+        if (value === undefined) return
+        var controls = form.querySelectorAll('[data-fg-path="' + field.p + '"]')
+        if (!controls.length) return
+        var first = controls[0]
+        var kind = first.getAttribute('data-fg-kind')
+        if (kind === 'tags') {
+          if (typeof fgTags !== 'undefined' && fgTags[field.p]) { fgTags[field.p] = value.slice(); if (first.fgPaint) first.fgPaint() }
+          return
+        }
+        if (kind === 'dates') {
+          if (typeof fgDates !== 'undefined' && fgDates[field.p]) { fgDates[field.p] = value.slice(); fgPaintDates(field.p) }
+          return
+        }
+        if (kind === 'radio' || kind === 'checks') {
+          Array.prototype.forEach.call(controls, function (input) {
+            input.checked = kind === 'radio' ? input.value === value : value.indexOf(input.value) !== -1
+            changed.push(input)
+          })
+          return
+        }
+        if (first.multiple) Array.prototype.forEach.call(first.options, function (option) { option.selected = value.indexOf(option.value) !== -1 })
+        else if (first.type === 'checkbox') first.checked = value === true
+        else first.value = String(value)
+        changed.push(first)
+      })
+      changed.forEach(function (el) {
+        el.dispatchEvent(new Event('input', { bubbles: true }))
+        el.dispatchEvent(new Event('change', { bubbles: true }))
+      })
+    }
+
     form.addEventListener('submit', function (event) {
       event.preventDefault()
       var failed = 0
@@ -19760,6 +20101,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
 
     fgInitRepeaters(document)
     updateConditions()
+    fgPrefill()
   })()
   </script>
 </body>
@@ -20665,6 +21007,68 @@ const INITIAL: FormData = {
   }]
 }
 
+// Prefill from the page address: a list takes repeated parameters or one
+// comma-separated value; a value that does not convert is undefined.
+function fgQueryString(q: URLSearchParams, name: string): string | undefined {
+  const v = q.get(name)
+  return v === null ? undefined : v
+}
+function fgQueryNumber(q: URLSearchParams, name: string): number | undefined {
+  const v = q.get(name)
+  if (v === null || v.trim() === '') return undefined
+  const n = Number(v)
+  return Number.isFinite(n) ? n : undefined
+}
+function fgQueryBool(q: URLSearchParams, name: string): boolean | undefined {
+  const w = (q.get(name) ?? '').trim().toLowerCase()
+  return ['1', 'true', 'on', 'yes'].includes(w) ? true : ['0', 'false', 'off', 'no'].includes(w) ? false : undefined
+}
+function fgQueryList(q: URLSearchParams, name: string): string[] | undefined {
+  if (!q.has(name)) return undefined
+  const all = q.getAll(name)
+  const parts = all.length === 1 ? (all[0] ?? '').split(',') : all
+  return parts.map((p) => p.trim()).filter((p) => p !== '')
+}
+// The state with what the page address says; null when it says nothing.
+function fgPrefill(current: FormData): FormData | null {
+  if (typeof window === 'undefined') return null
+  const q = new URLSearchParams(window.location.search)
+  const next = structuredClone(current)
+  let changed = false
+  { const v = fgQueryString(q, "full_name"); if (v !== undefined) { next.full_name = v; changed = true } }
+  { const v = fgQueryString(q, "email"); if (v !== undefined) { next.email = v; changed = true } }
+  { const v = fgQueryString(q, "website"); if (v !== undefined) { next.website = v; changed = true } }
+  { const v = fgQueryNumber(q, "seats"); if (v !== undefined) { next.seats = v; changed = true } }
+  { const v = fgQueryNumber(q, "satisfaction"); if (v !== undefined) { next.satisfaction = v; changed = true } }
+  { const v = fgQueryString(q, "city"); if (v !== undefined) { next.city = v; changed = true } }
+  { const v = fgQueryString(q, "zip"); if (v !== undefined) { next.zip = v; changed = true } }
+  { const v = fgQueryString(q, "account.username"); if (v !== undefined) { next.account.username = v; changed = true } }
+  { const v = fgQueryString(q, "account.bio"); if (v !== undefined) { next.account.bio = v; changed = true } }
+  { const v = fgQueryString(q, "account.birthday"); if (v !== undefined) { next.account.birthday = v; changed = true } }
+  { const v = fgQueryString(q, "plan"); if (v !== undefined) { next.plan = v; changed = true } }
+  { const v = fgQueryList(q, "interests"); if (v !== undefined) { next.interests = v; changed = true } }
+  { const v = fgQueryList(q, "channels"); if (v !== undefined) { next.channels = v; changed = true } }
+  { const v = fgQueryList(q, "topics"); if (v !== undefined) { next.topics = v; changed = true } }
+  { const v = fgQueryString(q, "billing"); if (v !== undefined) { next.billing = v; changed = true } }
+  { const v = fgQueryList(q, "extras"); if (v !== undefined) { next.extras = v; changed = true } }
+  { const v = fgQueryBool(q, "notify"); if (v !== undefined) { next.notify = v; changed = true } }
+  { const v = fgQueryString(q, "appointment"); if (v !== undefined) { next.appointment = v; changed = true } }
+  { const v = fgQueryString(q, "brand_color"); if (v !== undefined) { next.brand_color = v; changed = true } }
+  { const v = fgQueryNumber(q, "volume"); if (v !== undefined) { next.volume = v; changed = true } }
+  { const v = fgQueryList(q, "days"); if (v !== undefined) { next.days = v; changed = true } }
+  { const v = fgQueryString(q, "attachments_note"); if (v !== undefined) { next.attachments_note = v; changed = true } }
+  { const v = fgQueryString(q, "contact_method"); if (v !== undefined) { next.contact_method = v; changed = true } }
+  { const v = fgQueryString(q, "contact_phone"); if (v !== undefined) { next.contact_phone = v; changed = true } }
+  { const v = fgQueryString(q, "contact_other"); if (v !== undefined) { next.contact_other = v; changed = true } }
+  { const v = fgQueryString(q, "twitter"); if (v !== undefined) { next.twitter = v; changed = true } }
+  { const v = fgQueryString(q, "github"); if (v !== undefined) { next.github = v; changed = true } }
+  { const v = fgQueryString(q, "shipping_city"); if (v !== undefined) { next.shipping_city = v; changed = true } }
+  { const v = fgQueryString(q, "order_notes"); if (v !== undefined) { next.order_notes = v; changed = true } }
+  { const v = fgQueryBool(q, "newsletter"); if (v !== undefined) { next.newsletter = v; changed = true } }
+  { const v = fgQueryBool(q, "terms"); if (v !== undefined) { next.terms = v; changed = true } }
+  return changed ? next : null
+}
+
 function fgVisible_attachments_note(data: FormData) {
   return ((!fgIsBlank(data.attachments)))
 }
@@ -21040,6 +21444,13 @@ export default function KitchenSinkForm({
   const [result, setResult] = useState<Record<string, unknown> | null>(null)
   const touched = useRef(new Set<string>())
   const [fgAnnouncement, setFgAnnouncement] = useState('')
+  // Prefill from the page address, once mounted (no server/client mismatch).
+  useEffect(() => {
+    setForm((current) => {
+      const next = fgPrefill(current)
+      return next ? fgCalc(next) : current
+    })
+  }, [])
   const [fgSec_ks_social_tabs, setFgSec_ks_social_tabs] = useState(0)
   const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)
   const [tagDrafts, setTagDrafts] = useState<Record<string, string>>({})
@@ -23485,6 +23896,68 @@ const INITIAL: FormData = {
   }]
 }
 
+// Prefill from the page address: a list takes repeated parameters or one
+// comma-separated value; a value that does not convert is undefined.
+function fgQueryString(q: URLSearchParams, name: string): string | undefined {
+  const v = q.get(name)
+  return v === null ? undefined : v
+}
+function fgQueryNumber(q: URLSearchParams, name: string): number | undefined {
+  const v = q.get(name)
+  if (v === null || v.trim() === '') return undefined
+  const n = Number(v)
+  return Number.isFinite(n) ? n : undefined
+}
+function fgQueryBool(q: URLSearchParams, name: string): boolean | undefined {
+  const w = (q.get(name) ?? '').trim().toLowerCase()
+  return ['1', 'true', 'on', 'yes'].includes(w) ? true : ['0', 'false', 'off', 'no'].includes(w) ? false : undefined
+}
+function fgQueryList(q: URLSearchParams, name: string): string[] | undefined {
+  if (!q.has(name)) return undefined
+  const all = q.getAll(name)
+  const parts = all.length === 1 ? (all[0] ?? '').split(',') : all
+  return parts.map((p) => p.trim()).filter((p) => p !== '')
+}
+// The state with what the page address says; null when it says nothing.
+function fgPrefill(current: FormData): FormData | null {
+  if (typeof window === 'undefined') return null
+  const q = new URLSearchParams(window.location.search)
+  const next = structuredClone(current)
+  let changed = false
+  { const v = fgQueryString(q, "full_name"); if (v !== undefined) { next.full_name = v; changed = true } }
+  { const v = fgQueryString(q, "email"); if (v !== undefined) { next.email = v; changed = true } }
+  { const v = fgQueryString(q, "website"); if (v !== undefined) { next.website = v; changed = true } }
+  { const v = fgQueryNumber(q, "seats"); if (v !== undefined) { next.seats = v; changed = true } }
+  { const v = fgQueryNumber(q, "satisfaction"); if (v !== undefined) { next.satisfaction = v; changed = true } }
+  { const v = fgQueryString(q, "city"); if (v !== undefined) { next.city = v; changed = true } }
+  { const v = fgQueryString(q, "zip"); if (v !== undefined) { next.zip = v; changed = true } }
+  { const v = fgQueryString(q, "account.username"); if (v !== undefined) { next.account.username = v; changed = true } }
+  { const v = fgQueryString(q, "account.bio"); if (v !== undefined) { next.account.bio = v; changed = true } }
+  { const v = fgQueryString(q, "account.birthday"); if (v !== undefined) { next.account.birthday = v; changed = true } }
+  { const v = fgQueryString(q, "plan"); if (v !== undefined) { next.plan = v; changed = true } }
+  { const v = fgQueryList(q, "interests"); if (v !== undefined) { next.interests = v; changed = true } }
+  { const v = fgQueryList(q, "channels"); if (v !== undefined) { next.channels = v; changed = true } }
+  { const v = fgQueryList(q, "topics"); if (v !== undefined) { next.topics = v; changed = true } }
+  { const v = fgQueryString(q, "billing"); if (v !== undefined) { next.billing = v; changed = true } }
+  { const v = fgQueryList(q, "extras"); if (v !== undefined) { next.extras = v; changed = true } }
+  { const v = fgQueryBool(q, "notify"); if (v !== undefined) { next.notify = v; changed = true } }
+  { const v = fgQueryString(q, "appointment"); if (v !== undefined) { next.appointment = v; changed = true } }
+  { const v = fgQueryString(q, "brand_color"); if (v !== undefined) { next.brand_color = v; changed = true } }
+  { const v = fgQueryNumber(q, "volume"); if (v !== undefined) { next.volume = v; changed = true } }
+  { const v = fgQueryList(q, "days"); if (v !== undefined) { next.days = v; changed = true } }
+  { const v = fgQueryString(q, "attachments_note"); if (v !== undefined) { next.attachments_note = v; changed = true } }
+  { const v = fgQueryString(q, "contact_method"); if (v !== undefined) { next.contact_method = v; changed = true } }
+  { const v = fgQueryString(q, "contact_phone"); if (v !== undefined) { next.contact_phone = v; changed = true } }
+  { const v = fgQueryString(q, "contact_other"); if (v !== undefined) { next.contact_other = v; changed = true } }
+  { const v = fgQueryString(q, "twitter"); if (v !== undefined) { next.twitter = v; changed = true } }
+  { const v = fgQueryString(q, "github"); if (v !== undefined) { next.github = v; changed = true } }
+  { const v = fgQueryString(q, "shipping_city"); if (v !== undefined) { next.shipping_city = v; changed = true } }
+  { const v = fgQueryString(q, "order_notes"); if (v !== undefined) { next.order_notes = v; changed = true } }
+  { const v = fgQueryBool(q, "newsletter"); if (v !== undefined) { next.newsletter = v; changed = true } }
+  { const v = fgQueryBool(q, "terms"); if (v !== undefined) { next.terms = v; changed = true } }
+  return changed ? next : null
+}
+
 function fgVisible_attachments_note(data: FormData) {
   return ((!fgIsBlank(data.attachments)))
 }
@@ -23860,6 +24333,13 @@ export default function KitchenSinkForm({
   const [result, setResult] = useState<Record<string, unknown> | null>(null)
   const touched = useRef(new Set<string>())
   const [fgAnnouncement, setFgAnnouncement] = useState('')
+  // Prefill from the page address, once mounted (no server/client mismatch).
+  useEffect(() => {
+    setForm((current) => {
+      const next = fgPrefill(current)
+      return next ? fgCalc(next) : current
+    })
+  }, [])
   const [fgSec_ks_social_tabs, setFgSec_ks_social_tabs] = useState(0)
   const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)
   const [tagDrafts, setTagDrafts] = useState<Record<string, string>>({})
@@ -26309,6 +26789,68 @@ const INITIAL: FormData = {
   }]
 }
 
+// Prefill from the page address: a list takes repeated parameters or one
+// comma-separated value; a value that does not convert is undefined.
+function fgQueryString(q: URLSearchParams, name: string): string | undefined {
+  const v = q.get(name)
+  return v === null ? undefined : v
+}
+function fgQueryNumber(q: URLSearchParams, name: string): number | undefined {
+  const v = q.get(name)
+  if (v === null || v.trim() === '') return undefined
+  const n = Number(v)
+  return Number.isFinite(n) ? n : undefined
+}
+function fgQueryBool(q: URLSearchParams, name: string): boolean | undefined {
+  const w = (q.get(name) ?? '').trim().toLowerCase()
+  return ['1', 'true', 'on', 'yes'].includes(w) ? true : ['0', 'false', 'off', 'no'].includes(w) ? false : undefined
+}
+function fgQueryList(q: URLSearchParams, name: string): string[] | undefined {
+  if (!q.has(name)) return undefined
+  const all = q.getAll(name)
+  const parts = all.length === 1 ? (all[0] ?? '').split(',') : all
+  return parts.map((p) => p.trim()).filter((p) => p !== '')
+}
+// The state with what the page address says; null when it says nothing.
+function fgPrefill(current: FormData): FormData | null {
+  if (typeof window === 'undefined') return null
+  const q = new URLSearchParams(window.location.search)
+  const next = structuredClone(current)
+  let changed = false
+  { const v = fgQueryString(q, "full_name"); if (v !== undefined) { next.full_name = v; changed = true } }
+  { const v = fgQueryString(q, "email"); if (v !== undefined) { next.email = v; changed = true } }
+  { const v = fgQueryString(q, "website"); if (v !== undefined) { next.website = v; changed = true } }
+  { const v = fgQueryNumber(q, "seats"); if (v !== undefined) { next.seats = v; changed = true } }
+  { const v = fgQueryNumber(q, "satisfaction"); if (v !== undefined) { next.satisfaction = v; changed = true } }
+  { const v = fgQueryString(q, "city"); if (v !== undefined) { next.city = v; changed = true } }
+  { const v = fgQueryString(q, "zip"); if (v !== undefined) { next.zip = v; changed = true } }
+  { const v = fgQueryString(q, "account.username"); if (v !== undefined) { next.account.username = v; changed = true } }
+  { const v = fgQueryString(q, "account.bio"); if (v !== undefined) { next.account.bio = v; changed = true } }
+  { const v = fgQueryString(q, "account.birthday"); if (v !== undefined) { next.account.birthday = v; changed = true } }
+  { const v = fgQueryString(q, "plan"); if (v !== undefined) { next.plan = v; changed = true } }
+  { const v = fgQueryList(q, "interests"); if (v !== undefined) { next.interests = v; changed = true } }
+  { const v = fgQueryList(q, "channels"); if (v !== undefined) { next.channels = v; changed = true } }
+  { const v = fgQueryList(q, "topics"); if (v !== undefined) { next.topics = v; changed = true } }
+  { const v = fgQueryString(q, "billing"); if (v !== undefined) { next.billing = v; changed = true } }
+  { const v = fgQueryList(q, "extras"); if (v !== undefined) { next.extras = v; changed = true } }
+  { const v = fgQueryBool(q, "notify"); if (v !== undefined) { next.notify = v; changed = true } }
+  { const v = fgQueryString(q, "appointment"); if (v !== undefined) { next.appointment = v; changed = true } }
+  { const v = fgQueryString(q, "brand_color"); if (v !== undefined) { next.brand_color = v; changed = true } }
+  { const v = fgQueryNumber(q, "volume"); if (v !== undefined) { next.volume = v; changed = true } }
+  { const v = fgQueryList(q, "days"); if (v !== undefined) { next.days = v; changed = true } }
+  { const v = fgQueryString(q, "attachments_note"); if (v !== undefined) { next.attachments_note = v; changed = true } }
+  { const v = fgQueryString(q, "contact_method"); if (v !== undefined) { next.contact_method = v; changed = true } }
+  { const v = fgQueryString(q, "contact_phone"); if (v !== undefined) { next.contact_phone = v; changed = true } }
+  { const v = fgQueryString(q, "contact_other"); if (v !== undefined) { next.contact_other = v; changed = true } }
+  { const v = fgQueryString(q, "twitter"); if (v !== undefined) { next.twitter = v; changed = true } }
+  { const v = fgQueryString(q, "github"); if (v !== undefined) { next.github = v; changed = true } }
+  { const v = fgQueryString(q, "shipping_city"); if (v !== undefined) { next.shipping_city = v; changed = true } }
+  { const v = fgQueryString(q, "order_notes"); if (v !== undefined) { next.order_notes = v; changed = true } }
+  { const v = fgQueryBool(q, "newsletter"); if (v !== undefined) { next.newsletter = v; changed = true } }
+  { const v = fgQueryBool(q, "terms"); if (v !== undefined) { next.terms = v; changed = true } }
+  return changed ? next : null
+}
+
 function fgVisible_attachments_note(data: FormData) {
   return ((!fgIsBlank(data.attachments)))
 }
@@ -26684,6 +27226,13 @@ export default function KitchenSinkForm({
   const [result, setResult] = useState<Record<string, unknown> | null>(null)
   const touched = useRef(new Set<string>())
   const [fgAnnouncement, setFgAnnouncement] = useState('')
+  // Prefill from the page address, once mounted (no server/client mismatch).
+  useEffect(() => {
+    setForm((current) => {
+      const next = fgPrefill(current)
+      return next ? fgCalc(next) : current
+    })
+  }, [])
   const [fgSec_ks_social_tabs, setFgSec_ks_social_tabs] = useState(0)
   const [fgSec_ks_wizard, setFgSec_ks_wizard] = useState(0)
   const [tagDrafts, setTagDrafts] = useState<Record<string, string>>({})
@@ -28567,6 +29116,64 @@ function fgRemoveFile(path: string, index: number): void {
   fgSetFiles(path, list.filter((_, i) => i !== index))
   touch(path)
 }
+// Prefill from the page address: a list takes repeated parameters or one
+// comma-separated value; a value that does not convert is undefined.
+function fgQueryString(q: URLSearchParams, name: string): string | undefined {
+  const v = q.get(name)
+  return v === null ? undefined : v
+}
+function fgQueryNumber(q: URLSearchParams, name: string): number | undefined {
+  const v = q.get(name)
+  if (v === null || v.trim() === '') return undefined
+  const n = Number(v)
+  return Number.isFinite(n) ? n : undefined
+}
+function fgQueryBool(q: URLSearchParams, name: string): boolean | undefined {
+  const w = (q.get(name) ?? '').trim().toLowerCase()
+  return ['1', 'true', 'on', 'yes'].includes(w) ? true : ['0', 'false', 'off', 'no'].includes(w) ? false : undefined
+}
+function fgQueryList(q: URLSearchParams, name: string): string[] | undefined {
+  if (!q.has(name)) return undefined
+  const all = q.getAll(name)
+  const parts = all.length === 1 ? (all[0] ?? '').split(',') : all
+  return parts.map((p) => p.trim()).filter((p) => p !== '')
+}
+// Prefill from the page address, once mounted; after a restored draft the link wins.
+onMounted(() => {
+  if (typeof window === 'undefined') return
+  const q = new URLSearchParams(window.location.search)
+  { const v = fgQueryString(q, "full_name"); if (v !== undefined) form.full_name = v }
+  { const v = fgQueryString(q, "email"); if (v !== undefined) form.email = v }
+  { const v = fgQueryString(q, "website"); if (v !== undefined) form.website = v }
+  { const v = fgQueryNumber(q, "seats"); if (v !== undefined) form.seats = v }
+  { const v = fgQueryNumber(q, "satisfaction"); if (v !== undefined) form.satisfaction = v }
+  { const v = fgQueryString(q, "city"); if (v !== undefined) form.city = v }
+  { const v = fgQueryString(q, "zip"); if (v !== undefined) form.zip = v }
+  { const v = fgQueryString(q, "account.username"); if (v !== undefined) form.account.username = v }
+  { const v = fgQueryString(q, "account.bio"); if (v !== undefined) form.account.bio = v }
+  { const v = fgQueryString(q, "account.birthday"); if (v !== undefined) form.account.birthday = v }
+  { const v = fgQueryString(q, "plan"); if (v !== undefined) form.plan = v }
+  { const v = fgQueryList(q, "interests"); if (v !== undefined) form.interests = v }
+  { const v = fgQueryList(q, "channels"); if (v !== undefined) form.channels = v }
+  { const v = fgQueryList(q, "topics"); if (v !== undefined) form.topics = v }
+  { const v = fgQueryString(q, "billing"); if (v !== undefined) form.billing = v }
+  { const v = fgQueryList(q, "extras"); if (v !== undefined) form.extras = v }
+  { const v = fgQueryBool(q, "notify"); if (v !== undefined) form.notify = v }
+  { const v = fgQueryString(q, "appointment"); if (v !== undefined) form.appointment = v }
+  { const v = fgQueryString(q, "brand_color"); if (v !== undefined) form.brand_color = v }
+  { const v = fgQueryNumber(q, "volume"); if (v !== undefined) form.volume = v }
+  { const v = fgQueryList(q, "days"); if (v !== undefined) form.days = v }
+  { const v = fgQueryString(q, "attachments_note"); if (v !== undefined) form.attachments_note = v }
+  { const v = fgQueryString(q, "contact_method"); if (v !== undefined) form.contact_method = v }
+  { const v = fgQueryString(q, "contact_phone"); if (v !== undefined) form.contact_phone = v }
+  { const v = fgQueryString(q, "contact_other"); if (v !== undefined) form.contact_other = v }
+  { const v = fgQueryString(q, "twitter"); if (v !== undefined) form.twitter = v }
+  { const v = fgQueryString(q, "github"); if (v !== undefined) form.github = v }
+  { const v = fgQueryString(q, "shipping_city"); if (v !== undefined) form.shipping_city = v }
+  { const v = fgQueryString(q, "order_notes"); if (v !== undefined) form.order_notes = v }
+  { const v = fgQueryBool(q, "newsletter"); if (v !== undefined) form.newsletter = v }
+  { const v = fgQueryBool(q, "terms"); if (v !== undefined) form.terms = v }
+})
 // Signature pads: draw (mouse, finger, pen) or type a name; each change is
 // signature.png. Wired once on the form root (pads in new items included).
 interface FgSignPad {
@@ -31422,6 +32029,64 @@ function fgRemoveFile(path: string, index: number): void {
   fgSetFiles(path, list.filter((_, i) => i !== index))
   touch(path)
 }
+// Prefill from the page address: a list takes repeated parameters or one
+// comma-separated value; a value that does not convert is undefined.
+function fgQueryString(q: URLSearchParams, name: string): string | undefined {
+  const v = q.get(name)
+  return v === null ? undefined : v
+}
+function fgQueryNumber(q: URLSearchParams, name: string): number | undefined {
+  const v = q.get(name)
+  if (v === null || v.trim() === '') return undefined
+  const n = Number(v)
+  return Number.isFinite(n) ? n : undefined
+}
+function fgQueryBool(q: URLSearchParams, name: string): boolean | undefined {
+  const w = (q.get(name) ?? '').trim().toLowerCase()
+  return ['1', 'true', 'on', 'yes'].includes(w) ? true : ['0', 'false', 'off', 'no'].includes(w) ? false : undefined
+}
+function fgQueryList(q: URLSearchParams, name: string): string[] | undefined {
+  if (!q.has(name)) return undefined
+  const all = q.getAll(name)
+  const parts = all.length === 1 ? (all[0] ?? '').split(',') : all
+  return parts.map((p) => p.trim()).filter((p) => p !== '')
+}
+// Prefill from the page address, once mounted; after a restored draft the link wins.
+onMounted(() => {
+  if (typeof window === 'undefined') return
+  const q = new URLSearchParams(window.location.search)
+  { const v = fgQueryString(q, "full_name"); if (v !== undefined) form.full_name = v }
+  { const v = fgQueryString(q, "email"); if (v !== undefined) form.email = v }
+  { const v = fgQueryString(q, "website"); if (v !== undefined) form.website = v }
+  { const v = fgQueryNumber(q, "seats"); if (v !== undefined) form.seats = v }
+  { const v = fgQueryNumber(q, "satisfaction"); if (v !== undefined) form.satisfaction = v }
+  { const v = fgQueryString(q, "city"); if (v !== undefined) form.city = v }
+  { const v = fgQueryString(q, "zip"); if (v !== undefined) form.zip = v }
+  { const v = fgQueryString(q, "account.username"); if (v !== undefined) form.account.username = v }
+  { const v = fgQueryString(q, "account.bio"); if (v !== undefined) form.account.bio = v }
+  { const v = fgQueryString(q, "account.birthday"); if (v !== undefined) form.account.birthday = v }
+  { const v = fgQueryString(q, "plan"); if (v !== undefined) form.plan = v }
+  { const v = fgQueryList(q, "interests"); if (v !== undefined) form.interests = v }
+  { const v = fgQueryList(q, "channels"); if (v !== undefined) form.channels = v }
+  { const v = fgQueryList(q, "topics"); if (v !== undefined) form.topics = v }
+  { const v = fgQueryString(q, "billing"); if (v !== undefined) form.billing = v }
+  { const v = fgQueryList(q, "extras"); if (v !== undefined) form.extras = v }
+  { const v = fgQueryBool(q, "notify"); if (v !== undefined) form.notify = v }
+  { const v = fgQueryString(q, "appointment"); if (v !== undefined) form.appointment = v }
+  { const v = fgQueryString(q, "brand_color"); if (v !== undefined) form.brand_color = v }
+  { const v = fgQueryNumber(q, "volume"); if (v !== undefined) form.volume = v }
+  { const v = fgQueryList(q, "days"); if (v !== undefined) form.days = v }
+  { const v = fgQueryString(q, "attachments_note"); if (v !== undefined) form.attachments_note = v }
+  { const v = fgQueryString(q, "contact_method"); if (v !== undefined) form.contact_method = v }
+  { const v = fgQueryString(q, "contact_phone"); if (v !== undefined) form.contact_phone = v }
+  { const v = fgQueryString(q, "contact_other"); if (v !== undefined) form.contact_other = v }
+  { const v = fgQueryString(q, "twitter"); if (v !== undefined) form.twitter = v }
+  { const v = fgQueryString(q, "github"); if (v !== undefined) form.github = v }
+  { const v = fgQueryString(q, "shipping_city"); if (v !== undefined) form.shipping_city = v }
+  { const v = fgQueryString(q, "order_notes"); if (v !== undefined) form.order_notes = v }
+  { const v = fgQueryBool(q, "newsletter"); if (v !== undefined) form.newsletter = v }
+  { const v = fgQueryBool(q, "terms"); if (v !== undefined) form.terms = v }
+})
 // Signature pads: draw (mouse, finger, pen) or type a name; each change is
 // signature.png. Wired once on the form root (pads in new items included).
 interface FgSignPad {
@@ -34222,6 +34887,64 @@ function fgRemoveFile(path: string, index: number): void {
   fgSetFiles(path, list.filter((_, i) => i !== index))
   touch(path)
 }
+// Prefill from the page address: a list takes repeated parameters or one
+// comma-separated value; a value that does not convert is undefined.
+function fgQueryString(q: URLSearchParams, name: string): string | undefined {
+  const v = q.get(name)
+  return v === null ? undefined : v
+}
+function fgQueryNumber(q: URLSearchParams, name: string): number | undefined {
+  const v = q.get(name)
+  if (v === null || v.trim() === '') return undefined
+  const n = Number(v)
+  return Number.isFinite(n) ? n : undefined
+}
+function fgQueryBool(q: URLSearchParams, name: string): boolean | undefined {
+  const w = (q.get(name) ?? '').trim().toLowerCase()
+  return ['1', 'true', 'on', 'yes'].includes(w) ? true : ['0', 'false', 'off', 'no'].includes(w) ? false : undefined
+}
+function fgQueryList(q: URLSearchParams, name: string): string[] | undefined {
+  if (!q.has(name)) return undefined
+  const all = q.getAll(name)
+  const parts = all.length === 1 ? (all[0] ?? '').split(',') : all
+  return parts.map((p) => p.trim()).filter((p) => p !== '')
+}
+// Prefill from the page address, once mounted; after a restored draft the link wins.
+onMounted(() => {
+  if (typeof window === 'undefined') return
+  const q = new URLSearchParams(window.location.search)
+  { const v = fgQueryString(q, "full_name"); if (v !== undefined) form.full_name = v }
+  { const v = fgQueryString(q, "email"); if (v !== undefined) form.email = v }
+  { const v = fgQueryString(q, "website"); if (v !== undefined) form.website = v }
+  { const v = fgQueryNumber(q, "seats"); if (v !== undefined) form.seats = v }
+  { const v = fgQueryNumber(q, "satisfaction"); if (v !== undefined) form.satisfaction = v }
+  { const v = fgQueryString(q, "city"); if (v !== undefined) form.city = v }
+  { const v = fgQueryString(q, "zip"); if (v !== undefined) form.zip = v }
+  { const v = fgQueryString(q, "account.username"); if (v !== undefined) form.account.username = v }
+  { const v = fgQueryString(q, "account.bio"); if (v !== undefined) form.account.bio = v }
+  { const v = fgQueryString(q, "account.birthday"); if (v !== undefined) form.account.birthday = v }
+  { const v = fgQueryString(q, "plan"); if (v !== undefined) form.plan = v }
+  { const v = fgQueryList(q, "interests"); if (v !== undefined) form.interests = v }
+  { const v = fgQueryList(q, "channels"); if (v !== undefined) form.channels = v }
+  { const v = fgQueryList(q, "topics"); if (v !== undefined) form.topics = v }
+  { const v = fgQueryString(q, "billing"); if (v !== undefined) form.billing = v }
+  { const v = fgQueryList(q, "extras"); if (v !== undefined) form.extras = v }
+  { const v = fgQueryBool(q, "notify"); if (v !== undefined) form.notify = v }
+  { const v = fgQueryString(q, "appointment"); if (v !== undefined) form.appointment = v }
+  { const v = fgQueryString(q, "brand_color"); if (v !== undefined) form.brand_color = v }
+  { const v = fgQueryNumber(q, "volume"); if (v !== undefined) form.volume = v }
+  { const v = fgQueryList(q, "days"); if (v !== undefined) form.days = v }
+  { const v = fgQueryString(q, "attachments_note"); if (v !== undefined) form.attachments_note = v }
+  { const v = fgQueryString(q, "contact_method"); if (v !== undefined) form.contact_method = v }
+  { const v = fgQueryString(q, "contact_phone"); if (v !== undefined) form.contact_phone = v }
+  { const v = fgQueryString(q, "contact_other"); if (v !== undefined) form.contact_other = v }
+  { const v = fgQueryString(q, "twitter"); if (v !== undefined) form.twitter = v }
+  { const v = fgQueryString(q, "github"); if (v !== undefined) form.github = v }
+  { const v = fgQueryString(q, "shipping_city"); if (v !== undefined) form.shipping_city = v }
+  { const v = fgQueryString(q, "order_notes"); if (v !== undefined) form.order_notes = v }
+  { const v = fgQueryBool(q, "newsletter"); if (v !== undefined) form.newsletter = v }
+  { const v = fgQueryBool(q, "terms"); if (v !== undefined) form.terms = v }
+})
 // Signature pads: draw (mouse, finger, pen) or type a name; each change is
 // signature.png. Wired once on the form root (pads in new items included).
 interface FgSignPad {

@@ -1,6 +1,8 @@
 // Hidden input: a fixed value submitted with the form (e.g. a source tag
-// or campaign id). Only the HTML target needs markup — the bound targets
-// carry the value in their state, initialized from props.value.
+// or campaign id), or the value of a named parameter of the page address
+// (props.param, see the renderer's prefill.ts). Only the HTML target needs
+// markup — the bound targets carry the value in their state, initialized
+// from props.value.
 
 import { esc, htmlDataAttrs } from '../emitters/shared'
 import type { ElementDefinition } from '../types'
@@ -14,7 +16,13 @@ export const hiddenElement: ElementDefinition = {
   hasValue: true,
   defaultProps: { value: '' },
   propertyPanel: [
-    { title: 'Properties', controls: [{ kind: 'text', prop: 'value', label: 'Value' }] },
+    {
+      title: 'Properties',
+      controls: [
+        { kind: 'text', prop: 'value', label: 'Value' },
+        { kind: 'text', prop: 'param', label: 'URL parameter', placeholder: 'e.g. utm_source' },
+      ],
+    },
     { title: 'Data', controls: [{ kind: 'name' }] },
     { title: 'Conditions', controls: [{ kind: 'conditions' }] },
   ],

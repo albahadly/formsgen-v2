@@ -17,6 +17,7 @@ import { hasRichText, vueRichText } from '../richAnswer'
 import { hasLocation, vueLocation } from '../location'
 import { CAPTCHA_FIELD, captchaKeyOf, captchaMarkup, vueCaptcha } from '../captcha'
 import { draftBar, draftHelpers, usesDraft, vueDraftBlock } from '../draft'
+import { prefillFields, tsPrefillHelpers, vuePrefillBlock } from '../prefill'
 import {
   collectExportFields,
   collectExportRepeaters,
@@ -493,6 +494,7 @@ function fgSet(path: string, value: unknown): void {
         : ''
     const submitUrl = schema.meta.submit?.url
     const draft = usesDraft(schema)
+    const prefill = prefillFields(schema)
     const signatures = hasSignature(schema.tree)
     const rich = hasRichText(schema.tree)
     const locations = hasLocation(schema.tree)
@@ -554,7 +556,7 @@ function fgAnnounce(message: string): void {
 ${errorsTextFunction(messages, true)}
 
 ${RUNTIME_HELPERS_TS}${hasMultiMatrix(schema) ? `\n${MATRIX_TOGGLE_TS}` : ''}${steps.length ? `\n${vueCalcBlock(steps)}` : ''}${usesAnswers(schema.tree) ? `\n${answerHelpers(true)}` : ''}
-${pathHelpers}${hasUploads ? `${FILE_HELPERS_TS}\n${vueUploadRuntime(typedFields, messages)}\n` : ''}${draft ? `${draftHelpers(schema, 'vue', true)}\n${vueDraftBlock(messages, resetExtras)}\n` : ''}${!repeaters.length && (signatures || rich || locations) ? 'const fgRoot = ref<HTMLElement | null>(null)\n' : ''}${signatures ? `${vueSignature()}\n` : ''}${rich ? `${vueRichText(messages.richLinkPrompt)}\n` : ''}${locations ? `${vueLocation(messages)}\n` : ''}${captchaKey ? `${vueCaptcha(captchaKey, schema.meta.locale)}\n` : ''}
+${pathHelpers}${hasUploads ? `${FILE_HELPERS_TS}\n${vueUploadRuntime(typedFields, messages)}\n` : ''}${draft ? `${draftHelpers(schema, 'vue', true)}\n${vueDraftBlock(messages, resetExtras)}\n` : ''}${prefill.length ? `${tsPrefillHelpers()}\n${vuePrefillBlock(prefill)}\n` : ''}${!repeaters.length && (signatures || rich || locations) ? 'const fgRoot = ref<HTMLElement | null>(null)\n' : ''}${signatures ? `${vueSignature()}\n` : ''}${rich ? `${vueRichText(messages.richLinkPrompt)}\n` : ''}${locations ? `${vueLocation(messages)}\n` : ''}${captchaKey ? `${vueCaptcha(captchaKey, schema.meta.locale)}\n` : ''}
 ${visibilityFunctions(fields, accessor)}
 
 const validators: Record<string, () => string | null> = ${validatorsLiteral(fields, accessor, '', undefined, messages)}

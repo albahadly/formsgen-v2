@@ -14,6 +14,7 @@ import { hasRichText, reactRichTextHooks, richTextRuntime } from '../richAnswer'
 import { hasLocation, locationRuntime, reactLocationHooks } from '../location'
 import { CAPTCHA_FIELD, captchaKeyOf, captchaMarkup, captchaRuntime, reactCaptchaHooks } from '../captcha'
 import { draftBar, draftHelpers, reactDraftHandlers, reactDraftHooks, usesDraft } from '../draft'
+import { prefillFields, reactPrefillFunction, reactPrefillHook, tsPrefillHelpers } from '../prefill'
 import { postsUploads, reactUploadHandlers, reactUploadModule, uploadFields, uploadStatusMarkup, uploadTextHelper } from '../uploadRuntime'
 import {
   MATRIX_TOGGLE_TS,
@@ -581,6 +582,7 @@ ${resetLines}
     const hasUploads = uploadFields(typedFields).length > 0
     const submitUrl = schema.meta.submit?.url
     const draft = usesDraft(schema)
+    const prefill = prefillFields(schema)
     const signatures = hasSignature(schema.tree)
     const rich = hasRichText(schema.tree)
     const locations = hasLocation(schema.tree)
@@ -629,7 +631,7 @@ ${hasUploads ? `${FILE_HELPERS_TS}\n` : ''}${draft ? `${draftHelpers(schema, 're
 type FormData = ${formDataType(schema)}
 
 const INITIAL: FormData = ${toJsLiteral(defaults)}
-
+${prefill.length ? `\n${tsPrefillHelpers()}\n${reactPrefillFunction(prefill)}\n` : ''}
 ${visibilityFunctions(fields, dataAccessor, 'data: FormData')}
 
 const validators: Record<string, (data: FormData) => string | null> = ${validatorsLiteral(
@@ -658,7 +660,7 @@ export default function ${name}({
   const [fgUpload, setFgUpload] = useState<{ state: '' | 'uploading' | 'done' | 'failed'; percent: number }>({ state: '', percent: 0 })` : ''}
   const touched = useRef(new Set<string>())
   const [fgAnnouncement, setFgAnnouncement] = useState('')
-${draft ? `${reactDraftHooks(steps.length > 0)}\n` : ''}${sectionHooks ? `${sectionHooks}\n` : ''}${tagsState ? `${tagsState}\n` : ''}${compositeState ? `${compositeState}\n` : ''}${repeaterHooks ? `${repeaterHooks}\n` : ''}
+${draft ? `${reactDraftHooks(steps.length > 0)}\n` : ''}${prefill.length ? `${reactPrefillHook(steps.length > 0)}\n` : ''}${sectionHooks ? `${sectionHooks}\n` : ''}${tagsState ? `${tagsState}\n` : ''}${compositeState ? `${compositeState}\n` : ''}${repeaterHooks ? `${repeaterHooks}\n` : ''}
   // Polite aria-live region; cleared first so repeated text re-announces.
   function fgAnnounce(message: string): void {
     setFgAnnouncement('')

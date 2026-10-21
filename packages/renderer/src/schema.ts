@@ -59,6 +59,8 @@ export interface FormMeta {
   saveDraft?: boolean | undefined
   /** Spam check: the submit button waits for a passed check (see captcha.ts). */
   captcha?: CaptchaConfig | undefined
+  /** Query parameters named like a field's data path fill it (see prefill.ts). */
+  prefillFromQuery?: boolean | undefined
 }
 
 export type RuleName =

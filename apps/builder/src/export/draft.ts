@@ -331,7 +331,7 @@ form.querySelector('[data-fg-draft-clear]').addEventListener('click', function (
  * (JS interop isn't available before it), saved after every later render
  * when the answers changed.
  */
-export function blazorDraftBlock(schema: FormSchema, model: string, messages: MessageCatalog, opts: { uploads: boolean; calc: boolean; resetLines: string }): string {
+export function blazorDraftBlock(schema: FormSchema, model: string, messages: MessageCatalog, opts: { uploads: boolean; calc: boolean; resetLines: string; prefill?: boolean }): string {
   return `
     // Save and continue later: the answers are kept in this browser until sent.
     private const string FgDraftKey = ${csString(draftKey(schema.meta.name))};
@@ -373,7 +373,7 @@ ${opts.uploads ? `
             var restored = data.Deserialize<${model}>(FgDraftOptions);
             if (restored is null) return;
             Model = restored;
-            FgInitEdit();${opts.calc ? '\n            FgCalc();' : ''}
+            FgInitEdit();${opts.prefill ? '\n            FgPrefill();' : ''}${opts.calc ? '\n            FgCalc();' : ''}
             fgDraftLast = FgDraftJson();
             fgDraft = "restored";
             StateHasChanged();

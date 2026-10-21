@@ -15,6 +15,7 @@ import { hasRichText, richTextRuntime } from '../richAnswer'
 import { hasLocation, locationRuntime } from '../location'
 import { CAPTCHA_FIELD, captchaKeyOf, captchaMarkup, captchaRuntime } from '../captcha'
 import { draftBar, draftHelpers, htmlDraftRuntime, usesDraft } from '../draft'
+import { htmlPrefillRuntime, prefillFields } from '../prefill'
 import { fieldsByPath, listSeparator } from '@formsgen/renderer'
 import { dropFirstHelper, postsUploads, uploadFields, uploadStatusMarkup, uploadTextHelper } from '../uploadRuntime'
 import { exportStylesheet, hasDateRange, hasDates, hasMatrix, hasRangeSlider, phoneCountryFields } from '../composite'
@@ -207,6 +208,7 @@ ${indentBlock(r.itemHtml, 3)}
     const answers = usesAnswers(schema.tree)
     // Save and continue later: answers kept in this browser until sent.
     const draft = usesDraft(schema)
+    const prefill = prefillFields(schema)
     const hasUploads = uploadFields(typedFields).length > 0
     const signatures = hasSignature(schema.tree)
     const rich = hasRichText(schema.tree)
@@ -1136,7 +1138,7 @@ ${wires.map((w) => `      ${w}(root)`).join('\n')}
       if (path && touched[path]) validateField(path)
     }
 
-${progress ? `${uploadProgressScript()}\n` : ''}${resetScript}${draft ? `    ${draftHelpers(schema, 'html', false).split('\n').join('\n    ')}\n    ${htmlDraftRuntime(messages, { dates: hasDateList, repeaters: hasRepeaters }).split('\n').join('\n    ')}\n\n` : ''}    form.addEventListener('submit', function (event) {
+${progress ? `${uploadProgressScript()}\n` : ''}${resetScript}${draft ? `    ${draftHelpers(schema, 'html', false).split('\n').join('\n    ')}\n    ${htmlDraftRuntime(messages, { dates: hasDateList, repeaters: hasRepeaters }).split('\n').join('\n    ')}\n\n` : ''}${prefill.length ? `    ${htmlPrefillRuntime(prefill).split('\n').join('\n    ')}\n\n` : ''}    form.addEventListener('submit', function (event) {
       event.preventDefault()${progress ? "\n      if (fgUploadState === 'uploading') return" : ''}
       var failed = 0
       ${hasRepeaters ? 'fgAllPaths()' : 'Object.keys(FG_VALIDATORS)'}.forEach(function (path) {
@@ -1173,7 +1175,7 @@ ${captchaKey ? `      if (fgCaptchaToken === '') {
       console.log('Form submitted', data)
 ${submitBlock}    })
 
-${repeaterInit}    updateConditions()${draft ? '\n    fgDraftStart()' : ''}
+${repeaterInit}    updateConditions()${draft ? '\n    fgDraftStart()' : ''}${prefill.length ? '\n    fgPrefill()' : ''}
   })()
   </script>`
 

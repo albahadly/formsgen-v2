@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FormsGenForm, describeFiles, memoryStorage, pinsLightScheme } from '@formsgen/renderer'
+import { FormsGenForm, describeFiles, memoryStorage, pinsLightScheme, queryPrefill } from '@formsgen/renderer'
 import { computed, ref } from 'vue'
 import { t } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'
@@ -13,8 +13,18 @@ const submitted = ref<Record<string, unknown> | null>(null)
 // "Save and continue later" keeps preview answers in memory only (never the builder's localStorage).
 const previewDrafts = memoryStorage()
 
+// Prefill from the page address: the preview has no address of its own, so
+// it tests with a string typed here (shown when the form reads one).
+const query = ref('')
+const readsQuery = computed(
+  () => builder.schema.meta.prefillFromQuery === true || queryPrefill(builder.schema.tree, '?', { fields: false }).length > 0 || hasParam(builder.schema.tree),
+)
+function hasParam(nodes: typeof builder.schema.tree): boolean {
+  return nodes.some((n) => (n.type === 'hidden' && typeof n.props['param'] === 'string' && n.props['param'] !== '') || (n.children ? hasParam(n.children) : false))
+}
+
 // Remount the form when the schema changes so defaults re-apply cleanly.
-const formKey = computed(() => JSON.stringify(builder.schema.tree).length + ui.previewTheme)
+const formKey = computed(() => JSON.stringify(builder.schema.tree).length + ui.previewTheme + query.value)
 
 function onSubmit(data: Record<string, unknown>): void {
   submitted.value = data
@@ -35,6 +45,20 @@ const submittedJson = computed(() =>
       class="mx-auto flex flex-col gap-4 transition-all"
       :style="{ maxWidth: ui.deviceWidth }"
     >
+      <label
+        v-if="readsQuery"
+        class="flex flex-col gap-1 text-xs font-medium text-gray-600 dark:text-gray-300"
+      >
+        {{ t('preview.query') }}
+        <input
+          v-model="query"
+          type="text"
+          dir="ltr"
+          class="rounded border border-gray-300 px-2 py-1.5 font-mono text-xs font-normal text-gray-900 dark:border-gray-600 dark:text-gray-100"
+          :placeholder="t('preview.queryHint')"
+          data-testid="preview-query"
+        >
+      </label>
       <FormsGenForm
         :key="formKey"
         v-model="formData"
@@ -42,6 +66,7 @@ const submittedJson = computed(() =>
         :schema="builder.schema"
         :draft-storage="previewDrafts"
         captcha-preview
+        :prefill-search="readsQuery ? `?${query}` : null"
         :data-fg-theme="pinsLightScheme(builder.schema.meta.theme) ? 'light' : ui.previewTheme"
         :viewport="ui.device === 'mobile' ? 'sm' : ui.device === 'tablet' ? 'md' : undefined"
         @submit="onSubmit"

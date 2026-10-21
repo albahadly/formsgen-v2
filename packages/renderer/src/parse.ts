@@ -99,6 +99,9 @@ export function parseFormSchema(input: unknown): ParseResult {
     if (meta['saveDraft'] !== undefined && typeof meta['saveDraft'] !== 'boolean') {
       errors.push('meta.saveDraft: expected a boolean')
     }
+    if (meta['prefillFromQuery'] !== undefined && typeof meta['prefillFromQuery'] !== 'boolean') {
+      errors.push('meta.prefillFromQuery: expected a boolean')
+    }
     const captcha = meta['captcha']
     if (captcha !== undefined) {
       if (!isRecord(captcha) || captcha['provider'] !== 'turnstile') {

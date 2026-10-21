@@ -6,6 +6,7 @@
     "description": "Grows with every phase: every implemented element, rule, condition and container pattern appears here at least once.",
     "locale": "en",
     "dir": "ltr",
+  "prefillFromQuery": true,
     "captcha": { "provider": "turnstile", "siteKey": "1x00000000000000000000AA" }
   },
   "tree": [
@@ -319,6 +320,7 @@
       "type": "file",
       "name": "attachments",
       "props": {
+        "param": "utm_source",
         "label": "Attachments",
         "description": "Up to 3 PDF or Word files, 5 MB each",
         "multiple": true,

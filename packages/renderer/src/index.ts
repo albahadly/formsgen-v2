@@ -261,3 +261,4 @@ export {
   type LocationMap,
   type LocationSettings,
 } from './location'
+export { prefillKind, prefillValue, queryPrefill, type PrefillEntry, type PrefillKind } from './prefill'

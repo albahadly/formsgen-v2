@@ -63,6 +63,10 @@ const saveDraft = computed({
   get: () => builder.schema.meta.saveDraft === true,
   set: (v: boolean) => builder.updateMeta({ saveDraft: v || undefined }),
 })
+const prefill = computed({
+  get: () => builder.schema.meta.prefillFromQuery === true,
+  set: (v: boolean) => builder.updateMeta({ prefillFromQuery: v || undefined }),
+})
 
 // Spam check: a Cloudflare Turnstile site key (empty = off). Only a
 // well-formed key is written to the schema (the parser would refuse the
@@ -260,6 +264,20 @@ function onKeydown(event: KeyboardEvent): void {
           </label>
           <p class="ms-6 text-xs text-gray-500 dark:text-gray-400">
             {{ t('settings.saveDraftHint') }}
+          </p>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="inline-flex items-center gap-2 text-xs font-medium text-gray-600 dark:text-gray-300">
+            <input
+              v-model="prefill"
+              type="checkbox"
+              class="h-4 w-4 accent-indigo-600"
+              data-testid="settings-prefill"
+            >
+            {{ t('settings.prefill') }}
+          </label>
+          <p class="ms-6 text-xs text-gray-500 dark:text-gray-400">
+            {{ t('settings.prefillHint') }}
           </p>
         </div>
 
