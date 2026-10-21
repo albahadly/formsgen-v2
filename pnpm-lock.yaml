@@ -29,7 +29,7 @@ importers:
 
   apps/builder:
     dependencies:
-      '@formsgen/renderer':
+      '@albahadly/formsgen-renderer':
         specifier: workspace:*
         version: link:../../packages/renderer
       highlight.js:
@@ -124,7 +124,7 @@ importers:
 
   examples/vue:
     dependencies:
-      '@formsgen/renderer':
+      '@albahadly/formsgen-renderer':
         specifier: workspace:*
         version: link:../../packages/renderer
       bootstrap:
@@ -155,7 +155,7 @@ importers:
 
   packages/cli:
     devDependencies:
-      '@formsgen/renderer':
+      '@albahadly/formsgen-renderer':
         specifier: workspace:*
         version: link:../renderer
       '@types/node':

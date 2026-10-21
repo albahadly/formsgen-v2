@@ -1,8 +1,30 @@
 {
-  "name": "@formsgen/cli",
+  "name": "@albahadly/formsgen-cli",
   "version": "0.1.0",
   "type": "module",
   "description": "FormsGen from the command line: export a form's code, validation rules or project package from its .formsgen.json",
+  "license": "MIT",
+  "author": "Salwan Albahadly",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/albahadly/formsgen-v2.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://builder.albahadly.com",
+  "bugs": "https://github.com/albahadly/formsgen-v2/issues",
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "forms",
+    "form-builder",
+    "cli",
+    "codegen",
+    "react",
+    "vue",
+    "blazor",
+    "formsgen"
+  ],
   "bin": {
     "formsgen": "./dist/formsgen.mjs"
   },
@@ -19,7 +41,7 @@
     "node": ">=20"
   },
   "devDependencies": {
-    "@formsgen/renderer": "workspace:*",
+    "@albahadly/formsgen-renderer": "workspace:*",
     "@types/node": "^26.6.4",
     "@vitejs/plugin-vue": "^5.2.1",
     "vite": "^6.0.7",

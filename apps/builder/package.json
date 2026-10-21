@@ -10,7 +10,7 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@formsgen/renderer": "workspace:*",
+    "@albahadly/formsgen-renderer": "workspace:*",
     "highlight.js": "^11.12.0",
     "jszip": "^3.10.2",
     "nanoid": "^5.0.9",

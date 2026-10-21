@@ -1,4 +1,4 @@
-# @formsgen/renderer
+# @albahadly/formsgen-renderer
 
 Standalone Vue 3 renderer for FormsGen (`formsgen/v2`) JSON form schemas:
 validation, conditional visibility, nested data, theming, dark mode and RTL
@@ -6,19 +6,23 @@ validation, conditional visibility, nested data, theming, dark mode and RTL
 
 ## Install
 
-Build and pack from this monorepo (or publish to your registry):
+```bash
+npm i @albahadly/formsgen-renderer vue
+```
+
+Or build and pack it from this monorepo:
 
 ```bash
-pnpm --filter @formsgen/renderer build
-pnpm --filter @formsgen/renderer pack
-npm i ./formsgen-renderer-*.tgz   # in your project
+pnpm --filter @albahadly/formsgen-renderer build
+pnpm --filter @albahadly/formsgen-renderer pack
+npm i ./albahadly-formsgen-renderer-*.tgz   # in your project
 ```
 
 ## Use
 
 ```ts
-import { FormsGenForm, parseFormSchema } from '@formsgen/renderer'
-import '@formsgen/renderer/style.css'
+import { FormsGenForm, parseFormSchema } from '@albahadly/formsgen-renderer'
+import '@albahadly/formsgen-renderer/style.css'
 import raw from './contact_form.formsgen.json'
 
 const result = parseFormSchema(raw)   // structural validation with

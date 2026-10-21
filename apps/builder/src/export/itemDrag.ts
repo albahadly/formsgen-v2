@@ -7,7 +7,7 @@
 // list (an inner one, files) are left alone, so they reach the outer item
 // or the file input.
 
-import type { MessageCatalog } from '@formsgen/renderer'
+import type { MessageCatalog } from '@albahadly/formsgen-renderer'
 import type { CssFrameworkAdapter } from './css/types'
 
 /** Where index `n` ends up when `from` moves to `to` (JS, typed or not). */

@@ -1,7 +1,7 @@
 // Prefill from the page address (meta.prefillFromQuery, hidden `param`) in
 // every code target: the fields a link can fill, typed readers, and the
 // order against a restored draft (the link wins).
-import { parseFormSchema, type ElementNode, type FormSchema } from '@formsgen/renderer'
+import { parseFormSchema, type ElementNode, type FormSchema } from '@albahadly/formsgen-renderer'
 import { describe, expect, it } from 'vitest'
 import { getCssAdapter } from '../css'
 import { getTarget } from './index'

@@ -3,7 +3,7 @@
 // `npm create vue@latest` project (REBUILD_PROMPT §7 target 3).
 
 import { servicesReadme } from '../readmeNotes'
-import { resolveMessages } from '@formsgen/renderer'
+import { resolveMessages } from '@albahadly/formsgen-renderer'
 import { errorsTextFunction, stepAnnouncementsLiteral, submittedText, jsString } from '../announce'
 import { FILE_HELPERS_TS, RUNTIME_HELPERS_TS, pruneUnusedHelpers } from '../compile'
 import { postsUploads, uploadFields, uploadStatusMarkup, uploadTextHelper, vueUploadRuntime } from '../uploadRuntime'

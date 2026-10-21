@@ -1,4 +1,4 @@
-import { parseFormSchema, type FormSchema, type ThemeTokens } from '@formsgen/renderer'
+import { parseFormSchema, type FormSchema, type ThemeTokens } from '@albahadly/formsgen-renderer'
 import { describe, expect, it } from 'vitest'
 import kitchenSink from '../../../../../fixtures/kitchen-sink.formsgen.json'
 import { getTarget } from '../targets'

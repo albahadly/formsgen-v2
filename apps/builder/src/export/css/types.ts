@@ -2,7 +2,7 @@
 // target scaffolds NEVER hardcode a class name — they ask the adapter, so
 // one emitter serves vanilla CSS, Tailwind and Bootstrap 5 alike.
 
-import type { ControlSize, TextAlign, TextTone, ThemeTokens } from '@formsgen/renderer'
+import type { ControlSize, TextAlign, TextTone, ThemeTokens } from '@albahadly/formsgen-renderer'
 
 export type CssFrameworkId = 'vanilla' | 'tailwind' | 'bootstrap5'
 

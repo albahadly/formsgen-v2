@@ -3,7 +3,7 @@
 // (REBUILD_PROMPT §7 target 5). Added as a plugin — no core changes.
 
 import { servicesReadme } from '../readmeNotes'
-import { resolveMessages } from '@formsgen/renderer'
+import { resolveMessages } from '@albahadly/formsgen-renderer'
 import { errorsTextFunction, stepAnnouncementsLiteral, submittedText } from '../announce'
 import { FILE_HELPERS_TS, RUNTIME_HELPERS_TS, pruneUnusedHelpers } from '../compile'
 import { calcSteps, reactCalcBlock } from '../calc'

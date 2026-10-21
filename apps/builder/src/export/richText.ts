@@ -4,7 +4,7 @@
 // an entity, JSX braces are expressions, and Vue's "{" is an entity, so
 // "{{ }}" stays text. Answers ({field}) go into the text nodes (as text).
 
-import { parseMarkdown, type ElementNode, type MdInline } from '@formsgen/renderer'
+import { parseMarkdown, type ElementNode, type MdInline } from '@albahadly/formsgen-renderer'
 import { esc } from '@/registry/emitters/shared'
 import type { EmitCtx, EmitterLang } from '@/registry/types'
 

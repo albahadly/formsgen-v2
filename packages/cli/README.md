@@ -1,4 +1,4 @@
-# @formsgen/cli
+# @albahadly/formsgen-cli
 
 FormsGen from the command line: what the builder's *Export* dialog produces,
 from a `.formsgen.json` file — for CI, scripts and editors.
@@ -17,6 +17,9 @@ An export folder holds what the builder's ZIP holds: the generated files
 out with `--no-project`), the project file, a `README.md` for that target,
 and with `--server` the sample submission server under `server/`.
 
-In this repository: `pnpm --filter @formsgen/cli build` writes
+From npm: `npx @albahadly/formsgen-cli export form.formsgen.json …` (or
+`npm i -D @albahadly/formsgen-cli` for a `formsgen` command in your scripts).
+
+In this repository: `pnpm --filter @albahadly/formsgen-cli build` writes
 `dist/formsgen.mjs`, one self-contained Node 20+ script; run it with
 `node packages/cli/dist/formsgen.mjs …` or link it with `pnpm link`.

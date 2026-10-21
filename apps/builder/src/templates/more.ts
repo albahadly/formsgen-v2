@@ -2,7 +2,7 @@
 // a calculated total, an appointment booking and a quote request. Each in
 // English and Arabic, like those in index.ts.
 
-import { SCHEMA_ID, type ElementNode, type FormSchema } from '@formsgen/renderer'
+import { SCHEMA_ID, type ElementNode, type FormSchema } from '@albahadly/formsgen-renderer'
 import { meta, tx, type TemplateLocale, type Text } from './shared'
 
 export function rsvp(lang: TemplateLocale): FormSchema {

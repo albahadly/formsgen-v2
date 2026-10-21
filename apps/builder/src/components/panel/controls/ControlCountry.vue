@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Country picker for a phone field's default country: names come from
 // Intl in the builder's UI language, so no per-country translations.
-import { COUNTRY_DIAL_CODES, countryName, type ElementNode } from '@formsgen/renderer'
+import { COUNTRY_DIAL_CODES, countryName, type ElementNode } from '@albahadly/formsgen-renderer'
 import { computed } from 'vue'
 import { locale, tText } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'

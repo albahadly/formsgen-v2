@@ -19,11 +19,11 @@ This is a FormsGen project file (\`formsgen/v2\`).
 ## Use it
 
 - **Edit it again:** open the FormsGen builder and use *Open* to load this file.
-- **Render it in a Vue 3 app** with the \`@formsgen/renderer\` package:
+- **Render it in a Vue 3 app** with the \`@albahadly/formsgen-renderer\` package:
 
 \`\`\`ts
-import { FormsGenForm } from '@formsgen/renderer'
-import '@formsgen/renderer/style.css'
+import { FormsGenForm } from '@albahadly/formsgen-renderer'
+import '@albahadly/formsgen-renderer/style.css'
 import schema from './${schema.meta.name}.formsgen.json'
 \`\`\`
 

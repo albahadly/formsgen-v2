@@ -2,7 +2,7 @@
 // somewhere styled as a button. (Submitting stays with the form's own,
 // configurable submit button.)
 
-import { isSafeUrl, type ElementNode } from '@formsgen/renderer'
+import { isSafeUrl, type ElementNode } from '@albahadly/formsgen-renderer'
 import type { Slot } from '@/export/css/types'
 import { esc } from '../emitters/shared'
 import { appearanceSection, type ElementDefinition, type EmitCtx, type EmitterLang } from '../types'

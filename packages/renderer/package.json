@@ -1,8 +1,29 @@
 {
-  "name": "@formsgen/renderer",
+  "name": "@albahadly/formsgen-renderer",
   "version": "0.1.0",
   "type": "module",
   "description": "Standalone Vue 3 renderer for FormsGen JSON form schemas",
+  "license": "MIT",
+  "author": "Salwan Albahadly",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/albahadly/formsgen-v2.git",
+    "directory": "packages/renderer"
+  },
+  "homepage": "https://builder.albahadly.com",
+  "bugs": "https://github.com/albahadly/formsgen-v2/issues",
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "forms",
+    "form-builder",
+    "vue",
+    "vue3",
+    "json-schema",
+    "formsgen",
+    "validation"
+  ],
   "files": [
     "dist"
   ],

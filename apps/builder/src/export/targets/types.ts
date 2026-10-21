@@ -1,7 +1,7 @@
 // Export target plugin contract (REBUILD_PROMPT §7b, pragmatic subset for
 // the core targets; React/Blazor plug in via the same interface in phase 9).
 
-import type { FormSchema } from '@formsgen/renderer'
+import type { FormSchema } from '@albahadly/formsgen-renderer'
 import type { CssFrameworkAdapter } from '../css'
 
 export interface ExportedFile {

@@ -2,7 +2,7 @@
 // convenience only — the durable format is the .formsgen.json project file.
 // Every read/write is wrapped: storage can be absent or throwing.
 
-import { parseFormSchema, type FormSchema } from '@formsgen/renderer'
+import { parseFormSchema, type FormSchema } from '@albahadly/formsgen-renderer'
 import { watch } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
 

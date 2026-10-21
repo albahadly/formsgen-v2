@@ -4,7 +4,7 @@
 // takes repeated parameters or one comma-separated value; a value that
 // does not convert leaves the field alone.
 
-import { prefillKind, type FormSchema, type PrefillKind } from '@formsgen/renderer'
+import { prefillKind, type FormSchema, type PrefillKind } from '@albahadly/formsgen-renderer'
 import { pascalMember } from '@/registry/emitters/shared'
 import { csFieldKind } from './csharp'
 import { collectExportFields } from './structure'

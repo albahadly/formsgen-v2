@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SITE_KEY_PATTERN, isRedirectUrl, type AfterSubmitConfig } from '@formsgen/renderer'
+import { SITE_KEY_PATTERN, isRedirectUrl, type AfterSubmitConfig } from '@albahadly/formsgen-renderer'
 import { SAMPLE_SERVER_URL } from '@/export/submitServer'
 import { computed, ref, watch } from 'vue'
 import { useFocusTrap } from '@/composables/useFocusTrap'

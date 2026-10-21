@@ -5,7 +5,7 @@
 // (a token works once). The server checks the token with its secret key
 // (packages/submit-server: TURNSTILE_SECRET).
 
-import { CAPTCHA_FIELD, TURNSTILE_SCRIPT, captchaSiteKey, type FormSchema, type MessageCatalog } from '@formsgen/renderer'
+import { CAPTCHA_FIELD, TURNSTILE_SCRIPT, captchaSiteKey, type FormSchema, type MessageCatalog } from '@albahadly/formsgen-renderer'
 import { jsString } from './announce'
 import type { CssFrameworkAdapter } from './css/types'
 

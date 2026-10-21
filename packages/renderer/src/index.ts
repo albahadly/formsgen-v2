@@ -1,4 +1,4 @@
-// @formsgen/renderer public entry point.
+// @albahadly/formsgen-renderer public entry point.
 import './styles.css'
 
 // Kept equal to package.json's version by version.test.ts.

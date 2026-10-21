@@ -3,7 +3,7 @@
 // Export markup is produced by the targets' section hooks (markup.ts), so
 // no emitters here.
 
-import type { ElementNode } from '@formsgen/renderer'
+import type { ElementNode } from '@albahadly/formsgen-renderer'
 import { nanoid } from 'nanoid'
 import { appearanceSection, type ElementDefinition } from '../types'
 

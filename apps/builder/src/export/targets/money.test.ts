@@ -1,7 +1,7 @@
 // Currency and address fields in every code target: the money helpers with
 // the form locale's separators baked in, the suggestion script and the
 // datalist, numbers and strings in the typed models and the validation export.
-import { parseFormSchema, type ElementNode, type FormSchema } from '@formsgen/renderer'
+import { parseFormSchema, type ElementNode, type FormSchema } from '@albahadly/formsgen-renderer'
 import { describe, expect, it } from 'vitest'
 import { getCssAdapter } from '../css'
 import { getTarget } from './index'

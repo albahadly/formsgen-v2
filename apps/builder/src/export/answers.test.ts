@@ -1,4 +1,4 @@
-import { MESSAGES, fieldsByPath, parseFormSchema, type FormSchema } from '@formsgen/renderer'
+import { MESSAGES, fieldsByPath, parseFormSchema, type FormSchema } from '@albahadly/formsgen-renderer'
 import { describe, expect, it } from 'vitest'
 import { answerHelpers } from './answers'
 import { getCssAdapter } from './css'

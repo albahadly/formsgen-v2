@@ -1,4 +1,4 @@
-import { cleanRichText, parseFormSchema, richPlainText, type ElementNode } from '@formsgen/renderer'
+import { cleanRichText, parseFormSchema, richPlainText, type ElementNode } from '@albahadly/formsgen-renderer'
 import { describe, expect, it } from 'vitest'
 import { getCssAdapter } from './css'
 import { richTextRuntime } from './richAnswer'

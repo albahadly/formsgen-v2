@@ -3,14 +3,14 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
-  "description": "The event-registration form inside a Vite + Vue 3 + TypeScript app: the standalone exports (vanilla CSS, Tailwind, Bootstrap 5) and the @formsgen/renderer export.",
+  "description": "The event-registration form inside a Vite + Vue 3 + TypeScript app: the standalone exports (vanilla CSS, Tailwind, Bootstrap 5) and the @albahadly/formsgen-renderer export.",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@formsgen/renderer": "workspace:*",
+    "@albahadly/formsgen-renderer": "workspace:*",
     "bootstrap": "^5.3.3",
     "vue": "^3.5.13"
   },

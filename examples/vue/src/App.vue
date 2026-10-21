@@ -4,7 +4,7 @@
 // builder's Download button writes); the host adds the framework's stylesheet
 // (the vanilla component carries its own). The fourth is the renderer export:
 // a small wrapper that hands the form's JSON schema to <FormsGenForm> from
-// @formsgen/renderer. ?css=tailwind, ?css=bootstrap5 or ?css=renderer picks one.
+// @albahadly/formsgen-renderer. ?css=tailwind, ?css=bootstrap5 or ?css=renderer picks one.
 import { defineAsyncComponent, ref, type Component } from 'vue'
 
 type Variant = 'vanilla' | 'tailwind' | 'bootstrap5' | 'renderer'
@@ -25,7 +25,7 @@ const VARIANTS: Record<Variant, { label: string; load: () => Promise<{ default: 
       return import('./forms/bootstrap5/EventRegistrationForm.vue')
     },
   },
-  renderer: { label: '@formsgen/renderer', load: () => import('./forms/renderer/EventRegistrationForm.vue') },
+  renderer: { label: '@albahadly/formsgen-renderer', load: () => import('./forms/renderer/EventRegistrationForm.vue') },
 }
 
 function variantFromUrl(): Variant {

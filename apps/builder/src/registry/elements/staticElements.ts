@@ -1,7 +1,7 @@
 // Static (non-value) elements: heading, paragraph, divider, image, link,
 // quote. Link and image URLs are emitted only when safe (isSafeUrl).
 
-import { isMarkdownParagraph, isSafeUrl, type ElementNode } from '@formsgen/renderer'
+import { isMarkdownParagraph, isSafeUrl, type ElementNode } from '@albahadly/formsgen-renderer'
 import { htmlBlockMarkup } from '@/export/htmlBlock'
 import { richTextMarkup } from '@/export/richText'
 import { esc, textMarkup } from '../emitters/shared'

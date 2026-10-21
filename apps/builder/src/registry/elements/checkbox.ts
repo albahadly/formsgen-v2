@@ -12,7 +12,7 @@ import {
   tipFor,
 } from '../emitters/shared'
 import { commonFieldSections, type ElementDefinition, type EmitCtx } from '../types'
-import type { ElementNode } from '@formsgen/renderer'
+import type { ElementNode } from '@albahadly/formsgen-renderer'
 
 function checkboxLabel(node: ElementNode, ctx: EmitCtx, jsx = false): string {
   const text = textMarkup(node, ctx, 'label')

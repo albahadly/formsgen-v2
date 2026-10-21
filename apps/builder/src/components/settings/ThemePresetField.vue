@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // One preset-or-custom theme token (font, radius, spacing). The default
 // preset clears the token; "Custom…" takes any plain CSS value.
-import type { ThemePreset } from '@formsgen/renderer'
+import type { ThemePreset } from '@albahadly/formsgen-renderer'
 import { computed, ref, watch } from 'vue'
 import { t } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'

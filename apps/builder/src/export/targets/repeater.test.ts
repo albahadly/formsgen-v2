@@ -1,4 +1,4 @@
-import { parseFormSchema, type ElementNode, type FormSchema } from '@formsgen/renderer'
+import { parseFormSchema, type ElementNode, type FormSchema } from '@albahadly/formsgen-renderer'
 import { describe, expect, it } from 'vitest'
 import { listConditionSources } from '@/conditions/sources'
 import { acceptsChildType, canDropInto } from '@/stores/builder'

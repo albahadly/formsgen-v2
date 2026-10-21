@@ -10,5 +10,5 @@ fi
 
 pnpm --version
 pnpm install --frozen-lockfile
-pnpm --filter @formsgen/renderer build:element
+pnpm --filter @albahadly/formsgen-renderer build:element
 pnpm --filter @formsgen/builder build

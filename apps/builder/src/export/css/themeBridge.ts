@@ -12,7 +12,7 @@ import {
   shadeColor,
   themeColorScheme,
   type ThemeTokens,
-} from '@formsgen/renderer'
+} from '@albahadly/formsgen-renderer'
 
 /** Class on the themed form root (or the Blazor wrapper) the bridges scope to. */
 export const THEMED_CLASS = 'fg-themed'

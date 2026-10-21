@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FormsGenForm, afterSubmitOf, describeFiles, fill, memoryStorage, pinsLightScheme, queryPrefill } from '@formsgen/renderer'
+import { FormsGenForm, afterSubmitOf, describeFiles, fill, memoryStorage, pinsLightScheme, queryPrefill } from '@albahadly/formsgen-renderer'
 import { computed, ref, watch } from 'vue'
 import { t } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'

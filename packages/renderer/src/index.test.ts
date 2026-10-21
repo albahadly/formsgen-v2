@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { RENDERER_VERSION, SCHEMA_ID } from './index'
 
-describe('@formsgen/renderer entry', () => {
+describe('@albahadly/formsgen-renderer entry', () => {
   it('exposes the package version', () => {
     expect(RENDERER_VERSION).toMatch(/^\d+\.\d+\.\d+$/)
   })

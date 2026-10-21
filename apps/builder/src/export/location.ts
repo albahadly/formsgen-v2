@@ -24,7 +24,7 @@ import {
   locationSettings,
   type ElementNode,
   type MessageCatalog,
-} from '@formsgen/renderer'
+} from '@albahadly/formsgen-renderer'
 
 export const hasLocation = (nodes: ElementNode[]): boolean =>
   nodes.some((node) => node.type === 'location' || hasLocation(node.children ?? []))

@@ -1,7 +1,7 @@
 // Calculated fields in the code targets: which fields to compute, in what
 // order (a field after those it reads), and each formula compiled to
 // JavaScript / C# from the renderer's parsed tree (analyzeFormulas). The
-// runtime helpers mirror @formsgen/renderer's formula.ts exactly, so every
+// runtime helpers mirror @albahadly/formsgen-renderer's formula.ts exactly, so every
 // target computes the same numbers.
 
 import {
@@ -14,7 +14,7 @@ import {
   type ElementNode,
   type FNode,
   type FormSchema,
-} from '@formsgen/renderer'
+} from '@albahadly/formsgen-renderer'
 
 export interface CalcStep {
   node: ElementNode

@@ -9,7 +9,7 @@ import {
   resolveMessages,
   setValueByPath,
   type FormContext,
-} from '@formsgen/renderer'
+} from '@albahadly/formsgen-renderer'
 import { provide, reactive, watch } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
 

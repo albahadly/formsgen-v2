@@ -4,7 +4,7 @@
 // Together they use every element type (the tests check this), so they
 // double as examples of how each element looks.
 
-import { SCHEMA_ID, type ElementNode, type FormSchema } from '@formsgen/renderer'
+import { SCHEMA_ID, type ElementNode, type FormSchema } from '@albahadly/formsgen-renderer'
 
 import { appointment, order, quote, rsvp } from './more'
 import { meta, tx, type TemplateLocale, type Text } from './shared'

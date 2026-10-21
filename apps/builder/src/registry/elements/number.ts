@@ -18,7 +18,7 @@ import {
   affixWrap,
 } from '../emitters/shared'
 import { AFFIX_CONTROLS, commonFieldSections, type ElementDefinition } from '../types'
-import { isVerticalRange, type ElementNode } from '@formsgen/renderer'
+import { isVerticalRange, type ElementNode } from '@albahadly/formsgen-renderer'
 
 function rangeAttrs(node: ElementNode): string {
   const parts: string[] = []

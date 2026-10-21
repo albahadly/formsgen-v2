@@ -1,4 +1,4 @@
-import { uniqueName, type ElementNode } from '@formsgen/renderer'
+import { uniqueName, type ElementNode } from '@albahadly/formsgen-renderer'
 import { nanoid } from 'nanoid'
 import { getElement } from './index'
 

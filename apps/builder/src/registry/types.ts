@@ -1,9 +1,9 @@
 // Builder-side element registry contract (ADR-0001): authoring metadata on
-// top of @formsgen/renderer's core element semantics. One definition file
+// top of @albahadly/formsgen-renderer's core element semantics. One definition file
 // per element type in ./elements; nothing about a type is hardcoded in the
 // palette, canvas, or properties panel.
 
-import type { ElementNode, MessageCatalog, Rule } from '@formsgen/renderer'
+import type { ElementNode, MessageCatalog, Rule } from '@albahadly/formsgen-renderer'
 import type { CssFrameworkAdapter } from '@/export/css/types'
 
 export type ElementCategory = 'fields' | 'static' | 'structure'
@@ -64,7 +64,7 @@ export interface PanelSection {
 }
 
 export interface ElementDefinition {
-  /** Registry key; must match a core element type in @formsgen/renderer. */
+  /** Registry key; must match a core element type in @albahadly/formsgen-renderer. */
   type: string
   category: ElementCategory
   label: string

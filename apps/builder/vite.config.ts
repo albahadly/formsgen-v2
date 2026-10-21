@@ -9,7 +9,7 @@ const ELEMENT_DIR = fileURLToPath(new URL('../../packages/renderer/dist/element'
 
 /**
  * The renderer's web-component bundle (packages/renderer/dist/element, built by
- * `pnpm --filter @formsgen/renderer build:element`) served under element/ in
+ * `pnpm --filter @albahadly/formsgen-renderer build:element`) served under element/ in
  * dev and copied into dist/element/ on build, so the deployed builder hosts it
  * and the web-component export can fetch its own copy.
  */
@@ -23,7 +23,7 @@ function elementBundle(): Plugin {
         const file = join(ELEMENT_DIR, match[1] as string)
         if (!existsSync(file)) {
           res.statusCode = 404
-          res.end('Build the web component first: pnpm --filter @formsgen/renderer build:element')
+          res.end('Build the web component first: pnpm --filter @albahadly/formsgen-renderer build:element')
           return
         }
         res.setHeader('Content-Type', 'text/javascript; charset=utf-8')
@@ -49,7 +49,7 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       // Workspace dev consumes the renderer by source; consumers of the
       // published package get dist via its package.json exports.
-      '@formsgen/renderer': fileURLToPath(
+      '@albahadly/formsgen-renderer': fileURLToPath(
         new URL('../../packages/renderer/src/index.ts', import.meta.url),
       ),
     },

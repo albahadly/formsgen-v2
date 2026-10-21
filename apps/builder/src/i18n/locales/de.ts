@@ -445,7 +445,7 @@ export const phrases: Record<string, string> = {
   'Blazor (.razor)': 'Blazor (.razor)',
   'Vanilla CSS': 'Reines CSS',
   'The canonical FormsGen schema — re-importable into the builder.': 'Das kanonische FormsGen-Schema – wieder in den Editor importierbar.',
-  'A small SFC using @formsgen/renderer — schema-driven, always in sync.': 'Eine kleine SFC mit @formsgen/renderer – schemagesteuert, immer aktuell.',
+  'A small SFC using @albahadly/formsgen-renderer — schema-driven, always in sync.': 'Eine kleine SFC mit @albahadly/formsgen-renderer – schemagesteuert, immer aktuell.',
   'A single self-contained SFC with zero dependencies beyond Vue.': 'Eine einzelne eigenständige SFC ohne Abhängigkeiten außer Vue.',
   'A single self-contained .tsx component with zero dependencies beyond React.': 'Eine einzelne eigenständige .tsx-Komponente ohne Abhängigkeiten außer React.',
   'A .NET 8 Razor component: EditForm + DataAnnotations + IValidatableObject.': 'Eine .NET-8-Razor-Komponente: EditForm + DataAnnotations + IValidatableObject.',

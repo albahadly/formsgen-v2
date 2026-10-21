@@ -4,7 +4,7 @@
 // renderer stylesheet): stars in reverse DOM order so CSS fills up to the
 // chosen one, NPS options in a row with the two end words below.
 
-import { ratingStars, type ElementNode, type MessageCatalog } from '@formsgen/renderer'
+import { ratingStars, type ElementNode, type MessageCatalog } from '@albahadly/formsgen-renderer'
 import {
   blazorValidationMessage,
   descriptionFor,

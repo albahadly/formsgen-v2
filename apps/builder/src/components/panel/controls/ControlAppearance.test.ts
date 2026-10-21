@@ -1,4 +1,4 @@
-import { findNodeById, type ElementNode } from '@formsgen/renderer'
+import { findNodeById, type ElementNode } from '@albahadly/formsgen-renderer'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'

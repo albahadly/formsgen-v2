@@ -3,7 +3,7 @@
 // via dedicated kinds ('radio' / 'checks'). props.display picks a plain
 // list, bordered blocks or a segmented button row.
 
-import { choiceDisplay, type ElementNode } from '@formsgen/renderer'
+import { choiceDisplay, type ElementNode } from '@albahadly/formsgen-renderer'
 import {
   blazorValidationMessage,
   descriptionFor,

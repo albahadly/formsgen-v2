@@ -26,7 +26,7 @@ import {
   type FormMeta,
   type FormSchema,
   type Rule,
-} from '@formsgen/renderer'
+} from '@albahadly/formsgen-renderer'
 import { nanoid } from 'nanoid'
 import { defineStore } from 'pinia'
 import { localizeNewNode } from '@/registry/contentDefaults'

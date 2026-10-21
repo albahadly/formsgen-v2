@@ -1,4 +1,4 @@
-import { findNodeById, type ElementNode, type FormSchema } from '@formsgen/renderer'
+import { findNodeById, type ElementNode, type FormSchema } from '@albahadly/formsgen-renderer'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { nextTick, type WatchStopHandle } from 'vue'

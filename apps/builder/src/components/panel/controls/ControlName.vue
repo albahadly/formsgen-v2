@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ElementNode } from '@formsgen/renderer'
+import type { ElementNode } from '@albahadly/formsgen-renderer'
 import { ref, watch } from 'vue'
 import { t } from '@/i18n'
 import { useBuilderStore, type NameError } from '@/stores/builder'

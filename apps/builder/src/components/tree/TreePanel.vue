@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ElementNode } from '@formsgen/renderer'
+import type { ElementNode } from '@albahadly/formsgen-renderer'
 import { computed } from 'vue'
 import { t, tOr } from '@/i18n'
 import { getElement } from '@/registry'

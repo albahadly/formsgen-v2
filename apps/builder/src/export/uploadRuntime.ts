@@ -2,7 +2,7 @@
 // field allows several), removing one, image thumbnails, readable sizes.
 // Tables are keyed by template path; item paths map back with fgTpl.
 
-import { FILE_TYPES, fileLimits, type FormSchema, type MessageCatalog } from '@formsgen/renderer'
+import { FILE_TYPES, fileLimits, type FormSchema, type MessageCatalog } from '@albahadly/formsgen-renderer'
 import type { CssFrameworkAdapter } from './css/types'
 import type { ExportField } from './structure'
 

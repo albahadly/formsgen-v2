@@ -25,7 +25,7 @@ import {
   type FormSchema,
   type MessageCatalog,
   type Rule,
-} from '@formsgen/renderer'
+} from '@albahadly/formsgen-renderer'
 import { CAPTCHA_FIELD, captchaKeyOf } from './captcha'
 import { RUNTIME_HELPERS_TS, compileConditions, pruneUnusedHelpers } from './compile'
 import { isRequired, selectItems } from './structure'

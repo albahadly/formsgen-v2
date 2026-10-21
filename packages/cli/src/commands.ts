@@ -4,7 +4,7 @@
 // a project file checked; the targets listed. The entry (cli.ts) only
 // parses arguments and prints.
 
-import { parseFormSchema, type FormSchema } from '@formsgen/renderer'
+import { parseFormSchema, type FormSchema } from '@albahadly/formsgen-renderer'
 import { getCssAdapter, listCssAdapters, type CssFrameworkId } from '@/export/css'
 import { withProject } from '@/export/project'
 import { sampleServerFiles } from '@/export/submitServer'

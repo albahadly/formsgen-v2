@@ -1,8 +1,8 @@
 // Behavioral tests: the COMPILED validation/condition code must reproduce
-// @formsgen/renderer semantics. Generated source is executed via new
+// @albahadly/formsgen-renderer semantics. Generated source is executed via new
 // Function against the same cases as the renderer's own rule tests.
 
-import type { ConditionGroups, Rule } from '@formsgen/renderer'
+import type { ConditionGroups, Rule } from '@albahadly/formsgen-renderer'
 import { describe, expect, it } from 'vitest'
 import { RUNTIME_HELPERS, compileConditions, compileValidator } from './compile'
 

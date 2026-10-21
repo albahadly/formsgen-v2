@@ -3,7 +3,7 @@
 // wired on the form root (export/richAnswer.ts); Blazor's calls back into
 // .NET with each change.
 
-import type { ElementNode } from '@formsgen/renderer'
+import type { ElementNode } from '@albahadly/formsgen-renderer'
 import { blazorValidationMessage, descriptionFor, esc, pascalMember, reactDescription, reactError, textMarkup, vueError, htmlError } from '../emitters/shared'
 import { commonFieldSections, type ElementDefinition, type EmitCtx, type EmitterLang } from '../types'
 

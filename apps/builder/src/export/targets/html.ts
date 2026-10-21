@@ -4,7 +4,7 @@
 // (swappable for local builds, see the generated README).
 
 import { servicesReadme } from '../readmeNotes'
-import { fileLimits, resolveMessages, type ElementNode } from '@formsgen/renderer'
+import { fileLimits, resolveMessages, type ElementNode } from '@albahadly/formsgen-renderer'
 import { errorsTextFunction, jsTemplate, stepAnnouncements, submittedText, jsString } from '../announce'
 import { FILE_HELPERS, RUNTIME_HELPERS, compileConditions } from '../compile'
 import { calcSteps, htmlCalcBlock } from '../calc'
@@ -17,7 +17,7 @@ import { CAPTCHA_FIELD, captchaKeyOf, captchaMarkup, captchaRuntime } from '../c
 import { draftBar, draftHelpers, htmlDraftRuntime, usesDraft } from '../draft'
 import { htmlPrefillRuntime, prefillFields } from '../prefill'
 import { SENT_RULE, afterSubmitOf, htmlAfterSubmitRuntime, thanksMarkup, thanksPipes } from '../afterSubmit'
-import { fieldsByPath, listSeparator } from '@formsgen/renderer'
+import { fieldsByPath, listSeparator } from '@albahadly/formsgen-renderer'
 import { dropFirstHelper, postsUploads, uploadFields, uploadStatusMarkup, uploadTextHelper } from '../uploadRuntime'
 import { exportStylesheet, hasDateRange, hasDates, hasMatrix, hasRangeSlider, phoneCountryFields } from '../composite'
 import { hasMoney, hasSuggest, moneyRuntime, suggestRuntime } from '../money'

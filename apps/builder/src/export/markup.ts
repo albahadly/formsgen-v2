@@ -19,7 +19,7 @@ import {
   type ElementStyle,
   type FormSchema,
   type MessageCatalog,
-} from '@formsgen/renderer'
+} from '@albahadly/formsgen-renderer'
 import { getElement } from '@/registry'
 import type { EmitterLang } from '@/registry/types'
 import { pipeMarkup } from './answers'

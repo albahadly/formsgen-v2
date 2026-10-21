@@ -1,7 +1,7 @@
 // C# code generation for the Blazor export target: DataAnnotations
 // attributes where a rule maps 1:1, IValidatableObject statements for the
 // rest (conditional fields, required checkboxes), and condition
-// expressions as C# bools. Semantics mirror @formsgen/renderer.
+// expressions as C# bools. Semantics mirror @albahadly/formsgen-renderer.
 
 import {
   FILE_TYPES,
@@ -15,7 +15,7 @@ import {
   type ElementNode,
   type MessageCatalog,
   type Rule,
-} from '@formsgen/renderer'
+} from '@albahadly/formsgen-renderer'
 import { pascalMember } from '@/registry/emitters/shared'
 import type { ExportField } from './structure'
 

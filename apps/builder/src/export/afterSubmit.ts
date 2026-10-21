@@ -6,7 +6,7 @@
 // answers like a paragraph does (answers.ts), after a successful send only:
 // a 2xx from the submit URL, or validation passing when there is none.
 
-import { afterSubmitOf, fieldsByPath, listSeparator, type FormSchema, type MessageCatalog } from '@formsgen/renderer'
+import { afterSubmitOf, fieldsByPath, listSeparator, type FormSchema, type MessageCatalog } from '@albahadly/formsgen-renderer'
 import { esc } from '@/registry/emitters/shared'
 import type { EmitterLang } from '@/registry/types'
 import { pipeMarkup } from './answers'

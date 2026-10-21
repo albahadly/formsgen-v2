@@ -2,7 +2,7 @@
 // exports: a single dependency-free Node file that receives what the form
 // sends and stores it, for trying a form end to end before a real backend.
 
-import type { FormSchema } from '@formsgen/renderer'
+import type { FormSchema } from '@albahadly/formsgen-renderer'
 import source from '../../../../packages/submit-server/server.mjs?raw'
 import type { ExportedFile } from './targets/types'
 

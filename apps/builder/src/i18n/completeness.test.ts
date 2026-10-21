@@ -10,7 +10,7 @@ import {
   SPACE_PRESETS,
   THEME_PALETTES,
   findNodeById,
-} from '@formsgen/renderer'
+} from '@albahadly/formsgen-renderer'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, describe, expect, it } from 'vitest'

@@ -6,7 +6,7 @@
 // {"v": version, "data": answers} under formsgen:<name>:draft, the version
 // naming the export kind so a draft is only read by the code that wrote it.
 
-import { draftDropsFiles, draftKey, draftVersion, type FormSchema, type MessageCatalog } from '@formsgen/renderer'
+import { draftDropsFiles, draftKey, draftVersion, type FormSchema, type MessageCatalog } from '@albahadly/formsgen-renderer'
 import { esc } from '@/registry/emitters/shared'
 import type { CssFrameworkAdapter } from './css/types'
 

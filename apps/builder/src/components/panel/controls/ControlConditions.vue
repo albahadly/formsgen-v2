@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Condition, ConditionOperator, ElementNode } from '@formsgen/renderer'
+import type { Condition, ConditionOperator, ElementNode } from '@albahadly/formsgen-renderer'
 import { computed } from 'vue'
 import {
   defaultValueFor,

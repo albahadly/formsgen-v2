@@ -3,7 +3,7 @@
 // (export/money.ts carries the helpers each target calls); the currency sign
 // sits before it as a prefix add-on.
 
-import { currencyCode, currencySymbol, moneyDecimals, type ElementNode } from '@formsgen/renderer'
+import { currencyCode, currencySymbol, moneyDecimals, type ElementNode } from '@albahadly/formsgen-renderer'
 import {
   affixDescribedBy,
   affixWrap,

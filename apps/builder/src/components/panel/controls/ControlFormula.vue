@@ -2,7 +2,7 @@
 // A calculated field's formula: the text, its first problem (checked
 // against the whole form as you type) and the fields it may use, which
 // insert themselves on click.
-import { analyzeFormulas, type ElementNode } from '@formsgen/renderer'
+import { analyzeFormulas, type ElementNode } from '@albahadly/formsgen-renderer'
 import { computed } from 'vue'
 import { formulaSuggestions } from '@/export/calc'
 import { t, tText } from '@/i18n'

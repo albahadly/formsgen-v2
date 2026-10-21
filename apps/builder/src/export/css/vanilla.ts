@@ -1,4 +1,4 @@
-import { resolveTheme, themeColorScheme, type ThemeTokens } from '@formsgen/renderer'
+import { resolveTheme, themeColorScheme, type ThemeTokens } from '@albahadly/formsgen-renderer'
 import { SIZED_SLOTS, TONED_SLOTS, type CssFrameworkAdapter, type Slot, type SlotMods } from './types'
 import { COMPOSITE_CSS, SCORE_CSS } from '../composite'
 

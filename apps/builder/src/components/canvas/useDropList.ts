@@ -2,7 +2,7 @@
 // children). Keeps every structural mutation routed through store actions
 // and enforces the drop rules (no self-nesting, max depth) centrally.
 
-import type { ElementNode } from '@formsgen/renderer'
+import type { ElementNode } from '@albahadly/formsgen-renderer'
 import { computed } from 'vue'
 import { canDropInto, useBuilderStore } from '@/stores/builder'
 

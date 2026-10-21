@@ -2,7 +2,7 @@
 // target lists them (thumbnails for images in the JS targets) with remove
 // buttons and submits multipart form data (see export/compile.ts).
 
-import { fileLimits, type ElementNode } from '@formsgen/renderer'
+import { fileLimits, type ElementNode } from '@albahadly/formsgen-renderer'
 import {
   blazorValidationMessage,
   descriptionFor,

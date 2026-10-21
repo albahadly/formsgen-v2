@@ -3,7 +3,7 @@
 // rendered live, then "Use this example" replaces the current form (asking
 // first when the form already has elements). Examples follow the builder's
 // language; together they use every element type.
-import { FormsGenForm } from '@formsgen/renderer'
+import { FormsGenForm } from '@albahadly/formsgen-renderer'
 import { computed, ref } from 'vue'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { locale, t } from '@/i18n'

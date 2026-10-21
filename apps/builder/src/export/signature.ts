@@ -12,7 +12,7 @@
 // went empty (a reset) is cleared, typed name too; a blank pad whose value
 // holds a file (shown again by a step or a condition) draws it.
 
-import { SIGNATURE_FILE, SIGNATURE_FONT, SIGNATURE_INK, type ElementNode } from '@formsgen/renderer'
+import { SIGNATURE_FILE, SIGNATURE_FONT, SIGNATURE_INK, type ElementNode } from '@albahadly/formsgen-renderer'
 
 export const hasSignature = (nodes: ElementNode[]): boolean =>
   nodes.some((node) => node.type === 'signature' || hasSignature(node.children ?? []))

@@ -3,7 +3,7 @@
 // strings come from the renderer's message catalog, so every target speaks
 // the same words as <FormsGenForm> for the form's meta.locale.
 
-import { fill, type MessageCatalog, type PluralForms } from '@formsgen/renderer'
+import { fill, type MessageCatalog, type PluralForms } from '@albahadly/formsgen-renderer'
 import type { SectionHostInfo } from './structure'
 
 /** JS string literal that is also safe inside an inline <script>. */

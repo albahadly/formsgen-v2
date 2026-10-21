@@ -1,6 +1,6 @@
 // A star rating and an NPS scale in every code target: radios with number
 // values, the shared stylesheet block, typed as a nullable number.
-import { parseFormSchema, type ElementNode, type FormSchema } from '@formsgen/renderer'
+import { parseFormSchema, type ElementNode, type FormSchema } from '@albahadly/formsgen-renderer'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'

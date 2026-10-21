@@ -2,7 +2,7 @@
 // builders: class names come from the CSS adapter, logic from the target
 // scaffold (REBUILD_PROMPT §7b).
 
-import type { ElementNode } from '@formsgen/renderer'
+import type { ElementNode } from '@albahadly/formsgen-renderer'
 import type { EmitCtx } from '../types'
 
 /**

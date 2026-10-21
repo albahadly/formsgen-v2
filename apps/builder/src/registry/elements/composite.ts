@@ -6,7 +6,7 @@
 // per-field draft store (dates); Blazor uses the FgRange / FgDateRange
 // classes and FgDualSet / FgAddDate / FgChanged.
 
-import { rangeBounds, rangeSliderDefault, type ElementNode } from '@formsgen/renderer'
+import { rangeBounds, rangeSliderDefault, type ElementNode } from '@albahadly/formsgen-renderer'
 import {
   blazorValidationMessage,
   descriptionFor,

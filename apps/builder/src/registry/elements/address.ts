@@ -2,7 +2,7 @@
 // provider as people type (export/money.ts: fgWireSuggest reads the
 // data-fg-suggest attributes). The value is the text, picked or typed.
 
-import { suggestMinChars, suggestUrl, type ElementNode } from '@formsgen/renderer'
+import { suggestMinChars, suggestUrl, type ElementNode } from '@albahadly/formsgen-renderer'
 import {
   affixDescribedBy,
   affixWrap,

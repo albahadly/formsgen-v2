@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Column span per screen size: phones (<768px, default full width),
 // tablets (the base span) and desktops (≥1024px, default = tablets).
-import type { ColSpan, ElementNode } from '@formsgen/renderer'
+import type { ColSpan, ElementNode } from '@albahadly/formsgen-renderer'
 import { t } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'
 

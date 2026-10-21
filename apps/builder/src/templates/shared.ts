@@ -1,7 +1,7 @@
 // What every template file needs: the two template languages, a text in
 // both, and the form meta for one of them.
 
-import type { FormSchema } from '@formsgen/renderer'
+import type { FormSchema } from '@albahadly/formsgen-renderer'
 
 export type TemplateLocale = 'en' | 'ar'
 

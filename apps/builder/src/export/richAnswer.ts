@@ -9,7 +9,7 @@
 // Each change reports fgRichClean(editor HTML), the renderer's
 // cleanRichText rules in script; pasting inserts plain text.
 
-import { RICH_TAGS, type ElementNode } from '@formsgen/renderer'
+import { RICH_TAGS, type ElementNode } from '@albahadly/formsgen-renderer'
 
 export const hasRichText = (nodes: ElementNode[]): boolean =>
   nodes.some((node) => node.type === 'richtext' || hasRichText(node.children ?? []))

@@ -1,4 +1,4 @@
-import { MESSAGES, parseFormSchema, type ElementNode, type FormSchema } from '@formsgen/renderer'
+import { MESSAGES, parseFormSchema, type ElementNode, type FormSchema } from '@albahadly/formsgen-renderer'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'

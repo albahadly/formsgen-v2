@@ -1,6 +1,6 @@
 // Compiled form logic shared by the Vue-standalone and HTML targets:
 // visibility functions, a validators map, and the submit-payload builder.
-// Semantics mirror @formsgen/renderer (hidden fields are excluded from
+// Semantics mirror @albahadly/formsgen-renderer (hidden fields are excluded from
 // validation and payload).
 
 import {
@@ -17,7 +17,7 @@ import {
   type ElementNode,
   type FormSchema,
   tooManyFilesText,
-} from '@formsgen/renderer'
+} from '@albahadly/formsgen-renderer'
 import { compileConditions, compileValidator, type ValueAccessor } from './compile'
 import {
   collectExportFields,

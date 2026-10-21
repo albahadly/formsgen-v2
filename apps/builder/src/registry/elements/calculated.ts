@@ -1,9 +1,9 @@
 // Calculated field: a read-only value worked out from other answers with a
-// formula (see @formsgen/renderer formula.ts). Each target recomputes it on
+// formula (see @albahadly/formsgen-renderer formula.ts). Each target recomputes it on
 // every change (export/calc.ts) and shows it with fixed decimals; the value
 // (a number, or null) is submitted like any field.
 
-import { calculatedDecimals, type ElementNode } from '@formsgen/renderer'
+import { calculatedDecimals, type ElementNode } from '@albahadly/formsgen-renderer'
 import {
   affixDescribedBy,
   affixWrap,

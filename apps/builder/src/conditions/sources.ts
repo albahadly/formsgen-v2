@@ -15,7 +15,7 @@ import {
   type Condition,
   type ConditionOperator,
   type ElementNode,
-} from '@formsgen/renderer'
+} from '@albahadly/formsgen-renderer'
 
 export interface ConditionOption {
   value: string

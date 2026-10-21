@@ -1,7 +1,7 @@
 // After submit (meta.afterSubmit) in every code target: the thank-you block
 // that replaces the form, the redirect that wins over it, the order against
 // a saved draft, and the answer helpers a piped message needs.
-import { parseFormSchema, type ElementNode, type FormSchema } from '@formsgen/renderer'
+import { parseFormSchema, type ElementNode, type FormSchema } from '@albahadly/formsgen-renderer'
 import { describe, expect, it } from 'vitest'
 import { getCssAdapter } from '../css'
 import { getTarget } from './index'

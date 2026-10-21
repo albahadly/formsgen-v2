@@ -53,7 +53,7 @@ export const webComponentTarget: ExportTarget = {
     const name = schema.meta.name
     const where = assets?.elementScript
       ? `\`${ELEMENT_SCRIPT}\` is in this package.`
-      : `Copy \`${ELEMENT_SCRIPT}\` from \`@formsgen/renderer\` (\`dist/element/\`, built with \`pnpm --filter @formsgen/renderer build:element\`) next to the page${assets?.elementScriptUrl ? `, or load it from \`${assets.elementScriptUrl}\`` : ''}.`
+      : `Copy \`${ELEMENT_SCRIPT}\` from \`@albahadly/formsgen-renderer\` (\`dist/element/\`, built with \`pnpm --filter @albahadly/formsgen-renderer build:element\`) next to the page${assets?.elementScriptUrl ? `, or load it from \`${assets.elementScriptUrl}\`` : ''}.`
     return `# ${schema.meta.title ?? name} (web component)
 
 One script, one tag, any page — no framework on the page is needed:

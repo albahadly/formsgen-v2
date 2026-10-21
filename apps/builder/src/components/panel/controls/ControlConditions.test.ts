@@ -1,4 +1,4 @@
-import { FormsGenForm, findNodeById, type ElementNode } from '@formsgen/renderer'
+import { FormsGenForm, findNodeById, type ElementNode } from '@albahadly/formsgen-renderer'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'

@@ -4,7 +4,7 @@
 // <name>.formsgen.json). The schema is base64 (UTF-8 JSON), so no comment
 // terminator ("-->", "*/", "*@") can ever appear inside the block.
 
-import type { FormSchema } from '@formsgen/renderer'
+import type { FormSchema } from '@albahadly/formsgen-renderer'
 import type { ExportedFile } from './targets'
 
 export const PROJECT_MARKER = 'formsgen-project:v1'

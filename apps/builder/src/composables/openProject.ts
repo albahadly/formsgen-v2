@@ -2,7 +2,7 @@
 // ZIP (its .formsgen.json, else a code file carrying the project) or an
 // exported code file (HTML, Vue, React, Blazor) carrying the project.
 
-import { parseFormSchema, type FormSchema } from '@formsgen/renderer'
+import { parseFormSchema, type FormSchema } from '@albahadly/formsgen-renderer'
 import JSZip from 'jszip'
 import { readProject } from '@/export/project'
 

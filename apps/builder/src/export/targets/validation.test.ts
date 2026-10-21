@@ -1,7 +1,7 @@
 // The "Validation" target: the form's rules as a zod schema and a JSON
 // Schema, run here against payloads (zod transpiled and evaluated, JSON
 // Schema through ajv) so the semantics are proven, not just emitted.
-import { parseFormSchema, type ElementNode, type FormSchema } from '@formsgen/renderer'
+import { parseFormSchema, type ElementNode, type FormSchema } from '@albahadly/formsgen-renderer'
 import Ajv2020 from 'ajv/dist/2020'
 import addFormats from 'ajv-formats'
 import ts from 'typescript'

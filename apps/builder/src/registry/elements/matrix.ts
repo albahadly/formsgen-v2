@@ -6,7 +6,7 @@
 // row to its chosen columns in column order (Blazor: List<string> per row,
 // toggled via FgToggleCell).
 
-import { matrixColumns, matrixMultiple, matrixRows, type ElementNode } from '@formsgen/renderer'
+import { matrixColumns, matrixMultiple, matrixRows, type ElementNode } from '@albahadly/formsgen-renderer'
 import {
   blazorValidationMessage,
   descriptionFor,

@@ -6,7 +6,7 @@
 // it into a build-time import. JSX gets its attribute names, numbers, a
 // style object and braces or line breaks in text as string expressions.
 
-import { VOID_TAGS, parseSafeHtml, type ElementNode, type HtmlNode } from '@formsgen/renderer'
+import { VOID_TAGS, parseSafeHtml, type ElementNode, type HtmlNode } from '@albahadly/formsgen-renderer'
 import { esc } from '@/registry/emitters/shared'
 import type { EmitCtx, EmitterLang } from '@/registry/types'
 

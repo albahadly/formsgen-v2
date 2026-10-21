@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { pinsLightScheme, themeInlineStyle } from '@formsgen/renderer'
+import { pinsLightScheme, themeInlineStyle } from '@albahadly/formsgen-renderer'
 import { computed } from 'vue'
 import draggable from 'vuedraggable'
 import { t } from '@/i18n'

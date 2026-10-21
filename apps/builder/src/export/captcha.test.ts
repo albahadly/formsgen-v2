@@ -1,4 +1,4 @@
-import { TURNSTILE_SCRIPT, parseFormSchema, type ElementNode } from '@formsgen/renderer'
+import { TURNSTILE_SCRIPT, parseFormSchema, type ElementNode } from '@albahadly/formsgen-renderer'
 import { describe, expect, it } from 'vitest'
 import { getCssAdapter } from './css'
 import { sampleServerReadme } from './submitServer'

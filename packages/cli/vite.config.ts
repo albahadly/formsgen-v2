@@ -11,7 +11,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('../../apps/builder/src', import.meta.url)),
-      '@formsgen/renderer': fileURLToPath(new URL('../../packages/renderer/src/index.ts', import.meta.url)),
+      '@albahadly/formsgen-renderer': fileURLToPath(new URL('../../packages/renderer/src/index.ts', import.meta.url)),
     },
   },
   build: {

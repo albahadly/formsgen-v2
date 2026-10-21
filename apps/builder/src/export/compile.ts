@@ -1,9 +1,9 @@
 // Compiles validation rules and visibility conditions to JavaScript source
 // strings, shared by the Vue-standalone and HTML export targets. Semantics
-// MUST match @formsgen/renderer's rules.ts / conditions.ts — the behavioral
+// MUST match @albahadly/formsgen-renderer's rules.ts / conditions.ts — the behavioral
 // tests in compile.test.ts run the generated code against the same cases.
 
-import { defaultRuleMessage, type Condition, type ConditionGroups, type Rule } from '@formsgen/renderer'
+import { defaultRuleMessage, type Condition, type ConditionGroups, type Rule } from '@albahadly/formsgen-renderer'
 
 /** Accessor: produces a JS expression reading a field's value by data path. */
 export type ValueAccessor = (path: string) => string

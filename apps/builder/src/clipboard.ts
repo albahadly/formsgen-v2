@@ -3,7 +3,7 @@
 // machines, and a bare node pasted from a schema file works too. What comes
 // back is parsed by the renderer's own parser before it enters a form.
 
-import { parseFormSchema, type ElementNode } from '@formsgen/renderer'
+import { parseFormSchema, type ElementNode } from '@albahadly/formsgen-renderer'
 import { getElement } from '@/registry'
 
 export const ELEMENT_CLIPBOARD_TAG = 'formsgen/element'

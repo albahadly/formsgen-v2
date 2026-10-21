@@ -9,7 +9,7 @@ import {
   type ColSpan,
   resolveMessages,
   type ElementNode,
-} from '@formsgen/renderer'
+} from '@albahadly/formsgen-renderer'
 import { computed, ref, watch } from 'vue'
 import draggable from 'vuedraggable'
 import { t, tOr } from '@/i18n'

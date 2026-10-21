@@ -5,7 +5,7 @@
 // (fgPhoneCountry) so it survives an empty number. Inside repeater items
 // the store is keyed by each item's own path.
 
-import { hasCountrySelect, initialPhoneCountry, phoneCountries, type ElementNode } from '@formsgen/renderer'
+import { hasCountrySelect, initialPhoneCountry, phoneCountries, type ElementNode } from '@albahadly/formsgen-renderer'
 import {
   blazorValidationMessage,
   descriptionFor,

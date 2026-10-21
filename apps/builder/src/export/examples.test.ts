@@ -5,7 +5,7 @@
 // the examples never drift from the targets: this test regenerates the files
 // in memory and fails when a committed one differs. Run `pnpm examples:update`
 // (this test with FG_EXAMPLES_WRITE=1) after changing a target or the template.
-import { parseFormSchema, type FormSchema } from '@formsgen/renderer'
+import { parseFormSchema, type FormSchema } from '@albahadly/formsgen-renderer'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'

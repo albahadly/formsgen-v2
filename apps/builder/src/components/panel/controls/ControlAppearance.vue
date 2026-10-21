@@ -5,7 +5,7 @@ import {
   type ElementNode,
   type TextAlign,
   type TextTone,
-} from '@formsgen/renderer'
+} from '@albahadly/formsgen-renderer'
 import { ref, watch } from 'vue'
 import { t } from '@/i18n'
 import type { AppearanceFeature } from '@/registry/types'

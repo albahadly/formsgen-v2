@@ -9,7 +9,7 @@ import {
   THEME_PALETTES,
   parseHexColor,
   type ThemePalette,
-} from '@formsgen/renderer'
+} from '@albahadly/formsgen-renderer'
 import { computed } from 'vue'
 import { t } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'

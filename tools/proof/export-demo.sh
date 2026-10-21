@@ -36,7 +36,7 @@ sed "s#FG_HOST#$FG_HOST#g" "$SCHEMA" > "$OUT/demo.json"
 TEST=$ROOT/apps/builder/src/export/targets/__proof_dump.test.ts
 trap 'rm -f "$TEST"' EXIT
 cat > "$TEST" <<'TS'
-import { parseFormSchema } from '@formsgen/renderer'
+import { parseFormSchema } from '@albahadly/formsgen-renderer'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { it } from 'vitest'
 import { getCssAdapter, type CssFrameworkId } from '../css'

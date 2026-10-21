@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { KNOWN_RULE_NAMES, OBJECT_VALUE_TYPES, type ElementNode, type Rule, type RuleName } from '@formsgen/renderer'
+import { KNOWN_RULE_NAMES, OBJECT_VALUE_TYPES, type ElementNode, type Rule, type RuleName } from '@albahadly/formsgen-renderer'
 import { computed, ref } from 'vue'
 import { t } from '@/i18n'
 import { useBuilderStore } from '@/stores/builder'

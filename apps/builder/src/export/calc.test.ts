@@ -1,4 +1,4 @@
-import { calculatedValue, parseFormSchema, parseFormula, type FormSchema } from '@formsgen/renderer'
+import { calculatedValue, parseFormSchema, parseFormula, type FormSchema } from '@albahadly/formsgen-renderer'
 import { describe, expect, it } from 'vitest'
 import { calcHelpers, calcSteps, formulaCs, formulaJs, formulaSuggestions } from './calc'
 import { getCssAdapter } from './css'

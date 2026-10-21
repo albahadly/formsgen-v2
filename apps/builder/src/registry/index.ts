@@ -1,4 +1,4 @@
-import { getCoreElement } from '@formsgen/renderer'
+import { getCoreElement } from '@albahadly/formsgen-renderer'
 import { buttonElement } from './elements/button'
 import { checkboxElement, toggleElement } from './elements/checkbox'
 import { checkboxGroupElement, radioGroupElement } from './elements/choiceGroups'
@@ -59,7 +59,7 @@ export function registerElement(def: ElementDefinition): void {
   }
   if (!getCoreElement(def.type)) {
     throw new Error(
-      `Element type "${def.type}" has no core semantics in @formsgen/renderer`,
+      `Element type "${def.type}" has no core semantics in @albahadly/formsgen-renderer`,
     )
   }
   definitions.set(def.type, def)

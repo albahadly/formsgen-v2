@@ -3,7 +3,7 @@
 // baked in at export time (the same two routines as the renderer's money.ts,
 // in JS/TS and in C#); address suggestions are one script that fills an
 // input's datalist from the provider named by its data-fg-suggest attribute.
-import { moneySeparators, type ElementNode, type FormSchema } from '@formsgen/renderer'
+import { moneySeparators, type ElementNode, type FormSchema } from '@albahadly/formsgen-renderer'
 import type { ExportField } from './structure'
 
 function treeHas(nodes: ElementNode[], type: string): boolean {

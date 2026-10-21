@@ -19,7 +19,7 @@ import {
   phoneCountries,
   type ElementNode,
   type FormSchema,
-} from '@formsgen/renderer'
+} from '@albahadly/formsgen-renderer'
 import type { ExportField } from './structure'
 import type { CssFrameworkAdapter } from './css/types'
 import { BOOTSTRAP_UPLOAD_CSS } from './uploadRuntime'

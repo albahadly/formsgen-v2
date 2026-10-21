@@ -2,7 +2,7 @@
 // batches rapid mutations (a cross-container drag emits two setChildren
 // calls) into ONE history entry. Selection changes never create entries.
 
-import { findNodeById } from '@formsgen/renderer'
+import { findNodeById } from '@albahadly/formsgen-renderer'
 import { defineStore } from 'pinia'
 import { watch } from 'vue'
 import { useBuilderStore } from './builder'

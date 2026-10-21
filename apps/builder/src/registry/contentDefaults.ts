@@ -3,7 +3,7 @@
 // form's locale is Arabic, a new element starts with Arabic text instead.
 // Only untouched defaults are replaced; existing content is never changed.
 
-import { resolveMessages, MESSAGES, type ElementNode } from '@formsgen/renderer'
+import { resolveMessages, MESSAGES, type ElementNode } from '@albahadly/formsgen-renderer'
 import { tFor } from '@/i18n'
 import { getElement } from './index'
 

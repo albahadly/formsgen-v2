@@ -1,4 +1,4 @@
-import { parseFormSchema, type FormSchema } from '@formsgen/renderer'
+import { parseFormSchema, type FormSchema } from '@albahadly/formsgen-renderer'
 import { describe, expect, it } from 'vitest'
 import { getCssAdapter } from './css'
 import { getTarget } from './targets'

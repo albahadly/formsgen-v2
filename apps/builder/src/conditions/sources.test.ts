@@ -1,4 +1,4 @@
-import type { ElementNode } from '@formsgen/renderer'
+import type { ElementNode } from '@albahadly/formsgen-renderer'
 import { describe, expect, it } from 'vitest'
 import {
   defaultValueFor,

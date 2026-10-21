@@ -6,7 +6,7 @@
 // option labels for choices, Yes/No, lists joined, "from – to" ranges,
 // calculated values with their decimals, file names; '' → the fallback.
 
-import { CALCULATED_TYPE, calculatedDecimals, pipeParts, type ElementNode, type MessageCatalog } from '@formsgen/renderer'
+import { CALCULATED_TYPE, calculatedDecimals, pipeParts, type ElementNode, type MessageCatalog } from '@albahadly/formsgen-renderer'
 import { esc } from '@/registry/emitters/shared'
 import type { EmitterLang } from '@/registry/types'
 import { ITEM_TOKENS } from './structure'

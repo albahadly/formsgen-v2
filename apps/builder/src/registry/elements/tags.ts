@@ -4,7 +4,7 @@
 // those conventional names. Blazor binds the draft input to the generated
 // fgTagDrafts dictionary and adds via @bind:after (commit on blur/Enter).
 
-import type { ElementNode } from '@formsgen/renderer'
+import type { ElementNode } from '@albahadly/formsgen-renderer'
 import {
   blazorValidationMessage,
   descriptionFor,

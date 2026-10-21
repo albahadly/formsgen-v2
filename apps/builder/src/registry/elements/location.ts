@@ -4,7 +4,7 @@
 // fields are run by a script wired on the form root (export/location.ts);
 // Blazor's calls back into .NET with each change.
 
-import { locationSettings, type ElementNode } from '@formsgen/renderer'
+import { locationSettings, type ElementNode } from '@albahadly/formsgen-renderer'
 import { blazorValidationMessage, descriptionFor, esc, legendFor, pascalMember, reactDescription, reactError, textProp, vueError, htmlError } from '../emitters/shared'
 import { commonFieldSections, type ElementDefinition, type EmitCtx, type EmitterLang } from '../types'
 import { locationAttrs } from '@/export/location'

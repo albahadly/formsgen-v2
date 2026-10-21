@@ -1,0 +1,47 @@
+# Publishes @albahadly/formsgen-renderer and @albahadly/formsgen-cli to npm.
+#
+# Run it by hand (Actions → Release → Run workflow) or push a tag like
+# v0.1.0. It needs one repository secret, NPM_TOKEN: an npm access token
+# with publish rights (an "Automation" / granular token so 2FA is not
+# asked for). A version that is already on npm is skipped, so re-running
+# after a failure is safe; bump "version" in the package.json files for a
+# new release (both packages share the version line of the root).
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # The pnpm version comes from "packageManager" in package.json.
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm verify
+      - name: Publish what is not on npm yet
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -eu
+          for dir in packages/renderer packages/cli; do
+            name=$(node -p "require('./$dir/package.json').name")
+            version=$(node -p "require('./$dir/package.json').version")
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "$name@$version is already on npm — skipped"
+              continue
+            fi
+            pnpm --filter "$name" publish --access public --no-git-checks
+            echo "published $name@$version"
+          done

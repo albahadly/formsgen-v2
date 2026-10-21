@@ -2,7 +2,7 @@
 // (signature.png), sent like an upload. The pads are run by a script wired
 // on the form root (export/signature.ts); Blazor's calls back into .NET.
 
-import type { ElementNode } from '@formsgen/renderer'
+import type { ElementNode } from '@albahadly/formsgen-renderer'
 import { blazorValidationMessage, descriptionFor, esc, legendFor, pascalMember, reactDescription, reactError, vueError, htmlError } from '../emitters/shared'
 import { commonFieldSections, type ElementDefinition, type EmitCtx, type EmitterLang } from '../types'
 import { signatureHeight, signatureTyping } from '@/export/signature'

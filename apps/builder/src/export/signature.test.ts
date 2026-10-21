@@ -1,4 +1,4 @@
-import { parseFormSchema, type ElementNode } from '@formsgen/renderer'
+import { parseFormSchema, type ElementNode } from '@albahadly/formsgen-renderer'
 import { describe, expect, it } from 'vitest'
 import { getCssAdapter, type CssFrameworkId } from './css'
 import { formDataType } from './structure'

@@ -18,7 +18,7 @@ import {
   type ConditionGroups,
   type ElementNode,
   type FormSchema,
-} from '@formsgen/renderer'
+} from '@albahadly/formsgen-renderer'
 
 export interface ExportField {
   node: ElementNode

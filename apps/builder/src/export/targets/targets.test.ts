@@ -5,7 +5,7 @@ import {
   stepAnnouncement,
   type ElementNode,
   type FormSchema,
-} from '@formsgen/renderer'
+} from '@albahadly/formsgen-renderer'
 import { describe, expect, it } from 'vitest'
 import kitchenSink from '../../../../../fixtures/kitchen-sink.formsgen.json'
 import { getCssAdapter, listCssAdapters, type CssFrameworkId } from '../css'
@@ -77,7 +77,7 @@ describe('vue-lib target', () => {
   it('imports the renderer and inlines the schema', () => {
     const [file] = generate('vue-lib')
     expect(file!.path).toBe('KitchenSinkForm.vue')
-    expect(file!.content).toContain("from '@formsgen/renderer'")
+    expect(file!.content).toContain("from '@albahadly/formsgen-renderer'")
     expect(file!.content).toContain('"$schema": "formsgen/v2"')
     expect(file!.content).toContain('<FormsGenForm')
     // No submit URL: sending is left to the host.
@@ -90,7 +90,7 @@ describe('vue-lib target', () => {
     schema.meta.submit = { url: 'https://api.example.com/forms', method: 'PUT', headers: { 'X-Api-Key': 'k1' } }
     const [file] = getTarget('vue-lib')!.generate({ schema, css: getCssAdapter('vanilla') })
     const code = file!.content
-    expect(code).toContain("import { FormsGenForm, hasUploadFields, sendSubmission, type FormSchema } from '@formsgen/renderer'")
+    expect(code).toContain("import { FormsGenForm, hasUploadFields, sendSubmission, type FormSchema } from '@albahadly/formsgen-renderer'")
     expect(code).toContain("await sendSubmission(\"https://api.example.com/forms\", payload, {")
     expect(code).toContain('method: "PUT",')
     expect(code).toContain('multipart: hasUploadFields(schema.tree),')

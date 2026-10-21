@@ -96,7 +96,7 @@ Vite configs, the Blazor app with `dotnet build`), serves them
 (`static-server.mjs` on 4180 for the HTML pages, 4181 React, 4182 Vue; the
 Blazor app on 5139) and drives all 13 runtimes with
 `e2e/event-registration.mjs`: 3 HTML pages, 3 React variants, 4 Vue variants
-(the fourth uses `@formsgen/renderer`), 3 Blazor pages. The sample server on
+(the fourth uses `@albahadly/formsgen-renderer`), 3 Blazor pages. The sample server on
 4280 is started when it is not already answering. The examples post to
 `http://localhost:4280/submit` exactly as a developer runs them; the scenario
 routes those requests to the sample server at `FG_HOST`. Output as for

@@ -5,7 +5,7 @@
 #
 # Proves the example projects (examples/): builds the React and Vue apps and
 # the Blazor app as a developer would, serves them, drives each of the 13
-# runtimes (HTML x3, React x3, Vue x3 + the @formsgen/renderer variant,
+# runtimes (HTML x3, React x3, Vue x3 + the @albahadly/formsgen-renderer variant,
 # Blazor x3) with e2e/event-registration.mjs and compares what the scenario
 # saw with the HTML vanilla run. The sample server (4280) is started when it
 # is not already answering. Results: <outdir>/res-<run>.json (+ err-<run>.txt,

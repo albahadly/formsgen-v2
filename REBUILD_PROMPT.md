@@ -71,12 +71,12 @@ and usable in ANY new project — with or without a specific form library.
 
 Project layout (single repo, two packages via pnpm workspaces):
 
-  packages/renderer/   -> "@formsgen/renderer": a small standalone Vue 3 library
+  packages/renderer/   -> "@albahadly/formsgen-renderer": a small standalone Vue 3 library
                           that renders a form from a FormsGen JSON schema.
                           Zero dependencies except Vue. Published/buildable as
                           an npm library (ESM + UMD). This is what makes forms
                           reusable in any Vue project.
-  apps/builder/        -> the builder application (imports @formsgen/renderer
+  apps/builder/        -> the builder application (imports @albahadly/formsgen-renderer
                           for live preview, so preview === production rendering).
   docs/handoff/        -> per-phase handoff docs (§10)
   docs/adr/            -> architecture decision records (§11)
@@ -145,7 +145,7 @@ interface ElementDefinition {
   defaultProps: Record<string, unknown>
   defaultValidation?: Rule[]
   propertyPanel: PanelSection[]   // declarative config UI (see below)
-  renderPreview: Component        // used by @formsgen/renderer
+  renderPreview: Component        // used by @albahadly/formsgen-renderer
   export: Record<TargetId, ElementEmitter>
   // per-export-target markup emitters, e.g.
   // { vue: (node, ctx) => string, react: ..., blazor: ..., html: ...,
@@ -188,7 +188,7 @@ Initial element set (match the old project's catalog):
   tabs, steps (wizard with next/prev + per-step validation), repeating list,
   nested-object list.
 
-## 4. The renderer package (@formsgen/renderer)
+## 4. The renderer package (@albahadly/formsgen-renderer)
 
 A standalone library: `<FormsGenForm :schema="..." v-model="data" @submit>`.
 - Recursively renders the tree; applies validation on blur + on submit;
@@ -205,7 +205,7 @@ A standalone library: `<FormsGenForm :schema="..." v-model="data" @submit>`.
   never bundles Bootstrap or Tailwind itself); consumers can also pass a
   custom preset object to match any design system.
 - Buildable with `vite build --mode lib` producing ESM + UMD + .d.ts, so a
-  consumer can `npm i @formsgen/renderer` (or copy the dist file) and render
+  consumer can `npm i @albahadly/formsgen-renderer` (or copy the dist file) and render
   any exported JSON schema.
 
 ## 5. Builder application features
@@ -218,7 +218,7 @@ Palette:
 - Drag to canvas (clone), or double-click / press Enter to append.
 
 Canvas (editor mode):
-- Renders the real form via @formsgen/renderer in "design mode": each element
+- Renders the real form via @albahadly/formsgen-renderer in "design mode": each element
   wrapped with selection chrome (hover outline, selected ring, type badge,
   drag handle, duplicate + delete buttons).
 - NESTED drag-and-drop: drop into containers, reorder anywhere, move between
@@ -283,10 +283,10 @@ Copy button, and the Download button:
 1. **JSON schema** — the canonical FormSchema. Round-trips: the builder's
    Import accepts this same file, so a form exported from one machine/project
    can be re-imported and edited anywhere. Zip mode adds a README showing the
-   3-line @formsgen/renderer usage.
+   3-line @albahadly/formsgen-renderer usage.
 2. **Vue 3 SFC (library mode)** — a small .vue file importing
-   @formsgen/renderer with the schema inlined and the chosen class preset
-   applied. Zip mode: component + README (`npm i @formsgen/renderer`, style
+   @albahadly/formsgen-renderer with the schema inlined and the chosen class preset
+   applied. Zip mode: component + README (`npm i @albahadly/formsgen-renderer`, style
    import, v-model/submit wiring example).
 3. **Vue 3 SFC (standalone)** — a ZERO-DEPENDENCY .vue file: plain template
    markup generated per element from the registry's `vueTemplate` using the
@@ -569,7 +569,7 @@ deviate.
 
 Phase goals to drop into that template, one at a time:
 
-1. *"Implement build-order steps 1–3: workspace, schema types, registry with the 6 pilot element types, and the @formsgen/renderer package with validation and conditions. Include unit tests for condition evaluation and rule validation."*
+1. *"Implement build-order steps 1–3: workspace, schema types, registry with the 6 pilot element types, and the @albahadly/formsgen-renderer package with validation and conditions. Include unit tests for condition evaluation and rule validation."*
 2. *"Implement step 4: the builder shell with palette, canvas (flat), selection, and the registry-driven properties panel for the pilot types."*
 3. *"Implement step 5: nested drag-and-drop into containers, the element tree sidebar, duplicate, and keyboard interactions."*
 4. *"Implement step 6: undo/redo history, localStorage autosave with restore toast, and project save/open as .formsgen.json."*

@@ -3,7 +3,7 @@
 // of a named group. Conditions store root-relative paths, so without this a
 // reference would silently stop matching and its element would never show.
 
-import { getCoreElement, joinPath, type ElementNode } from '@formsgen/renderer'
+import { getCoreElement, joinPath, type ElementNode } from '@albahadly/formsgen-renderer'
 import { watch, type WatchStopHandle } from 'vue'
 import { useBuilderStore } from './builder'
 

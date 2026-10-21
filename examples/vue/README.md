@@ -8,7 +8,7 @@ A Vite + Vue 3 + TypeScript app that mounts the form in two ways.
   the payload are compiled in.
 - **Renderer export**: `src/forms/renderer/EventRegistrationForm.vue` is the
   Vue (renderer package) target: a short wrapper that hands the form's JSON
-  schema to `<FormsGenForm>` from `@formsgen/renderer`, which renders,
+  schema to `<FormsGenForm>` from `@albahadly/formsgen-renderer`, which renders,
   validates and submits it at run time. Use it when forms change often (edit
   the JSON, no re-export) or come from a server.
 
@@ -54,9 +54,9 @@ types the renderer variant needs.
 2. Standalone: copy `src/forms/<css>/EventRegistrationForm.vue` into it and
    use `<EventRegistrationForm @submit="payload => …" />`; add Tailwind or
    Bootstrap as above when you chose those variants.
-3. Renderer: install `@formsgen/renderer` and copy
+3. Renderer: install `@albahadly/formsgen-renderer` and copy
    `src/forms/renderer/EventRegistrationForm.vue`. Here the package comes
-   from the workspace (`"@formsgen/renderer": "workspace:*"`); outside this
+   from the workspace (`"@albahadly/formsgen-renderer": "workspace:*"`); outside this
    repository, build and pack it until it is published
-   (`pnpm --filter @formsgen/renderer build && pnpm --filter @formsgen/renderer pack`,
+   (`pnpm --filter @albahadly/formsgen-renderer build && pnpm --filter @albahadly/formsgen-renderer pack`,
    then `npm i ./formsgen-renderer-*.tgz`).

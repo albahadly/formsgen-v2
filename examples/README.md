@@ -9,7 +9,7 @@ so the four folders show the same integration side by side.
 |---|---|---|
 | `html/` | plain HTML + JS | three self-contained pages (vanilla CSS, Tailwind, Bootstrap 5): open and use, no build step |
 | `react/` | Vite + React 18 + TypeScript | the exported component in an app, the `onSubmit` callback, Tailwind v4 and Bootstrap installed from npm |
-| `vue/` | Vite + Vue 3 + TypeScript | the standalone exports (three CSS variants) and the `@formsgen/renderer` export that renders the JSON schema at run time |
+| `vue/` | Vite + Vue 3 + TypeScript | the standalone exports (three CSS variants) and the `@albahadly/formsgen-renderer` export that renders the JSON schema at run time |
 | `dotnet/` | Blazor Web App, .NET 8 | the exported Razor component on three pages, interactive server rendering, posting with `HttpClient` |
 | `form/` | — | the template; open it in the builder to change the form, then regenerate |
 

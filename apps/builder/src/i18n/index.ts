@@ -699,8 +699,8 @@ const arText: Record<string, string> = {
   'Vanilla CSS': 'CSS عادي',
   'The canonical FormsGen schema — re-importable into the builder.':
     'مخطط FormsGen الأساسي — يمكن استيراده مجددًا في المنشئ.',
-  'A small SFC using @formsgen/renderer — schema-driven, always in sync.':
-    'مكوّن Vue صغير يستخدم ‎@formsgen/renderer — يعتمد على المخطط ومتزامن دائمًا.',
+  'A small SFC using @albahadly/formsgen-renderer — schema-driven, always in sync.':
+    'مكوّن Vue صغير يستخدم ‎@albahadly/formsgen-renderer — يعتمد على المخطط ومتزامن دائمًا.',
   'A single self-contained SFC with zero dependencies beyond Vue.':
     'مكوّن Vue واحد مستقل بلا أي اعتماديات سوى Vue.',
   'A single self-contained .tsx component with zero dependencies beyond React.':

@@ -1,4 +1,4 @@
-import { getCoreElement } from '@formsgen/renderer'
+import { getCoreElement } from '@albahadly/formsgen-renderer'
 import { describe, expect, it } from 'vitest'
 import { createNode } from './factory'
 import { getElement, listElements } from './index'

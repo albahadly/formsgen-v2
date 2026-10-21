@@ -2,7 +2,7 @@
 // form uses at run time (none unless the form has a map, a spam check or an
 // embedded page), with what a deployer must allow and verify.
 
-import { LEAFLET_VERSION, OSM_TILES, captchaSiteKey, locationSettings, type ElementNode, type FormSchema } from '@formsgen/renderer'
+import { LEAFLET_VERSION, OSM_TILES, captchaSiteKey, locationSettings, type ElementNode, type FormSchema } from '@albahadly/formsgen-renderer'
 import { hasLocation } from './location'
 
 const nodesOf = (nodes: ElementNode[]): ElementNode[] => nodes.flatMap((node) => [node, ...nodesOf(node.children ?? [])])
