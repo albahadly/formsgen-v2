@@ -36,10 +36,10 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
 
 ## In flight
 
-- **Phase 40 — after submit**: everything committed; both matrices
-  12 × IDENTICAL. The final `pnpm verify` is running (session
-  `scratchpad/verify6.log`); the push to `main` (= production deploy)
-  follows a green result. Uncommitted: nothing.
+- Nothing. Uncommitted: nothing. Phase 40 shipped: `verify` green
+  (renderer 212 / builder 364 / server 9 tests, all builds), matrices
+  `thanks` and `redirect` 12 × IDENTICAL, pushed to `main`. Next: phase 41
+  (server-side validation export: zod + JSON Schema).
 
 ## Next steps (in order) — the roadmap the user chose on 2026-10-21
 
