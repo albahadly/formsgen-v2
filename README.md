@@ -83,7 +83,7 @@ compilers on them and drives each runtime with the same scenario
 The builder's UI comes in English, Arabic (right-to-left), French, Spanish
 and German; forms validate in English, Arabic, French, Spanish or German by
 their own locale. Eleven starter templates (English and Arabic) show every
-element type.
+element type, from text inputs to a star rating and an NPS scale.
 
 The same exports from the command line, for CI and scripts (`packages/cli`):
 

@@ -44,25 +44,18 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
   `currency` amount with locale formatting and an `address` field with
   suggestions. Phase 44 shipped before it (`f5318ef`): verify green
   (renderer 218 / builder 379 / cli 12 / server 9), reviewed in Edge.
-  - **45a code is in** (2026-10-21, committed as `feat(phase-45)` on
-    `main`): `FgScore.vue` renders both types (radios under `fg-sr-only`,
-    stars in reverse DOM order so `SCORE_CSS` fills up to the chosen one),
-    `registry/elements/scores.ts` carries the four emitters (HTML
-    `data-fg-kind="score"`, Blazor `InputRadioGroup` over `double?`),
-    `SCORE_CSS` ships in every flavour and is mirrored in the renderer
-    stylesheet, `npsLow`/`npsHigh` in the five message catalogs, the
-    feedback template has stars + NPS (RSVP guests became a `range` so
-    that type keeps an example), kitchen sink `ks-stars`/`ks-nps`,
-    examples regenerated, snapshots refreshed. Renderer 29 files / builder
-    42 files green, strict `vue-tsc` and eslint clean on both.
-  - **Running / next:** the 12-runtime matrix on `tools/proof/demos/scores.json`
-    with `tools/proof/e2e/scores.mjs` (`export-demo.sh` → `strict.sh` →
-    `run-matrix.sh … ScoresDemoForm scores_demo … scores`, Edge via
-    `PLAYWRIGHT_CHANNEL=msedge`); results land in `tools/proof/work/scores`
-    (`res-*.json`, `err-*.txt`, `shots/`). Then: builder check in the
-    browser (palette, panel, preview), handoff `phase-45-field-types.md`
-    (45a section), INDEX row, ADR-0002 rows, `npx --yes pnpm@10 verify`,
-    push. 45b (currency, address) follows in the same phase doc.
+  - **45a shipped** (2026-10-21): `feat(phase-45)` `2b0242c` + the
+    `fix(phase-45)` and `docs(handoff)` commits after it (see the log).
+    Gates: verify green (renderer 221 / builder 383 / cli 12 / server 9),
+    matrix 12/12 IDENTICAL, parity IDENTICAL ×6, builder reviewed in Edge.
+  - **Next: 45b** — `currency` (number + code, locale formatting while
+    typing, one separator table shared by renderer and runtimes) and
+    `address` (text with suggestions, datalist + debounced provider, the
+    value stays a string). Same checklist: renderer component + meta,
+    registry element with four emitters, `structure.ts` / `csharp.ts` /
+    `validation.ts` / prefill kinds, kitchen sink + a template, i18n in
+    five locales, demo + e2e, matrix, parity if CSS changes, handoff
+    section, ADR-0002 row.
 
 ## Next steps (in order) — the roadmap the user chose on 2026-10-21
 
@@ -109,6 +102,23 @@ Sample servers for the demos: `node packages/submit-server/server.mjs --port 428
 and, for the spam demo, `TURNSTILE_SECRET=1x0000000000000000000000000000000AA node packages/submit-server/server.mjs --port 4281 --dir /tmp/subs-captcha`.
 
 ## Log (newest first)
+
+- **2026-10-21** — **Phase 45a: star rating and NPS scale** (handoff
+  `phase-45-field-types.md`). `rating` (1..max stars) and `nps` (0..10
+  with end words) as radios underneath, one `FgScore.vue`, one
+  `scores.ts` with the four emitters, one `SCORE_CSS` block in every
+  flavour mirrored in the renderer stylesheet, numbers in the typed
+  models, C#, prefill and the validation export; feedback template and
+  kitchen sink carry both. Demo `demos/scores.json` + `e2e/scores.mjs`.
+  Found on the way: (1) the React runtime's `touch()` after `setField()`
+  validated the stale closure, so a required radio kept its error after
+  a pick following a rejected submit — fixed for every control via
+  `formRef.current`; (2) a shared CSS block must give every `--fg-*`
+  token the `--bs-*`/literal fallback chain and say `border-box` itself,
+  or Tailwind/Bootstrap drop the declarations (parity caught 26 → 15 → 0
+  differing metrics); (3) `run-matrix.sh` needs the sample server on
+  4280 started by hand. Gates: verify green (221 / 383 / 12 / 9), matrix
+  12/12 IDENTICAL, parity IDENTICAL ×6.
 
 - **2026-10-21** — **Phase 44: more templates, more UI languages**
   (handoff `phase-44-templates-languages.md`). French, Spanish and
