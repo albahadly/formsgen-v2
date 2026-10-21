@@ -11,6 +11,10 @@
 # the package.json files for a new release. Staging needs npm 11.15+ and
 # Node 22.14+, hence the npm upgrade step. For a package that does not
 # exist yet npm first publishes a public placeholder, 0.0.0-stage.
+#
+# The repository is public, so each staged version carries a provenance
+# attestation (which commit and which workflow run built it); that is what
+# id-token: write is for — the publish itself still uses NPM_TOKEN.
 name: Release
 
 on:
@@ -20,6 +24,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   stage:
@@ -56,7 +61,7 @@ jobs:
             rm -rf "$out" && mkdir -p "$out"
             tarball=$(cd "$dir" && pnpm pack --pack-destination "../../$out" | tail -1)
             tar -xzf "$out/$(basename "$tarball")" -C "$out"
-            (cd "$out/package" && npm stage publish --access public)
+            (cd "$out/package" && npm stage publish --access public --provenance)
             echo "staged $name@$version — approve it with 2FA on npmjs.com (Staged Packages) or: npm stage approve <stage-id>"
           done
           echo "Pending stages:"

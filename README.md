@@ -150,5 +150,6 @@ maintainer approves the staged version on npmjs.com with 2FA (the
 package → *Staged Packages* → *Approve*). `docs/handoff/phase-47-npm-release.md`
 has the steps. To release: bump `version` in
 `packages/renderer/package.json` and `packages/cli/package.json`,
-commit, run the workflow, approve. Both packages are MIT licensed
-(`LICENSE`).
+commit, run the workflow, approve. Each version carries an npm provenance
+attestation (the repository is public). Both packages are MIT licensed
+(`LICENSE`); vulnerabilities go to `SECURITY.md`.

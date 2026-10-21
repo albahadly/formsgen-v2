@@ -42,8 +42,10 @@ approves (see "How to verify").
   `npm stage approve <stage-id>`; `npm stage reject <stage-id>` discards
   it. Staging needs npm ≥ 11.15 and Node ≥ 22.14, so the workflow
   upgrades npm. Re-running is safe (live versions are skipped); a new
-  release is a version bump in both `package.json` files. No provenance:
-  npm only attests public repositories, and this one is private.
+  release is a version bump in both `package.json` files. The repository
+  went public on 2026-10-21, so the stage step passes `--provenance`
+  (`permissions: id-token: write`): each version on npm carries an
+  attestation naming the commit and the workflow run that built it.
 - **What the first runs taught (2026-10-21).** A granular token without
   "Bypass 2FA" is refused with `E403 … bypass 2fa enabled is required`;
   npm's token page now steers automation to *stage-only* tokens, and npm
