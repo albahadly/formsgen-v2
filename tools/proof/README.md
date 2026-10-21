@@ -187,6 +187,7 @@ pnpm@10` function), a `python3` that is the Store stub (falls back to
 - `canvas-parity.mjs` — the design canvas lays every template out like the preview.
 - `theme-shots.mjs` — the builder in light and dark, every view and dialog.
 - `server-validate.mjs` — the "Validation" export (zod + JSON Schema) run against the submissions the sample server stored.
+- `element-check.sh` — a demo exported as a web component by the CLI, served, driven by its scenario (kind `element`) and compared with the demo's HTML-vanilla result.
 - `work/` — outputs, logs, pids, screenshots (ignored).
 
 ## Adding a demo for a new feature
