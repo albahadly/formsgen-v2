@@ -145,6 +145,6 @@ same Definition of Done checklist.
 by `.github/workflows/release.yml` (Actions → Release → Run workflow, or a
 `v*` tag). It runs `pnpm verify`, then publishes each package whose
 version is not on npm yet, with the repository secret `NPM_TOKEN` (an npm
-automation token with publish rights). To release: bump `version` in
+granular access token with read-write on packages and "Bypass 2FA" on). To release: bump `version` in
 `packages/renderer/package.json` and `packages/cli/package.json`, commit,
 run the workflow. Both packages are MIT licensed (`LICENSE`).

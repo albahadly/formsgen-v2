@@ -63,8 +63,11 @@ workflow** (see "How to verify").
 What the user does once:
 
 1. npmjs.com → profile → *Access Tokens* → *Generate New Token* →
-   *Granular Access Token* (or *Automation*) with **Read and write** on
-   packages, scoped to `@albahadly` if asked; copy it.
+   *Granular Access Token*: **Read and write** on packages (all, or the
+   `@albahadly` scope), and **"Bypass two-factor authentication (2FA)"
+   turned on** — without it npm answers the workflow's publish with
+   `403 … Two-factor authentication or granular access token with bypass
+   2fa enabled is required`. Copy the token.
 2. GitHub → repository → *Settings* → *Secrets and variables* →
    *Actions* → *New repository secret*: name `NPM_TOKEN`, the token.
 3. *Actions* → *Release* → *Run workflow* (branch `main`), or
@@ -83,9 +86,12 @@ pnpm --filter @albahadly/formsgen-cli publish --dry-run --no-git-checks
 
 ## Known issues / gotchas
 
-- A granular token with 2FA "required for writes" makes the workflow
-  fail with EOTP: choose a token that bypasses 2FA (automation), or
-  publish by hand once with `npm login`.
+- The first run (2026-10-21) failed exactly here: a granular token
+  without "Bypass 2FA" gets `E403 … bypass 2fa enabled is required`
+  (nothing was uploaded). Regenerate the token with that option, replace
+  the `NPM_TOKEN` secret, re-run the workflow. Once the packages exist,
+  npm's trusted publishing (GitHub OIDC, no token) is an option: it
+  needs `id-token: write` and npm ≥ 11.5 on the runner.
 - `npm pack` names a scoped tarball `albahadly-formsgen-renderer-<v>.tgz`;
   the monorepo install line in the READMEs uses that pattern.
 - The unscoped `formsgen` package on npm belongs to someone else; the
