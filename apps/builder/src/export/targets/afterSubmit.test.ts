@@ -86,6 +86,15 @@ describe('a thank-you message after submit', () => {
     expect(host).toContain('@again="sent = false"')
   })
 
+  it('vue, Tailwind flavour: the scoped block holds the rule alone (no stylesheet, no "undefined")', () => {
+    const vue = getTarget('vue-standalone')!
+      .generate({ schema: s, css: getCssAdapter('tailwind') })
+      .map((f) => f.content)
+      .join('\n')
+    expect(vue).toContain(`<style scoped>\n${SENT_RULE}\n</style>`)
+    expect(vue).not.toContain('undefined[')
+  })
+
   it('needs the answer helpers even when no label pipes an answer', () => {
     expect(out('react', s)).toContain('function fgOr(')
     expect(out('vue-standalone', s)).toContain('function fgOr(')

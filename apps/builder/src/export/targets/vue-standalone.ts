@@ -646,7 +646,7 @@ ${submitBlock}}
 </script>`
 
     const stylesheet = exportStylesheet(css, schema)
-    const styleBlock = stylesheet || thanks ? `\n\n<style scoped>\n${stylesheet}${thanks ? `${SENT_RULE}\n` : ''}</style>` : ''
+    const styleBlock = stylesheet || thanks ? `\n\n<style scoped>\n${stylesheet ?? ''}${thanks ? `${SENT_RULE}\n` : ''}</style>` : ''
 
     // Bottom actions row: omitted when the wizard embeds the submit.
     const submitGate =
