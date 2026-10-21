@@ -18,7 +18,7 @@ export interface PrefillEntry {
 }
 
 const LIST_TYPES: ReadonlySet<string> = new Set(['checkboxgroup', 'multiselect', 'tags', 'dates'])
-const NUMBER_TYPES: ReadonlySet<string> = new Set(['number', 'range'])
+const NUMBER_TYPES: ReadonlySet<string> = new Set(['number', 'range', 'rating', 'nps'])
 /** Never filled from a URL: no text form, or not something a link should set. */
 const SKIPPED_TYPES: ReadonlySet<string> = new Set([
   'password',

@@ -32,7 +32,7 @@ const generateNoSlider = (targetId: string, framework: CssFrameworkId) => {
   const schema = fixture()
   const strip = (nodes: ElementNode[]): ElementNode[] =>
     nodes
-      .filter((n) => n.type !== 'rangeslider' && n.type !== 'html')
+      .filter((n) => n.type !== 'rangeslider' && n.type !== 'html' && n.type !== 'rating' && n.type !== 'nps')
       .map((n) => ({ ...n, props: { ...n.props, tooltip: undefined }, children: n.children && strip(n.children) }))
   schema.tree = strip(schema.tree)
   return getTarget(targetId)!.generate({ schema, css: getCssAdapter(framework) })

@@ -1,6 +1,6 @@
 import { resolveTheme, themeColorScheme, type ThemeTokens } from '@formsgen/renderer'
 import { SIZED_SLOTS, TONED_SLOTS, type CssFrameworkAdapter, type Slot, type SlotMods } from './types'
-import { COMPOSITE_CSS } from '../composite'
+import { COMPOSITE_CSS, SCORE_CSS } from '../composite'
 
 const CLASSES: Record<Slot, string> = {
   form: 'fg-form',
@@ -328,7 +328,7 @@ fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
 .fg-file-size { color: var(--fg-color-muted); font-size: 0.875rem; }
 .fg-file-remove { padding: 0 0.375rem; font-size: 1.125rem; line-height: 1; color: var(--fg-color-muted); background: none; border: none; cursor: pointer; }
 .fg-file-remove:hover { color: var(--fg-color-error); }
-${COMPOSITE_CSS}@media (prefers-color-scheme: dark) {
+${COMPOSITE_CSS}${SCORE_CSS}@media (prefers-color-scheme: dark) {
   .fg-form:not([data-fg-theme='light']) {
     --fg-color-bg: #0f172a; --fg-color-surface: #1e293b; --fg-color-text: #e2e8f0;
     --fg-color-muted: #94a3b8; --fg-color-border: #334155;

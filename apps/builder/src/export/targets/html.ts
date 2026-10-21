@@ -816,6 +816,10 @@ ${htmlItemDrag(messages)}
         var checked = document.querySelector('[data-fg-path="' + path + '"]:checked')
         return checked ? checked.value : null
       }
+      if (kind === 'score') {
+        var picked = document.querySelector('[data-fg-path="' + path + '"]:checked')
+        return picked ? Number(picked.value) : null
+      }
       if (kind === 'multiselect') {
         return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }

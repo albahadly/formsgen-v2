@@ -44,6 +44,25 @@ work. Phase handoffs (`INDEX.md`) stay the long-form record.
   `currency` amount with locale formatting and an `address` field with
   suggestions. Phase 44 shipped before it (`f5318ef`): verify green
   (renderer 218 / builder 379 / cli 12 / server 9), reviewed in Edge.
+  - **45a code is in** (2026-10-21, committed as `feat(phase-45)` on
+    `main`): `FgScore.vue` renders both types (radios under `fg-sr-only`,
+    stars in reverse DOM order so `SCORE_CSS` fills up to the chosen one),
+    `registry/elements/scores.ts` carries the four emitters (HTML
+    `data-fg-kind="score"`, Blazor `InputRadioGroup` over `double?`),
+    `SCORE_CSS` ships in every flavour and is mirrored in the renderer
+    stylesheet, `npsLow`/`npsHigh` in the five message catalogs, the
+    feedback template has stars + NPS (RSVP guests became a `range` so
+    that type keeps an example), kitchen sink `ks-stars`/`ks-nps`,
+    examples regenerated, snapshots refreshed. Renderer 29 files / builder
+    42 files green, strict `vue-tsc` and eslint clean on both.
+  - **Running / next:** the 12-runtime matrix on `tools/proof/demos/scores.json`
+    with `tools/proof/e2e/scores.mjs` (`export-demo.sh` → `strict.sh` →
+    `run-matrix.sh … ScoresDemoForm scores_demo … scores`, Edge via
+    `PLAYWRIGHT_CHANNEL=msedge`); results land in `tools/proof/work/scores`
+    (`res-*.json`, `err-*.txt`, `shots/`). Then: builder check in the
+    browser (palette, panel, preview), handoff `phase-45-field-types.md`
+    (45a section), INDEX row, ADR-0002 rows, `npx --yes pnpm@10 verify`,
+    push. 45b (currency, address) follows in the same phase doc.
 
 ## Next steps (in order) — the roadmap the user chose on 2026-10-21
 

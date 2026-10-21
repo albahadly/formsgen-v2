@@ -628,6 +628,17 @@ fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
 [dir='rtl'] .fg-floating > :focus ~ .fg-floating-label, [dir='rtl'] .fg-floating > :not(:placeholder-shown) ~ .fg-floating-label, [dir='rtl'] .fg-floating > select ~ .fg-floating-label { transform: scale(0.85) translateY(-0.5rem) translateX(-0.15rem); }
 .fg-floating > :focus ~ .fg-floating-label { color: var(--fg-color-primary); }
 .fg-floating > :not(:focus)::placeholder { color: transparent; }
+/* Scores: a star rating and an NPS scale, radios underneath (phase 45) */
+.fg-rating { display: inline-flex; flex-direction: row-reverse; gap: 0.125rem; }
+.fg-rating-star { cursor: pointer; font-size: 1.75rem; line-height: 1; color: var(--fg-color-border); transition: color 0.1s; }
+.fg-rating-star::before { content: '\2605'; }
+.fg-rating input:checked ~ .fg-rating-star, .fg-rating-star:hover, .fg-rating-star:hover ~ .fg-rating-star { color: #f59e0b; }
+.fg-rating input:focus-visible + .fg-rating-star { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; border-radius: 4px; }
+.fg-nps { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.fg-nps-option { min-inline-size: 2.25rem; padding: 0.375rem 0; text-align: center; font-size: 0.875rem; line-height: 1.25rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); cursor: pointer; }
+.fg-nps input:checked + .fg-nps-option { background: var(--fg-color-primary); color: var(--fg-color-primary-contrast); border-color: var(--fg-color-primary); }
+.fg-nps input:focus-visible + .fg-nps-option { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; }
+.fg-nps-ends { display: flex; justify-content: space-between; font-size: 0.875rem; line-height: 1.25rem; color: var(--fg-color-muted); }
 @media (prefers-color-scheme: dark) {
   .fg-form:not([data-fg-theme='light']) {
     --fg-color-bg: #0f172a; --fg-color-surface: #1e293b; --fg-color-text: #e2e8f0;

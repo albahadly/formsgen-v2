@@ -89,6 +89,8 @@ export const fr: MessageCatalog = {
   draftClear: 'Effacer les réponses enregistrées',
   draftCleared: 'Réponses enregistrées effacées.',
   sendAnother: 'Envoyer une autre réponse',
+  npsLow: 'Peu probable',
+  npsHigh: 'Très probable',
 }
 
 export const es: MessageCatalog = {
@@ -177,6 +179,8 @@ export const es: MessageCatalog = {
   draftClear: 'Borrar las respuestas guardadas',
   draftCleared: 'Respuestas guardadas borradas.',
   sendAnother: 'Enviar otra respuesta',
+  npsLow: 'Poco probable',
+  npsHigh: 'Muy probable',
 }
 
 export const de: MessageCatalog = {
@@ -265,4 +269,6 @@ export const de: MessageCatalog = {
   draftClear: 'Gespeicherte Antworten löschen',
   draftCleared: 'Gespeicherte Antworten gelöscht.',
   sendAnother: 'Weitere Antwort senden',
+  npsLow: 'Unwahrscheinlich',
+  npsHigh: 'Sehr wahrscheinlich',
 }

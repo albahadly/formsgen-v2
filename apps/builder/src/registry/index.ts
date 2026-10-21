@@ -2,6 +2,7 @@ import { getCoreElement } from '@formsgen/renderer'
 import { buttonElement } from './elements/button'
 import { checkboxElement, toggleElement } from './elements/checkbox'
 import { checkboxGroupElement, radioGroupElement } from './elements/choiceGroups'
+import { npsElement, ratingElement } from './elements/scores'
 import { columnsElement } from './elements/columns'
 import { groupElement } from './elements/group'
 import { hiddenElement } from './elements/hidden'
@@ -98,6 +99,8 @@ for (const def of [
   checkboxGroupElement,
   rangeElement,
   rangeSliderElement,
+  ratingElement,
+  npsElement,
   dateRangeElement,
   datesElement,
   matrixElement,

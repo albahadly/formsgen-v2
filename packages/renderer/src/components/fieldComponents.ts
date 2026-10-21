@@ -18,6 +18,7 @@ import FgNumber from './fields/FgNumber.vue'
 import FgPhone from './fields/FgPhone.vue'
 import FgRadioGroup from './fields/FgRadioGroup.vue'
 import FgRange from './fields/FgRange.vue'
+import FgScore from './fields/FgScore.vue'
 import FgRangeSlider from './fields/FgRangeSlider.vue'
 import FgSelect from './fields/FgSelect.vue'
 import FgTags from './fields/FgTags.vue'
@@ -36,6 +37,8 @@ export const FIELD_COMPONENTS: Readonly<Record<string, Component>> = {
   toggle: FgCheckbox,
   checkboxgroup: FgCheckboxGroup,
   range: FgRange,
+  rating: FgScore,
+  nps: FgScore,
   rangeslider: FgRangeSlider,
   daterange: FgDateRange,
   dates: FgDates,

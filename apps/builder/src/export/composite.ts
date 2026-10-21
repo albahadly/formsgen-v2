@@ -84,6 +84,22 @@ export const COMPOSITE_CSS = `/* Composite fields (two-handle slider, date range
 `
 
 /** Help-tooltip rules (framework-neutral, like the slider's). */
+/** The star rating and NPS scale (mirrored verbatim in the renderer stylesheet). */
+export const SCORE_CSS = `/* Scores: a star rating and an NPS scale, radios underneath (phase 45) */
+.fg-rating { display: inline-flex; flex-direction: row-reverse; gap: 0.125rem; }
+.fg-rating-star { cursor: pointer; font-size: 1.75rem; line-height: 1; color: var(--fg-color-border); transition: color 0.1s; }
+.fg-rating-star::before { content: '\\2605'; }
+.fg-rating input:checked ~ .fg-rating-star, .fg-rating-star:hover, .fg-rating-star:hover ~ .fg-rating-star { color: #f59e0b; }
+.fg-rating input:focus-visible + .fg-rating-star { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; border-radius: 4px; }
+.fg-nps { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.fg-nps-option { min-inline-size: 2.25rem; padding: 0.375rem 0; text-align: center; font-size: 0.875rem; line-height: 1.25rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); cursor: pointer; }
+.fg-nps input:checked + .fg-nps-option { background: var(--fg-color-primary); color: var(--fg-color-primary-contrast); border-color: var(--fg-color-primary); }
+.fg-nps input:focus-visible + .fg-nps-option { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; }
+.fg-nps-ends { display: flex; justify-content: space-between; font-size: 0.875rem; line-height: 1.25rem; color: var(--fg-color-muted); }
+`
+
+export const hasScores = (schema: FormSchema): boolean => treeHasType(schema.tree, 'rating') || treeHasType(schema.tree, 'nps')
+
 export const TIP_CSS = `.fg-label-row { display: flex; align-items: center; gap: 0.375rem; }
 /* The bubble anchors to the row holding the tip (label row, checkbox row or
    legend), from its start edge, so it never runs off a narrow screen. */
@@ -246,6 +262,7 @@ export function exportStylesheet(css: CssFrameworkAdapter, schema: FormSchema): 
   const extra = [
     css.id === 'bootstrap5' ? `/* FormsGen parity: the same shape as the other flavours */\n${BOOTSTRAP_PARITY_CSS}` : '',
     hasRangeSlider(schema) ? `/* Two-handle range slider */\n${DUAL_RANGE_CSS}` : '',
+    hasScores(schema) ? SCORE_CSS : '',
     css.id === 'bootstrap5' && hasRichText(schema.tree)
       ? '/* Rich text editors */\n.fg-richtext-editor { min-height: 6rem; padding: 0.5rem 0.75rem; outline: none; overflow-wrap: anywhere; }\n.fg-richtext-editor p { margin-bottom: 0.5rem; }\n[data-fg-rich]:focus-within { outline: 2px solid var(--bs-primary); outline-offset: 2px; }\n'
       : '',

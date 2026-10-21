@@ -87,6 +87,9 @@ export const coreElements: Record<string, CoreElementMeta> = {
   checkbox: meta('checkbox', true, false, () => false),
   checkboxgroup: meta('checkboxgroup', true, false, () => []),
   range: meta('range', true, false, (node) => Number(node.props['min'] ?? 0)),
+  // Scores: a number or null, radios underneath (rating 1..stars, nps 0..10).
+  rating: meta('rating', true, false, () => null),
+  nps: meta('nps', true, false, () => null),
   // Composite values (see composite.ts).
   rangeslider: meta('rangeslider', true, false, rangeSliderDefault),
   daterange: meta('daterange', true, false, () => ({ from: '', to: '' })),
@@ -157,4 +160,10 @@ export function choiceDisplay(node: ElementNode): ChoiceDisplay {
 /** Range sliders drawn vertically (props.orientation). */
 export function isVerticalRange(node: ElementNode): boolean {
   return node.props['orientation'] === 'vertical'
+}
+
+/** A star rating's star count: props.max, 3 to 10, 5 by default. */
+export function ratingStars(node: ElementNode): number {
+  const raw = Math.round(Number(node.props['max']))
+  return Number.isFinite(raw) && raw > 0 ? Math.min(10, Math.max(3, raw)) : 5
 }

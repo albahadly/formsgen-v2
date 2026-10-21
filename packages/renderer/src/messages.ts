@@ -153,6 +153,9 @@ export interface MessageCatalog {
   draftCleared: string
   /** After submit: the button under the thank-you message. */
   sendAnother: string
+  /** NPS scale: the words under the 0 and the 10 when the form sets none. */
+  npsLow: string
+  npsHigh: string
 }
 
 const en: MessageCatalog = {
@@ -241,6 +244,8 @@ const en: MessageCatalog = {
   draftClear: 'Clear saved answers',
   draftCleared: 'Saved answers cleared.',
   sendAnother: 'Send another response',
+  npsLow: 'Not likely',
+  npsHigh: 'Very likely',
 }
 
 const ar: MessageCatalog = {
@@ -332,6 +337,8 @@ const ar: MessageCatalog = {
   draftClear: 'مسح الإجابات المحفوظة',
   draftCleared: 'تم مسح الإجابات المحفوظة.',
   sendAnother: 'إرسال رد آخر',
+  npsLow: 'غير محتمل',
+  npsHigh: 'محتمل جدًا',
 }
 
 export const MESSAGES: Readonly<Record<'en' | 'ar' | 'fr' | 'es' | 'de', MessageCatalog>> = { en, ar, fr, es, de }

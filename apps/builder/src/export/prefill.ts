@@ -89,9 +89,9 @@ function fgPrefill() {
       if (typeof fgDates !== 'undefined' && fgDates[field.p]) { fgDates[field.p] = value.slice(); fgPaintDates(field.p) }
       return
     }
-    if (kind === 'radio' || kind === 'checks') {
+    if (kind === 'radio' || kind === 'score' || kind === 'checks') {
       Array.prototype.forEach.call(controls, function (input) {
-        input.checked = kind === 'radio' ? input.value === value : value.indexOf(input.value) !== -1
+        input.checked = kind === 'checks' ? value.indexOf(input.value) !== -1 : input.value === String(value)
         changed.push(input)
       })
       return

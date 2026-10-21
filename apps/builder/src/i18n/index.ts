@@ -491,6 +491,10 @@ const ar: Record<string, string> = {
   'element.checkbox.description': 'مربع نعم/لا واحد',
   'element.checkboxgroup.label': 'مجموعة مربعات',
   'element.checkboxgroup.description': 'اختيار أي عدد من الخيارات',
+  'element.rating.label': 'تقييم بالنجوم',
+  'element.rating.description': 'اختيار عدد من النجوم',
+  'element.nps.label': 'مقياس التوصية',
+  'element.nps.description': 'مقياس من 0 إلى 10 (NPS)',
   'element.range.label': 'شريط تمرير',
   'element.range.description': 'شريط تمرير (أفقي أو عمودي)',
   'element.search.label': 'بحث',
@@ -566,6 +570,11 @@ const ar: Record<string, string> = {
  */
 const arText: Record<string, string> = {
   'URL parameter': 'معامل عنوان الصفحة',
+  'Number of stars': 'عدد النجوم',
+  'Label at the low end': 'النص عند الطرف الأدنى',
+  'Label at the high end': 'النص عند الطرف الأعلى',
+  'Not likely': 'غير محتمل',
+  'Very likely': 'محتمل جدًا',
   'e.g. utm_source': 'مثل utm_source',
   // panel sections
   Properties: 'الخصائص',

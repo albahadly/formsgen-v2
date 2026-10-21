@@ -70,6 +70,8 @@ export function csFieldKind(node: ElementNode): CsFieldKind {
       return 'bool'
     case 'number':
     case 'calculated':
+    case 'rating':
+    case 'nps':
       return 'number'
     case 'range':
       return 'numberValue'

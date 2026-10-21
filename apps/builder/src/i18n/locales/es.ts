@@ -262,6 +262,10 @@ export const catalog: Record<string, string> = {
   'element.toggle.description': 'Conmutador de encendido/apagado',
   'element.checkboxgroup.label': 'Grupo de casillas',
   'element.checkboxgroup.description': 'Elegir cualquier número de opciones',
+  'element.rating.label': 'Valoración con estrellas',
+  'element.rating.description': 'Elegir un número de estrellas',
+  'element.nps.label': 'Puntuación de recomendación',
+  'element.nps.description': 'Escala de 0 a 10 (NPS)',
   'element.range.label': 'Control deslizante',
   'element.range.description': 'Deslizador de valor (horizontal o vertical)',
   'element.rangeslider.label': 'Deslizador de rango',
@@ -319,6 +323,11 @@ export const catalog: Record<string, string> = {
 }
 
 export const phrases: Record<string, string> = {
+  'Number of stars': 'Número de estrellas',
+  'Label at the low end': 'Texto en el extremo bajo',
+  'Label at the high end': 'Texto en el extremo alto',
+  'Not likely': 'Poco probable',
+  'Very likely': 'Muy probable',
   'URL parameter': 'Parámetro de la dirección',
   'e.g. utm_source': 'p. ej. utm_source',
   Properties: 'Propiedades',

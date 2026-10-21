@@ -1,0 +1,11 @@
+{
+ "$schema": "formsgen/v2",
+ "meta": { "name": "scores_demo", "title": "Scores", "locale": "en", "dir": "ltr", "prefillFromQuery": true, "submit": { "url": "http://FG_HOST:4280/submit", "method": "POST" } },
+ "tree": [
+  { "id": "stars", "type": "rating", "name": "stars", "props": { "label": "How many stars?", "max": 5 }, "validation": [{ "rule": "required" }] },
+  { "id": "said", "type": "paragraph", "props": { "text": "You gave {stars|no} stars." } },
+  { "id": "nps", "type": "nps", "name": "nps", "props": { "label": "How likely are you to recommend us?", "description": "0 is not at all, 10 is certainly." } },
+  { "id": "why", "type": "textarea", "name": "why", "props": { "label": "What went wrong?" }, "conditions": [[{ "field": "nps", "operator": "less-than", "value": 7 }]] },
+  { "id": "name", "type": "text", "name": "full_name", "props": { "label": "Your name" } }
+ ]
+}

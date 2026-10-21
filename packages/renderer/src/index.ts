@@ -75,6 +75,7 @@ export {
   getCoreElement,
   isSafeUrl,
   isVerticalRange,
+  ratingStars,
   type ChoiceDisplay,
   type CoreElementMeta,
 } from './elements'

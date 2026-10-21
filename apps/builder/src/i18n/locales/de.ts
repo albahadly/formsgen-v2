@@ -262,6 +262,10 @@ export const catalog: Record<string, string> = {
   'element.toggle.description': 'Ein/Aus-Schalter',
   'element.checkboxgroup.label': 'Kontrollkästchen-Gruppe',
   'element.checkboxgroup.description': 'Beliebig viele Optionen wählen',
+  'element.rating.label': 'Sternebewertung',
+  'element.rating.description': 'Eine Anzahl Sterne wählen',
+  'element.nps.label': 'Empfehlungsskala',
+  'element.nps.description': 'Skala von 0 bis 10 (NPS)',
   'element.range.label': 'Schieberegler',
   'element.range.description': 'Schieberegler (waagerecht oder senkrecht)',
   'element.rangeslider.label': 'Bereichsregler',
@@ -319,6 +323,11 @@ export const catalog: Record<string, string> = {
 }
 
 export const phrases: Record<string, string> = {
+  'Number of stars': 'Anzahl der Sterne',
+  'Label at the low end': 'Text am unteren Ende',
+  'Label at the high end': 'Text am oberen Ende',
+  'Not likely': 'Unwahrscheinlich',
+  'Very likely': 'Sehr wahrscheinlich',
   'URL parameter': 'Adressparameter',
   'e.g. utm_source': 'z. B. utm_source',
   Properties: 'Eigenschaften',

@@ -47,9 +47,9 @@ export function rsvp(lang: TemplateLocale): FormSchema {
     },
     {
       id: 'tpl-rsvp-guests',
-      type: 'number',
+      type: 'range',
       name: 'guests',
-      props: { label: L(tx('Guests coming with you', 'عدد المرافقين')), min: 0, max: 5, default: 0, tooltip: L(tx('Up to five.', 'حتى خمسة.')) },
+      props: { label: L(tx('Guests coming with you', 'عدد المرافقين')), min: 0, max: 5, step: 1, default: 0, tooltip: L(tx('Up to five.', 'حتى خمسة.')) },
       conditions: attending('yes'),
       layout: { colSpan: 6 },
     },

@@ -30,6 +30,7 @@ describe('element registry', () => {
       'matrix',
       'month',
       'multiselect',
+      'nps',
       'number',
       'paragraph',
       'password',
@@ -38,6 +39,7 @@ describe('element registry', () => {
       'radiogroup',
       'range',
       'rangeslider',
+      'rating',
       'repeater',
       'richtext',
       'search',
@@ -77,7 +79,7 @@ describe('element registry', () => {
       'paragraph',
       'quote',
     ])
-    expect(listElements('fields')).toHaveLength(33)
+    expect(listElements('fields')).toHaveLength(35)
   })
 
   it('every definition matches its core semantics in the renderer', () => {

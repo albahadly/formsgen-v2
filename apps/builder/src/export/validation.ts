@@ -71,6 +71,8 @@ function leafShape(node: ElementNode): Shape {
   switch (node.type) {
     case 'number':
     case 'calculated':
+    case 'rating':
+    case 'nps':
       return { kind: 'number', nullable: true }
     case 'range':
       return { kind: 'number', nullable: false }

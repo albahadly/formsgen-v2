@@ -72,6 +72,8 @@
       "name": "satisfaction",
       "props": { "label": "Satisfaction", "min": 0, "max": 10, "step": 1, "default": 5 }
     },
+    { "id": "ks-stars", "type": "rating", "name": "stars", "props": { "label": "Stars", "max": 5 }, "validation": [{ "rule": "required" }] },
+    { "id": "ks-nps", "type": "nps", "name": "nps", "props": { "label": "How likely are you to recommend us?" } },
     {
       "id": "ks-divider-1",
       "style": { "tone": "primary" },

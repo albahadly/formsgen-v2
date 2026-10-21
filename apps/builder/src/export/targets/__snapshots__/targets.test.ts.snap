@@ -85,6 +85,59 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
           </div>
         </div>
         <div class="col-12 col-md-12">
+          <fieldset class="d-flex flex-column fg-field">
+            <legend class="form-label fw-semibold small mb-0 fg-label">Stars<span class="text-danger fg-required" aria-hidden="true">*</span></legend>
+            <InputRadioGroup Name="fg_stars" @bind-Value="Model.Stars">
+              <div class="fg-rating">
+                <InputRadio id="fg_stars-5" class="visually-hidden" Value="@((double?)5)" />
+                <label class="fg-rating-star" for="fg_stars-5"><span class="visually-hidden">5</span></label>
+                <InputRadio id="fg_stars-4" class="visually-hidden" Value="@((double?)4)" />
+                <label class="fg-rating-star" for="fg_stars-4"><span class="visually-hidden">4</span></label>
+                <InputRadio id="fg_stars-3" class="visually-hidden" Value="@((double?)3)" />
+                <label class="fg-rating-star" for="fg_stars-3"><span class="visually-hidden">3</span></label>
+                <InputRadio id="fg_stars-2" class="visually-hidden" Value="@((double?)2)" />
+                <label class="fg-rating-star" for="fg_stars-2"><span class="visually-hidden">2</span></label>
+                <InputRadio id="fg_stars-1" class="visually-hidden" Value="@((double?)1)" />
+                <label class="fg-rating-star" for="fg_stars-1"><span class="visually-hidden">1</span></label>
+              </div>
+            </InputRadioGroup>
+            <ValidationMessage For="@(() => Model.Stars)" class="invalid-feedback d-block mt-0 mb-0 fg-error" />
+          </fieldset>
+        </div>
+        <div class="col-12 col-md-12">
+          <fieldset class="d-flex flex-column fg-field">
+            <legend class="form-label fw-semibold small mb-0 fg-label">How likely are you to recommend us?</legend>
+            <InputRadioGroup Name="fg_nps" @bind-Value="Model.Nps">
+              <div class="fg-nps">
+                <InputRadio id="fg_nps-0" class="visually-hidden" Value="@((double?)0)" />
+                <label class="fg-nps-option" for="fg_nps-0">0</label>
+                <InputRadio id="fg_nps-1" class="visually-hidden" Value="@((double?)1)" />
+                <label class="fg-nps-option" for="fg_nps-1">1</label>
+                <InputRadio id="fg_nps-2" class="visually-hidden" Value="@((double?)2)" />
+                <label class="fg-nps-option" for="fg_nps-2">2</label>
+                <InputRadio id="fg_nps-3" class="visually-hidden" Value="@((double?)3)" />
+                <label class="fg-nps-option" for="fg_nps-3">3</label>
+                <InputRadio id="fg_nps-4" class="visually-hidden" Value="@((double?)4)" />
+                <label class="fg-nps-option" for="fg_nps-4">4</label>
+                <InputRadio id="fg_nps-5" class="visually-hidden" Value="@((double?)5)" />
+                <label class="fg-nps-option" for="fg_nps-5">5</label>
+                <InputRadio id="fg_nps-6" class="visually-hidden" Value="@((double?)6)" />
+                <label class="fg-nps-option" for="fg_nps-6">6</label>
+                <InputRadio id="fg_nps-7" class="visually-hidden" Value="@((double?)7)" />
+                <label class="fg-nps-option" for="fg_nps-7">7</label>
+                <InputRadio id="fg_nps-8" class="visually-hidden" Value="@((double?)8)" />
+                <label class="fg-nps-option" for="fg_nps-8">8</label>
+                <InputRadio id="fg_nps-9" class="visually-hidden" Value="@((double?)9)" />
+                <label class="fg-nps-option" for="fg_nps-9">9</label>
+                <InputRadio id="fg_nps-10" class="visually-hidden" Value="@((double?)10)" />
+                <label class="fg-nps-option" for="fg_nps-10">10</label>
+              </div>
+              <div class="fg-nps-ends" aria-hidden="true"><span>Not likely</span><span>Very likely</span></div>
+            </InputRadioGroup>
+            <ValidationMessage For="@(() => Model.Nps)" class="invalid-feedback d-block mt-0 mb-0 fg-error" />
+          </fieldset>
+        </div>
+        <div class="col-12 col-md-12">
           <hr class="border-top my-1 border-primary opacity-100" />
         </div>
         <div class="col-12 col-md-12">
@@ -1358,6 +1411,8 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
             "Seats" => Model.Seats,
             "SeatCost" => Model.SeatCost,
             "Satisfaction" => Model.Satisfaction,
+            "Stars" => Model.Stars,
+            "Nps" => Model.Nps,
             "City" => Model.City,
             "Zip" => Model.Zip,
             "AccountUsername" => Model.AccountUsername,
@@ -1466,6 +1521,8 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         "Seats",
         "SeatCost",
         "Satisfaction",
+        "Stars",
+        "Nps",
         "City",
         "Zip",
         "AccountUsername",
@@ -2402,6 +2459,8 @@ exports[`blazor target > snapshot (bootstrap5) 1`] = `
         { var v = FgQueryString(query, "website"); if (v is not null) Model.Website = v; }
         { var v = FgQueryNumber(query, "seats"); if (v is not null) Model.Seats = v; }
         { var v = FgQueryNumber(query, "satisfaction"); if (v is not null) Model.Satisfaction = v.Value; }
+        { var v = FgQueryNumber(query, "stars"); if (v is not null) Model.Stars = v; }
+        { var v = FgQueryNumber(query, "nps"); if (v is not null) Model.Nps = v; }
         { var v = FgQueryString(query, "city"); if (v is not null) Model.City = v; }
         { var v = FgQueryString(query, "zip"); if (v is not null) Model.Zip = v; }
         { var v = FgQueryString(query, "account.username"); if (v is not null) Model.AccountUsername = v; }
@@ -3352,6 +3411,8 @@ window.fgCaptchaWire = function (el, dotnet) {
         payload["seats"] = Model.Seats;
         payload["seat_cost"] = Model.SeatCost;
         payload["satisfaction"] = Model.Satisfaction;
+        payload["stars"] = Model.Stars;
+        payload["nps"] = Model.Nps;
         payload["city"] = Model.City;
         payload["zip"] = Model.Zip;
         var dict0 = new Dictionary<string, object?>();
@@ -3423,6 +3484,11 @@ window.fgCaptchaWire = function (el, dotnet) {
         public double? SeatCost { get; set; }
 
         public double Satisfaction { get; set; } = 5;
+
+        [Required(ErrorMessage = "This field is required")]
+        public double? Stars { get; set; }
+
+        public double? Nps { get; set; }
 
         public string City { get; set; } = "";
 
@@ -3623,6 +3689,59 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
             <input id="fg_satisfaction" type="range" @bind="Model.Satisfaction" @bind:event="oninput" class="h-6 w-full accent-indigo-600" min="0" max="10" step="1" />
             <ValidationMessage For="@(() => Model.Satisfaction)" class="text-sm text-red-600" />
           </div>
+        </div>
+        <div class="col-span-12 md:col-span-12">
+          <fieldset class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
+            <legend class="text-sm font-semibold">Stars<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></legend>
+            <InputRadioGroup Name="fg_stars" @bind-Value="Model.Stars">
+              <div class="fg-rating">
+                <InputRadio id="fg_stars-5" class="sr-only" Value="@((double?)5)" />
+                <label class="fg-rating-star" for="fg_stars-5"><span class="sr-only">5</span></label>
+                <InputRadio id="fg_stars-4" class="sr-only" Value="@((double?)4)" />
+                <label class="fg-rating-star" for="fg_stars-4"><span class="sr-only">4</span></label>
+                <InputRadio id="fg_stars-3" class="sr-only" Value="@((double?)3)" />
+                <label class="fg-rating-star" for="fg_stars-3"><span class="sr-only">3</span></label>
+                <InputRadio id="fg_stars-2" class="sr-only" Value="@((double?)2)" />
+                <label class="fg-rating-star" for="fg_stars-2"><span class="sr-only">2</span></label>
+                <InputRadio id="fg_stars-1" class="sr-only" Value="@((double?)1)" />
+                <label class="fg-rating-star" for="fg_stars-1"><span class="sr-only">1</span></label>
+              </div>
+            </InputRadioGroup>
+            <ValidationMessage For="@(() => Model.Stars)" class="text-sm text-red-600" />
+          </fieldset>
+        </div>
+        <div class="col-span-12 md:col-span-12">
+          <fieldset class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
+            <legend class="text-sm font-semibold">How likely are you to recommend us?</legend>
+            <InputRadioGroup Name="fg_nps" @bind-Value="Model.Nps">
+              <div class="fg-nps">
+                <InputRadio id="fg_nps-0" class="sr-only" Value="@((double?)0)" />
+                <label class="fg-nps-option" for="fg_nps-0">0</label>
+                <InputRadio id="fg_nps-1" class="sr-only" Value="@((double?)1)" />
+                <label class="fg-nps-option" for="fg_nps-1">1</label>
+                <InputRadio id="fg_nps-2" class="sr-only" Value="@((double?)2)" />
+                <label class="fg-nps-option" for="fg_nps-2">2</label>
+                <InputRadio id="fg_nps-3" class="sr-only" Value="@((double?)3)" />
+                <label class="fg-nps-option" for="fg_nps-3">3</label>
+                <InputRadio id="fg_nps-4" class="sr-only" Value="@((double?)4)" />
+                <label class="fg-nps-option" for="fg_nps-4">4</label>
+                <InputRadio id="fg_nps-5" class="sr-only" Value="@((double?)5)" />
+                <label class="fg-nps-option" for="fg_nps-5">5</label>
+                <InputRadio id="fg_nps-6" class="sr-only" Value="@((double?)6)" />
+                <label class="fg-nps-option" for="fg_nps-6">6</label>
+                <InputRadio id="fg_nps-7" class="sr-only" Value="@((double?)7)" />
+                <label class="fg-nps-option" for="fg_nps-7">7</label>
+                <InputRadio id="fg_nps-8" class="sr-only" Value="@((double?)8)" />
+                <label class="fg-nps-option" for="fg_nps-8">8</label>
+                <InputRadio id="fg_nps-9" class="sr-only" Value="@((double?)9)" />
+                <label class="fg-nps-option" for="fg_nps-9">9</label>
+                <InputRadio id="fg_nps-10" class="sr-only" Value="@((double?)10)" />
+                <label class="fg-nps-option" for="fg_nps-10">10</label>
+              </div>
+              <div class="fg-nps-ends" aria-hidden="true"><span>Not likely</span><span>Very likely</span></div>
+            </InputRadioGroup>
+            <ValidationMessage For="@(() => Model.Nps)" class="text-sm text-red-600" />
+          </fieldset>
         </div>
         <div class="col-span-12 md:col-span-12">
           <hr class="my-1 border-t border-indigo-500" />
@@ -4902,6 +5021,8 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
             "Seats" => Model.Seats,
             "SeatCost" => Model.SeatCost,
             "Satisfaction" => Model.Satisfaction,
+            "Stars" => Model.Stars,
+            "Nps" => Model.Nps,
             "City" => Model.City,
             "Zip" => Model.Zip,
             "AccountUsername" => Model.AccountUsername,
@@ -5010,6 +5131,8 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         "Seats",
         "SeatCost",
         "Satisfaction",
+        "Stars",
+        "Nps",
         "City",
         "Zip",
         "AccountUsername",
@@ -5946,6 +6069,8 @@ exports[`blazor target > snapshot (tailwind) 1`] = `
         { var v = FgQueryString(query, "website"); if (v is not null) Model.Website = v; }
         { var v = FgQueryNumber(query, "seats"); if (v is not null) Model.Seats = v; }
         { var v = FgQueryNumber(query, "satisfaction"); if (v is not null) Model.Satisfaction = v.Value; }
+        { var v = FgQueryNumber(query, "stars"); if (v is not null) Model.Stars = v; }
+        { var v = FgQueryNumber(query, "nps"); if (v is not null) Model.Nps = v; }
         { var v = FgQueryString(query, "city"); if (v is not null) Model.City = v; }
         { var v = FgQueryString(query, "zip"); if (v is not null) Model.Zip = v; }
         { var v = FgQueryString(query, "account.username"); if (v is not null) Model.AccountUsername = v; }
@@ -6896,6 +7021,8 @@ window.fgCaptchaWire = function (el, dotnet) {
         payload["seats"] = Model.Seats;
         payload["seat_cost"] = Model.SeatCost;
         payload["satisfaction"] = Model.Satisfaction;
+        payload["stars"] = Model.Stars;
+        payload["nps"] = Model.Nps;
         payload["city"] = Model.City;
         payload["zip"] = Model.Zip;
         var dict0 = new Dictionary<string, object?>();
@@ -6967,6 +7094,11 @@ window.fgCaptchaWire = function (el, dotnet) {
         public double? SeatCost { get; set; }
 
         public double Satisfaction { get; set; } = 5;
+
+        [Required(ErrorMessage = "This field is required")]
+        public double? Stars { get; set; }
+
+        public double? Nps { get; set; }
 
         public string City { get; set; } = "";
 
@@ -7167,6 +7299,59 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             <input id="fg_satisfaction" type="range" @bind="Model.Satisfaction" @bind:event="oninput" class="fg-range" min="0" max="10" step="1" />
             <ValidationMessage For="@(() => Model.Satisfaction)" class="fg-error" />
           </div>
+        </div>
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
+          <fieldset class="fg-field">
+            <legend class="fg-label">Stars<span class="fg-required" aria-hidden="true">*</span></legend>
+            <InputRadioGroup Name="fg_stars" @bind-Value="Model.Stars">
+              <div class="fg-rating">
+                <InputRadio id="fg_stars-5" class="fg-sr-only" Value="@((double?)5)" />
+                <label class="fg-rating-star" for="fg_stars-5"><span class="fg-sr-only">5</span></label>
+                <InputRadio id="fg_stars-4" class="fg-sr-only" Value="@((double?)4)" />
+                <label class="fg-rating-star" for="fg_stars-4"><span class="fg-sr-only">4</span></label>
+                <InputRadio id="fg_stars-3" class="fg-sr-only" Value="@((double?)3)" />
+                <label class="fg-rating-star" for="fg_stars-3"><span class="fg-sr-only">3</span></label>
+                <InputRadio id="fg_stars-2" class="fg-sr-only" Value="@((double?)2)" />
+                <label class="fg-rating-star" for="fg_stars-2"><span class="fg-sr-only">2</span></label>
+                <InputRadio id="fg_stars-1" class="fg-sr-only" Value="@((double?)1)" />
+                <label class="fg-rating-star" for="fg_stars-1"><span class="fg-sr-only">1</span></label>
+              </div>
+            </InputRadioGroup>
+            <ValidationMessage For="@(() => Model.Stars)" class="fg-error" />
+          </fieldset>
+        </div>
+        <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
+          <fieldset class="fg-field">
+            <legend class="fg-label">How likely are you to recommend us?</legend>
+            <InputRadioGroup Name="fg_nps" @bind-Value="Model.Nps">
+              <div class="fg-nps">
+                <InputRadio id="fg_nps-0" class="fg-sr-only" Value="@((double?)0)" />
+                <label class="fg-nps-option" for="fg_nps-0">0</label>
+                <InputRadio id="fg_nps-1" class="fg-sr-only" Value="@((double?)1)" />
+                <label class="fg-nps-option" for="fg_nps-1">1</label>
+                <InputRadio id="fg_nps-2" class="fg-sr-only" Value="@((double?)2)" />
+                <label class="fg-nps-option" for="fg_nps-2">2</label>
+                <InputRadio id="fg_nps-3" class="fg-sr-only" Value="@((double?)3)" />
+                <label class="fg-nps-option" for="fg_nps-3">3</label>
+                <InputRadio id="fg_nps-4" class="fg-sr-only" Value="@((double?)4)" />
+                <label class="fg-nps-option" for="fg_nps-4">4</label>
+                <InputRadio id="fg_nps-5" class="fg-sr-only" Value="@((double?)5)" />
+                <label class="fg-nps-option" for="fg_nps-5">5</label>
+                <InputRadio id="fg_nps-6" class="fg-sr-only" Value="@((double?)6)" />
+                <label class="fg-nps-option" for="fg_nps-6">6</label>
+                <InputRadio id="fg_nps-7" class="fg-sr-only" Value="@((double?)7)" />
+                <label class="fg-nps-option" for="fg_nps-7">7</label>
+                <InputRadio id="fg_nps-8" class="fg-sr-only" Value="@((double?)8)" />
+                <label class="fg-nps-option" for="fg_nps-8">8</label>
+                <InputRadio id="fg_nps-9" class="fg-sr-only" Value="@((double?)9)" />
+                <label class="fg-nps-option" for="fg_nps-9">9</label>
+                <InputRadio id="fg_nps-10" class="fg-sr-only" Value="@((double?)10)" />
+                <label class="fg-nps-option" for="fg_nps-10">10</label>
+              </div>
+              <div class="fg-nps-ends" aria-hidden="true"><span>Not likely</span><span>Very likely</span></div>
+            </InputRadioGroup>
+            <ValidationMessage For="@(() => Model.Nps)" class="fg-error" />
+          </fieldset>
         </div>
         <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
           <hr class="fg-divider fg-tone-primary" />
@@ -8446,6 +8631,8 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
             "Seats" => Model.Seats,
             "SeatCost" => Model.SeatCost,
             "Satisfaction" => Model.Satisfaction,
+            "Stars" => Model.Stars,
+            "Nps" => Model.Nps,
             "City" => Model.City,
             "Zip" => Model.Zip,
             "AccountUsername" => Model.AccountUsername,
@@ -8554,6 +8741,8 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         "Seats",
         "SeatCost",
         "Satisfaction",
+        "Stars",
+        "Nps",
         "City",
         "Zip",
         "AccountUsername",
@@ -9490,6 +9679,8 @@ exports[`blazor target > snapshot (vanilla) 1`] = `
         { var v = FgQueryString(query, "website"); if (v is not null) Model.Website = v; }
         { var v = FgQueryNumber(query, "seats"); if (v is not null) Model.Seats = v; }
         { var v = FgQueryNumber(query, "satisfaction"); if (v is not null) Model.Satisfaction = v.Value; }
+        { var v = FgQueryNumber(query, "stars"); if (v is not null) Model.Stars = v; }
+        { var v = FgQueryNumber(query, "nps"); if (v is not null) Model.Nps = v; }
         { var v = FgQueryString(query, "city"); if (v is not null) Model.City = v; }
         { var v = FgQueryString(query, "zip"); if (v is not null) Model.Zip = v; }
         { var v = FgQueryString(query, "account.username"); if (v is not null) Model.AccountUsername = v; }
@@ -10440,6 +10631,8 @@ window.fgCaptchaWire = function (el, dotnet) {
         payload["seats"] = Model.Seats;
         payload["seat_cost"] = Model.SeatCost;
         payload["satisfaction"] = Model.Satisfaction;
+        payload["stars"] = Model.Stars;
+        payload["nps"] = Model.Nps;
         payload["city"] = Model.City;
         payload["zip"] = Model.Zip;
         var dict0 = new Dictionary<string, object?>();
@@ -10511,6 +10704,11 @@ window.fgCaptchaWire = function (el, dotnet) {
         public double? SeatCost { get; set; }
 
         public double Satisfaction { get; set; } = 5;
+
+        [Required(ErrorMessage = "This field is required")]
+        public double? Stars { get; set; }
+
+        public double? Nps { get; set; }
 
         public string City { get; set; } = "";
 
@@ -10684,6 +10882,18 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
   .fg-dual input[type='range']:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
   .fg-dual input[type='range']:focus-visible::-moz-range-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
 
+  /* Scores: a star rating and an NPS scale, radios underneath (phase 45) */
+  .fg-rating { display: inline-flex; flex-direction: row-reverse; gap: 0.125rem; }
+  .fg-rating-star { cursor: pointer; font-size: 1.75rem; line-height: 1; color: var(--fg-color-border); transition: color 0.1s; }
+  .fg-rating-star::before { content: '\\2605'; }
+  .fg-rating input:checked ~ .fg-rating-star, .fg-rating-star:hover, .fg-rating-star:hover ~ .fg-rating-star { color: #f59e0b; }
+  .fg-rating input:focus-visible + .fg-rating-star { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; border-radius: 4px; }
+  .fg-nps { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+  .fg-nps-option { min-inline-size: 2.25rem; padding: 0.375rem 0; text-align: center; font-size: 0.875rem; line-height: 1.25rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); cursor: pointer; }
+  .fg-nps input:checked + .fg-nps-option { background: var(--fg-color-primary); color: var(--fg-color-primary-contrast); border-color: var(--fg-color-primary); }
+  .fg-nps input:focus-visible + .fg-nps-option { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; }
+  .fg-nps-ends { display: flex; justify-content: space-between; font-size: 0.875rem; line-height: 1.25rem; color: var(--fg-color-muted); }
+
   /* Rich text editors */
   .fg-richtext-editor { min-height: 6rem; padding: 0.5rem 0.75rem; outline: none; overflow-wrap: anywhere; }
   .fg-richtext-editor p { margin-bottom: 0.5rem; }
@@ -10813,6 +11023,55 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
           <input id="fg_satisfaction" type="range" class="form-range" data-fg-path="satisfaction" data-fg-kind="number" min="0" max="10" step="1" value="5">
           <p id="fg_satisfaction-err" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert" hidden></p>
         </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <fieldset class="d-flex flex-column fg-field">
+          <legend class="form-label fw-semibold small mb-0 fg-label">Stars<span class="text-danger fg-required" aria-hidden="true">*</span></legend>
+          <div class="fg-rating">
+            <input id="fg_stars-5" type="radio" name="stars" class="visually-hidden" value="5" data-fg-path="stars" data-fg-kind="score">
+            <label class="fg-rating-star" for="fg_stars-5"><span class="visually-hidden">5</span></label>
+            <input id="fg_stars-4" type="radio" name="stars" class="visually-hidden" value="4" data-fg-path="stars" data-fg-kind="score">
+            <label class="fg-rating-star" for="fg_stars-4"><span class="visually-hidden">4</span></label>
+            <input id="fg_stars-3" type="radio" name="stars" class="visually-hidden" value="3" data-fg-path="stars" data-fg-kind="score">
+            <label class="fg-rating-star" for="fg_stars-3"><span class="visually-hidden">3</span></label>
+            <input id="fg_stars-2" type="radio" name="stars" class="visually-hidden" value="2" data-fg-path="stars" data-fg-kind="score">
+            <label class="fg-rating-star" for="fg_stars-2"><span class="visually-hidden">2</span></label>
+            <input id="fg_stars-1" type="radio" name="stars" class="visually-hidden" value="1" data-fg-path="stars" data-fg-kind="score">
+            <label class="fg-rating-star" for="fg_stars-1"><span class="visually-hidden">1</span></label>
+          </div>
+          <p id="fg_stars-err" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert" hidden></p>
+        </fieldset>
+      </div>
+      <div class="col-12 col-md-12">
+        <fieldset class="d-flex flex-column fg-field">
+          <legend class="form-label fw-semibold small mb-0 fg-label">How likely are you to recommend us?</legend>
+          <div class="fg-nps">
+            <input id="fg_nps-0" type="radio" name="nps" class="visually-hidden" value="0" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-0">0</label>
+            <input id="fg_nps-1" type="radio" name="nps" class="visually-hidden" value="1" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-1">1</label>
+            <input id="fg_nps-2" type="radio" name="nps" class="visually-hidden" value="2" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-2">2</label>
+            <input id="fg_nps-3" type="radio" name="nps" class="visually-hidden" value="3" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-3">3</label>
+            <input id="fg_nps-4" type="radio" name="nps" class="visually-hidden" value="4" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-4">4</label>
+            <input id="fg_nps-5" type="radio" name="nps" class="visually-hidden" value="5" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-5">5</label>
+            <input id="fg_nps-6" type="radio" name="nps" class="visually-hidden" value="6" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-6">6</label>
+            <input id="fg_nps-7" type="radio" name="nps" class="visually-hidden" value="7" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-7">7</label>
+            <input id="fg_nps-8" type="radio" name="nps" class="visually-hidden" value="8" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-8">8</label>
+            <input id="fg_nps-9" type="radio" name="nps" class="visually-hidden" value="9" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-9">9</label>
+            <input id="fg_nps-10" type="radio" name="nps" class="visually-hidden" value="10" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-10">10</label>
+          </div>
+          <div class="fg-nps-ends" aria-hidden="true"><span>Not likely</span><span>Very likely</span></div>
+          <p id="fg_nps-err" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert" hidden></p>
+        </fieldset>
       </div>
       <div class="col-12 col-md-12">
         <hr class="border-top my-1 border-primary opacity-100">
@@ -11927,6 +12186,10 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         var checked = document.querySelector('[data-fg-path="' + path + '"]:checked')
         return checked ? checked.value : null
       }
+      if (kind === 'score') {
+        var picked = document.querySelector('[data-fg-path="' + path + '"]:checked')
+        return picked ? Number(picked.value) : null
+      }
       if (kind === 'multiselect') {
         return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }
@@ -12008,6 +12271,11 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       const v = fgGet("seats")
       if (!fgIsEmpty(v) && ((fgSize(v) ?? -Infinity) < 1)) return "Must be at least 1"
       if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 50)) return "Must be at most 50"
+      return null
+      },
+      'stars': function () {
+      const v = fgGet("stars")
+      if (fgIsBlank(v)) return "This field is required"
       return null
       },
       'zip': function () {
@@ -12200,6 +12468,8 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
       "seats": function (v) { return fgAnswer(v, ", ") },
       "seat_cost": function (v) { return fgFmt(v, 2) },
       "satisfaction": function (v) { return fgAnswer(v, ", ") },
+      "stars": function (v) { return fgAnswer(v, ", ") },
+      "nps": function (v) { return fgAnswer(v, ", ") },
       "city": function (v) { return fgAnswer(v, ", ") },
       "zip": function (v) { return fgAnswer(v, ", ") },
       "account.username": function (v) { return fgAnswer(v, ", ") },
@@ -12919,6 +13189,8 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
         "seats": fgGet("seats"),
         "seat_cost": fgGet("seat_cost"),
         "satisfaction": fgGet("satisfaction"),
+        "stars": fgGet("stars"),
+        "nps": fgGet("nps"),
         "city": fgGet("city"),
         "zip": fgGet("zip"),
         "account": {
@@ -13687,7 +13959,7 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
     // Prefill from the page address: ?field=value fills matching fields (a list
     // takes repeated parameters or one comma-separated value); a hidden field
     // takes its named parameter. After a restored draft: the link wins.
-    var FG_PREFILL = [{ p: "full_name", k: "string" }, { p: "email", k: "string" }, { p: "website", k: "string" }, { p: "seats", k: "number" }, { p: "satisfaction", k: "number" }, { p: "city", k: "string" }, { p: "zip", k: "string" }, { p: "account.username", k: "string" }, { p: "account.bio", k: "string" }, { p: "account.birthday", k: "string" }, { p: "plan", k: "string" }, { p: "interests", k: "list" }, { p: "channels", k: "list" }, { p: "topics", k: "list" }, { p: "billing", k: "string" }, { p: "extras", k: "list" }, { p: "notify", k: "bool" }, { p: "appointment", k: "string" }, { p: "brand_color", k: "string" }, { p: "volume", k: "number" }, { p: "days", k: "list" }, { p: "source", k: "string", q: "utm_source" }, { p: "attachments_note", k: "string" }, { p: "contact_method", k: "string" }, { p: "contact_phone", k: "string" }, { p: "contact_other", k: "string" }, { p: "twitter", k: "string" }, { p: "github", k: "string" }, { p: "shipping_city", k: "string" }, { p: "order_notes", k: "string" }, { p: "newsletter", k: "bool" }, { p: "terms", k: "bool" }]
+    var FG_PREFILL = [{ p: "full_name", k: "string" }, { p: "email", k: "string" }, { p: "website", k: "string" }, { p: "seats", k: "number" }, { p: "satisfaction", k: "number" }, { p: "stars", k: "number" }, { p: "nps", k: "number" }, { p: "city", k: "string" }, { p: "zip", k: "string" }, { p: "account.username", k: "string" }, { p: "account.bio", k: "string" }, { p: "account.birthday", k: "string" }, { p: "plan", k: "string" }, { p: "interests", k: "list" }, { p: "channels", k: "list" }, { p: "topics", k: "list" }, { p: "billing", k: "string" }, { p: "extras", k: "list" }, { p: "notify", k: "bool" }, { p: "appointment", k: "string" }, { p: "brand_color", k: "string" }, { p: "volume", k: "number" }, { p: "days", k: "list" }, { p: "source", k: "string", q: "utm_source" }, { p: "attachments_note", k: "string" }, { p: "contact_method", k: "string" }, { p: "contact_phone", k: "string" }, { p: "contact_other", k: "string" }, { p: "twitter", k: "string" }, { p: "github", k: "string" }, { p: "shipping_city", k: "string" }, { p: "order_notes", k: "string" }, { p: "newsletter", k: "bool" }, { p: "terms", k: "bool" }]
     function fgPrefillValue(kind, raw) {
       var first = raw[0]
       if (first === undefined) return undefined
@@ -13716,9 +13988,9 @@ exports[`html target > snapshot (bootstrap5) 1`] = `
           if (typeof fgDates !== 'undefined' && fgDates[field.p]) { fgDates[field.p] = value.slice(); fgPaintDates(field.p) }
           return
         }
-        if (kind === 'radio' || kind === 'checks') {
+        if (kind === 'radio' || kind === 'score' || kind === 'checks') {
           Array.prototype.forEach.call(controls, function (input) {
-            input.checked = kind === 'radio' ? input.value === value : value.indexOf(input.value) !== -1
+            input.checked = kind === 'checks' ? value.indexOf(input.value) !== -1 : input.value === String(value)
             changed.push(input)
           })
           return
@@ -13818,6 +14090,18 @@ exports[`html target > snapshot (tailwind) 1`] = `
   .fg-dual input[type='range']:focus-visible { outline: none; }
   .fg-dual input[type='range']:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
   .fg-dual input[type='range']:focus-visible::-moz-range-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
+
+  /* Scores: a star rating and an NPS scale, radios underneath (phase 45) */
+  .fg-rating { display: inline-flex; flex-direction: row-reverse; gap: 0.125rem; }
+  .fg-rating-star { cursor: pointer; font-size: 1.75rem; line-height: 1; color: var(--fg-color-border); transition: color 0.1s; }
+  .fg-rating-star::before { content: '\\2605'; }
+  .fg-rating input:checked ~ .fg-rating-star, .fg-rating-star:hover, .fg-rating-star:hover ~ .fg-rating-star { color: #f59e0b; }
+  .fg-rating input:focus-visible + .fg-rating-star { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; border-radius: 4px; }
+  .fg-nps { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+  .fg-nps-option { min-inline-size: 2.25rem; padding: 0.375rem 0; text-align: center; font-size: 0.875rem; line-height: 1.25rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); cursor: pointer; }
+  .fg-nps input:checked + .fg-nps-option { background: var(--fg-color-primary); color: var(--fg-color-primary-contrast); border-color: var(--fg-color-primary); }
+  .fg-nps input:focus-visible + .fg-nps-option { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; }
+  .fg-nps-ends { display: flex; justify-content: space-between; font-size: 0.875rem; line-height: 1.25rem; color: var(--fg-color-muted); }
 
   /* Help tooltips */
   .fg-label-row { display: flex; align-items: center; gap: 0.375rem; }
@@ -13923,6 +14207,55 @@ exports[`html target > snapshot (tailwind) 1`] = `
           <input id="fg_satisfaction" type="range" class="h-6 w-full accent-indigo-600" data-fg-path="satisfaction" data-fg-kind="number" min="0" max="10" step="1" value="5">
           <p id="fg_satisfaction-err" class="text-sm text-red-600" role="alert" hidden></p>
         </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <fieldset class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
+          <legend class="text-sm font-semibold">Stars<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></legend>
+          <div class="fg-rating">
+            <input id="fg_stars-5" type="radio" name="stars" class="sr-only" value="5" data-fg-path="stars" data-fg-kind="score">
+            <label class="fg-rating-star" for="fg_stars-5"><span class="sr-only">5</span></label>
+            <input id="fg_stars-4" type="radio" name="stars" class="sr-only" value="4" data-fg-path="stars" data-fg-kind="score">
+            <label class="fg-rating-star" for="fg_stars-4"><span class="sr-only">4</span></label>
+            <input id="fg_stars-3" type="radio" name="stars" class="sr-only" value="3" data-fg-path="stars" data-fg-kind="score">
+            <label class="fg-rating-star" for="fg_stars-3"><span class="sr-only">3</span></label>
+            <input id="fg_stars-2" type="radio" name="stars" class="sr-only" value="2" data-fg-path="stars" data-fg-kind="score">
+            <label class="fg-rating-star" for="fg_stars-2"><span class="sr-only">2</span></label>
+            <input id="fg_stars-1" type="radio" name="stars" class="sr-only" value="1" data-fg-path="stars" data-fg-kind="score">
+            <label class="fg-rating-star" for="fg_stars-1"><span class="sr-only">1</span></label>
+          </div>
+          <p id="fg_stars-err" class="text-sm text-red-600" role="alert" hidden></p>
+        </fieldset>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <fieldset class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
+          <legend class="text-sm font-semibold">How likely are you to recommend us?</legend>
+          <div class="fg-nps">
+            <input id="fg_nps-0" type="radio" name="nps" class="sr-only" value="0" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-0">0</label>
+            <input id="fg_nps-1" type="radio" name="nps" class="sr-only" value="1" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-1">1</label>
+            <input id="fg_nps-2" type="radio" name="nps" class="sr-only" value="2" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-2">2</label>
+            <input id="fg_nps-3" type="radio" name="nps" class="sr-only" value="3" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-3">3</label>
+            <input id="fg_nps-4" type="radio" name="nps" class="sr-only" value="4" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-4">4</label>
+            <input id="fg_nps-5" type="radio" name="nps" class="sr-only" value="5" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-5">5</label>
+            <input id="fg_nps-6" type="radio" name="nps" class="sr-only" value="6" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-6">6</label>
+            <input id="fg_nps-7" type="radio" name="nps" class="sr-only" value="7" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-7">7</label>
+            <input id="fg_nps-8" type="radio" name="nps" class="sr-only" value="8" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-8">8</label>
+            <input id="fg_nps-9" type="radio" name="nps" class="sr-only" value="9" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-9">9</label>
+            <input id="fg_nps-10" type="radio" name="nps" class="sr-only" value="10" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-10">10</label>
+          </div>
+          <div class="fg-nps-ends" aria-hidden="true"><span>Not likely</span><span>Very likely</span></div>
+          <p id="fg_nps-err" class="text-sm text-red-600" role="alert" hidden></p>
+        </fieldset>
       </div>
       <div class="col-span-12 md:col-span-12">
         <hr class="my-1 border-t border-indigo-500">
@@ -15041,6 +15374,10 @@ exports[`html target > snapshot (tailwind) 1`] = `
         var checked = document.querySelector('[data-fg-path="' + path + '"]:checked')
         return checked ? checked.value : null
       }
+      if (kind === 'score') {
+        var picked = document.querySelector('[data-fg-path="' + path + '"]:checked')
+        return picked ? Number(picked.value) : null
+      }
       if (kind === 'multiselect') {
         return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }
@@ -15122,6 +15459,11 @@ exports[`html target > snapshot (tailwind) 1`] = `
       const v = fgGet("seats")
       if (!fgIsEmpty(v) && ((fgSize(v) ?? -Infinity) < 1)) return "Must be at least 1"
       if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 50)) return "Must be at most 50"
+      return null
+      },
+      'stars': function () {
+      const v = fgGet("stars")
+      if (fgIsBlank(v)) return "This field is required"
       return null
       },
       'zip': function () {
@@ -15314,6 +15656,8 @@ exports[`html target > snapshot (tailwind) 1`] = `
       "seats": function (v) { return fgAnswer(v, ", ") },
       "seat_cost": function (v) { return fgFmt(v, 2) },
       "satisfaction": function (v) { return fgAnswer(v, ", ") },
+      "stars": function (v) { return fgAnswer(v, ", ") },
+      "nps": function (v) { return fgAnswer(v, ", ") },
       "city": function (v) { return fgAnswer(v, ", ") },
       "zip": function (v) { return fgAnswer(v, ", ") },
       "account.username": function (v) { return fgAnswer(v, ", ") },
@@ -16033,6 +16377,8 @@ exports[`html target > snapshot (tailwind) 1`] = `
         "seats": fgGet("seats"),
         "seat_cost": fgGet("seat_cost"),
         "satisfaction": fgGet("satisfaction"),
+        "stars": fgGet("stars"),
+        "nps": fgGet("nps"),
         "city": fgGet("city"),
         "zip": fgGet("zip"),
         "account": {
@@ -16801,7 +17147,7 @@ exports[`html target > snapshot (tailwind) 1`] = `
     // Prefill from the page address: ?field=value fills matching fields (a list
     // takes repeated parameters or one comma-separated value); a hidden field
     // takes its named parameter. After a restored draft: the link wins.
-    var FG_PREFILL = [{ p: "full_name", k: "string" }, { p: "email", k: "string" }, { p: "website", k: "string" }, { p: "seats", k: "number" }, { p: "satisfaction", k: "number" }, { p: "city", k: "string" }, { p: "zip", k: "string" }, { p: "account.username", k: "string" }, { p: "account.bio", k: "string" }, { p: "account.birthday", k: "string" }, { p: "plan", k: "string" }, { p: "interests", k: "list" }, { p: "channels", k: "list" }, { p: "topics", k: "list" }, { p: "billing", k: "string" }, { p: "extras", k: "list" }, { p: "notify", k: "bool" }, { p: "appointment", k: "string" }, { p: "brand_color", k: "string" }, { p: "volume", k: "number" }, { p: "days", k: "list" }, { p: "source", k: "string", q: "utm_source" }, { p: "attachments_note", k: "string" }, { p: "contact_method", k: "string" }, { p: "contact_phone", k: "string" }, { p: "contact_other", k: "string" }, { p: "twitter", k: "string" }, { p: "github", k: "string" }, { p: "shipping_city", k: "string" }, { p: "order_notes", k: "string" }, { p: "newsletter", k: "bool" }, { p: "terms", k: "bool" }]
+    var FG_PREFILL = [{ p: "full_name", k: "string" }, { p: "email", k: "string" }, { p: "website", k: "string" }, { p: "seats", k: "number" }, { p: "satisfaction", k: "number" }, { p: "stars", k: "number" }, { p: "nps", k: "number" }, { p: "city", k: "string" }, { p: "zip", k: "string" }, { p: "account.username", k: "string" }, { p: "account.bio", k: "string" }, { p: "account.birthday", k: "string" }, { p: "plan", k: "string" }, { p: "interests", k: "list" }, { p: "channels", k: "list" }, { p: "topics", k: "list" }, { p: "billing", k: "string" }, { p: "extras", k: "list" }, { p: "notify", k: "bool" }, { p: "appointment", k: "string" }, { p: "brand_color", k: "string" }, { p: "volume", k: "number" }, { p: "days", k: "list" }, { p: "source", k: "string", q: "utm_source" }, { p: "attachments_note", k: "string" }, { p: "contact_method", k: "string" }, { p: "contact_phone", k: "string" }, { p: "contact_other", k: "string" }, { p: "twitter", k: "string" }, { p: "github", k: "string" }, { p: "shipping_city", k: "string" }, { p: "order_notes", k: "string" }, { p: "newsletter", k: "bool" }, { p: "terms", k: "bool" }]
     function fgPrefillValue(kind, raw) {
       var first = raw[0]
       if (first === undefined) return undefined
@@ -16830,9 +17176,9 @@ exports[`html target > snapshot (tailwind) 1`] = `
           if (typeof fgDates !== 'undefined' && fgDates[field.p]) { fgDates[field.p] = value.slice(); fgPaintDates(field.p) }
           return
         }
-        if (kind === 'radio' || kind === 'checks') {
+        if (kind === 'radio' || kind === 'score' || kind === 'checks') {
           Array.prototype.forEach.call(controls, function (input) {
-            input.checked = kind === 'radio' ? input.value === value : value.indexOf(input.value) !== -1
+            input.checked = kind === 'checks' ? value.indexOf(input.value) !== -1 : input.value === String(value)
             changed.push(input)
           })
           return
@@ -17175,6 +17521,17 @@ exports[`html target > snapshot (vanilla) 1`] = `
   [dir='rtl'] .fg-floating > :focus ~ .fg-floating-label, [dir='rtl'] .fg-floating > :not(:placeholder-shown) ~ .fg-floating-label, [dir='rtl'] .fg-floating > select ~ .fg-floating-label { transform: scale(0.85) translateY(-0.5rem) translateX(-0.15rem); }
   .fg-floating > :focus ~ .fg-floating-label { color: var(--fg-color-primary); }
   .fg-floating > :not(:focus)::placeholder { color: transparent; }
+  /* Scores: a star rating and an NPS scale, radios underneath (phase 45) */
+  .fg-rating { display: inline-flex; flex-direction: row-reverse; gap: 0.125rem; }
+  .fg-rating-star { cursor: pointer; font-size: 1.75rem; line-height: 1; color: var(--fg-color-border); transition: color 0.1s; }
+  .fg-rating-star::before { content: '\\2605'; }
+  .fg-rating input:checked ~ .fg-rating-star, .fg-rating-star:hover, .fg-rating-star:hover ~ .fg-rating-star { color: #f59e0b; }
+  .fg-rating input:focus-visible + .fg-rating-star { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; border-radius: 4px; }
+  .fg-nps { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+  .fg-nps-option { min-inline-size: 2.25rem; padding: 0.375rem 0; text-align: center; font-size: 0.875rem; line-height: 1.25rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); cursor: pointer; }
+  .fg-nps input:checked + .fg-nps-option { background: var(--fg-color-primary); color: var(--fg-color-primary-contrast); border-color: var(--fg-color-primary); }
+  .fg-nps input:focus-visible + .fg-nps-option { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; }
+  .fg-nps-ends { display: flex; justify-content: space-between; font-size: 0.875rem; line-height: 1.25rem; color: var(--fg-color-muted); }
   @media (prefers-color-scheme: dark) {
     .fg-form:not([data-fg-theme='light']) {
       --fg-color-bg: #0f172a; --fg-color-surface: #1e293b; --fg-color-text: #e2e8f0;
@@ -17259,6 +17616,55 @@ exports[`html target > snapshot (vanilla) 1`] = `
           <input id="fg_satisfaction" type="range" class="fg-range" data-fg-path="satisfaction" data-fg-kind="number" min="0" max="10" step="1" value="5">
           <p id="fg_satisfaction-err" class="fg-error" role="alert" hidden></p>
         </div>
+      </div>
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
+        <fieldset class="fg-field">
+          <legend class="fg-label">Stars<span class="fg-required" aria-hidden="true">*</span></legend>
+          <div class="fg-rating">
+            <input id="fg_stars-5" type="radio" name="stars" class="fg-sr-only" value="5" data-fg-path="stars" data-fg-kind="score">
+            <label class="fg-rating-star" for="fg_stars-5"><span class="fg-sr-only">5</span></label>
+            <input id="fg_stars-4" type="radio" name="stars" class="fg-sr-only" value="4" data-fg-path="stars" data-fg-kind="score">
+            <label class="fg-rating-star" for="fg_stars-4"><span class="fg-sr-only">4</span></label>
+            <input id="fg_stars-3" type="radio" name="stars" class="fg-sr-only" value="3" data-fg-path="stars" data-fg-kind="score">
+            <label class="fg-rating-star" for="fg_stars-3"><span class="fg-sr-only">3</span></label>
+            <input id="fg_stars-2" type="radio" name="stars" class="fg-sr-only" value="2" data-fg-path="stars" data-fg-kind="score">
+            <label class="fg-rating-star" for="fg_stars-2"><span class="fg-sr-only">2</span></label>
+            <input id="fg_stars-1" type="radio" name="stars" class="fg-sr-only" value="1" data-fg-path="stars" data-fg-kind="score">
+            <label class="fg-rating-star" for="fg_stars-1"><span class="fg-sr-only">1</span></label>
+          </div>
+          <p id="fg_stars-err" class="fg-error" role="alert" hidden></p>
+        </fieldset>
+      </div>
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
+        <fieldset class="fg-field">
+          <legend class="fg-label">How likely are you to recommend us?</legend>
+          <div class="fg-nps">
+            <input id="fg_nps-0" type="radio" name="nps" class="fg-sr-only" value="0" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-0">0</label>
+            <input id="fg_nps-1" type="radio" name="nps" class="fg-sr-only" value="1" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-1">1</label>
+            <input id="fg_nps-2" type="radio" name="nps" class="fg-sr-only" value="2" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-2">2</label>
+            <input id="fg_nps-3" type="radio" name="nps" class="fg-sr-only" value="3" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-3">3</label>
+            <input id="fg_nps-4" type="radio" name="nps" class="fg-sr-only" value="4" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-4">4</label>
+            <input id="fg_nps-5" type="radio" name="nps" class="fg-sr-only" value="5" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-5">5</label>
+            <input id="fg_nps-6" type="radio" name="nps" class="fg-sr-only" value="6" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-6">6</label>
+            <input id="fg_nps-7" type="radio" name="nps" class="fg-sr-only" value="7" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-7">7</label>
+            <input id="fg_nps-8" type="radio" name="nps" class="fg-sr-only" value="8" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-8">8</label>
+            <input id="fg_nps-9" type="radio" name="nps" class="fg-sr-only" value="9" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-9">9</label>
+            <input id="fg_nps-10" type="radio" name="nps" class="fg-sr-only" value="10" data-fg-path="nps" data-fg-kind="score">
+            <label class="fg-nps-option" for="fg_nps-10">10</label>
+          </div>
+          <div class="fg-nps-ends" aria-hidden="true"><span>Not likely</span><span>Very likely</span></div>
+          <p id="fg_nps-err" class="fg-error" role="alert" hidden></p>
+        </fieldset>
       </div>
       <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <hr class="fg-divider fg-tone-primary">
@@ -18377,6 +18783,10 @@ exports[`html target > snapshot (vanilla) 1`] = `
         var checked = document.querySelector('[data-fg-path="' + path + '"]:checked')
         return checked ? checked.value : null
       }
+      if (kind === 'score') {
+        var picked = document.querySelector('[data-fg-path="' + path + '"]:checked')
+        return picked ? Number(picked.value) : null
+      }
       if (kind === 'multiselect') {
         return Array.prototype.map.call(el.selectedOptions, function (option) { return option.value })
       }
@@ -18458,6 +18868,11 @@ exports[`html target > snapshot (vanilla) 1`] = `
       const v = fgGet("seats")
       if (!fgIsEmpty(v) && ((fgSize(v) ?? -Infinity) < 1)) return "Must be at least 1"
       if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 50)) return "Must be at most 50"
+      return null
+      },
+      'stars': function () {
+      const v = fgGet("stars")
+      if (fgIsBlank(v)) return "This field is required"
       return null
       },
       'zip': function () {
@@ -18650,6 +19065,8 @@ exports[`html target > snapshot (vanilla) 1`] = `
       "seats": function (v) { return fgAnswer(v, ", ") },
       "seat_cost": function (v) { return fgFmt(v, 2) },
       "satisfaction": function (v) { return fgAnswer(v, ", ") },
+      "stars": function (v) { return fgAnswer(v, ", ") },
+      "nps": function (v) { return fgAnswer(v, ", ") },
       "city": function (v) { return fgAnswer(v, ", ") },
       "zip": function (v) { return fgAnswer(v, ", ") },
       "account.username": function (v) { return fgAnswer(v, ", ") },
@@ -19369,6 +19786,8 @@ exports[`html target > snapshot (vanilla) 1`] = `
         "seats": fgGet("seats"),
         "seat_cost": fgGet("seat_cost"),
         "satisfaction": fgGet("satisfaction"),
+        "stars": fgGet("stars"),
+        "nps": fgGet("nps"),
         "city": fgGet("city"),
         "zip": fgGet("zip"),
         "account": {
@@ -20137,7 +20556,7 @@ exports[`html target > snapshot (vanilla) 1`] = `
     // Prefill from the page address: ?field=value fills matching fields (a list
     // takes repeated parameters or one comma-separated value); a hidden field
     // takes its named parameter. After a restored draft: the link wins.
-    var FG_PREFILL = [{ p: "full_name", k: "string" }, { p: "email", k: "string" }, { p: "website", k: "string" }, { p: "seats", k: "number" }, { p: "satisfaction", k: "number" }, { p: "city", k: "string" }, { p: "zip", k: "string" }, { p: "account.username", k: "string" }, { p: "account.bio", k: "string" }, { p: "account.birthday", k: "string" }, { p: "plan", k: "string" }, { p: "interests", k: "list" }, { p: "channels", k: "list" }, { p: "topics", k: "list" }, { p: "billing", k: "string" }, { p: "extras", k: "list" }, { p: "notify", k: "bool" }, { p: "appointment", k: "string" }, { p: "brand_color", k: "string" }, { p: "volume", k: "number" }, { p: "days", k: "list" }, { p: "source", k: "string", q: "utm_source" }, { p: "attachments_note", k: "string" }, { p: "contact_method", k: "string" }, { p: "contact_phone", k: "string" }, { p: "contact_other", k: "string" }, { p: "twitter", k: "string" }, { p: "github", k: "string" }, { p: "shipping_city", k: "string" }, { p: "order_notes", k: "string" }, { p: "newsletter", k: "bool" }, { p: "terms", k: "bool" }]
+    var FG_PREFILL = [{ p: "full_name", k: "string" }, { p: "email", k: "string" }, { p: "website", k: "string" }, { p: "seats", k: "number" }, { p: "satisfaction", k: "number" }, { p: "stars", k: "number" }, { p: "nps", k: "number" }, { p: "city", k: "string" }, { p: "zip", k: "string" }, { p: "account.username", k: "string" }, { p: "account.bio", k: "string" }, { p: "account.birthday", k: "string" }, { p: "plan", k: "string" }, { p: "interests", k: "list" }, { p: "channels", k: "list" }, { p: "topics", k: "list" }, { p: "billing", k: "string" }, { p: "extras", k: "list" }, { p: "notify", k: "bool" }, { p: "appointment", k: "string" }, { p: "brand_color", k: "string" }, { p: "volume", k: "number" }, { p: "days", k: "list" }, { p: "source", k: "string", q: "utm_source" }, { p: "attachments_note", k: "string" }, { p: "contact_method", k: "string" }, { p: "contact_phone", k: "string" }, { p: "contact_other", k: "string" }, { p: "twitter", k: "string" }, { p: "github", k: "string" }, { p: "shipping_city", k: "string" }, { p: "order_notes", k: "string" }, { p: "newsletter", k: "bool" }, { p: "terms", k: "bool" }]
     function fgPrefillValue(kind, raw) {
       var first = raw[0]
       if (first === undefined) return undefined
@@ -20166,9 +20585,9 @@ exports[`html target > snapshot (vanilla) 1`] = `
           if (typeof fgDates !== 'undefined' && fgDates[field.p]) { fgDates[field.p] = value.slice(); fgPaintDates(field.p) }
           return
         }
-        if (kind === 'radio' || kind === 'checks') {
+        if (kind === 'radio' || kind === 'score' || kind === 'checks') {
           Array.prototype.forEach.call(controls, function (input) {
-            input.checked = kind === 'radio' ? input.value === value : value.indexOf(input.value) !== -1
+            input.checked = kind === 'checks' ? value.indexOf(input.value) !== -1 : input.value === String(value)
             changed.push(input)
           })
           return
@@ -21032,6 +21451,8 @@ type FormData = {
   seats: number | null
   seat_cost: number | null
   satisfaction: number
+  stars: number | null
+  nps: number | null
   city: string
   zip: string
   account: {
@@ -21086,6 +21507,8 @@ const INITIAL: FormData = {
   seats: null,
   seat_cost: null,
   satisfaction: 5,
+  stars: null,
+  nps: null,
   city: "",
   zip: "",
   account: {
@@ -21178,6 +21601,8 @@ function fgPrefill(current: FormData): FormData | null {
   { const v = fgQueryString(q, "website"); if (v !== undefined) { next.website = v; changed = true } }
   { const v = fgQueryNumber(q, "seats"); if (v !== undefined) { next.seats = v; changed = true } }
   { const v = fgQueryNumber(q, "satisfaction"); if (v !== undefined) { next.satisfaction = v; changed = true } }
+  { const v = fgQueryNumber(q, "stars"); if (v !== undefined) { next.stars = v; changed = true } }
+  { const v = fgQueryNumber(q, "nps"); if (v !== undefined) { next.nps = v; changed = true } }
   { const v = fgQueryString(q, "city"); if (v !== undefined) { next.city = v; changed = true } }
   { const v = fgQueryString(q, "zip"); if (v !== undefined) { next.zip = v; changed = true } }
   { const v = fgQueryString(q, "account.username"); if (v !== undefined) { next.account.username = v; changed = true } }
@@ -21240,6 +21665,11 @@ const validators: Record<string, (data: FormData) => string | null> = {
   const v = data.seats
   if (!fgIsEmpty(v) && ((fgSize(v) ?? -Infinity) < 1)) return "Must be at least 1"
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 50)) return "Must be at most 50"
+  return null
+  },
+  'stars': function (data: FormData) {
+  const v = data.stars
+  if (fgIsBlank(v)) return "This field is required"
   return null
   },
   'zip': function (data: FormData) {
@@ -21325,6 +21755,8 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "seats": data.seats,
     "seat_cost": data.seat_cost,
     "satisfaction": data.satisfaction,
+    "stars": data.stars,
+    "nps": data.nps,
     "city": data.city,
     "zip": data.zip,
     "account": {
@@ -22103,6 +22535,59 @@ export default function KitchenSinkForm({
             <input id="fg_satisfaction" type="range" value={form.satisfaction} className="form-range" min="0" max="10" step="1" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('satisfaction', Number(e.target.value)); touch('satisfaction') }} />
             <p className="form-text mt-0 mb-0 fg-description">{form.satisfaction}</p>
             {errors['satisfaction'] && <p className="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{errors['satisfaction']}</p>}
+          </div>
+        </div>
+        <div className="col-12 col-md-12">
+          <div className="d-flex flex-column fg-field">
+            <fieldset className="d-flex flex-column fg-field">
+            <legend className="form-label fw-semibold small mb-0 fg-label">Stars<span className="text-danger fg-required" aria-hidden="true">*</span></legend>
+            <div className="fg-rating">
+              <input id="fg_stars-5" type="radio" className="visually-hidden" checked={form.stars === 5} onChange={() => { setField('stars', 5); touch('stars') }} />
+              <label className="fg-rating-star" htmlFor="fg_stars-5"><span className="visually-hidden">5</span></label>
+              <input id="fg_stars-4" type="radio" className="visually-hidden" checked={form.stars === 4} onChange={() => { setField('stars', 4); touch('stars') }} />
+              <label className="fg-rating-star" htmlFor="fg_stars-4"><span className="visually-hidden">4</span></label>
+              <input id="fg_stars-3" type="radio" className="visually-hidden" checked={form.stars === 3} onChange={() => { setField('stars', 3); touch('stars') }} />
+              <label className="fg-rating-star" htmlFor="fg_stars-3"><span className="visually-hidden">3</span></label>
+              <input id="fg_stars-2" type="radio" className="visually-hidden" checked={form.stars === 2} onChange={() => { setField('stars', 2); touch('stars') }} />
+              <label className="fg-rating-star" htmlFor="fg_stars-2"><span className="visually-hidden">2</span></label>
+              <input id="fg_stars-1" type="radio" className="visually-hidden" checked={form.stars === 1} onChange={() => { setField('stars', 1); touch('stars') }} />
+              <label className="fg-rating-star" htmlFor="fg_stars-1"><span className="visually-hidden">1</span></label>
+            </div>
+          </fieldset>
+            {errors['stars'] && <p className="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{errors['stars']}</p>}
+          </div>
+        </div>
+        <div className="col-12 col-md-12">
+          <div className="d-flex flex-column fg-field">
+            <fieldset className="d-flex flex-column fg-field">
+            <legend className="form-label fw-semibold small mb-0 fg-label">How likely are you to recommend us?</legend>
+            <div className="fg-nps">
+              <input id="fg_nps-0" type="radio" className="visually-hidden" checked={form.nps === 0} onChange={() => { setField('nps', 0); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-0">0</label>
+              <input id="fg_nps-1" type="radio" className="visually-hidden" checked={form.nps === 1} onChange={() => { setField('nps', 1); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-1">1</label>
+              <input id="fg_nps-2" type="radio" className="visually-hidden" checked={form.nps === 2} onChange={() => { setField('nps', 2); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-2">2</label>
+              <input id="fg_nps-3" type="radio" className="visually-hidden" checked={form.nps === 3} onChange={() => { setField('nps', 3); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-3">3</label>
+              <input id="fg_nps-4" type="radio" className="visually-hidden" checked={form.nps === 4} onChange={() => { setField('nps', 4); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-4">4</label>
+              <input id="fg_nps-5" type="radio" className="visually-hidden" checked={form.nps === 5} onChange={() => { setField('nps', 5); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-5">5</label>
+              <input id="fg_nps-6" type="radio" className="visually-hidden" checked={form.nps === 6} onChange={() => { setField('nps', 6); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-6">6</label>
+              <input id="fg_nps-7" type="radio" className="visually-hidden" checked={form.nps === 7} onChange={() => { setField('nps', 7); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-7">7</label>
+              <input id="fg_nps-8" type="radio" className="visually-hidden" checked={form.nps === 8} onChange={() => { setField('nps', 8); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-8">8</label>
+              <input id="fg_nps-9" type="radio" className="visually-hidden" checked={form.nps === 9} onChange={() => { setField('nps', 9); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-9">9</label>
+              <input id="fg_nps-10" type="radio" className="visually-hidden" checked={form.nps === 10} onChange={() => { setField('nps', 10); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-10">10</label>
+            </div>
+            <div className="fg-nps-ends" aria-hidden="true"><span>Not likely</span><span>Very likely</span></div>
+          </fieldset>
+            {errors['nps'] && <p className="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{errors['nps']}</p>}
           </div>
         </div>
         <div className="col-12 col-md-12">
@@ -23941,6 +24426,8 @@ type FormData = {
   seats: number | null
   seat_cost: number | null
   satisfaction: number
+  stars: number | null
+  nps: number | null
   city: string
   zip: string
   account: {
@@ -23995,6 +24482,8 @@ const INITIAL: FormData = {
   seats: null,
   seat_cost: null,
   satisfaction: 5,
+  stars: null,
+  nps: null,
   city: "",
   zip: "",
   account: {
@@ -24087,6 +24576,8 @@ function fgPrefill(current: FormData): FormData | null {
   { const v = fgQueryString(q, "website"); if (v !== undefined) { next.website = v; changed = true } }
   { const v = fgQueryNumber(q, "seats"); if (v !== undefined) { next.seats = v; changed = true } }
   { const v = fgQueryNumber(q, "satisfaction"); if (v !== undefined) { next.satisfaction = v; changed = true } }
+  { const v = fgQueryNumber(q, "stars"); if (v !== undefined) { next.stars = v; changed = true } }
+  { const v = fgQueryNumber(q, "nps"); if (v !== undefined) { next.nps = v; changed = true } }
   { const v = fgQueryString(q, "city"); if (v !== undefined) { next.city = v; changed = true } }
   { const v = fgQueryString(q, "zip"); if (v !== undefined) { next.zip = v; changed = true } }
   { const v = fgQueryString(q, "account.username"); if (v !== undefined) { next.account.username = v; changed = true } }
@@ -24149,6 +24640,11 @@ const validators: Record<string, (data: FormData) => string | null> = {
   const v = data.seats
   if (!fgIsEmpty(v) && ((fgSize(v) ?? -Infinity) < 1)) return "Must be at least 1"
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 50)) return "Must be at most 50"
+  return null
+  },
+  'stars': function (data: FormData) {
+  const v = data.stars
+  if (fgIsBlank(v)) return "This field is required"
   return null
   },
   'zip': function (data: FormData) {
@@ -24234,6 +24730,8 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "seats": data.seats,
     "seat_cost": data.seat_cost,
     "satisfaction": data.satisfaction,
+    "stars": data.stars,
+    "nps": data.nps,
     "city": data.city,
     "zip": data.zip,
     "account": {
@@ -25012,6 +25510,59 @@ export default function KitchenSinkForm({
             <input id="fg_satisfaction" type="range" value={form.satisfaction} className="h-6 w-full accent-indigo-600" min="0" max="10" step="1" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('satisfaction', Number(e.target.value)); touch('satisfaction') }} />
             <p className="text-sm text-gray-500 dark:text-gray-400">{form.satisfaction}</p>
             {errors['satisfaction'] && <p className="text-sm text-red-600" role="alert">{errors['satisfaction']}</p>}
+          </div>
+        </div>
+        <div className="col-span-12 md:col-span-12">
+          <div className="flex flex-col gap-1.5 [&>legend]:mb-1.5">
+            <fieldset className="flex flex-col gap-1.5 [&>legend]:mb-1.5">
+            <legend className="text-sm font-semibold">Stars<span className="ms-0.5 text-red-600" aria-hidden="true">*</span></legend>
+            <div className="fg-rating">
+              <input id="fg_stars-5" type="radio" className="sr-only" checked={form.stars === 5} onChange={() => { setField('stars', 5); touch('stars') }} />
+              <label className="fg-rating-star" htmlFor="fg_stars-5"><span className="sr-only">5</span></label>
+              <input id="fg_stars-4" type="radio" className="sr-only" checked={form.stars === 4} onChange={() => { setField('stars', 4); touch('stars') }} />
+              <label className="fg-rating-star" htmlFor="fg_stars-4"><span className="sr-only">4</span></label>
+              <input id="fg_stars-3" type="radio" className="sr-only" checked={form.stars === 3} onChange={() => { setField('stars', 3); touch('stars') }} />
+              <label className="fg-rating-star" htmlFor="fg_stars-3"><span className="sr-only">3</span></label>
+              <input id="fg_stars-2" type="radio" className="sr-only" checked={form.stars === 2} onChange={() => { setField('stars', 2); touch('stars') }} />
+              <label className="fg-rating-star" htmlFor="fg_stars-2"><span className="sr-only">2</span></label>
+              <input id="fg_stars-1" type="radio" className="sr-only" checked={form.stars === 1} onChange={() => { setField('stars', 1); touch('stars') }} />
+              <label className="fg-rating-star" htmlFor="fg_stars-1"><span className="sr-only">1</span></label>
+            </div>
+          </fieldset>
+            {errors['stars'] && <p className="text-sm text-red-600" role="alert">{errors['stars']}</p>}
+          </div>
+        </div>
+        <div className="col-span-12 md:col-span-12">
+          <div className="flex flex-col gap-1.5 [&>legend]:mb-1.5">
+            <fieldset className="flex flex-col gap-1.5 [&>legend]:mb-1.5">
+            <legend className="text-sm font-semibold">How likely are you to recommend us?</legend>
+            <div className="fg-nps">
+              <input id="fg_nps-0" type="radio" className="sr-only" checked={form.nps === 0} onChange={() => { setField('nps', 0); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-0">0</label>
+              <input id="fg_nps-1" type="radio" className="sr-only" checked={form.nps === 1} onChange={() => { setField('nps', 1); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-1">1</label>
+              <input id="fg_nps-2" type="radio" className="sr-only" checked={form.nps === 2} onChange={() => { setField('nps', 2); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-2">2</label>
+              <input id="fg_nps-3" type="radio" className="sr-only" checked={form.nps === 3} onChange={() => { setField('nps', 3); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-3">3</label>
+              <input id="fg_nps-4" type="radio" className="sr-only" checked={form.nps === 4} onChange={() => { setField('nps', 4); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-4">4</label>
+              <input id="fg_nps-5" type="radio" className="sr-only" checked={form.nps === 5} onChange={() => { setField('nps', 5); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-5">5</label>
+              <input id="fg_nps-6" type="radio" className="sr-only" checked={form.nps === 6} onChange={() => { setField('nps', 6); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-6">6</label>
+              <input id="fg_nps-7" type="radio" className="sr-only" checked={form.nps === 7} onChange={() => { setField('nps', 7); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-7">7</label>
+              <input id="fg_nps-8" type="radio" className="sr-only" checked={form.nps === 8} onChange={() => { setField('nps', 8); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-8">8</label>
+              <input id="fg_nps-9" type="radio" className="sr-only" checked={form.nps === 9} onChange={() => { setField('nps', 9); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-9">9</label>
+              <input id="fg_nps-10" type="radio" className="sr-only" checked={form.nps === 10} onChange={() => { setField('nps', 10); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-10">10</label>
+            </div>
+            <div className="fg-nps-ends" aria-hidden="true"><span>Not likely</span><span>Very likely</span></div>
+          </fieldset>
+            {errors['nps'] && <p className="text-sm text-red-600" role="alert">{errors['nps']}</p>}
           </div>
         </div>
         <div className="col-span-12 md:col-span-12">
@@ -26854,6 +27405,8 @@ type FormData = {
   seats: number | null
   seat_cost: number | null
   satisfaction: number
+  stars: number | null
+  nps: number | null
   city: string
   zip: string
   account: {
@@ -26908,6 +27461,8 @@ const INITIAL: FormData = {
   seats: null,
   seat_cost: null,
   satisfaction: 5,
+  stars: null,
+  nps: null,
   city: "",
   zip: "",
   account: {
@@ -27000,6 +27555,8 @@ function fgPrefill(current: FormData): FormData | null {
   { const v = fgQueryString(q, "website"); if (v !== undefined) { next.website = v; changed = true } }
   { const v = fgQueryNumber(q, "seats"); if (v !== undefined) { next.seats = v; changed = true } }
   { const v = fgQueryNumber(q, "satisfaction"); if (v !== undefined) { next.satisfaction = v; changed = true } }
+  { const v = fgQueryNumber(q, "stars"); if (v !== undefined) { next.stars = v; changed = true } }
+  { const v = fgQueryNumber(q, "nps"); if (v !== undefined) { next.nps = v; changed = true } }
   { const v = fgQueryString(q, "city"); if (v !== undefined) { next.city = v; changed = true } }
   { const v = fgQueryString(q, "zip"); if (v !== undefined) { next.zip = v; changed = true } }
   { const v = fgQueryString(q, "account.username"); if (v !== undefined) { next.account.username = v; changed = true } }
@@ -27062,6 +27619,11 @@ const validators: Record<string, (data: FormData) => string | null> = {
   const v = data.seats
   if (!fgIsEmpty(v) && ((fgSize(v) ?? -Infinity) < 1)) return "Must be at least 1"
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 50)) return "Must be at most 50"
+  return null
+  },
+  'stars': function (data: FormData) {
+  const v = data.stars
+  if (fgIsBlank(v)) return "This field is required"
   return null
   },
   'zip': function (data: FormData) {
@@ -27147,6 +27709,8 @@ function buildPayload(data: FormData): Record<string, unknown> {
     "seats": data.seats,
     "seat_cost": data.seat_cost,
     "satisfaction": data.satisfaction,
+    "stars": data.stars,
+    "nps": data.nps,
     "city": data.city,
     "zip": data.zip,
     "account": {
@@ -27925,6 +28489,59 @@ export default function KitchenSinkForm({
             <input id="fg_satisfaction" type="range" value={form.satisfaction} className="fg-range" min="0" max="10" step="1" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setField('satisfaction', Number(e.target.value)); touch('satisfaction') }} />
             <p className="fg-description">{form.satisfaction}</p>
             {errors['satisfaction'] && <p className="fg-error" role="alert">{errors['satisfaction']}</p>}
+          </div>
+        </div>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
+          <div className="fg-field">
+            <fieldset className="fg-field">
+            <legend className="fg-label">Stars<span className="fg-required" aria-hidden="true">*</span></legend>
+            <div className="fg-rating">
+              <input id="fg_stars-5" type="radio" className="fg-sr-only" checked={form.stars === 5} onChange={() => { setField('stars', 5); touch('stars') }} />
+              <label className="fg-rating-star" htmlFor="fg_stars-5"><span className="fg-sr-only">5</span></label>
+              <input id="fg_stars-4" type="radio" className="fg-sr-only" checked={form.stars === 4} onChange={() => { setField('stars', 4); touch('stars') }} />
+              <label className="fg-rating-star" htmlFor="fg_stars-4"><span className="fg-sr-only">4</span></label>
+              <input id="fg_stars-3" type="radio" className="fg-sr-only" checked={form.stars === 3} onChange={() => { setField('stars', 3); touch('stars') }} />
+              <label className="fg-rating-star" htmlFor="fg_stars-3"><span className="fg-sr-only">3</span></label>
+              <input id="fg_stars-2" type="radio" className="fg-sr-only" checked={form.stars === 2} onChange={() => { setField('stars', 2); touch('stars') }} />
+              <label className="fg-rating-star" htmlFor="fg_stars-2"><span className="fg-sr-only">2</span></label>
+              <input id="fg_stars-1" type="radio" className="fg-sr-only" checked={form.stars === 1} onChange={() => { setField('stars', 1); touch('stars') }} />
+              <label className="fg-rating-star" htmlFor="fg_stars-1"><span className="fg-sr-only">1</span></label>
+            </div>
+          </fieldset>
+            {errors['stars'] && <p className="fg-error" role="alert">{errors['stars']}</p>}
+          </div>
+        </div>
+        <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
+          <div className="fg-field">
+            <fieldset className="fg-field">
+            <legend className="fg-label">How likely are you to recommend us?</legend>
+            <div className="fg-nps">
+              <input id="fg_nps-0" type="radio" className="fg-sr-only" checked={form.nps === 0} onChange={() => { setField('nps', 0); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-0">0</label>
+              <input id="fg_nps-1" type="radio" className="fg-sr-only" checked={form.nps === 1} onChange={() => { setField('nps', 1); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-1">1</label>
+              <input id="fg_nps-2" type="radio" className="fg-sr-only" checked={form.nps === 2} onChange={() => { setField('nps', 2); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-2">2</label>
+              <input id="fg_nps-3" type="radio" className="fg-sr-only" checked={form.nps === 3} onChange={() => { setField('nps', 3); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-3">3</label>
+              <input id="fg_nps-4" type="radio" className="fg-sr-only" checked={form.nps === 4} onChange={() => { setField('nps', 4); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-4">4</label>
+              <input id="fg_nps-5" type="radio" className="fg-sr-only" checked={form.nps === 5} onChange={() => { setField('nps', 5); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-5">5</label>
+              <input id="fg_nps-6" type="radio" className="fg-sr-only" checked={form.nps === 6} onChange={() => { setField('nps', 6); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-6">6</label>
+              <input id="fg_nps-7" type="radio" className="fg-sr-only" checked={form.nps === 7} onChange={() => { setField('nps', 7); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-7">7</label>
+              <input id="fg_nps-8" type="radio" className="fg-sr-only" checked={form.nps === 8} onChange={() => { setField('nps', 8); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-8">8</label>
+              <input id="fg_nps-9" type="radio" className="fg-sr-only" checked={form.nps === 9} onChange={() => { setField('nps', 9); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-9">9</label>
+              <input id="fg_nps-10" type="radio" className="fg-sr-only" checked={form.nps === 10} onChange={() => { setField('nps', 10); touch('nps') }} />
+              <label className="fg-nps-option" htmlFor="fg_nps-10">10</label>
+            </div>
+            <div className="fg-nps-ends" aria-hidden="true"><span>Not likely</span><span>Very likely</span></div>
+          </fieldset>
+            {errors['nps'] && <p className="fg-error" role="alert">{errors['nps']}</p>}
           </div>
         </div>
         <div className="fg-cell" style={{ '--fg-span': '12', '--fg-span-sm': '12', '--fg-span-lg': '12' } as React.CSSProperties}>
@@ -28996,6 +29613,8 @@ type FormData = {
   seats: number | null
   seat_cost: number | null
   satisfaction: number
+  stars: number | null
+  nps: number | null
   city: string
   zip: string
   account: {
@@ -29050,6 +29669,8 @@ const form = reactive<FormData>({
   seats: null,
   seat_cost: null,
   satisfaction: 5,
+  stars: null,
+  nps: null,
   city: "",
   zip: "",
   account: {
@@ -29345,6 +29966,8 @@ onMounted(() => {
   { const v = fgQueryString(q, "website"); if (v !== undefined) form.website = v }
   { const v = fgQueryNumber(q, "seats"); if (v !== undefined) form.seats = v }
   { const v = fgQueryNumber(q, "satisfaction"); if (v !== undefined) form.satisfaction = v }
+  { const v = fgQueryNumber(q, "stars"); if (v !== undefined) form.stars = v }
+  { const v = fgQueryNumber(q, "nps"); if (v !== undefined) form.nps = v }
   { const v = fgQueryString(q, "city"); if (v !== undefined) form.city = v }
   { const v = fgQueryString(q, "zip"); if (v !== undefined) form.zip = v }
   { const v = fgQueryString(q, "account.username"); if (v !== undefined) form.account.username = v }
@@ -30123,6 +30746,11 @@ const validators: Record<string, () => string | null> = {
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 50)) return "Must be at most 50"
   return null
   },
+  'stars': function () {
+  const v = form.stars
+  if (fgIsBlank(v)) return "This field is required"
+  return null
+  },
   'zip': function () {
   const v = form.zip
   if (!fgIsEmpty(v) && ((typeof v !== 'string' || !new RegExp("^[0-9]{4,6}$").test(v)))) return "Invalid format"
@@ -30573,6 +31201,8 @@ function fgReset(): void {
     seats: null,
     seat_cost: null,
     satisfaction: 5,
+    stars: null,
+    nps: null,
     city: "",
     zip: "",
     account: {
@@ -30648,6 +31278,8 @@ function buildPayload(): Record<string, unknown> {
     "seats": form.seats,
     "seat_cost": form.seat_cost,
     "satisfaction": form.satisfaction,
+    "stars": form.stars,
+    "nps": form.nps,
     "city": form.city,
     "zip": form.zip,
     "account": {
@@ -30791,6 +31423,55 @@ async function onSubmit(): Promise<void> {
           <p class="form-text mt-0 mb-0 fg-description">{{ form.satisfaction }}</p>
           <p v-if="errors['satisfaction']" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{{ errors['satisfaction'] }}</p>
         </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <fieldset class="d-flex flex-column fg-field">
+          <legend class="form-label fw-semibold small mb-0 fg-label">Stars<span class="text-danger fg-required" aria-hidden="true">*</span></legend>
+          <div class="fg-rating">
+            <input id="fg_stars-5" v-model="form.stars" type="radio" class="visually-hidden" :value="5" @change="touch('stars')">
+            <label class="fg-rating-star" for="fg_stars-5"><span class="visually-hidden">5</span></label>
+            <input id="fg_stars-4" v-model="form.stars" type="radio" class="visually-hidden" :value="4" @change="touch('stars')">
+            <label class="fg-rating-star" for="fg_stars-4"><span class="visually-hidden">4</span></label>
+            <input id="fg_stars-3" v-model="form.stars" type="radio" class="visually-hidden" :value="3" @change="touch('stars')">
+            <label class="fg-rating-star" for="fg_stars-3"><span class="visually-hidden">3</span></label>
+            <input id="fg_stars-2" v-model="form.stars" type="radio" class="visually-hidden" :value="2" @change="touch('stars')">
+            <label class="fg-rating-star" for="fg_stars-2"><span class="visually-hidden">2</span></label>
+            <input id="fg_stars-1" v-model="form.stars" type="radio" class="visually-hidden" :value="1" @change="touch('stars')">
+            <label class="fg-rating-star" for="fg_stars-1"><span class="visually-hidden">1</span></label>
+          </div>
+          <p v-if="errors['stars']" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{{ errors['stars'] }}</p>
+        </fieldset>
+      </div>
+      <div class="col-12 col-md-12">
+        <fieldset class="d-flex flex-column fg-field">
+          <legend class="form-label fw-semibold small mb-0 fg-label">How likely are you to recommend us?</legend>
+          <div class="fg-nps">
+            <input id="fg_nps-0" v-model="form.nps" type="radio" class="visually-hidden" :value="0" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-0">0</label>
+            <input id="fg_nps-1" v-model="form.nps" type="radio" class="visually-hidden" :value="1" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-1">1</label>
+            <input id="fg_nps-2" v-model="form.nps" type="radio" class="visually-hidden" :value="2" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-2">2</label>
+            <input id="fg_nps-3" v-model="form.nps" type="radio" class="visually-hidden" :value="3" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-3">3</label>
+            <input id="fg_nps-4" v-model="form.nps" type="radio" class="visually-hidden" :value="4" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-4">4</label>
+            <input id="fg_nps-5" v-model="form.nps" type="radio" class="visually-hidden" :value="5" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-5">5</label>
+            <input id="fg_nps-6" v-model="form.nps" type="radio" class="visually-hidden" :value="6" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-6">6</label>
+            <input id="fg_nps-7" v-model="form.nps" type="radio" class="visually-hidden" :value="7" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-7">7</label>
+            <input id="fg_nps-8" v-model="form.nps" type="radio" class="visually-hidden" :value="8" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-8">8</label>
+            <input id="fg_nps-9" v-model="form.nps" type="radio" class="visually-hidden" :value="9" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-9">9</label>
+            <input id="fg_nps-10" v-model="form.nps" type="radio" class="visually-hidden" :value="10" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-10">10</label>
+          </div>
+          <div class="fg-nps-ends" aria-hidden="true"><span>Not likely</span><span>Very likely</span></div>
+          <p v-if="errors['nps']" class="invalid-feedback d-block mt-0 mb-0 fg-error" role="alert">{{ errors['nps'] }}</p>
+        </fieldset>
       </div>
       <div class="col-12 col-md-12">
         <hr class="border-top my-1 border-primary opacity-100">
@@ -31855,6 +32536,18 @@ h6.fg-heading { font-size: 0.875rem; }
 .fg-dual input[type='range']:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
 .fg-dual input[type='range']:focus-visible::-moz-range-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
 
+/* Scores: a star rating and an NPS scale, radios underneath (phase 45) */
+.fg-rating { display: inline-flex; flex-direction: row-reverse; gap: 0.125rem; }
+.fg-rating-star { cursor: pointer; font-size: 1.75rem; line-height: 1; color: var(--fg-color-border); transition: color 0.1s; }
+.fg-rating-star::before { content: '\\2605'; }
+.fg-rating input:checked ~ .fg-rating-star, .fg-rating-star:hover, .fg-rating-star:hover ~ .fg-rating-star { color: #f59e0b; }
+.fg-rating input:focus-visible + .fg-rating-star { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; border-radius: 4px; }
+.fg-nps { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.fg-nps-option { min-inline-size: 2.25rem; padding: 0.375rem 0; text-align: center; font-size: 0.875rem; line-height: 1.25rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); cursor: pointer; }
+.fg-nps input:checked + .fg-nps-option { background: var(--fg-color-primary); color: var(--fg-color-primary-contrast); border-color: var(--fg-color-primary); }
+.fg-nps input:focus-visible + .fg-nps-option { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; }
+.fg-nps-ends { display: flex; justify-content: space-between; font-size: 0.875rem; line-height: 1.25rem; color: var(--fg-color-muted); }
+
 /* Rich text editors */
 .fg-richtext-editor { min-height: 6rem; padding: 0.5rem 0.75rem; outline: none; overflow-wrap: anywhere; }
 .fg-richtext-editor p { margin-bottom: 0.5rem; }
@@ -31927,6 +32620,8 @@ type FormData = {
   seats: number | null
   seat_cost: number | null
   satisfaction: number
+  stars: number | null
+  nps: number | null
   city: string
   zip: string
   account: {
@@ -31981,6 +32676,8 @@ const form = reactive<FormData>({
   seats: null,
   seat_cost: null,
   satisfaction: 5,
+  stars: null,
+  nps: null,
   city: "",
   zip: "",
   account: {
@@ -32276,6 +32973,8 @@ onMounted(() => {
   { const v = fgQueryString(q, "website"); if (v !== undefined) form.website = v }
   { const v = fgQueryNumber(q, "seats"); if (v !== undefined) form.seats = v }
   { const v = fgQueryNumber(q, "satisfaction"); if (v !== undefined) form.satisfaction = v }
+  { const v = fgQueryNumber(q, "stars"); if (v !== undefined) form.stars = v }
+  { const v = fgQueryNumber(q, "nps"); if (v !== undefined) form.nps = v }
   { const v = fgQueryString(q, "city"); if (v !== undefined) form.city = v }
   { const v = fgQueryString(q, "zip"); if (v !== undefined) form.zip = v }
   { const v = fgQueryString(q, "account.username"); if (v !== undefined) form.account.username = v }
@@ -33054,6 +33753,11 @@ const validators: Record<string, () => string | null> = {
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 50)) return "Must be at most 50"
   return null
   },
+  'stars': function () {
+  const v = form.stars
+  if (fgIsBlank(v)) return "This field is required"
+  return null
+  },
   'zip': function () {
   const v = form.zip
   if (!fgIsEmpty(v) && ((typeof v !== 'string' || !new RegExp("^[0-9]{4,6}$").test(v)))) return "Invalid format"
@@ -33504,6 +34208,8 @@ function fgReset(): void {
     seats: null,
     seat_cost: null,
     satisfaction: 5,
+    stars: null,
+    nps: null,
     city: "",
     zip: "",
     account: {
@@ -33579,6 +34285,8 @@ function buildPayload(): Record<string, unknown> {
     "seats": form.seats,
     "seat_cost": form.seat_cost,
     "satisfaction": form.satisfaction,
+    "stars": form.stars,
+    "nps": form.nps,
     "city": form.city,
     "zip": form.zip,
     "account": {
@@ -33722,6 +34430,55 @@ async function onSubmit(): Promise<void> {
           <p class="text-sm text-gray-500 dark:text-gray-400">{{ form.satisfaction }}</p>
           <p v-if="errors['satisfaction']" class="text-sm text-red-600" role="alert">{{ errors['satisfaction'] }}</p>
         </div>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <fieldset class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
+          <legend class="text-sm font-semibold">Stars<span class="ms-0.5 text-red-600" aria-hidden="true">*</span></legend>
+          <div class="fg-rating">
+            <input id="fg_stars-5" v-model="form.stars" type="radio" class="sr-only" :value="5" @change="touch('stars')">
+            <label class="fg-rating-star" for="fg_stars-5"><span class="sr-only">5</span></label>
+            <input id="fg_stars-4" v-model="form.stars" type="radio" class="sr-only" :value="4" @change="touch('stars')">
+            <label class="fg-rating-star" for="fg_stars-4"><span class="sr-only">4</span></label>
+            <input id="fg_stars-3" v-model="form.stars" type="radio" class="sr-only" :value="3" @change="touch('stars')">
+            <label class="fg-rating-star" for="fg_stars-3"><span class="sr-only">3</span></label>
+            <input id="fg_stars-2" v-model="form.stars" type="radio" class="sr-only" :value="2" @change="touch('stars')">
+            <label class="fg-rating-star" for="fg_stars-2"><span class="sr-only">2</span></label>
+            <input id="fg_stars-1" v-model="form.stars" type="radio" class="sr-only" :value="1" @change="touch('stars')">
+            <label class="fg-rating-star" for="fg_stars-1"><span class="sr-only">1</span></label>
+          </div>
+          <p v-if="errors['stars']" class="text-sm text-red-600" role="alert">{{ errors['stars'] }}</p>
+        </fieldset>
+      </div>
+      <div class="col-span-12 md:col-span-12">
+        <fieldset class="flex flex-col gap-1.5 [&>legend]:mb-1.5">
+          <legend class="text-sm font-semibold">How likely are you to recommend us?</legend>
+          <div class="fg-nps">
+            <input id="fg_nps-0" v-model="form.nps" type="radio" class="sr-only" :value="0" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-0">0</label>
+            <input id="fg_nps-1" v-model="form.nps" type="radio" class="sr-only" :value="1" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-1">1</label>
+            <input id="fg_nps-2" v-model="form.nps" type="radio" class="sr-only" :value="2" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-2">2</label>
+            <input id="fg_nps-3" v-model="form.nps" type="radio" class="sr-only" :value="3" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-3">3</label>
+            <input id="fg_nps-4" v-model="form.nps" type="radio" class="sr-only" :value="4" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-4">4</label>
+            <input id="fg_nps-5" v-model="form.nps" type="radio" class="sr-only" :value="5" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-5">5</label>
+            <input id="fg_nps-6" v-model="form.nps" type="radio" class="sr-only" :value="6" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-6">6</label>
+            <input id="fg_nps-7" v-model="form.nps" type="radio" class="sr-only" :value="7" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-7">7</label>
+            <input id="fg_nps-8" v-model="form.nps" type="radio" class="sr-only" :value="8" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-8">8</label>
+            <input id="fg_nps-9" v-model="form.nps" type="radio" class="sr-only" :value="9" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-9">9</label>
+            <input id="fg_nps-10" v-model="form.nps" type="radio" class="sr-only" :value="10" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-10">10</label>
+          </div>
+          <div class="fg-nps-ends" aria-hidden="true"><span>Not likely</span><span>Very likely</span></div>
+          <p v-if="errors['nps']" class="text-sm text-red-600" role="alert">{{ errors['nps'] }}</p>
+        </fieldset>
       </div>
       <div class="col-span-12 md:col-span-12">
         <hr class="my-1 border-t border-indigo-500">
@@ -34756,6 +35513,18 @@ async function onSubmit(): Promise<void> {
 .fg-dual input[type='range']:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
 .fg-dual input[type='range']:focus-visible::-moz-range-thumb { outline: 2px solid var(--fg-color-primary, var(--bs-primary, #4f46e5)); outline-offset: 2px; }
 
+/* Scores: a star rating and an NPS scale, radios underneath (phase 45) */
+.fg-rating { display: inline-flex; flex-direction: row-reverse; gap: 0.125rem; }
+.fg-rating-star { cursor: pointer; font-size: 1.75rem; line-height: 1; color: var(--fg-color-border); transition: color 0.1s; }
+.fg-rating-star::before { content: '\\2605'; }
+.fg-rating input:checked ~ .fg-rating-star, .fg-rating-star:hover, .fg-rating-star:hover ~ .fg-rating-star { color: #f59e0b; }
+.fg-rating input:focus-visible + .fg-rating-star { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; border-radius: 4px; }
+.fg-nps { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.fg-nps-option { min-inline-size: 2.25rem; padding: 0.375rem 0; text-align: center; font-size: 0.875rem; line-height: 1.25rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); cursor: pointer; }
+.fg-nps input:checked + .fg-nps-option { background: var(--fg-color-primary); color: var(--fg-color-primary-contrast); border-color: var(--fg-color-primary); }
+.fg-nps input:focus-visible + .fg-nps-option { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; }
+.fg-nps-ends { display: flex; justify-content: space-between; font-size: 0.875rem; line-height: 1.25rem; color: var(--fg-color-muted); }
+
 /* Help tooltips */
 .fg-label-row { display: flex; align-items: center; gap: 0.375rem; }
 /* The bubble anchors to the row holding the tip (label row, checkbox row or
@@ -34803,6 +35572,8 @@ type FormData = {
   seats: number | null
   seat_cost: number | null
   satisfaction: number
+  stars: number | null
+  nps: number | null
   city: string
   zip: string
   account: {
@@ -34857,6 +35628,8 @@ const form = reactive<FormData>({
   seats: null,
   seat_cost: null,
   satisfaction: 5,
+  stars: null,
+  nps: null,
   city: "",
   zip: "",
   account: {
@@ -35152,6 +35925,8 @@ onMounted(() => {
   { const v = fgQueryString(q, "website"); if (v !== undefined) form.website = v }
   { const v = fgQueryNumber(q, "seats"); if (v !== undefined) form.seats = v }
   { const v = fgQueryNumber(q, "satisfaction"); if (v !== undefined) form.satisfaction = v }
+  { const v = fgQueryNumber(q, "stars"); if (v !== undefined) form.stars = v }
+  { const v = fgQueryNumber(q, "nps"); if (v !== undefined) form.nps = v }
   { const v = fgQueryString(q, "city"); if (v !== undefined) form.city = v }
   { const v = fgQueryString(q, "zip"); if (v !== undefined) form.zip = v }
   { const v = fgQueryString(q, "account.username"); if (v !== undefined) form.account.username = v }
@@ -35930,6 +36705,11 @@ const validators: Record<string, () => string | null> = {
   if (!fgIsEmpty(v) && ((fgSize(v) ?? Infinity) > 50)) return "Must be at most 50"
   return null
   },
+  'stars': function () {
+  const v = form.stars
+  if (fgIsBlank(v)) return "This field is required"
+  return null
+  },
   'zip': function () {
   const v = form.zip
   if (!fgIsEmpty(v) && ((typeof v !== 'string' || !new RegExp("^[0-9]{4,6}$").test(v)))) return "Invalid format"
@@ -36380,6 +37160,8 @@ function fgReset(): void {
     seats: null,
     seat_cost: null,
     satisfaction: 5,
+    stars: null,
+    nps: null,
     city: "",
     zip: "",
     account: {
@@ -36455,6 +37237,8 @@ function buildPayload(): Record<string, unknown> {
     "seats": form.seats,
     "seat_cost": form.seat_cost,
     "satisfaction": form.satisfaction,
+    "stars": form.stars,
+    "nps": form.nps,
     "city": form.city,
     "zip": form.zip,
     "account": {
@@ -36598,6 +37382,55 @@ async function onSubmit(): Promise<void> {
           <p class="fg-description">{{ form.satisfaction }}</p>
           <p v-if="errors['satisfaction']" class="fg-error" role="alert">{{ errors['satisfaction'] }}</p>
         </div>
+      </div>
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
+        <fieldset class="fg-field">
+          <legend class="fg-label">Stars<span class="fg-required" aria-hidden="true">*</span></legend>
+          <div class="fg-rating">
+            <input id="fg_stars-5" v-model="form.stars" type="radio" class="fg-sr-only" :value="5" @change="touch('stars')">
+            <label class="fg-rating-star" for="fg_stars-5"><span class="fg-sr-only">5</span></label>
+            <input id="fg_stars-4" v-model="form.stars" type="radio" class="fg-sr-only" :value="4" @change="touch('stars')">
+            <label class="fg-rating-star" for="fg_stars-4"><span class="fg-sr-only">4</span></label>
+            <input id="fg_stars-3" v-model="form.stars" type="radio" class="fg-sr-only" :value="3" @change="touch('stars')">
+            <label class="fg-rating-star" for="fg_stars-3"><span class="fg-sr-only">3</span></label>
+            <input id="fg_stars-2" v-model="form.stars" type="radio" class="fg-sr-only" :value="2" @change="touch('stars')">
+            <label class="fg-rating-star" for="fg_stars-2"><span class="fg-sr-only">2</span></label>
+            <input id="fg_stars-1" v-model="form.stars" type="radio" class="fg-sr-only" :value="1" @change="touch('stars')">
+            <label class="fg-rating-star" for="fg_stars-1"><span class="fg-sr-only">1</span></label>
+          </div>
+          <p v-if="errors['stars']" class="fg-error" role="alert">{{ errors['stars'] }}</p>
+        </fieldset>
+      </div>
+      <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
+        <fieldset class="fg-field">
+          <legend class="fg-label">How likely are you to recommend us?</legend>
+          <div class="fg-nps">
+            <input id="fg_nps-0" v-model="form.nps" type="radio" class="fg-sr-only" :value="0" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-0">0</label>
+            <input id="fg_nps-1" v-model="form.nps" type="radio" class="fg-sr-only" :value="1" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-1">1</label>
+            <input id="fg_nps-2" v-model="form.nps" type="radio" class="fg-sr-only" :value="2" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-2">2</label>
+            <input id="fg_nps-3" v-model="form.nps" type="radio" class="fg-sr-only" :value="3" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-3">3</label>
+            <input id="fg_nps-4" v-model="form.nps" type="radio" class="fg-sr-only" :value="4" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-4">4</label>
+            <input id="fg_nps-5" v-model="form.nps" type="radio" class="fg-sr-only" :value="5" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-5">5</label>
+            <input id="fg_nps-6" v-model="form.nps" type="radio" class="fg-sr-only" :value="6" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-6">6</label>
+            <input id="fg_nps-7" v-model="form.nps" type="radio" class="fg-sr-only" :value="7" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-7">7</label>
+            <input id="fg_nps-8" v-model="form.nps" type="radio" class="fg-sr-only" :value="8" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-8">8</label>
+            <input id="fg_nps-9" v-model="form.nps" type="radio" class="fg-sr-only" :value="9" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-9">9</label>
+            <input id="fg_nps-10" v-model="form.nps" type="radio" class="fg-sr-only" :value="10" @change="touch('nps')">
+            <label class="fg-nps-option" for="fg_nps-10">10</label>
+          </div>
+          <div class="fg-nps-ends" aria-hidden="true"><span>Not likely</span><span>Very likely</span></div>
+          <p v-if="errors['nps']" class="fg-error" role="alert">{{ errors['nps'] }}</p>
+        </fieldset>
       </div>
       <div class="fg-cell" style="--fg-span: 12; --fg-span-sm: 12; --fg-span-lg: 12">
         <hr class="fg-divider fg-tone-primary">
@@ -37875,6 +38708,17 @@ fieldset.fg-field > legend { padding: 0; margin-block-end: 0.375rem; }
 [dir='rtl'] .fg-floating > :focus ~ .fg-floating-label, [dir='rtl'] .fg-floating > :not(:placeholder-shown) ~ .fg-floating-label, [dir='rtl'] .fg-floating > select ~ .fg-floating-label { transform: scale(0.85) translateY(-0.5rem) translateX(-0.15rem); }
 .fg-floating > :focus ~ .fg-floating-label { color: var(--fg-color-primary); }
 .fg-floating > :not(:focus)::placeholder { color: transparent; }
+/* Scores: a star rating and an NPS scale, radios underneath (phase 45) */
+.fg-rating { display: inline-flex; flex-direction: row-reverse; gap: 0.125rem; }
+.fg-rating-star { cursor: pointer; font-size: 1.75rem; line-height: 1; color: var(--fg-color-border); transition: color 0.1s; }
+.fg-rating-star::before { content: '\\2605'; }
+.fg-rating input:checked ~ .fg-rating-star, .fg-rating-star:hover, .fg-rating-star:hover ~ .fg-rating-star { color: #f59e0b; }
+.fg-rating input:focus-visible + .fg-rating-star { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; border-radius: 4px; }
+.fg-nps { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.fg-nps-option { min-inline-size: 2.25rem; padding: 0.375rem 0; text-align: center; font-size: 0.875rem; line-height: 1.25rem; border: 1px solid var(--fg-color-border); border-radius: var(--fg-radius); cursor: pointer; }
+.fg-nps input:checked + .fg-nps-option { background: var(--fg-color-primary); color: var(--fg-color-primary-contrast); border-color: var(--fg-color-primary); }
+.fg-nps input:focus-visible + .fg-nps-option { outline: 2px solid var(--fg-color-primary); outline-offset: 2px; }
+.fg-nps-ends { display: flex; justify-content: space-between; font-size: 0.875rem; line-height: 1.25rem; color: var(--fg-color-muted); }
 @media (prefers-color-scheme: dark) {
   .fg-form:not([data-fg-theme='light']) {
     --fg-color-bg: #0f172a; --fg-color-surface: #1e293b; --fg-color-text: #e2e8f0;

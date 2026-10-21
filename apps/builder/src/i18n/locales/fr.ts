@@ -262,6 +262,10 @@ export const catalog: Record<string, string> = {
   'element.toggle.description': 'Bouton marche/arrêt',
   'element.checkboxgroup.label': 'Cases à cocher',
   'element.checkboxgroup.description': 'Choisir autant d’options que voulu',
+  'element.rating.label': 'Note en étoiles',
+  'element.rating.description': 'Choisir un nombre d’étoiles',
+  'element.nps.label': 'Score de recommandation',
+  'element.nps.description': 'Échelle de 0 à 10 (NPS)',
   'element.range.label': 'Curseur',
   'element.range.description': 'Curseur de valeur (horizontal ou vertical)',
   'element.rangeslider.label': 'Curseur d’intervalle',
@@ -319,6 +323,11 @@ export const catalog: Record<string, string> = {
 }
 
 export const phrases: Record<string, string> = {
+  'Number of stars': 'Nombre d’étoiles',
+  'Label at the low end': 'Texte au bas de l’échelle',
+  'Label at the high end': 'Texte en haut de l’échelle',
+  'Not likely': 'Peu probable',
+  'Very likely': 'Très probable',
   'URL parameter': 'Paramètre d’adresse',
   'e.g. utm_source': 'p. ex. utm_source',
   Properties: 'Propriétés',

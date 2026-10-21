@@ -257,15 +257,20 @@ function feedback(lang: TemplateLocale): FormSchema {
       },
     },
     {
+      id: 'tpl-fb-stars',
+      type: 'rating',
+      name: 'overall',
+      props: { label: L(tx('Overall, how was it?', 'بشكل عام، كيف كانت التجربة؟')), max: 5 },
+      validation: [{ rule: 'required' }],
+    },
+    {
       id: 'tpl-fb-recommend',
-      type: 'range',
+      type: 'nps',
       name: 'recommend',
       props: {
-        label: L(tx('How likely are you to recommend us? (0–10)', 'ما مدى احتمال أن توصي بنا؟ (0–10)')),
-        min: 0,
-        max: 10,
-        step: 1,
-        default: 8,
+        label: L(tx('How likely are you to recommend us?', 'ما مدى احتمال أن توصي بنا؟')),
+        lowLabel: L(tx('Not at all likely', 'غير محتمل إطلاقًا')),
+        highLabel: L(tx('Extremely likely', 'محتمل جدًا')),
       },
     },
     {
