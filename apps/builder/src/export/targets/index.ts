@@ -3,6 +3,7 @@ import { htmlTarget } from './html'
 import { jsonTarget } from './json'
 import { reactTarget } from './react'
 import type { ExportTarget } from './types'
+import { validationTarget } from './validation'
 import { vueLibTarget } from './vue-lib'
 import { vueStandaloneTarget } from './vue-standalone'
 
@@ -30,6 +31,7 @@ for (const target of [
   reactTarget,
   blazorTarget,
   htmlTarget,
+  validationTarget,
 ]) {
   registerTarget(target)
 }

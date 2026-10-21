@@ -645,6 +645,8 @@ const arText: Record<string, string> = {
   'Simple formatting: **bold**, *italics*, [link](https://…), - lists': 'تنسيق بسيط: **غامق**، *مائل*، [رابط](https://…)، - قوائم',
   // export dialog
   'JSON schema': 'مخطط JSON',
+  'Validation (zod + JSON Schema)': 'التحقق (zod + JSON Schema)',
+  'The form’s rules for your server: a zod schema for Node and TypeScript, and a JSON Schema for any language.': 'قواعد النموذج لخادمك: مخطط zod لـ Node وTypeScript، ومخطط JSON Schema لأي لغة.',
   'Vue (renderer package)': 'Vue (حزمة العارض)',
   'Vue (standalone)': 'Vue (مستقل)',
   'React (standalone)': 'React (مستقل)',
