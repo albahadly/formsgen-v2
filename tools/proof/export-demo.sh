@@ -3,7 +3,8 @@
 #
 # Writes the 12 exports of a form schema (html, react, vue-standalone, blazor
 # x vanilla, tailwind, bootstrap5) into <outdir>, named
-# "<framework>-<target>-<file>", exactly as the builder would generate them.
+# "<framework>-<target>-<file>", exactly as the builder would generate them,
+# plus the server-side rules as "validation-<file>" (zod + JSON Schema).
 # The exports are produced by the builder's own target code, run through a
 # throw-away vitest test so the builder's module aliases and TypeScript
 # transforms apply without a separate build. The schema is copied to
@@ -45,6 +46,8 @@ it('dump', () => {
   for (const fw of ['vanilla', 'tailwind', 'bootstrap5'] as CssFrameworkId[])
     for (const t of ['html', 'react', 'vue-standalone', 'blazor'])
       for (const f of getTarget(t)!.generate({ schema: r.schema, css: getCssAdapter(fw) })) writeFileSync(process.env.FG_PROOF_OUT + '/' + fw + '-' + t + '-' + f.path, f.content)
+  // The server-side rules (not framework-aware): validation-<file>, for server-validate.mjs.
+  for (const f of getTarget('validation')!.generate({ schema: r.schema, css: getCssAdapter('vanilla') })) writeFileSync(process.env.FG_PROOF_OUT + '/validation-' + f.path, f.content)
 })
 TS
 

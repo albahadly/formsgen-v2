@@ -130,6 +130,17 @@ as a share of its own grid on the canvas and in the preview. It prints the
 counts per template and device, `mismatches` (empty when the two agree
 within 2.5%) and page `errors`, and exits 1 when either is not empty.
 
+The server-side rules a form exports (the "Validation" target) are proven
+against what the runtimes actually sent: after a matrix run,
+
+```sh
+node tools/proof/server-validate.mjs tools/proof/work/<demo> <submissions-dir>
+```
+
+picks the stored submissions that belong to the form and validates each with
+the exported zod schema and JSON Schema; it prints the counts and any
+failure and exits 1 when one fails or none matched.
+
 The builder has its own light/dark theme (ADR-0005):
 
 ```sh
@@ -175,6 +186,7 @@ pnpm@10` function), a `python3` that is the Store stub (falls back to
 - `builder-check.mjs` — the builder's browser check.
 - `canvas-parity.mjs` — the design canvas lays every template out like the preview.
 - `theme-shots.mjs` — the builder in light and dark, every view and dialog.
+- `server-validate.mjs` — the "Validation" export (zod + JSON Schema) run against the submissions the sample server stored.
 - `work/` — outputs, logs, pids, screenshots (ignored).
 
 ## Adding a demo for a new feature
